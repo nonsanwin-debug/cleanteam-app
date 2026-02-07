@@ -18,7 +18,7 @@ export default function Home() {
 
         <div className="grid md:grid-cols-2 gap-6 mt-12 w-full max-w-2xl mx-auto">
           {/* Admin Card */}
-          <Link href="/auth/login?role=admin" className="block h-full">
+          <Link href="/auth/admin-login" className="block h-full">
             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-t-4 border-t-slate-800">
               <CardHeader>
                 <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -38,7 +38,7 @@ export default function Home() {
           </Link>
 
           {/* Worker Card */}
-          <Link href="/auth/login?role=worker" className="block h-full">
+          <Link href="/auth/login" className="block h-full">
             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-t-4 border-t-blue-600">
               <CardHeader>
                 <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">

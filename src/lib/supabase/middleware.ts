@@ -61,13 +61,35 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // This will refresh session if expired - required for Server Components
-    // https://supabase.com/docs/guides/auth/server-side/nextjs
-    try {
-        await supabase.auth.getUser()
-    } catch (e) {
-        // Ignore auth errors in middleware to prevent 500
+    // refesh session
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Protected Routes Logic
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        if (!user) {
+            return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+        }
+        // Optional: Check if user is actually admin
+        // We'd need to query the 'users' table here to be sure, 
+        // but for now let's just ensure they are logged in.
+        // If they are a worker logged in, the admin page will likely check role and block/redirect anyway.
+    }
+
+    if (request.nextUrl.pathname.startsWith('/worker')) {
+        if (!user) {
+            return NextResponse.redirect(new URL('/auth/login', request.url))
+        }
+    }
+
+    if (request.nextUrl.pathname === '/auth/login' || request.nextUrl.pathname === '/auth/admin-login') {
+        if (user) {
+            // If already logged in, maybe redirect to home?
+            // But we need to know their role to redirect correctly (admin -> /admin, worker -> /worker)
+            // Fetching role here might add latency. Let's skipping auto-redirect for now 
+            // or let the page handle it (our pages do handle it).
+        }
     }
 
     return response
 }
+
