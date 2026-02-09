@@ -10,12 +10,34 @@ import {
 } from "@/components/ui/sheet"
 
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
+import { createClient } from '@/lib/supabase/server'
 
-export default function AdminLayout({
+export default async function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    // Get user info
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let userName = '관리자'
+    let companyName = ''
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('name, company_id, companies(name)')
+            .eq('id', user.id)
+            .single()
+
+        if (profile) {
+            userName = profile.name || '관리자'
+            // @ts-ignore - companies is a single object, not an array
+            companyName = profile.companies?.name || ''
+        }
+    }
+
     const NavLinks = () => (
         <nav className="flex-1 space-y-1">
             <Link href="/admin/dashboard">
@@ -64,6 +86,12 @@ export default function AdminLayout({
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
                     <h1 className="text-xl font-bold text-slate-800">Clean Admin</h1>
+                    <div className="mt-3 space-y-1">
+                        <p className="text-sm font-semibold text-primary">{userName}님 반갑습니다</p>
+                        {companyName && (
+                            <p className="text-xs text-slate-500">{companyName}</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="p-4 flex-1">
@@ -83,7 +111,10 @@ export default function AdminLayout({
             {/* Main Content */}
             <main className="flex-1 overflow-auto">
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:hidden">
-                    <h1 className="text-lg font-bold">Clean Admin</h1>
+                    <div>
+                        <h1 className="text-lg font-bold">Clean Admin</h1>
+                        <p className="text-xs text-primary">{userName}님</p>
+                    </div>
 
                     {/* Mobile Menu */}
                     <Sheet>
@@ -95,6 +126,12 @@ export default function AdminLayout({
                         <SheetContent side="left" className="w-[80%] sm:w-[385px] p-0">
                             <SheetHeader className="p-6 border-b">
                                 <SheetTitle className="text-left text-xl font-bold">Clean Admin</SheetTitle>
+                                <div className="mt-2 space-y-1 text-left">
+                                    <p className="text-sm font-semibold text-primary">{userName}님 반갑습니다</p>
+                                    {companyName && (
+                                        <p className="text-xs text-slate-500">{companyName}</p>
+                                    )}
+                                </div>
                             </SheetHeader>
                             <div className="flex flex-col h-full">
                                 <div className="p-4 flex-1">
