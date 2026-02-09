@@ -15,7 +15,7 @@ export default function AdminRegisterPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
-        email: '',
+        username: '',
         password: '',
         name: '',
         companyName: '',
@@ -33,9 +33,10 @@ export default function AdminRegisterPage() {
         try {
             const supabase = createClient()
 
-            // 1. Sign Up
+            // 1. Sign Up (generate email from username)
+            const generatedEmail = `${formData.username}@cleanteam.local`
             const { data, error: signUpError } = await supabase.auth.signUp({
-                email: formData.email,
+                email: generatedEmail,
                 password: formData.password,
                 options: {
                     data: {
@@ -83,13 +84,13 @@ export default function AdminRegisterPage() {
                 <CardContent>
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
-                            <Label htmlFor="email">이메일</Label>
+                            <Label htmlFor="username">아이디</Label>
                             <Input
-                                id="email"
-                                name="email"
-                                type="email"
+                                id="username"
+                                name="username"
+                                type="text"
                                 required
-                                placeholder="name@company.com"
+                                placeholder="admin123"
                                 onChange={handleChange}
                             />
                         </div>

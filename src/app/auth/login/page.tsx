@@ -75,7 +75,7 @@ export default function LoginPage() {
         const role = 'worker' // Always worker here
 
         // 아이디를 이메일 형식으로 변환
-        const email = `${username}@cleanteam.app`
+        const email = `${username}@cleanteam.local`
 
         try {
             // SIGN IN LOGIC

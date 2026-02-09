@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
         const formData = new FormData(e.currentTarget)
         const username = formData.get('username') as string
         const password = formData.get('password') as string
-        const email = `${username}@cleanteam.app`
+        const email = `${username}@cleanteam.local`
 
         try {
             console.log('🔐 관리자 로그인 시도:', { username, email });
