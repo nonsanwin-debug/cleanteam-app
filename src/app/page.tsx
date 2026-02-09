@@ -53,6 +53,7 @@ export default function Home() {
     const username = formData.get('username') as string
     const password = formData.get('password') as string
     const name = formData.get('name') as string // Only for signup
+    const companyName = formData.get('companyName') as string // Only for signup
     const role = 'worker' // Always worker here for main page
 
     const email = `${username}@cleanteam.app`
@@ -67,7 +68,8 @@ export default function Home() {
             data: {
               name: name || '현장팀장',
               role: 'worker',
-              username: username
+              username: username,
+              company_name: companyName
             },
             emailRedirectTo: undefined
           }
@@ -215,6 +217,10 @@ export default function Home() {
                   <div className="space-y-2">
                     <Label htmlFor="name">이름</Label>
                     <Input id="name" name="name" placeholder="홍길동" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">소속 업체명</Label>
+                    <Input id="companyName" name="companyName" placeholder="예: 더클린" required />
                   </div>
                 )}
                 <div className="space-y-2">
