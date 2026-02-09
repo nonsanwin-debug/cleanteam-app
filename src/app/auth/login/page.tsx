@@ -15,7 +15,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export default function LoginPage() {
     const [isMounted, setIsMounted] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
     // Initialize Supabase client only on the client side
