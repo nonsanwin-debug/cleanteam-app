@@ -89,6 +89,18 @@ export async function createSite(formData: CreateSiteDTO) {
 
     // Wrap in try-catch to prevent 500 errors on the client
     try {
+        // Get current user and their company_id
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            throw new Error('인증된 사용자가 아닙니다.')
+        }
+
+        const { data: userData } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
         // Fetch worker name/phone if worker_id is present
         let workerName = null
         let workerPhone = null
@@ -110,6 +122,7 @@ export async function createSite(formData: CreateSiteDTO) {
                     worker_name: workerName,
                     worker_phone: workerPhone,
                     status: formData.status || 'scheduled',
+                    company_id: userData?.company_id, // Add company_id for RLS
                     // New Fields
                     customer_name: formData.customer_name,
                     customer_phone: formData.customer_phone,
