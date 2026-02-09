@@ -21,8 +21,7 @@ export default async function AdminLayout({
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    let userName = '관리자'
-    let companyName = ''
+    let displayName = '관리자'
 
     if (user) {
         const { data: profile } = await supabase
@@ -32,9 +31,8 @@ export default async function AdminLayout({
             .single()
 
         if (profile) {
-            userName = profile.name || '관리자'
             // @ts-ignore - companies is a single object, not an array
-            companyName = profile.companies?.name || ''
+            displayName = profile.companies?.name || profile.name || '관리자'
         }
     }
 
@@ -87,10 +85,7 @@ export default async function AdminLayout({
                 <div className="p-6 border-b border-slate-100">
                     <h1 className="text-xl font-bold text-slate-800">Clean Admin</h1>
                     <div className="mt-3 space-y-1">
-                        <p className="text-sm font-semibold text-primary">{userName}님 반갑습니다</p>
-                        {companyName && (
-                            <p className="text-xs text-slate-500">{companyName}</p>
-                        )}
+                        <p className="text-sm font-semibold text-primary">{displayName}님 반갑습니다</p>
                     </div>
                 </div>
 
@@ -113,7 +108,7 @@ export default async function AdminLayout({
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:hidden">
                     <div>
                         <h1 className="text-lg font-bold">Clean Admin</h1>
-                        <p className="text-xs text-primary">{userName}님</p>
+                        <p className="text-xs text-primary">{displayName}님</p>
                     </div>
 
                     {/* Mobile Menu */}
@@ -127,10 +122,7 @@ export default async function AdminLayout({
                             <SheetHeader className="p-6 border-b">
                                 <SheetTitle className="text-left text-xl font-bold">Clean Admin</SheetTitle>
                                 <div className="mt-2 space-y-1 text-left">
-                                    <p className="text-sm font-semibold text-primary">{userName}님 반갑습니다</p>
-                                    {companyName && (
-                                        <p className="text-xs text-slate-500">{companyName}</p>
-                                    )}
+                                    <p className="text-sm font-semibold text-primary">{displayName}님 반갑습니다</p>
                                 </div>
                             </SheetHeader>
                             <div className="flex flex-col h-full">
