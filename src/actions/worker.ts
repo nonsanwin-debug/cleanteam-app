@@ -103,12 +103,19 @@ export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
         const fileName = `${siteId}/${type}/${uuidv4()}-${file.name}`
 
         // 1. Upload to Storage
+        const fileBuffer = await file.arrayBuffer()
         const { error: uploadError } = await supabase
             .storage
             .from('site-photos')
-            .upload(fileName, file)
+            .upload(fileName, fileBuffer, {
+                contentType: file.type,
+                upsert: true
+            })
 
-        if (uploadError) return { success: false, error: uploadError.message }
+        if (uploadError) {
+            console.error('Upload error:', uploadError)
+            return { success: false, error: uploadError.message }
+        }
 
         // 2. Get Public URL
         const { data: { publicUrl } } = supabase
