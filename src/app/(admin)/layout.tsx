@@ -24,15 +24,26 @@ export default async function AdminLayout({
     let displayName = '관리자'
 
     if (user) {
+        // First, get user profile with company_id
         const { data: profile } = await supabase
             .from('users')
-            .select('name, company_id, companies(name)')
+            .select('name, company_id')
             .eq('id', user.id)
             .single()
 
         if (profile) {
-            // @ts-ignore - companies is a single object, not an array
-            displayName = profile.companies?.name || profile.name || '관리자'
+            // If user has a company_id, fetch the company name
+            if (profile.company_id) {
+                const { data: company } = await supabase
+                    .from('companies')
+                    .select('name')
+                    .eq('id', profile.company_id)
+                    .single()
+
+                displayName = company?.name || profile.name || '관리자'
+            } else {
+                displayName = profile.name || '관리자'
+            }
         }
     }
 
