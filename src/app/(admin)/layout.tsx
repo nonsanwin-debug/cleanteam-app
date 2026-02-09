@@ -190,7 +190,7 @@ export default async function AdminLayout({
                                 {JSON.stringify(
                                     user ? (
                                         (await supabase.from('users').select('company_id').eq('id', user.id).single()).data?.company_id
-                                            ? (await supabase.from('companies').select('name').eq('id', (await supabase.from('users').select('company_id').eq('id', user.id).single()).data.company_id).single())
+                                            ? (await supabase.from('companies').select('name').eq('id', (await supabase.from('users').select('company_id').eq('id', user.id).single()).data?.company_id).single())
                                             : { message: "No company_id" }
                                     ) : { message: "No user" }
                                     , null, 2)}
