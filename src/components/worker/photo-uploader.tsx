@@ -241,13 +241,28 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false }: Phot
                                     className="relative aspect-square rounded-lg overflow-hidden border bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity group"
                                     onClick={() => setSelectedPhotoIndex(index)}
                                 >
-                                    <Image
+                                    {/* Debugging: Use standard img tag to bypass Next.js Image Optimization */}
+                                    <img
+                                        src={photo.url}
+                                        alt="Work photo"
+                                        className="object-cover w-full h-full"
+                                    />
+                                    {/* <Image
                                         src={photo.url}
                                         alt="Work photo"
                                         fill
                                         className="object-cover"
                                         sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
-                                    />
+                                    /> */}
+                                    <a
+                                        href={photo.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded z-10 hover:bg-black/70"
+                                    >
+                                        Raw
+                                    </a>
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
                                         <ZoomIn className="text-white opacity-0 group-hover:opacity-100 w-6 h-6" />
                                     </div>
