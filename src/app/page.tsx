@@ -202,13 +202,13 @@ export default function Home() {
         {/* Right Side: Login Form */}
         <div className="w-full max-w-md mx-auto md:mx-0">
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
-            <CardHeader className="text-center bg-red-100 border-b-4 border-red-500">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-500">
-                <HardHat className="w-6 h-6 text-red-600" />
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <HardHat className="w-6 h-6 text-blue-600" />
               </div>
-              <CardTitle className="text-2xl text-red-700 font-bold">🛠️ 배포 확인용 (빨간색)</CardTitle>
-              <CardDescription className="text-red-600 font-semibold">
-                {isSignUp ? '새 계정 만들기 (업체명 입력 필수)' : '작업 시작, 사진 촬영, 체크리스트 제출'}
+              <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
+              <CardDescription>
+                {isSignUp ? '새 계정 만들기' : '작업 시작, 사진 촬영, 체크리스트 제출'}
               </CardDescription>
             </CardHeader>
             <CardContent>
