@@ -114,9 +114,9 @@ export async function createSite(formData: CreateSiteDTO) {
                 residential_type: formData.residential_type,
                 area_size: formData.area_size,
                 structure_type: formData.structure_type,
-                cleaning_date: formData.cleaning_date,
-                start_time: formData.start_time,
-                special_notes: formData.special_notes
+                cleaning_date: formData.cleaning_date || null,
+                start_time: formData.start_time || null,
+                special_notes: formData.special_notes || null
             }
         ])
 
