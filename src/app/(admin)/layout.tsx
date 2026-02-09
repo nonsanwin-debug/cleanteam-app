@@ -24,27 +24,40 @@ export default async function AdminLayout({
     let displayName = '관리자'
 
     if (user) {
+        console.log('🔍 User ID:', user.id)
+
         // First, get user profile with company_id
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
             .from('users')
             .select('name, company_id')
             .eq('id', user.id)
             .single()
 
+        console.log('🔍 Profile:', profile)
+        console.log('🔍 Profile Error:', profileError)
+
         if (profile) {
             // If user has a company_id, fetch the company name
             if (profile.company_id) {
-                const { data: company } = await supabase
+                console.log('🔍 Company ID:', profile.company_id)
+
+                const { data: company, error: companyError } = await supabase
                     .from('companies')
                     .select('name')
                     .eq('id', profile.company_id)
                     .single()
 
+                console.log('🔍 Company:', company)
+                console.log('🔍 Company Error:', companyError)
+
                 displayName = company?.name || profile.name || '관리자'
             } else {
+                console.log('🔍 No company_id found')
                 displayName = profile.name || '관리자'
             }
         }
+
+        console.log('🔍 Final displayName:', displayName)
     }
 
     const NavLinks = () => (
