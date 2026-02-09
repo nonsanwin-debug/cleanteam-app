@@ -208,33 +208,6 @@ export function SiteDialog({
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="address"
-                                render={({ field }) => (
-                                    <FormItem className="col-span-2">
-                                        <FormLabel>주소</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="상세 주소를 입력하세요" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem className="col-span-2">
-                                        <FormLabel>현장명</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="예: 강남 자이 101-1004" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
                             {/* Custom Date Picker */}
                             <FormField
                                 control={form.control}
@@ -379,6 +352,34 @@ export function SiteDialog({
                                             {/* Hidden input to ensure form validation works if needed, though redundant with controlled component */}
                                             <input type="hidden" {...field} />
                                         </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>현장명</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="예: 강남 자이 101-1004" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>주소</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="상세 주소를 입력하세요" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
