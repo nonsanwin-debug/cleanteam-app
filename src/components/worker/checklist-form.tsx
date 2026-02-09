@@ -99,14 +99,21 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
             try {
                 const textArea = document.createElement("textarea")
                 textArea.value = link
-                textArea.style.position = "fixed" // Avoid scrolling to bottom
-                textArea.style.left = "-9999px"
+
+                // Prevent scrolling by fixing position to top-left
+                textArea.style.position = "fixed"
+                textArea.style.left = "0"
+                textArea.style.top = "0"
+                textArea.style.opacity = "0"
+
                 document.body.appendChild(textArea)
-                textArea.focus()
+                textArea.focus({ preventScroll: true })
                 textArea.select()
-                document.execCommand('copy')
+
+                const successful = document.execCommand('copy')
                 document.body.removeChild(textArea)
-                copied = true
+
+                if (successful) copied = true
             } catch (err) {
                 console.error('Copy failed', err)
             }

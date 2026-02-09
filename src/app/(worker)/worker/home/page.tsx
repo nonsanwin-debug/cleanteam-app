@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { getAssignedSites, startWork } from '@/actions/worker'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapPin, PlayCircle, CheckCircle2, Clock } from 'lucide-react'
+import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -21,10 +22,6 @@ export default function WorkerHomePage() {
     const [loading, setLoading] = useState(true)
     const [processingId, setProcessingId] = useState<string | null>(null)
 
-    useEffect(() => {
-        loadSites()
-    }, [])
-
     async function loadSites() {
         try {
             const data = await getAssignedSites()
@@ -35,6 +32,40 @@ export default function WorkerHomePage() {
             setLoading(false)
         }
     }
+
+    useEffect(() => {
+        loadSites()
+
+        const supabase = createClient()
+        const channel = supabase
+            .channel('worker_home_sites')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'sites'
+                },
+                (payload) => {
+                    console.log('Realtime update:', payload)
+                    loadSites()
+                    router.refresh()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [])
+
+    // Polling fallback
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            loadSites()
+        }, 5000)
+        return () => clearInterval(intervalId)
+    }, [])
 
     async function handleStartWork(siteId: string) {
         if (!confirm('작업을 시작하시겠습니까? (상태가 "진행 중"으로 변경됩니다)')) return
@@ -75,6 +106,10 @@ export default function WorkerHomePage() {
                 <div>
                     <h2 className="text-lg font-bold">작업 관리</h2>
                 </div>
+                <Button variant="outline" size="sm" onClick={loadSites} disabled={loading}>
+                    <RefreshCcw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                    새로고침
+                </Button>
             </div>
 
             <Tabs defaultValue="active" className="w-full">

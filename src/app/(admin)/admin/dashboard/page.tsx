@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Building, ClipboardCheck, AlertCircle, Clock, CheckCircle2, PlayCircle, Image as ImageIcon } from "lucide-react"
 
 function calculateDuration(start?: string, end?: string) {
-    if (!start) return null
+    if (!start) return "알 수 없음"
     const startDate = new Date(start)
     const endDate = end ? new Date(end) : new Date()
 
@@ -102,9 +102,7 @@ export default async function AdminDashboard() {
                                     // Use completed_at or updated_at as fallback. If both missing, show "Unknown" to avoid eternal ticking.
                                     const completionTime = isComplete ? (site.completed_at || site.updated_at) : undefined
 
-                                    const duration = (isComplete && !completionTime)
-                                        ? "알 수 없음"
-                                        : calculateDuration(site.started_at, completionTime)
+                                    const duration = calculateDuration(site.started_at, completionTime)
 
                                     return (
                                         <div key={site.id} className="flex flex-col sm:flex-row items-start sm:justify-between p-3 sm:p-4 border rounded-lg bg-white shadow-sm gap-3 sm:gap-0">
@@ -133,7 +131,7 @@ export default async function AdminDashboard() {
                                                     <div className="space-y-0.5 sm:space-y-1 w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:justify-end gap-2 sm:gap-0">
                                                         <div className="text-xs text-slate-600">
                                                             <span className="sm:hidden mr-1 text-slate-400">시작</span>
-                                                            <span className="font-medium">{formatTime(site.started_at)}</span>
+                                                            <span className="font-medium">{site.started_at ? formatTime(site.started_at) : '-'}</span>
                                                             <span className="hidden sm:inline"> 작업시작</span>
                                                         </div>
                                                         <div className="text-xs text-slate-600">

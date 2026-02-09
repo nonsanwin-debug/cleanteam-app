@@ -28,9 +28,10 @@ const DEFAULT_TEMPLATE = {
 
 interface CustomerChecklistProps {
     siteId: string
+    onSuccess?: () => void
 }
 
-export function CustomerChecklist({ siteId }: CustomerChecklistProps) {
+export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -143,6 +144,12 @@ export function CustomerChecklist({ siteId }: CustomerChecklistProps) {
             setSubmitted(true)
             toast.success('확인서가 제출되었습니다.')
             router.refresh()
+            if (onSuccess) onSuccess()
+
+            // Force redirect to landing page
+            setTimeout(() => {
+                window.location.href = 'https://cleanteam-app.vercel.app/'
+            }, 1000)
         } catch (error) {
             console.error('Checklist Submission Error:', error)
             toast.error('제출 실패', {

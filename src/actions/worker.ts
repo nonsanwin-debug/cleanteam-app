@@ -1,16 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
 
 import { ActionResponse, AssignedSite, SitePhoto } from '@/types'
 
 
 export async function getAssignedSites(): Promise<AssignedSite[]> {
+    noStore() // Opt out of static caching
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
+
+        // console.log('getAssignedSites user:', user?.id) // Debug log
 
         if (!user) return []
 
@@ -52,8 +55,8 @@ export async function startWork(siteId: string, location: string): Promise<Actio
             return { success: false, error: error.message || '작업 시작 처리에 실패했습니다.' }
         }
 
-        // revalidatePath('/worker/home')
-        // revalidatePath('/admin/dashboard') 
+        revalidatePath('/worker/home')
+        revalidatePath('/admin/dashboard')
         return { success: true }
     } catch (error) {
         console.error('Unexpected error in startWork:', error)

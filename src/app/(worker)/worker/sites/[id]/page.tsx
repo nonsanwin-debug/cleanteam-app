@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSiteDetails, getSitePhotos } from '@/actions/worker'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -25,10 +26,34 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const router = useRouter()
 
     useEffect(() => {
+        let channel: any = null
+        const supabase = createClient()
+
         const fetchSiteData = async () => {
             try {
                 const resolvedParams = await params
                 const siteId = resolvedParams.id
+
+                // Setup Realtime if not already set
+                if (!channel) {
+                    channel = supabase
+                        .channel(`site_detail_${siteId}`)
+                        .on(
+                            'postgres_changes',
+                            {
+                                event: '*',
+                                schema: 'public',
+                                table: 'sites',
+                                filter: `id=eq.${siteId}`
+                            },
+                            (payload) => {
+                                console.log('Realtime update:', payload)
+                                fetchSiteData() // Re-fetch
+                                router.refresh()
+                            }
+                        )
+                        .subscribe()
+                }
 
                 // 1. Fetch Site Details
                 const siteResponse = await getSiteDetails(siteId)
@@ -53,6 +78,10 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         }
 
         fetchSiteData()
+
+        return () => {
+            if (channel) supabase.removeChannel(channel)
+        }
     }, [params])
 
     const handleTriggerCopy = () => {
@@ -67,16 +96,18 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 const textArea = document.createElement("textarea")
                 textArea.value = link
                 textArea.style.position = "fixed"
-                textArea.style.left = "-9999px"
+                textArea.style.left = "0"
+                textArea.style.top = "0"
+                textArea.style.opacity = "0"
                 document.body.appendChild(textArea)
-                textArea.focus()
+                textArea.focus({ preventScroll: true })
                 textArea.select()
                 document.execCommand('copy')
                 document.body.removeChild(textArea)
-                toast.success('링크가 복사되었습니다. (저장되지 않음)')
+                toast.success('링크가 복사되었습니다.')
             } catch (err) {
                 navigator.clipboard.writeText(link).then(() => {
-                    toast.success('링크가 복사되었습니다. (저장되지 않음)')
+                    toast.success('링크가 복사되었습니다.')
                 }).catch(() => {
                     toast.error('복사 실패')
                 })

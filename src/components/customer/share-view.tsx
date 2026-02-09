@@ -14,41 +14,41 @@ export function ShareView({ siteId }: { siteId: string }) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const supabase = createBrowserClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                )
+    const fetchData = async () => {
+        try {
+            const supabase = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            )
 
-                // Fetch Site
-                const { data: siteData, error: siteError } = await supabase
-                    .from('sites')
-                    .select('*')
-                    .eq('id', siteId)
-                    .single()
+            // Fetch Site
+            const { data: siteData, error: siteError } = await supabase
+                .from('sites')
+                .select('*')
+                .eq('id', siteId)
+                .single()
 
-                if (siteError) throw siteError
-                setSite(siteData)
+            if (siteError) throw siteError
+            setSite(siteData)
 
-                // Fetch Photos
-                const { data: photosData } = await supabase
-                    .from('photos')
-                    .select('*')
-                    .eq('site_id', siteId)
-                    .order('created_at', { ascending: true })
+            // Fetch Photos
+            const { data: photosData } = await supabase
+                .from('photos')
+                .select('*')
+                .eq('site_id', siteId)
+                .order('created_at', { ascending: true })
 
-                setPhotos(photosData || [])
+            setPhotos(photosData || [])
 
-            } catch (err: any) {
-                console.error(err)
-                setError(err.message)
-            } finally {
-                setLoading(false)
-            }
+        } catch (err: any) {
+            console.error(err)
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
+    }
 
+    useEffect(() => {
         fetchData()
     }, [siteId])
 
@@ -138,7 +138,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <CustomerChecklist siteId={site.id} />
+                            <CustomerChecklist siteId={site.id} onSuccess={fetchData} />
                         )}
                     </div>
                 </section>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MoreHorizontal, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,6 +31,7 @@ interface SiteActionsProps {
 }
 
 export function SiteActions({ site, workers }: SiteActionsProps) {
+    const router = useRouter()
     const [showDeleteAlert, setShowDeleteAlert] = useState(false)
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -38,12 +40,24 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     async function handleDelete() {
         setIsDeleting(true)
         try {
-            await deleteSite(site.id)
+            const result = await deleteSite(site.id)
+
+            if (!result.success) {
+                toast.error(result.error || '삭제에 실패했습니다.')
+                return
+            }
+
             toast.success('현장이 삭제되었습니다.')
             setShowDeleteAlert(false)
             setOpen(false)
+            router.refresh()
+
+            // Force hard reload if router.refresh() is not enough
+            setTimeout(() => {
+                window.location.reload()
+            }, 500)
         } catch (error) {
-            toast.error('삭제에 실패했습니다.')
+            toast.error('삭제 중 오류가 발생했습니다.')
             console.error(error)
         } finally {
             setIsDeleting(false)
