@@ -214,14 +214,16 @@ export default function Home() {
             <CardContent>
               <form onSubmit={handleAuth} className="space-y-4">
                 {isSignUp && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">이름</Label>
-                    <Input id="name" name="name" placeholder="홍길동" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">소속 업체명</Label>
-                    <Input id="companyName" name="companyName" placeholder="예: 더클린" required />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">이름</Label>
+                      <Input id="name" name="name" placeholder="홍길동" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName">소속 업체명</Label>
+                      <Input id="companyName" name="companyName" placeholder="예: 더클린" required />
+                    </div>
+                  </>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="username">아이디</Label>
