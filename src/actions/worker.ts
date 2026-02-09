@@ -4,125 +4,404 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
 
-export type AssignedSite = {
-    id: string
-    name: string
-    address: string
-    status: 'scheduled' | 'in_progress' | 'completed'
-    created_at: string
-    // New Fields
-    customer_name?: string
-    customer_phone?: string
-    residential_type?: string
-    area_size?: string
-    structure_type?: string
-    cleaning_date?: string
-    start_time?: string
-    special_notes?: string
-}
+import { ActionResponse, AssignedSite, SitePhoto } from '@/types'
 
-export async function getAssignedSites() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return []
+export async function getAssignedSites(): Promise<AssignedSite[]> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-    const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .or(`worker_id.eq.${user.id},worker_id.is.null`) // For demo purposed allow unassigned view or explicit
-        .eq('worker_id', user.id) // Strict: only assigned
-        .neq('status', 'completed')
-        .order('created_at', { ascending: true })
+        if (!user) return []
 
-    if (error) {
-        console.error('Error fetching assigned sites:', error)
+        const { data, error } = await supabase
+            .from('sites')
+            .select('*')
+            .or(`worker_id.eq.${user.id},worker_id.is.null`) // For demo purposed allow unassigned view or explicit
+            .eq('worker_id', user.id) // Strict: only assigned
+            .order('created_at', { ascending: true })
+
+        if (error) {
+            console.error('Error fetching assigned sites:', error)
+            return []
+        }
+
+        return data as AssignedSite[]
+    } catch (error) {
+        console.error('Unexpected error in getAssignedSites:', error)
         return []
     }
-
-    return data as AssignedSite[]
 }
 
-export async function startWork(siteId: string, location: string) {
-    const supabase = await createClient()
+export async function startWork(siteId: string, location: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
 
-    // 1. Update site status
-    const { error } = await supabase
-        .from('sites')
-        .update({ status: 'in_progress' })
-        .eq('id', siteId)
+        // Direct update to bypass RPC/DB function issues (updated_at missing column error)
+        // We only update fields that definitely exist
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                status: 'in_progress',
+                started_at: new Date().toISOString()
+            } as any) // Cast to any to avoid type errors if types are not perfectly synced
+            .eq('id', siteId)
 
-    if (error) throw new Error(error.message)
+        if (error) {
+            console.error('startWork error:', error)
+            return { success: false, error: error.message || '작업 시작 처리에 실패했습니다.' }
+        }
 
-    // 2. Log start time/location (Optional: could be in 'checklist_submissions' or separate log)
-    // For MVP, we assume 'in_progress' status is enough.
-
-    revalidatePath('/worker/home')
-    return { success: true }
-}
-
-export async function uploadPhoto(formData: FormData) {
-    const supabase = await createClient()
-    const file = formData.get('file') as File
-    const siteId = formData.get('siteId') as string
-    const type = formData.get('type') as 'before' | 'during' | 'after'
-
-    if (!file || !siteId || !type) {
-        throw new Error('Missing required fields')
+        // revalidatePath('/worker/home')
+        // revalidatePath('/admin/dashboard') 
+        return { success: true }
+    } catch (error) {
+        console.error('Unexpected error in startWork:', error)
+        return { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.' }
     }
-
-    const fileName = `${siteId}/${type}/${uuidv4()}-${file.name}`
-
-    // 1. Upload to Storage
-    const { data: uploadData, error: uploadError } = await supabase
-        .storage
-        .from('site-photos')
-        .upload(fileName, file)
-
-    if (uploadError) throw new Error(uploadError.message)
-
-    // 2. Get Public URL
-    const { data: { publicUrl } } = supabase
-        .storage
-        .from('site-photos')
-        .getPublicUrl(fileName)
-
-    // 3. Insert into Photos table
-    const { error: dbError } = await supabase
-        .from('photos')
-        .insert([
-            {
-                site_id: siteId,
-                url: publicUrl,
-                type: type
-            }
-        ])
-
-    if (dbError) throw new Error(dbError.message)
-
-    revalidatePath(`/worker/sites/${siteId}`)
-    return { success: true, publicUrl }
 }
 
-export async function getSiteDetails(id: string) {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('id', id)
-        .single()
+export async function completeWork(siteId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
 
-    if (error) return null;
-    return data as AssignedSite;
+        // Direct update to bypass RPC/DB function issues
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            } as any)
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('completeWork error:', error)
+            return { success: false, error: error.message || '작업 완료 처리에 실패했습니다.' }
+        }
+
+        revalidatePath('/worker/home')
+        revalidatePath(`/worker/sites/${siteId}`)
+        revalidatePath('/admin/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error('Unexpected error in completeWork:', error)
+        return { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.' }
+    }
 }
 
-export async function getSitePhotos(id: string) {
-    const supabase = await createClient()
-    const { data } = await supabase
-        .from('photos')
-        .select('*')
-        .eq('site_id', id)
-        .order('created_at', { ascending: true })
+export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const file = formData.get('file') as File
+        const siteId = formData.get('siteId') as string
+        const type = formData.get('type') as 'before' | 'during' | 'after' | 'special'
 
-    return data || []
+        if (!file || !siteId || !type) {
+            return { success: false, error: '필수 항목이 누락되었습니다.' }
+        }
+
+        const fileName = `${siteId}/${type}/${uuidv4()}-${file.name}`
+
+        // 1. Upload to Storage
+        const { error: uploadError } = await supabase
+            .storage
+            .from('site-photos')
+            .upload(fileName, file)
+
+        if (uploadError) return { success: false, error: uploadError.message }
+
+        // 2. Get Public URL
+        const { data: { publicUrl } } = supabase
+            .storage
+            .from('site-photos')
+            .getPublicUrl(fileName)
+
+        // 3. Insert into Photos table
+        const { error: dbError } = await supabase
+            .from('photos')
+            .insert([
+                {
+                    site_id: siteId,
+                    url: publicUrl,
+                    type: type
+                }
+            ])
+
+        if (dbError) return { success: false, error: dbError.message }
+
+        revalidatePath(`/worker/sites/${siteId}`)
+        return { success: true, data: { publicUrl } }
+    } catch (error) {
+        console.error('Unexpected error in uploadPhoto:', error)
+        return { success: false, error: error instanceof Error ? error.message : '사진 업로드 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function getSiteDetails(id: string): Promise<ActionResponse<AssignedSite>> {
+    try {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+            .from('sites')
+            .select('*')
+            .eq('id', id)
+            .single()
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: data as AssignedSite };
+    } catch (error) {
+        console.error('getSiteDetails error:', error)
+        return { success: false, error: '현장 정보를 불러오는 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function getSitePhotos(id: string): Promise<ActionResponse<SitePhoto[]>> {
+    try {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+            .from('photos')
+            .select('*')
+            .eq('site_id', id)
+            .order('created_at', { ascending: true })
+
+        if (error) return { success: false, error: error.message }
+        return { success: true, data: (data || []) as SitePhoto[] }
+    } catch (error) {
+        console.error('getSitePhotos error:', error)
+        return { success: false, error: '사진 정보를 불러오는 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function deletePhoto(photoId: string, photoUrl: string, siteId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        // 1. Delete from Storage
+        // Extract file path from URL
+        // URL format: .../storage/v1/object/public/site-photos/siteId/type/filename
+        const urlParts = photoUrl.split('/site-photos/')
+        if (urlParts.length !== 2) {
+            return { success: false, error: '잘못된 이미지 URL입니다.' }
+        }
+        const filePath = urlParts[1]
+
+        const { error: storageError } = await supabase
+            .storage
+            .from('site-photos')
+            .remove([filePath])
+
+        if (storageError) {
+            console.error('Storage delete error:', storageError)
+            // Continue to delete from DB even if storage fails (orphan cleanup) or return error?
+            // Safer to return error, or specific warning. For now, log and proceed?
+            // Actually, if storage delete fails, better stop.
+            return { success: false, error: '이미지 파일 삭제에 실패했습니다.' }
+        }
+
+        // 2. Delete from DB
+        const { error: dbError } = await supabase
+            .from('photos')
+            .delete()
+            .eq('id', photoId)
+
+        if (dbError) {
+            return { success: false, error: dbError.message }
+        }
+
+        // 3. Revalidate
+        // Need siteId to revalidate. Since function params don't have it, we could fetch it first or revalidate global/generic paths.
+        // Or we can return success and let client handle UI update, but revalidatePath is good.
+        // We can fetch siteId from the deleted row if we did delete... but we deleted it.
+        // Actually, we can get site_id before delete.
+
+        // Optimization: Pass siteId from client if possible, or trigger a broad revalidation.
+        // For now, let's just return success so client refreshes.
+
+        return { success: true }
+    } catch (error) {
+        console.error('deletePhoto error:', error)
+        return { success: false, error: '사진 삭제 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function getWorkerProfile() {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) return null
+
+        const { data: profile, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single()
+
+        if (error) {
+            console.error('Error fetching worker profile:', error)
+            return null
+        }
+
+        return profile
+    } catch (error) {
+        console.error('Unexpected error in getWorkerProfile:', error)
+        return null
+    }
+}
+
+export async function updateWorkerProfile(phone: string, accountInfo?: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 1. Update User Profile
+        const updateData: any = { phone }
+        if (typeof accountInfo !== 'undefined') {
+            updateData.account_info = accountInfo
+        }
+
+        const { error: userError } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', user.id)
+
+        if (userError) {
+            console.error('Error updating user profile:', userError)
+            return { success: false, error: '프로필 업데이트에 실패했습니다.' }
+        }
+
+        // 2. Sync to Sites (Backfill style for this worker)
+        // Only sync phone, not account info
+        const { error: siteError } = await supabase
+            .from('sites')
+            .update({ worker_phone: phone })
+            .eq('worker_id', user.id)
+
+        if (siteError) {
+            console.error('Error syncing sites worker_phone:', siteError)
+        }
+
+        revalidatePath('/worker/profile')
+        return { success: true }
+    } catch (error) {
+        console.error('Unexpected error in updateWorkerProfile:', error)
+        return { success: false, error: '프로필 업데이트 중 오류가 발생했습니다.' }
+    }
+}
+
+
+export async function requestPayment(siteId: string, amount: number, details: any[] = [], photos: string[] = []): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                claimed_amount: amount,
+                payment_status: 'requested',
+                claim_details: details,
+                claim_photos: photos
+            })
+            .eq('id', siteId)
+
+        if (error) throw new Error(error.message)
+
+        revalidatePath('/worker/schedule')
+        return { success: true }
+    } catch (error) {
+        console.error('Request Payment Error:', error)
+        return { success: false, error: '비용 청구 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function requestWithdrawal(amount: number, bankInfo: { bank: string; account: string; holder: string }): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 1. Check Balance
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('current_money')
+            .eq('id', user.id)
+            .single()
+
+        if (userError || !userData) {
+            return { success: false, error: '사용자 정보를 불러올 수 없습니다.' }
+        }
+
+        if ((userData.current_money || 0) < amount) {
+            return { success: false, error: '출금 가능 금액이 부족합니다.' }
+        }
+
+        // 2. Insert Withdrawal Request
+        const { error: insertError } = await supabase
+            .from('withdrawal_requests')
+            .insert({
+                user_id: user.id,
+                amount: amount,
+                bank_name: bankInfo.bank,
+                account_number: bankInfo.account,
+                account_holder: bankInfo.holder,
+                status: 'pending'
+            })
+
+        if (insertError) {
+            console.error('Withdrawal Insert Error:', insertError)
+            return { success: false, error: '출금 요청 중 오류가 발생했습니다.' }
+        }
+
+        // 3. Deduct Balance (Optimistic deduction)
+        // If admin rejects, we will refund it.
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({
+                current_money: (userData.current_money || 0) - amount
+            })
+            .eq('id', user.id)
+
+        if (updateError) {
+            // Revert insert if possible, or log critical error
+            console.error('Balance Deduction Error:', updateError)
+            return { success: false, error: '잔액 차감 중 오류가 발생했습니다. 관리자에게 문의하세요.' }
+        }
+
+        revalidatePath('/worker/profile')
+        return { success: true }
+    } catch (error) {
+        console.error('Request Withdrawal Error:', error)
+        return { success: false, error: '출금 요청 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function uploadClaimPhoto(formData: FormData): Promise<ActionResponse<{ publicUrl: string }>> {
+    try {
+        const supabase = await createClient()
+        const file = formData.get('file') as File
+        const siteId = formData.get('siteId') as string
+
+        if (!file || !siteId) return { success: false, error: '필수 항목이 누락되었습니다.' }
+
+        const fileName = `claims/${siteId}/${uuidv4()}-${file.name}`
+
+        const { error: uploadError } = await supabase
+            .storage
+            .from('site-photos')
+            .upload(fileName, file)
+
+        if (uploadError) return { success: false, error: uploadError.message }
+
+        const { data: { publicUrl } } = supabase
+            .storage
+            .from('site-photos')
+            .getPublicUrl(fileName)
+
+        return { success: true, data: { publicUrl } }
+    } catch (error) {
+        console.error('Claim photo upload error:', error)
+        return { success: false, error: '청구 사진 업로드 실패' }
+    }
 }

@@ -19,6 +19,18 @@ export function SignaturePad({ onEnd }: SignaturePadProps) {
         onEnd(null)
     }
 
+    // Optimized ref callback to set willReadFrequently as early as possible
+    const setCanvasRef = (ref: SignatureCanvas | null) => {
+        sigCanvas.current = ref
+        if (ref) {
+            const canvas = ref.getCanvas()
+            if (canvas) {
+                // Force context creation with option
+                canvas.getContext('2d', { willReadFrequently: true })
+            }
+        }
+    }
+
     const handleEnd = () => {
         if (sigCanvas.current) {
             if (sigCanvas.current.isEmpty()) {
@@ -38,10 +50,11 @@ export function SignaturePad({ onEnd }: SignaturePadProps) {
         <div className="border rounded-md bg-white p-2">
             <div className="border border-slate-200 rounded bg-slate-50 h-40 relative">
                 <SignatureCanvas
-                    ref={sigCanvas}
+                    ref={setCanvasRef}
                     penColor="black"
                     canvasProps={{
-                        className: 'w-full h-full cursor-crosshair'
+                        className: 'w-full h-full cursor-crosshair',
+                        style: { touchAction: 'none' }
                     }}
                     onEnd={handleEnd}
                 />

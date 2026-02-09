@@ -162,6 +162,12 @@ export default function AdminLoginPage() {
                         <Button type="submit" variant="destructive" className="w-full py-6 text-lg" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '관리자 로그인'}
                         </Button>
+                        <div className="text-center text-sm pt-2">
+                            <span className="text-slate-500">아직 계정이 없으신가요? </span>
+                            <button type="button" onClick={() => router.push('/auth/admin-register')} className="font-medium text-indigo-600 hover:text-indigo-500">
+                                업체 등록 및 회원가입
+                            </button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>

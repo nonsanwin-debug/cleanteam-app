@@ -51,48 +51,86 @@ export async function submitChecklist(
 
     // 1. Upload Signature Image
     if (signatureDataUrl) {
-        // Convert Data URL to Blob (simplified for server action? Node environment might need Buffer)
-        // Actually, Supabase Storage upload supports Blob/File/Buffer.
-        // DataURL: "data:image/png;base64,iVBORw0KGgo..."
+        // Check if signature already acts as a URL (e.g. from previous save)
+        if (signatureDataUrl.startsWith('http')) {
+            signatureUrl = signatureDataUrl
+        } else {
+            const base64Data = signatureDataUrl.split(',')[1]
+            const buffer = Buffer.from(base64Data, 'base64')
+            const fileName = `signatures/${siteId}_${uuidv4()}.png`
 
-        const base64Data = signatureDataUrl.split(',')[1]
-        const buffer = Buffer.from(base64Data, 'base64')
-        const fileName = `signatures/${siteId}_${uuidv4()}.png`
+            const { error: uploadError } = await supabase
+                .storage
+                .from('site-photos')
+                .upload(fileName, buffer, {
+                    contentType: 'image/png'
+                })
 
-        const { error: uploadError } = await supabase
-            .storage
-            .from('site-photos') // Using same bucket for simplicity, or separate 'signatures' bucket
-            .upload(fileName, buffer, {
-                contentType: 'image/png'
-            })
+            if (uploadError) throw new Error('Signature upload failed: ' + uploadError.message)
 
-        if (uploadError) throw new Error('Signature upload failed: ' + uploadError.message)
-
-        const { data: { publicUrl } } = supabase.storage.from('site-photos').getPublicUrl(fileName)
-        signatureUrl = publicUrl
+            const { data: { publicUrl } } = supabase.storage.from('site-photos').getPublicUrl(fileName)
+            signatureUrl = publicUrl
+        }
     }
 
-    // 2. Save Submission
+    // 2. Save Submission (Upsert)
     const { error } = await supabase
         .from('checklist_submissions')
-        .insert([
-            {
-                site_id: siteId,
-                worker_id: user.id,
-                data: checklistData,
-                signature_url: signatureUrl,
-                status: 'submitted'
-            }
-        ])
+        .upsert({
+            site_id: siteId,
+            worker_id: user.id,
+            data: checklistData,
+            signature_url: signatureUrl,
+            status: 'submitted'
+        }, {
+            onConflict: 'site_id'
+        })
 
     if (error) throw new Error(error.message)
 
-    // 3. Update Site Status to 'completed'
-    await supabase
+    // 3. Update Site Status and Completion Time
+    const { error: updateError } = await supabase
         .from('sites')
-        .update({ status: 'completed' })
+        .update({
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        } as any)
         .eq('id', siteId)
 
+    if (updateError) {
+        console.error('Error updating site status:', updateError)
+        // We generally shouldn't throw here if checklist was saved, but consistency is good.
+    }
+
     revalidatePath('/worker/home')
+    return { success: true }
+}
+
+export async function saveChecklistProgress(
+    siteId: string,
+    checklistData: any,
+) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthenticated')
+
+    // Use Upsert since the unique constraint exists (checklist_submissions_site_id_key)
+    const { error } = await supabase
+        .from('checklist_submissions')
+        .upsert({
+            site_id: siteId,
+            worker_id: user.id,
+            data: checklistData,
+            updated_at: new Date().toISOString() // Restore updated_at
+        }, {
+            onConflict: 'site_id'
+        })
+
+    if (error) {
+        console.error('saveChecklistProgress DB Error:', error)
+        return { success: false, error: error.message }
+    }
+
     return { success: true }
 }

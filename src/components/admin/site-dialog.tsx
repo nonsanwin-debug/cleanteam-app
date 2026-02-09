@@ -149,7 +149,7 @@ export function SiteDialog({
             }
         } catch (error) {
             toast.error(mode === 'update' ? '수정 실패' : '등록 실패', {
-                description: `현장 ${mode === 'update' ? '수정' : '등록'} 중 오류가 발생했습니다.`
+                description: error instanceof Error ? error.message : `현장 ${mode === 'update' ? '수정' : '등록'} 중 오류가 발생했습니다.`
             })
         } finally {
             setIsLoading(false)
@@ -323,11 +323,17 @@ export function SiteDialog({
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="unassigned">미지정</SelectItem>
-                                            {workers.map((worker) => (
-                                                <SelectItem key={worker.id} value={worker.id}>
-                                                    {worker.name || '이름 없음'}
+                                            {workers.length === 0 ? (
+                                                <SelectItem value="none" disabled>
+                                                    조회된 팀장이 없습니다 (권한 확인 필요)
                                                 </SelectItem>
-                                            ))}
+                                            ) : (
+                                                workers.map((worker) => (
+                                                    <SelectItem key={worker.id} value={worker.id}>
+                                                        {worker.name || '이름 없음'}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

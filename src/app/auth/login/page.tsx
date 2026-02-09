@@ -15,7 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export default function LoginPage() {
     const [isMounted, setIsMounted] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [isSignUp, setIsSignUp] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
 
     // Initialize Supabase client only on the client side
@@ -79,109 +79,48 @@ export default function LoginPage() {
         const email = `${username}@cleanteam.app`
 
         try {
-            if (isSignUp) {
-                // SIGN UP LOGIC
-                console.log('📝 회원가입 시도:', { username, email, name, role });
+            // SIGN IN LOGIC
+            console.log('🔐 로그인 시도:', { username, email });
 
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            name: name || '현장팀장',
-                            role: 'worker',
-                            username: username
-                        },
-                        emailRedirectTo: undefined
-                    }
-                })
+            const { data: signInData, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
 
-                console.log('📧 회원가입 응답:', { user: data.user?.email, session: !!data.session, error });
+            if (error) {
+                console.error('❌ 로그인 에러:', error);
+                throw error;
+            }
 
-                if (error) {
-                    console.error('❌ 회원가입 에러:', error);
-                    throw error;
+            console.log('✅ 로그인 성공:', signInData.user?.email);
+
+            // Check user role
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                console.log('👤 사용자 확인 완료:', user.id);
+
+                let { data: profile } = await supabase
+                    .from('users')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                // Fallback profile creation
+                if (!profile) {
+                    const nameToSet = user.user_metadata.name || '사용자'
+                    // Default to worker
+                    await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'worker' }])
+                    profile = { role: 'worker' }
                 }
 
-                // 회원가입 성공 후 자동 로그인
-                if (data.user) {
-                    console.log('✅ 회원가입 성공, 사용자 ID:', data.user.id);
-
-                    // Check user role
-                    let { data: profile } = await supabase
-                        .from('users')
-                        .select('role')
-                        .eq('id', data.user.id)
-                        .single()
-
-                    // [Fallback] If profile doesn't exist (trigger failed), create it now
-                    if (!profile) {
-                        console.log('⚠️ 트리거 미작동, 수동으로 프로필 생성');
-                        const nameToSet = data.user.user_metadata.name || '사용자'
-
-                        // Force role to worker regarding this page
-                        const { error: insertError } = await supabase
-                            .from('users')
-                            .insert([{ id: data.user.id, name: nameToSet, role: 'worker' }])
-
-                        if (!insertError) {
-                            profile = { role: 'worker' }
-                        }
-                    }
-
-                    toast.success('회원가입 완료!', { description: '로그인되었습니다.' })
-                    router.push('/worker/home')
+                // Redirect based on role
+                if (profile?.role === 'admin') {
+                    router.push('/admin/dashboard')
                 } else {
-                    console.warn('⚠️ 사용자 객체 없음');
-                    toast.warning('회원가입 완료', {
-                        description: '이메일 확인이 필요할 수 있습니다. Supabase 설정을 확인하세요.',
-                        duration: 7000
-                    });
+                    router.push('/worker/home')
                 }
-            } else {
-                // SIGN IN LOGIC
-                console.log('🔐 로그인 시도:', { username, email });
-
-                const { data: signInData, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                })
-
-                if (error) {
-                    console.error('❌ 로그인 에러:', error);
-                    throw error;
-                }
-
-                console.log('✅ 로그인 성공:', signInData.user?.email);
-
-                // Check user role
-                const { data: { user } } = await supabase.auth.getUser()
-
-                if (user) {
-                    console.log('👤 사용자 확인 완료:', user.id);
-
-                    let { data: profile } = await supabase
-                        .from('users')
-                        .select('role')
-                        .eq('id', user.id)
-                        .single()
-
-                    // Fallback profile creation
-                    if (!profile) {
-                        const nameToSet = user.user_metadata.name || '사용자'
-                        // Default to worker
-                        await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'worker' }])
-                        profile = { role: 'worker' }
-                    }
-
-                    // Redirect based on role
-                    if (profile?.role === 'admin') {
-                        router.push('/admin/dashboard')
-                    } else {
-                        router.push('/worker/home')
-                    }
-                    toast.success('로그인 성공')
-                }
+                toast.success('로그인 성공')
             }
         } catch (err: any) {
             console.error('🚨 인증 오류:', err);
@@ -197,7 +136,7 @@ export default function LoginPage() {
                 errorMessage = '이미 등록된 아이디입니다. 로그인을 시도하세요.';
             }
 
-            toast.error(isSignUp ? '가입 실패' : '로그인 실패', { description: errorMessage })
+            toast.error('로그인 실패', { description: errorMessage })
         } finally {
             setIsLoading(false)
         }
@@ -209,17 +148,11 @@ export default function LoginPage() {
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold text-primary">Clean System</CardTitle>
                     <CardDescription>
-                        {isSignUp ? '현장 팀장 계정 등록' : '현장 팀장 로그인'}
+                        현장 팀장 로그인
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleAuth} className="space-y-4">
-                        {isSignUp && (
-                            <div className="space-y-2">
-                                <Label htmlFor="name">이름</Label>
-                                <Input id="name" name="name" placeholder="홍길동" required />
-                            </div>
-                        )}
                         <div className="space-y-2">
                             <Label htmlFor="username">아이디</Label>
                             <Input id="username" name="username" type="text" placeholder="teamleader01" required />
@@ -229,16 +162,16 @@ export default function LoginPage() {
                             <Input id="password" name="password" type="password" required />
                         </div>
                         <Button type="submit" className="w-full text-lg py-6" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '현장 팀장 로그인')}
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '현장 팀장 로그인'}
                         </Button>
                     </form>
 
                     <div className="mt-6 text-center">
                         <button
-                            onClick={() => setIsSignUp(!isSignUp)}
+                            onClick={() => router.push('/auth/register')}
                             className="text-sm text-slate-500 hover:text-primary underline"
                         >
-                            {isSignUp ? '이미 계정이 있으신가요? 로그인' : '현장 팀장 계정이 없으신가요? 회원가입'}
+                            현장 팀장 계정이 없으신가요? 회원가입
                         </button>
                     </div>
                 </CardContent>
