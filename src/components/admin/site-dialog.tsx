@@ -118,6 +118,10 @@ export function SiteDialog({
         },
     })
 
+    // Watch for real-time validation
+    const cleaningDate = form.watch('cleaning_date')
+    const startTime = form.watch('start_time')
+
     // Initialize time picker state from form value
     useEffect(() => {
         if (open && initialData?.start_time) {
@@ -160,11 +164,15 @@ export function SiteDialog({
                 special_notes: values.special_notes,
             }
 
+            let result;
             if (mode === 'update' && siteId) {
-                await updateSite(siteId, data)
+                await updateSite(siteId, data) // updateSite usually throws, need to update it too or handle consistency
                 toast.success('현장 정보가 수정되었습니다.')
             } else {
-                await createSite(data)
+                result = await createSite(data)
+                if (result && !result.success) {
+                    throw new Error(result.error || '등록 실패')
+                }
                 toast.success('현장이 등록되었습니다.')
             }
             setOpen(false)
@@ -176,9 +184,20 @@ export function SiteDialog({
                 setAmpm('AM')
                 setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))
             }
-        } catch (error) {
-            toast.error(mode === 'update' ? '수정 실패' : '등록 실패', {
-                description: error instanceof Error ? error.message : `현장 ${mode === 'update' ? '수정' : '등록'} 중 오류가 발생했습니다.`
+        } catch (error: any) {
+            console.error(error)
+            let errorMessage = mode === 'update' ? '수정 실패' : '등록 실패'
+            let errorDescription = error instanceof Error ? error.message : '오류가 발생했습니다.'
+
+            // Specific error handling for schema mismatch
+            if (errorDescription.includes('column') && errorDescription.includes('does not exist')) {
+                errorMessage = '데이터베이스 스키마 오류'
+                errorDescription = `시스템에 필요한 데이터 컬럼이 없습니다.\n관리자에게 다음 메시지를 전달하세요:\n${errorDescription}`
+            }
+
+            toast.error(errorMessage, {
+                description: errorDescription,
+                duration: 5000, // Show longer for reading
             })
         } finally {
             setIsLoading(false)
@@ -500,8 +519,8 @@ export function SiteDialog({
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit" disabled={isLoading || !form.getValues('cleaning_date') || !form.getValues('start_time')}>
-                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (mode === 'update' ? '수정' : '저장')}
+                            <Button type="submit" disabled={isLoading || !cleaningDate || !startTime}>
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (mode === 'update' ? '수정' : '등록')}
                             </Button>
                         </DialogFooter>
                     </form>

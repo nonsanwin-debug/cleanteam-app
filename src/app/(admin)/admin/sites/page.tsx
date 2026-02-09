@@ -23,15 +23,19 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
         ? sites.filter(site => site.cleaning_date === filterDate)
         : sites
 
+    const isValidDate = filterDate && !isNaN(new Date(filterDate).getTime())
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">현장 관리</h2>
                     <p className="text-muted-foreground">
-                        {filterDate
-                            ? `${format(new Date(filterDate), 'yyyy년 MM월 dd일')} 현장 목록 (${filteredSites.length}건)`
-                            : '등록된 모든 청소 현장을 관리하고 팀장을 배정합니다.'}
+                        <p className="text-muted-foreground">
+                            {isValidDate
+                                ? `${format(new Date(filterDate), 'yyyy년 MM월 dd일')} 현장 목록 (${filteredSites.length}건)`
+                                : '등록된 모든 청소 현장을 관리하고 팀장을 배정합니다.'}
+                        </p>
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -43,7 +47,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredSites.length === 0 ? (
                     <div className="col-span-full text-center py-20 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
-                        {filterDate
+                        {isValidDate
                             ? '해당 날짜에 예정된 현장이 없습니다.'
                             : '등록된 현장이 없습니다. 새 현장을 추가해주세요.'}
                     </div>
