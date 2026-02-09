@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export type Site = {
     id: string
@@ -49,6 +49,7 @@ export type CreateSiteDTO = {
 }
 
 export async function getSites() {
+    noStore()
     const supabase = await createClient()
 
     const { data, error } = await supabase

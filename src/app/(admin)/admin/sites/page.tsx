@@ -9,6 +9,8 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminSitesPage(props: { searchParams: Promise<{ date?: string }> }) {
     const searchParams = await props.searchParams;
     const sites = await getSites()
