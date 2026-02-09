@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -32,13 +30,15 @@ import {
 } from '@/components/ui/select'
 import { createSite, updateSite } from '@/actions/sites'
 import { toast } from 'sonner'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
     name: z.string().min(1, '현장명을 입력해주세요'),
     address: z.string().min(1, '주소를 입력해주세요'),
     worker_id: z.string().optional(),
-    // New Fields
     customer_name: z.string().optional(),
     customer_phone: z.string().optional(),
     residential_type: z.string().optional(),
@@ -88,7 +88,14 @@ export function SiteDialog({
     const [internalOpen, setInternalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
-    // Use controlled or uncontrolled state
+    // Custom Date Picker State
+    const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
+
+    // Custom Time Picker State
+    const [ampm, setAmpm] = useState<'AM' | 'PM'>('AM')
+    const [hour, setHour] = useState<string>('')
+    const [minute, setMinute] = useState<string>('00')
+
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const setOpen = controlledOnOpenChange || setInternalOpen
 
@@ -103,49 +110,69 @@ export function SiteDialog({
             residential_type: initialData?.residential_type || '',
             area_size: initialData?.area_size || '',
             structure_type: initialData?.structure_type || '',
-            cleaning_date: initialData?.cleaning_date || '',
+            cleaning_date: initialData?.cleaning_date || format(new Date(), 'yyyy-MM-dd'),
             start_time: initialData?.start_time || '',
             special_notes: initialData?.special_notes || '',
         },
     })
 
+    // Initialize time picker state from form value
+    useEffect(() => {
+        if (open && initialData?.start_time) {
+            const [h, m] = initialData.start_time.split(':')
+            const hourNum = parseInt(h, 10)
+            if (!isNaN(hourNum)) {
+                setAmpm(hourNum >= 12 ? 'PM' : 'AM')
+                const displayHour = hourNum % 12 || 12
+                setHour(displayHour.toString())
+                setMinute(m || '00')
+            }
+        }
+    }, [open, initialData])
+
+    // Update form time when picker state changes
+    useEffect(() => {
+        if (hour) {
+            let hourNum = parseInt(hour, 10)
+            if (ampm === 'PM' && hourNum !== 12) hourNum += 12
+            if (ampm === 'AM' && hourNum === 12) hourNum = 0
+            const timeString = `${hourNum.toString().padStart(2, '0')}:${minute}`
+            form.setValue('start_time', timeString)
+        }
+    }, [ampm, hour, minute, form])
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true)
         try {
+            const data = {
+                name: values.name,
+                address: values.address,
+                worker_id: values.worker_id === 'unassigned' ? undefined : values.worker_id,
+                customer_name: values.customer_name,
+                customer_phone: values.customer_phone,
+                residential_type: values.residential_type,
+                area_size: values.area_size,
+                structure_type: values.structure_type,
+                cleaning_date: values.cleaning_date,
+                start_time: values.start_time,
+                special_notes: values.special_notes,
+            }
+
             if (mode === 'update' && siteId) {
-                await updateSite(siteId, {
-                    name: values.name,
-                    address: values.address,
-                    worker_id: values.worker_id === 'unassigned' ? undefined : values.worker_id,
-                    customer_name: values.customer_name,
-                    customer_phone: values.customer_phone,
-                    residential_type: values.residential_type,
-                    area_size: values.area_size,
-                    structure_type: values.structure_type,
-                    cleaning_date: values.cleaning_date,
-                    start_time: values.start_time,
-                    special_notes: values.special_notes,
-                })
+                await updateSite(siteId, data)
                 toast.success('현장 정보가 수정되었습니다.')
             } else {
-                await createSite({
-                    name: values.name,
-                    address: values.address,
-                    worker_id: values.worker_id === 'unassigned' ? undefined : values.worker_id,
-                    customer_name: values.customer_name,
-                    customer_phone: values.customer_phone,
-                    residential_type: values.residential_type,
-                    area_size: values.area_size,
-                    structure_type: values.structure_type,
-                    cleaning_date: values.cleaning_date,
-                    start_time: values.start_time,
-                    special_notes: values.special_notes,
-                })
+                await createSite(data)
                 toast.success('현장이 등록되었습니다.')
             }
             setOpen(false)
             if (mode === 'create') {
                 form.reset()
+                // Reset custom states
+                setHour('')
+                setMinute('00')
+                setAmpm('AM')
+                setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))
             }
         } catch (error) {
             toast.error(mode === 'update' ? '수정 실패' : '등록 실패', {
@@ -155,6 +182,8 @@ export function SiteDialog({
             setIsLoading(false)
         }
     }
+
+    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i))
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -190,6 +219,156 @@ export function SiteDialog({
                                     </FormItem>
                                 )}
                             />
+
+                            {/* Custom Date Picker */}
+                            <FormField
+                                control={form.control}
+                                name="cleaning_date"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>청소 날짜</FormLabel>
+                                        <div className="bg-slate-50 p-3 rounded-md border">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setCurrentWeekStart(prev => subWeeks(prev, 1))}
+                                                >
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                </Button>
+                                                <span className="font-medium text-sm">
+                                                    {format(currentWeekStart, 'yyyy년 M월', { locale: ko })}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setCurrentWeekStart(prev => addWeeks(prev, 1))}
+                                                >
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="grid grid-cols-7 gap-1">
+                                                {weekDays.map(day => {
+                                                    const isSelected = field.value === format(day, 'yyyy-MM-dd')
+                                                    const isToday = isSameDay(day, new Date())
+                                                    return (
+                                                        <button
+                                                            key={day.toISOString()}
+                                                            type="button"
+                                                            onClick={() => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                            className={cn(
+                                                                "flex flex-col items-center justify-center p-2 rounded-md transition-colors",
+                                                                isSelected
+                                                                    ? "bg-blue-600 text-white shadow-md scale-105"
+                                                                    : "bg-white text-slate-700 hover:bg-slate-100 border border-transparent",
+                                                                isToday && !isSelected && "border-blue-300 bg-blue-50"
+                                                            )}
+                                                        >
+                                                            <span className="text-[10px] opacity-70 mb-1">{format(day, 'E', { locale: ko })}</span>
+                                                            <span className={cn("text-lg font-bold", isSelected ? "text-white" : "text-slate-900")}>
+                                                                {format(day, 'd')}
+                                                            </span>
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                            <div className="text-center mt-2">
+                                                <span className="text-xs text-slate-500">
+                                                    선택된 날짜: {field.value ? format(new Date(field.value), 'yyyy년 MM월 dd일 (E)', { locale: ko }) : '없음'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Custom Time Picker */}
+                            <FormField
+                                control={form.control}
+                                name="start_time"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>시작 시간</FormLabel>
+                                        <div className="bg-slate-50 p-3 rounded-md border space-y-3">
+                                            {/* AM/PM Toggle */}
+                                            <div className="flex bg-slate-200 rounded-lg p-1 w-full relative">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAmpm('AM')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all z-10",
+                                                        ampm === 'AM' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+                                                    )}
+                                                >
+                                                    오전
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAmpm('PM')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-sm font-bold rounded-md transition-all z-10",
+                                                        ampm === 'PM' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+                                                    )}
+                                                >
+                                                    오후
+                                                </button>
+                                            </div>
+
+                                            {/* Hour Grid (1-12) */}
+                                            <div className="grid grid-cols-6 gap-2">
+                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => (
+                                                    <button
+                                                        key={h}
+                                                        type="button"
+                                                        onClick={() => setHour(h.toString())}
+                                                        className={cn(
+                                                            "py-2 rounded-md font-bold text-lg border transition-all",
+                                                            hour === h.toString()
+                                                                ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                                                                : "bg-white text-slate-700 border-slate-200 hover:border-blue-300"
+                                                        )}
+                                                    >
+                                                        {h}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Minute Selection */}
+                                            <div className="flex gap-2">
+                                                {['00', '30'].map(m => (
+                                                    <button
+                                                        key={m}
+                                                        type="button"
+                                                        onClick={() => setMinute(m)}
+                                                        className={cn(
+                                                            "flex-1 py-2 rounded-md font-medium text-sm border transition-all",
+                                                            minute === m
+                                                                ? "bg-slate-800 text-white border-slate-800"
+                                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                                        )}
+                                                    >
+                                                        {m}분
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <div className="text-center border-t pt-2 mt-2">
+                                                <span className="text-sm font-bold text-blue-600">
+                                                    설정 시간: {ampm} {hour ? hour : '--'}:{minute}
+                                                </span>
+                                            </div>
+
+                                            {/* Hidden input to ensure form validation works if needed, though redundant with controlled component */}
+                                            <input type="hidden" {...field} />
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={form.control}
                                 name="address"
@@ -203,6 +382,7 @@ export function SiteDialog({
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="customer_name"
@@ -229,32 +409,7 @@ export function SiteDialog({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="cleaning_date"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>청소 날짜</FormLabel>
-                                        <FormControl>
-                                            <Input type="date" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="start_time"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>시작 시간</FormLabel>
-                                        <FormControl>
-                                            <Input type="time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+
                             <FormField
                                 control={form.control}
                                 name="residential_type"
@@ -341,7 +496,7 @@ export function SiteDialog({
                             )}
                         />
                         <DialogFooter>
-                            <Button type="submit" disabled={isLoading}>
+                            <Button type="submit" disabled={isLoading || !form.getValues('cleaning_date') || !form.getValues('start_time')}>
                                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (mode === 'update' ? '수정' : '저장')}
                             </Button>
                         </DialogFooter>

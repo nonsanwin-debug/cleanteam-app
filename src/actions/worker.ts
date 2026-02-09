@@ -232,7 +232,7 @@ export async function getWorkerProfile() {
 
         const { data: profile, error } = await supabase
             .from('users')
-            .select('*')
+            .select('*, companies(name)')
             .eq('id', user.id)
             .single()
 

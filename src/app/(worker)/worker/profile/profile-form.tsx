@@ -78,7 +78,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <div className="space-y-4">
                     <div className="flex justify-between items-center py-2 border-b">
                         <span className="text-slate-500 w-20">소속</span>
-                        <span className="font-medium flex-1 text-right">청소사업팀</span>
+                        <span className="font-medium flex-1 text-right">
+                            {user?.companies?.name || '미소속'}
+                        </span>
                     </div>
 
                     <div className="flex flex-col gap-2 py-2 border-b">
