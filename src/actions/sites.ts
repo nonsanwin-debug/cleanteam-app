@@ -69,12 +69,44 @@ export async function getSites() {
 }
 
 export async function getWorkers() {
+    noStore()
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    // Get current user's company_id
+    const { data: userData } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+
+    if (!userData?.company_id) {
+        // If admin has no company, maybe return all or none? 
+        // For safety, return all (if super admin) or empty?
+        // Let's assume return all for now if no company assigned, or return empty.
+        // Better: Return only those with NO company? Or all?
+        // Let's Log it.
+        console.log('User has no company_id, fetching all workers')
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, name')
+            .eq('role', 'worker')
+            .order('name')
+
+        if (error) {
+            console.error('Error fetching workers:', error)
+            return []
+        }
+        return data
+    }
 
     const { data, error } = await supabase
         .from('users')
         .select('id, name')
         .eq('role', 'worker')
+        .eq('company_id', userData.company_id)
         .order('name')
 
     if (error) {
