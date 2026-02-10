@@ -162,6 +162,8 @@ export async function getAllWorkers() {
     return workers
 }
 
+import { createAdminClient } from '@/lib/supabase/admin'
+
 export async function createWorker(data: {
     loginId: string
     name: string
@@ -172,7 +174,7 @@ export async function createWorker(data: {
     accountInfo?: string
 }): Promise<ActionResponse> {
     try {
-        const supabase = await createClient()
+        const supabase = createAdminClient()
 
         // Create auth user
         let userId = ''
