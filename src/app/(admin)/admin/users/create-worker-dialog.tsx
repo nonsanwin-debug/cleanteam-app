@@ -71,6 +71,17 @@ export function CreateWorkerDialog() {
         }
     }
 
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/[^0-9]/g, '')
+        let formatted = value
+        if (value.length > 3 && value.length <= 7) {
+            formatted = `${value.slice(0, 3)}-${value.slice(3)}`
+        } else if (value.length > 7) {
+            formatted = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`
+        }
+        setFormData({ ...formData, phone: formatted })
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -99,12 +110,13 @@ export function CreateWorkerDialog() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="phone">전화번호 *</Label>
+                            <Label htmlFor="phone">전화번호 (아이디) *</Label>
                             <Input
                                 id="phone"
                                 value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                onChange={handlePhoneChange}
                                 placeholder="010-1234-5678"
+                                maxLength={13}
                                 required
                             />
                         </div>

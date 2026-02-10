@@ -100,10 +100,21 @@ export default function WorkerRegisterPage() {
                             <Input
                                 id="phone"
                                 name="phone"
+                                value={formData.phone}
                                 type="tel"
                                 required
                                 placeholder="010-0000-0000"
-                                onChange={handleChange}
+                                maxLength={13}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9]/g, '')
+                                    let formatted = value
+                                    if (value.length > 3 && value.length <= 7) {
+                                        formatted = `${value.slice(0, 3)}-${value.slice(3)}`
+                                    } else if (value.length > 7) {
+                                        formatted = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`
+                                    }
+                                    setFormData({ ...formData, phone: formatted })
+                                }}
                             />
                         </div>
                         <div className="space-y-2">
