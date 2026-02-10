@@ -66,6 +66,22 @@ export async function getWithdrawalRequests() {
     return requests
 }
 
+export async function getPendingWithdrawalCount() {
+    const supabase = await createClient()
+
+    const { count, error } = await supabase
+        .from('withdrawal_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+
+    if (error) {
+        console.error('Error fetching pending withdrawal count:', error)
+        return 0
+    }
+
+    return count || 0
+}
+
 export async function approvePayment(siteId: string, userId: string, amount: number): Promise<ActionResponse> {
     try {
         const supabase = await createClient()

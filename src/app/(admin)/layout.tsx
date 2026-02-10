@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, Menu } from 'lucide-react'
 import {
     Sheet,
@@ -11,6 +12,7 @@ import {
 
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
 import { createClient } from '@/lib/supabase/server'
+import { getPendingWithdrawalCount } from '@/actions/admin'
 
 export default async function AdminLayout({
     children,
@@ -60,6 +62,9 @@ export default async function AdminLayout({
         console.log('🔍 Final displayName:', displayName)
     }
 
+    // Get pending withdrawal count
+    const pendingCount = await getPendingWithdrawalCount()
+
     const NavLinks = () => (
         <nav className="flex-1 space-y-1">
             <Link href="/admin/dashboard">
@@ -81,9 +86,14 @@ export default async function AdminLayout({
                 </Button>
             </Link>
             <Link href="/admin/users">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
+                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50 relative">
                     <Users className="mr-2 h-4 w-4" />
                     사용자 관리
+                    {pendingCount > 0 && (
+                        <Badge className="ml-auto bg-red-500 text-white hover:bg-red-600 h-5 min-w-5 flex items-center justify-center px-1.5">
+                            {pendingCount}
+                        </Badge>
+                    )}
                 </Button>
             </Link>
             <Link href="/admin/as-manage">
