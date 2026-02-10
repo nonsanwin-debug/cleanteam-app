@@ -114,8 +114,14 @@ export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps)
             )
             .subscribe()
 
+        // Polling fallback (every 3 seconds) to ensure updates are caught
+        const pollInterval = setInterval(() => {
+            loadData()
+        }, 3000)
+
         return () => {
             supabase.removeChannel(channel)
+            clearInterval(pollInterval)
         }
     }, [siteId, router])
 
