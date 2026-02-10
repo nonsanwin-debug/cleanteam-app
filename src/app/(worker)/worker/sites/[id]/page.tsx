@@ -48,6 +48,15 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             },
                             (payload) => {
                                 console.log('Realtime update:', payload)
+
+                                // Check if site was completed (customer submitted)
+                                if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
+                                    console.log('Site completed, redirecting to home...')
+                                    // Redirect worker to home page
+                                    window.location.href = 'https://cleanteam-app.vercel.app/'
+                                    return
+                                }
+
                                 fetchSiteData() // Re-fetch
                                 router.refresh()
                             }
