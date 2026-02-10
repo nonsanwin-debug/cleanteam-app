@@ -34,6 +34,7 @@ export function CreateWorkerDialog() {
         phone: '',
         password: '',
         workerType: 'member' as 'leader' | 'member',
+        accountInfo: '',
         email: ''
     })
 
@@ -56,6 +57,7 @@ export function CreateWorkerDialog() {
                     phone: '',
                     password: '',
                     workerType: 'member',
+                    accountInfo: '',
                     email: ''
                 })
                 router.refresh()
@@ -115,6 +117,15 @@ export function CreateWorkerDialog() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 placeholder="최소 6자 이상"
                                 required
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="accountInfo">계좌번호</Label>
+                            <Input
+                                id="accountInfo"
+                                value={formData.accountInfo}
+                                onChange={(e) => setFormData({ ...formData, accountInfo: e.target.value })}
+                                placeholder="은행명 123-456-789 예금주"
                             />
                         </div>
                         <div className="grid gap-2">

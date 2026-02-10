@@ -195,6 +195,7 @@ export async function createWorker(data: {
     password: string
     workerType: 'leader' | 'member'
     email?: string
+    accountInfo?: string
 }): Promise<ActionResponse> {
     try {
         const supabase = await createClient()
@@ -224,7 +225,8 @@ export async function createWorker(data: {
                 phone: data.phone,
                 email: data.email || `${data.phone}@cleanteam.temp`,
                 role: 'worker',
-                worker_type: data.workerType
+                worker_type: data.workerType,
+                account_info: data.accountInfo
             })
 
         if (userError) {
