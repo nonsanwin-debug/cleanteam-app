@@ -86,30 +86,24 @@ export async function approvePayment(siteId: string, userId: string, amount: num
     try {
         const supabase = await createClient()
 
-        // 1. Update Site Status to 'paid'
-        const { error: siteError } = await supabase
-            .from('sites')
-            .update({ payment_status: 'paid' })
-            .eq('id', siteId)
+        // Use RPC function to bypass RLS
+        const { data, error } = await supabase.rpc('approve_payment_admin', {
+            site_id_param: siteId,
+            user_id_param: userId,
+            amount_param: amount
+        })
 
-        if (siteError) throw new Error(siteError.message)
+        if (error) {
+            console.error('RPC Error:', error)
+            throw new Error(error.message)
+        }
 
-        // 2. Increment User's Current Money using RPC or read-modify-write
-        // Since we don't have an atomic increment RPC ready (unless we make one), we'll read-modify-write.
-        // Ideally we should use RPC for atomicity.
+        if (!data || !data.success) {
+            console.error('Payment approval failed:', data)
+            throw new Error(data?.error || 'Payment approval failed')
+        }
 
-        // Let's create a simple RPC for this later if needed, but for now:
-        const { data: user } = await supabase.from('users').select('current_money').eq('id', userId).single()
-        const currentMoney = user?.current_money || 0
-        const newMoney = currentMoney + amount
-
-        const { error: userError } = await supabase
-            .from('users')
-            .update({ current_money: newMoney })
-            .eq('id', userId)
-
-        if (userError) throw new Error(userError.message)
-
+        console.log('Payment approved successfully:', data)
         revalidatePath('/admin/users')
         return { success: true }
     } catch (error) {
