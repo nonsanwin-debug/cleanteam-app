@@ -169,35 +169,7 @@ export default async function AdminLayout({
                     {children}
                 </div>
 
-                {/* Debug Overlay */}
-                <div className="fixed bottom-4 right-4 p-4 bg-black/80 text-white text-xs rounded-lg max-w-md overflow-auto z-50 shadow-lg">
-                    <h3 className="font-bold mb-2 text-yellow-400">🔍 Admin Debug Info v2</h3>
-                    <div className="space-y-1 font-mono">
-                        <p>User ID: <span className="text-blue-300">{user?.id?.slice(0, 8)}...</span></p>
-                        <p>DB URL: <span className="text-orange-300">{process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 20)}...</span></p>
-                        <p>Display Name: <span className="text-green-300">{displayName}</span></p>
-                        <div className="border-t border-gray-600 my-2 pt-2">
-                            <p className="text-gray-400 mb-1">Profile Data:</p>
-                            <pre className="whitespace-pre-wrap text-[10px] text-gray-300">
-                                {JSON.stringify({
-                                    profile: user ? (await supabase.from('users').select('name, company_id').eq('id', user.id).single()) : "No user",
-                                }, null, 2)}
-                            </pre>
-                        </div>
-                        <div className="border-t border-gray-600 my-2 pt-2">
-                            <p className="text-gray-400 mb-1">Company Query Result:</p>
-                            <pre className="whitespace-pre-wrap text-[10px] text-gray-300">
-                                {JSON.stringify(
-                                    user ? (
-                                        (await supabase.from('users').select('company_id').eq('id', user.id).single()).data?.company_id
-                                            ? (await supabase.from('companies').select('name').eq('id', (await supabase.from('users').select('company_id').eq('id', user.id).single()).data?.company_id).single())
-                                            : { message: "No company_id found in profile" }
-                                    ) : { message: "No user" }
-                                    , null, 2)}
-                            </pre>
-                        </div>
-                    </div>
-                </div>
+
             </main>
         </div>
     )
