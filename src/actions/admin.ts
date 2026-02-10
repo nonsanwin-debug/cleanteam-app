@@ -198,7 +198,8 @@ export async function createWorker(data: {
 
         // 2. Create auth user
         let userId = ''
-        const email = `${data.loginId}@cleanteam.temp`
+        const normalizedLoginId = data.loginId.toLowerCase()
+        const email = `${normalizedLoginId}@cleanteam.temp`
 
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
             email: email,
@@ -218,6 +219,17 @@ export async function createWorker(data: {
                 const existingUser = users.users.find(u => u.email === email)
                 if (existingUser) {
                     userId = existingUser.id
+                    // IMPORTANT: Update password if user already exists to ensure it matches admin's entry
+                    const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+                        password: data.password,
+                        user_metadata: {
+                            name: data.name,
+                            phone: data.phone,
+                            role: 'worker',
+                            company_name: companyName
+                        }
+                    })
+                    if (updateError) throw new Error(`기존 계정 정보 업데이트 실패: ${updateError.message}`)
                 } else {
                     throw new Error(authError.message)
                 }
@@ -240,7 +252,8 @@ export async function createWorker(data: {
                 worker_type: data.workerType,
                 account_info: data.accountInfo,
                 company_id: companyId,
-                status: 'active'
+                status: 'active',
+                updated_at: new Date().toISOString()
             })
 
         if (userError) {
