@@ -1,67 +1,63 @@
--- Fix payment approval by creating RPC function with SECURITY DEFINER
--- This allows admin to approve payments and update user balances
-
--- Drop existing function if it exists
-DROP FUNCTION IF EXISTS approve_payment_admin(uuid, uuid, numeric);
-
--- Create RPC function to approve payment (bypasses RLS)
+-- 출금 승인/지급 완료 처리 함수 (보안 옵션 포함)
 CREATE OR REPLACE FUNCTION approve_payment_admin(
-    site_id_param uuid,
-    user_id_param uuid,
-    amount_param numeric
-)
-RETURNS json
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
+  p_request_id UUID,
+  p_admin_id UUID DEFAULT NULL
+) RETURNS JSONB AS $$
 DECLARE
-    current_balance numeric;
-    new_balance numeric;
-    result json;
+  v_user_id UUID;
+  v_amount INTEGER;
+  v_current_status TEXT;
+  v_current_balance INTEGER;
 BEGIN
-    -- 1. Update site payment status to 'paid'
-    UPDATE sites
-    SET payment_status = 'paid',
-        updated_at = now()
-    WHERE id = site_id_param;
+  -- 1. 요청 정보 조회 (FOR UPDATE로 잠금)
+  SELECT user_id, amount, status 
+  INTO v_user_id, v_amount, v_current_status
+  FROM payment_requests
+  WHERE id = p_request_id
+  FOR UPDATE;
 
-    IF NOT FOUND THEN
-        RETURN json_build_object('success', false, 'error', 'Site not found');
-    END IF;
+  -- 2. 검증
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', '요청을 찾을 수 없습니다.');
+  END IF;
 
-    -- 2. Get current user balance
-    SELECT current_money INTO current_balance
-    FROM users
-    WHERE id = user_id_param;
+  IF v_current_status = 'completed' THEN
+    RETURN jsonb_build_object('success', false, 'error', '이미 지급 완료된 요청입니다.');
+  END IF;
 
-    IF NOT FOUND THEN
-        RETURN json_build_object('success', false, 'error', 'User not found');
-    END IF;
+  IF v_current_status != 'pending' THEN
+    RETURN jsonb_build_object('success', false, 'error', '처리할 수 없는 상태입니다: ' || v_current_status);
+  END IF;
 
-    -- 3. Update user balance
-    new_balance := COALESCE(current_balance, 0) + amount_param;
-    
-    UPDATE users
-    SET current_money = new_balance,
-        updated_at = now()
-    WHERE id = user_id_param;
+  -- 3. 사용자 잔액 조회
+  SELECT current_money INTO v_current_balance
+  FROM users
+  WHERE id = v_user_id;
 
-    -- 4. Return success
-    RETURN json_build_object(
-        'success', true,
-        'old_balance', COALESCE(current_balance, 0),
-        'new_balance', new_balance
-    );
+  IF v_current_balance < v_amount THEN
+    RETURN jsonb_build_object('success', false, 'error', '사용자 잔액이 부족합니다.');
+  END IF;
+
+  -- 4. 업데이트 (트랜잭션)
+  -- 상태 변경
+  UPDATE payment_requests 
+  SET 
+    status = 'completed',
+    completed_at = NOW(),
+    approved_by = p_admin_id
+  WHERE id = p_request_id;
+
+  -- 잔액 차감
+  UPDATE users
+  SET current_money = current_money - v_amount
+  WHERE id = v_user_id;
+
+  RETURN jsonb_build_object('success', true);
+EXCEPTION WHEN OTHERS THEN
+  RETURN jsonb_build_object('success', false, 'error', SQLERRM);
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission to authenticated users (admins)
-GRANT EXECUTE ON FUNCTION approve_payment_admin(uuid, uuid, numeric) TO authenticated;
-
--- Test the function (optional - comment out after testing)
--- SELECT approve_payment_admin(
---     'site-uuid-here'::uuid,
---     'user-uuid-here'::uuid,
---     50000
--- );
+-- 권한 부여 (필요시)
+GRANT EXECUTE ON FUNCTION approve_payment_admin TO authenticated;
+GRANT EXECUTE ON FUNCTION approve_payment_admin TO service_role;

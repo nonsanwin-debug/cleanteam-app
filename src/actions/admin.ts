@@ -116,49 +116,22 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
     try {
         const supabase = await createClient()
 
-        // 1. Get Request
-        const { data: request, error: fetchError } = await supabase
-            .from('withdrawal_requests')
-            .select('*')
-            .eq('id', requestId)
-            .single()
+        // Use RPC function for atomic updates and RLS bypass
+        const { data, error } = await supabase.rpc('process_withdrawal_admin', {
+            p_request_id: requestId,
+            p_status: action,
+            p_reason: rejectionReason
+        })
 
-        if (fetchError || !request) return { success: false, error: '출금 요청을 찾을 수 없습니다.' }
-
-        if (request.status !== 'pending') return { success: false, error: '이미 처리된 요청입니다.' }
-
-        if (action === 'paid') {
-            // Simply update status
-            const { error } = await supabase
-                .from('withdrawal_requests')
-                .update({ status: 'paid', updated_at: new Date().toISOString() })
-                .eq('id', requestId)
-
-            if (error) throw error
-        } else {
-            // Rejected: Refund money
-            const { error: updateError } = await supabase
-                .from('withdrawal_requests')
-                .update({
-                    status: 'rejected',
-                    rejection_reason: rejectionReason,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', requestId)
-
-            if (updateError) throw updateError
-
-            // Refund
-            // Read-modify-write for simplicity
-            const { data: user } = await supabase.from('users').select('current_money').eq('id', request.user_id).single()
-            if (user) {
-                await supabase
-                    .from('users')
-                    .update({ current_money: (user.current_money || 0) + request.amount })
-                    .eq('id', request.user_id)
-            }
+        if (error) {
+            console.error('RPC Error:', error)
+            throw new Error(error.message)
         }
 
+        if (!data || !data.success) {
+            console.error('Process withdrawal failed:', data)
+            return { success: false, error: data?.error || '처리 실패' }
+        }
 
         revalidatePath('/admin/users')
         return { success: true }
