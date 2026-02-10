@@ -2,6 +2,7 @@ import { getSites, getWorkers } from '@/actions/sites'
 import { SiteDialog } from '@/components/admin/site-dialog'
 import { SiteActions } from '@/components/admin/site-actions'
 import { AdminSiteDateFilter } from '@/components/admin/site-date-filter'
+import { AdminSitesRealtime } from '@/components/admin/admin-sites-realtime'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, User, Calendar } from 'lucide-react'
@@ -29,6 +30,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
 
     return (
         <div className="space-y-6">
+            <AdminSitesRealtime />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">현장 관리</h2>
