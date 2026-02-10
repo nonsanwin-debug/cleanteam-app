@@ -196,17 +196,11 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
         occurred_at: format(new Date(), 'yyyy-MM-dd'),
         status: 'pending' as 'pending' | 'resolved' | 'monitoring'
     })
-    const [siteSearch, setSiteSearch] = useState('')
-    const [isSiteDropdownOpen, setIsSiteDropdownOpen] = useState(false)
-
-    const filteredSites = sites.filter(s =>
-        s.name.toLowerCase().includes(siteSearch.toLowerCase())
-    ).slice(0, 5)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!formData.site_name) {
-            toast.error('현장명을 입력해주세요.')
+        if (!formData.site_id) {
+            toast.error('현장을 선택해주세요.')
             return
         }
         setLoading(true)
@@ -227,7 +221,6 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                     occurred_at: format(new Date(), 'yyyy-MM-dd'),
                     status: 'pending'
                 })
-                setSiteSearch('')
                 router.refresh()
             } else {
                 toast.error('등록 실패: ' + res.error)
@@ -250,56 +243,32 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2 relative">
-                            <Label>현장명 (검색 또는 직접 입력)</Label>
-                            <div className="relative">
-                                <Input
-                                    placeholder="현장명을 입력하세요"
-                                    value={siteSearch || formData.site_name}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        setSiteSearch(val)
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            site_name: val,
-                                            site_id: '' // Clear ID if user is typing manually
-                                        }))
-                                        setIsSiteDropdownOpen(true)
-                                    }}
-                                    onFocus={() => setIsSiteDropdownOpen(true)}
-                                />
-                                {isSiteDropdownOpen && filteredSites.length > 0 && (
-                                    <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                                        {filteredSites.map(site => (
-                                            <div
-                                                key={site.id}
-                                                className="px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm border-b last:border-0"
-                                                onClick={() => {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        site_id: site.id,
-                                                        site_name: site.name,
-                                                        worker_id: site.worker_id || prev.worker_id
-                                                    }))
-                                                    setSiteSearch(site.name)
-                                                    setIsSiteDropdownOpen(false)
-                                                }}
-                                            >
-                                                <div className="font-medium text-slate-800">{site.name}</div>
-                                                <div className="text-[10px] text-slate-500">{site.address} ({site.cleaning_date})</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {isSiteDropdownOpen && siteSearch && (
-                                    <div
-                                        className="p-2 border-t text-right bg-slate-50"
-                                        onClick={() => setIsSiteDropdownOpen(false)}
-                                    >
-                                        <Button variant="ghost" size="sm" className="h-6 text-[10px]">닫기</Button>
-                                    </div>
-                                )}
-                            </div>
+                        <div className="space-y-2">
+                            <Label>현장 선택</Label>
+                            <Select
+                                value={formData.site_id}
+                                onValueChange={(val) => {
+                                    const site = sites.find(s => s.id === val)
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        site_id: val,
+                                        site_name: site?.name || '',
+                                        worker_id: site?.worker_id || prev.worker_id
+                                    }))
+                                }}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="현장 선택" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sites.map(site => (
+                                        <SelectItem key={site.id} value={site.id}>
+                                            {site.name} ({site.cleaning_date})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-2">
                             <Label>관련 팀장</Label>
