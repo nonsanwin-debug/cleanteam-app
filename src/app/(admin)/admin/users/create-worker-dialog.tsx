@@ -118,16 +118,6 @@ export function CreateWorkerDialog() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email">이메일 (선택)</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="example@email.com"
-                            />
-                        </div>
-                        <div className="grid gap-2">
                             <Label htmlFor="workerType">역할 *</Label>
                             <Select
                                 value={formData.workerType}
