@@ -154,11 +154,17 @@ export default function LoginPage() {
                     <form onSubmit={handleAuth} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username">아이디</Label>
-                            <Input id="username" name="username" type="text" placeholder="teamleader01" required />
+                            <Input
+                                id="username"
+                                name="username"
+                                type="text"
+                                placeholder="아이디를 입력하세요 (예: team8594)"
+                                required
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">비밀번호</Label>
-                            <Input id="password" name="password" type="password" required />
+                            <Input id="password" name="password" type="password" placeholder="비밀번호를 입력하세요" required />
                         </div>
                         <Button type="submit" className="w-full text-lg py-6" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '현장 팀장 로그인'}
