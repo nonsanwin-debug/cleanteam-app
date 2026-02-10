@@ -171,8 +171,15 @@ export default function WorkerSchedulePage() {
                                                                 지급완료
                                                             </div>
                                                         ) : site.payment_status === 'requested' ? (
-                                                            <div className="text-[9px] text-orange-600 font-bold bg-orange-50 px-1 rounded inline-block">
-                                                                청구완료
+                                                            <div className="space-y-0.5">
+                                                                <div className="text-[9px] text-orange-600 font-bold bg-orange-50 px-1 rounded inline-block">
+                                                                    청구완료
+                                                                </div>
+                                                                {site.claimed_amount && (
+                                                                    <div className="text-[9px] text-slate-600 font-medium">
+                                                                        {site.claimed_amount.toLocaleString()}원
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         ) : (
                                                             <button
