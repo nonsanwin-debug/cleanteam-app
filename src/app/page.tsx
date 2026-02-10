@@ -10,13 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2, CheckCircle2, HardHat } from 'lucide-react'
+import { Loader2, CheckCircle2, HardHat, Eye, EyeOff } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   // Initialize Supabase client only on the client side
@@ -42,12 +43,109 @@ export default function Home() {
   async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    // 메인 페이지의 로그인은 더 견고하게 수정된 /auth/login 페이지를 사용하도록 통합합니다.
+    if (!supabase) {
+      toast.error('연결 오류', { description: 'Supabase 클라이언트가 초기화되지 않았습니다.' })
+      return
+    }
+
+    setIsLoading(true)
+
     const formData = new FormData(e.currentTarget)
     const username = formData.get('username') as string
+    const password = formData.get('password') as string
+    const name = formData.get('name') as string // Only for signup
+    const companyName = formData.get('companyName') as string // Only for signup
+    const role = 'worker' // Always worker here for main page
 
-    // 아이디를 쿼리 파라미터로 넘겨주어 사용자 편의성을 유지합니다.
-    router.push(`/auth/login?username=${encodeURIComponent(username)}`)
+    // 아이디를 이메일 형식으로 변환 (최신 도메인: .temp, 대소문자 & 공백 무시)
+    const email = `${username.trim().toLowerCase()}@cleanteam.temp`
+
+    try {
+      if (isSignUp) {
+        // SIGN UP LOGIC
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: password.trim(),
+          options: {
+            data: {
+              name: name || '현장팀장',
+              role: 'worker',
+              username: username,
+              company_name: companyName
+            }
+          }
+        })
+
+        if (error) throw error;
+
+        if (data.user) {
+          let { data: profile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', data.user.id)
+            .single()
+
+          if (!profile) {
+            const nameToSet = data.user.user_metadata.name || '사용자'
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert([{ id: data.user.id, name: nameToSet, role: 'worker' }])
+
+            if (!insertError) profile = { role: 'worker' }
+          }
+
+          toast.success('회원가입 완료!', { description: '로그인되었습니다.' })
+          router.push('/worker/home')
+        }
+      } else {
+        // SIGN IN LOGIC (Robust integrated version)
+        console.log('🔐 메인 로그인 시도:', { username, email });
+
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
+          email,
+          password: password.trim(),
+        })
+
+        if (error) {
+          console.error('❌ 메인 로그인 에러:', error);
+          throw error;
+        }
+
+        console.log('✅ 메인 로그인 성공:', signInData.user?.email);
+
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (user) {
+          let { data: profile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+          if (!profile) {
+            const nameToSet = user.user_metadata.name || '사용자'
+            await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'worker' }])
+            profile = { role: 'worker' }
+          }
+
+          if (profile?.role === 'admin') {
+            router.push('/admin/dashboard')
+          } else {
+            router.push('/worker/home')
+          }
+          toast.success('로그인 성공')
+        }
+      }
+    } catch (err: any) {
+      console.error('🚨 인증 오류:', err);
+      let errorMessage = err.message;
+      if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
+      }
+      toast.error(isSignUp ? '가입 실패' : '로그인 실패', { description: errorMessage })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (!isMounted) {
@@ -141,7 +239,21 @@ export default function Home() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">비밀번호</Label>
-                  <Input id="password" name="password" type="password" required />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '로그인')}
