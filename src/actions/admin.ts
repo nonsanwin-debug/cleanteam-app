@@ -86,29 +86,28 @@ export async function approvePayment(siteId: string, userId: string, amount: num
     try {
         const supabase = await createClient()
 
-        // Use RPC function to bypass RLS
-        const { data, error } = await supabase.rpc('approve_payment_admin', {
-            site_id_param: siteId,
-            user_id_param: userId,
-            amount_param: amount
+        // Use a unique RPC name to avoid any overloading/conflict issues
+        const { data, error } = await supabase.rpc('approve_site_payment_final_v1', {
+            p_site_id: siteId,
+            p_user_id: userId,
+            p_amount: amount
         })
 
         if (error) {
             console.error('RPC Error:', error)
-            throw new Error(error.message)
+            return { success: false, error: `DB 연동 오류: ${error.message}` }
         }
 
         if (!data || !data.success) {
             console.error('Payment approval failed:', data)
-            throw new Error(data?.error || 'Payment approval failed')
+            return { success: false, error: data?.error || '지급 처리에 실패했습니다.' }
         }
 
-        console.log('Payment approved successfully:', data)
         revalidatePath('/admin/users')
         return { success: true }
-    } catch (error) {
-        console.error('Payment approval error:', error)
-        return { success: false, error: '지급 처리 중 오류가 발생했습니다.' }
+    } catch (error: any) {
+        console.error('Payment approval unexpected error:', error)
+        return { success: false, error: `시스템 오류: ${error.message || '알 수 없는 오류'}` }
     }
 }
 
