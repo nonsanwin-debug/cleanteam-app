@@ -215,39 +215,41 @@ export async function createWorker(data: {
         })
 
         if (authError) {
-            // Check if user already exists
+            // NUCLEAR OPTION: If user already exists, DELETE and recreate to ensure clean state
             if (authError.message.includes('already registered') || authError.status === 422) {
-                // Find existing user ID from our public.users table or list (Case-insensitive search)
-                const { data: existingProfile } = await standardSupabase
-                    .from('users')
-                    .select('id')
-                    .ilike('email', email) // Use ilike for case-insensitivity
-                    .single()
+                console.log('🔄 계정 중복 발견: 기존 계정 삭제 후 재생성 시도...', email)
 
-                if (existingProfile) {
-                    userId = existingProfile.id
+                // 1. Find existing user ID (Search all pages to be sure)
+                const { data: { users: authUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 })
+                const found = authUsers.find(u => u.email?.toLowerCase() === email.toLowerCase())
+
+                if (found) {
+                    const oldUserId = found.id
+                    console.log('🗑️ 기존 계정 및 프로필 삭제 중:', oldUserId)
+
+                    // Delete profile first (to avoid orphan records if possible, though upsert handles it)
+                    await adminClient.from('users').delete().eq('id', oldUserId)
+                    // Delete auth user (This clears invalid states/passwords)
+                    await adminClient.auth.admin.deleteUser(oldUserId)
+
+                    // 2. Try creating again fresh
+                    const { data: retryData, error: retryError } = await adminClient.auth.admin.createUser({
+                        email: email,
+                        password: password,
+                        email_confirm: true,
+                        user_metadata: {
+                            name: data.name,
+                            phone: data.phone,
+                            role: 'worker',
+                            company_name: companyName
+                        }
+                    })
+
+                    if (retryError) throw new Error(`계정 재생성 실패: ${retryError.message}`)
+                    userId = retryData.user.id
                 } else {
-                    // Fallback to listUsers (Case-insensitive search)
-                    const { data: authUsers } = await adminClient.auth.admin.listUsers()
-                    const found = authUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
-                    if (found) {
-                        userId = found.id
-                    } else {
-                        throw new Error(`계정 생성 실패: ${authError.message}`)
-                    }
+                    throw new Error(`계정이 이미 존재한다고 하지만 찾을 수 없습니다: ${authError.message}`)
                 }
-
-                // IMPORTANT: Update everything if user already exists to ensure it matches admin's entry
-                const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
-                    password: password,
-                    user_metadata: {
-                        name: data.name,
-                        phone: data.phone,
-                        role: 'worker',
-                        company_name: companyName
-                    }
-                })
-                if (updateError) throw new Error(`기존 계정 동기화 실패: ${updateError.message}`)
             } else {
                 throw new Error(authError.message)
             }
