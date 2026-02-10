@@ -39,7 +39,8 @@ export type ActionResponse<T = any> = {
 
 export type ASRequest = {
     id: string
-    site_id: string
+    site_id?: string | null
+    site_name?: string | null
     worker_id: string | null
     description: string
     processing_details: string | null

@@ -14,7 +14,7 @@ export async function getASRequests() {
             site:sites!site_id (name),
             worker:users!worker_id (name)
         `)
-        .order('created_at', { ascending: false })
+        .order('occurred_at', { ascending: false })
 
     if (error) {
         console.error('Error fetching AS requests:', error)
@@ -25,8 +25,9 @@ export async function getASRequests() {
 }
 
 export async function createASRequest(formData: {
-    site_id: string
-    worker_id?: string
+    site_id?: string | null
+    site_name: string
+    worker_id?: string | null
     description: string
     processing_details?: string
     occurred_at: string
@@ -37,7 +38,8 @@ export async function createASRequest(formData: {
     const { error } = await supabase
         .from('as_requests')
         .insert({
-            site_id: formData.site_id,
+            site_id: formData.site_id || null,
+            site_name: formData.site_name,
             worker_id: formData.worker_id || null,
             description: formData.description,
             processing_details: formData.processing_details || null,
