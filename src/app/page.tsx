@@ -42,102 +42,12 @@ export default function Home() {
   async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!supabase) {
-      toast.error('연결 오류', { description: 'Supabase 클라이언트가 초기화되지 않았습니다.' })
-      return
-    }
-
-    setIsLoading(true)
-
+    // 메인 페이지의 로그인은 더 견고하게 수정된 /auth/login 페이지를 사용하도록 통합합니다.
     const formData = new FormData(e.currentTarget)
     const username = formData.get('username') as string
-    const password = formData.get('password') as string
-    const name = formData.get('name') as string // Only for signup
-    const companyName = formData.get('companyName') as string // Only for signup
-    const role = 'worker' // Always worker here for main page
 
-    const email = `${username}@cleanteam.app`
-
-    try {
-      if (isSignUp) {
-        // SIGN UP LOGIC
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: name || '현장팀장',
-              role: 'worker',
-              username: username,
-              company_name: companyName
-            },
-            emailRedirectTo: undefined
-          }
-        })
-
-        if (error) throw error;
-
-        if (data.user) {
-          let { data: profile } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', data.user.id)
-            .single()
-
-          if (!profile) {
-            const nameToSet = data.user.user_metadata.name || '사용자'
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert([{ id: data.user.id, name: nameToSet, role: 'worker' }])
-
-            if (!insertError) profile = { role: 'worker' }
-          }
-
-          toast.success('회원가입 완료!', { description: '로그인되었습니다.' })
-          router.push('/worker/home')
-        }
-      } else {
-        // SIGN IN LOGIC
-        const { data: signInData, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-
-        if (error) throw error;
-
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (user) {
-          let { data: profile } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single()
-
-          if (!profile) {
-            const nameToSet = user.user_metadata.name || '사용자'
-            await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'worker' }])
-            profile = { role: 'worker' }
-          }
-
-          if (profile?.role === 'admin') {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/worker/home')
-          }
-          toast.success('로그인 성공')
-        }
-      }
-    } catch (err: any) {
-      console.error('🚨 인증 오류:', err);
-      let errorMessage = err.message;
-      if (err.message?.includes('Invalid login credentials')) {
-        errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
-      }
-      toast.error(isSignUp ? '가입 실패' : '로그인 실패', { description: errorMessage })
-    } finally {
-      setIsLoading(false)
-    }
+    // 아이디를 쿼리 파라미터로 넘겨주어 사용자 편의성을 유지합니다.
+    router.push(`/auth/login?username=${encodeURIComponent(username)}`)
   }
 
   if (!isMounted) {
