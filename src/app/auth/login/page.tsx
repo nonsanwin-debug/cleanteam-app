@@ -74,8 +74,8 @@ export default function LoginPage() {
         const name = formData.get('name') as string // Only for signup
         const role = 'worker' // Always worker here
 
-        // 아이디를 이메일 형식으로 변환
-        const email = `${username}@cleanteam.local`
+        // 아이디를 이메일 형식으로 변환 (도메인 통일: .temp)
+        const email = `${username}@cleanteam.temp`
 
         try {
             // SIGN IN LOGIC

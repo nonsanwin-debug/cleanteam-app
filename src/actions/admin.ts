@@ -163,6 +163,7 @@ export async function getAllWorkers() {
 }
 
 export async function createWorker(data: {
+    loginId: string
     name: string
     phone: string
     password: string
@@ -175,7 +176,8 @@ export async function createWorker(data: {
 
         // Create auth user
         let userId = ''
-        const email = data.email || `${data.phone}@cleanteam.temp`
+        // Use loginId for email generation
+        const email = `${data.loginId}@cleanteam.temp`
 
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email: email,

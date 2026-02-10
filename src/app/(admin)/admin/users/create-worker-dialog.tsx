@@ -30,6 +30,7 @@ export function CreateWorkerDialog() {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
+        loginId: '',
         name: '',
         phone: '',
         password: '',
@@ -41,7 +42,7 @@ export function CreateWorkerDialog() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
 
-        if (!formData.name || !formData.phone || !formData.password) {
+        if (!formData.loginId || !formData.name || !formData.phone || !formData.password) {
             toast.error('필수 항목을 입력해주세요.')
             return
         }
@@ -53,6 +54,7 @@ export function CreateWorkerDialog() {
                 toast.success('팀원이 생성되었습니다.')
                 setOpen(false)
                 setFormData({
+                    loginId: '',
                     name: '',
                     phone: '',
                     password: '',
@@ -100,6 +102,16 @@ export function CreateWorkerDialog() {
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
+                            <Label htmlFor="loginId">아이디 *</Label>
+                            <Input
+                                id="loginId"
+                                value={formData.loginId}
+                                onChange={(e) => setFormData({ ...formData, loginId: e.target.value })}
+                                placeholder="영문, 숫자 입력"
+                                required
+                            />
+                        </div>
+                        <div className="grid gap-2">
                             <Label htmlFor="name">이름 *</Label>
                             <Input
                                 id="name"
@@ -110,7 +122,7 @@ export function CreateWorkerDialog() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="phone">전화번호 (아이디) *</Label>
+                            <Label htmlFor="phone">전화번호 *</Label>
                             <Input
                                 id="phone"
                                 value={formData.phone}

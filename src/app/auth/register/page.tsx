@@ -15,6 +15,7 @@ export default function WorkerRegisterPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
+        loginId: '',
         password: '',
         name: '',
         companyName: '',
@@ -33,8 +34,8 @@ export default function WorkerRegisterPage() {
             const supabase = createClient()
 
             // 1. Sign Up
-            // Email is required for Supabase Auth, so we generate a placeholder email using phone number
-            const email = `${formData.phone}@cleanteam.temp`
+            // Email is required for Supabase Auth, so we generate a placeholder email using loginId
+            const email = `${formData.loginId}@cleanteam.temp`
 
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: email,
@@ -85,6 +86,17 @@ export default function WorkerRegisterPage() {
                 <CardContent>
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
+                            <Label htmlFor="loginId">아이디 (영문, 숫자)</Label>
+                            <Input
+                                id="loginId"
+                                name="loginId"
+                                type="text"
+                                required
+                                placeholder="hong123"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="name">성함 (팀장/작업자)</Label>
                             <Input
                                 id="name"
@@ -96,7 +108,7 @@ export default function WorkerRegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">연락처 (아이디로 사용)</Label>
+                            <Label htmlFor="phone">연락처</Label>
                             <Input
                                 id="phone"
                                 name="phone"
