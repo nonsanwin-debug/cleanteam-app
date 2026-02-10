@@ -148,7 +148,7 @@ export default function LoginPage() {
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold text-primary">Clean System</CardTitle>
                     <CardDescription>
-                        현장 팀장 로그인
+                        현장 팀장 로그인 (System v3 Updated)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
