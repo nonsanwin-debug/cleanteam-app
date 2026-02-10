@@ -53,7 +53,7 @@ export default function WorkerHomePage() {
                     if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
                         console.log('Site completed, redirecting to home...')
                         // Redirect worker to home page
-                        window.location.href = 'https://cleanteam-app.vercel.app/'
+                        window.location.href = 'https://cleanteam-app.vercel.app/worker/home'
                         return
                     }
 
