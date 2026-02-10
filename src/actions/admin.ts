@@ -189,10 +189,10 @@ export async function createWorker(data: {
             throw new Error(authError.message)
         }
 
-        // Create user record
+        // Create user record (Use upsert to handle potential triggers or retries)
         const { error: userError } = await supabase
             .from('users')
-            .insert({
+            .upsert({
                 id: authData.user.id,
                 name: data.name,
                 phone: data.phone,
@@ -209,9 +209,10 @@ export async function createWorker(data: {
 
         revalidatePath('/admin/users')
         return { success: true }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create worker error:', error)
-        return { success: false, error: '팀원 생성 중 오류가 발생했습니다.' }
+        // Return specific error message
+        return { success: false, error: error.message || '팀원 생성 중 오류가 발생했습니다.' }
     }
 }
 
