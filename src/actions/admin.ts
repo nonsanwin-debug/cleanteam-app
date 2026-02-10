@@ -174,50 +174,63 @@ export async function createWorker(data: {
     accountInfo?: string
 }): Promise<ActionResponse> {
     try {
-        const supabase = createAdminClient()
+        const standardSupabase = await createClient()
+        const adminClient = createAdminClient()
 
-        // Create auth user
+        // 1. Get current admin's company info
+        const { data: { user: adminUser } } = await standardSupabase.auth.getUser()
+        let companyId = null
+        let companyName = null
+
+        if (adminUser) {
+            const { data: adminProfile } = await standardSupabase
+                .from('users')
+                .select('company_id, companies(name)')
+                .eq('id', adminUser.id)
+                .single()
+
+            if (adminProfile) {
+                companyId = adminProfile.company_id
+                companyName = (adminProfile.companies as any)?.name
+            }
+        }
+
+        console.log('Admin creating worker:', { adminId: adminUser?.id, companyId, companyName })
+
+        // 2. Create auth user
         let userId = ''
-        // Use loginId for email generation
         const email = `${data.loginId}@cleanteam.temp`
 
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
             email: email,
             password: data.password,
             email_confirm: true,
             user_metadata: {
                 name: data.name,
-                phone: data.phone
+                phone: data.phone,
+                role: 'worker',
+                company_name: companyName // Trigger uses this to find company_id
             }
         })
 
         if (authError) {
-            // If user already exists, try to find the user
             if (authError.message.includes('already registered') || authError.status === 422) {
-                console.log('User already exists, fetching user id...')
-                // Admin function to list users doesn't allow filtering by email directly in all versions, 
-                // but we can try generic search or just assume failure if strict.
-                // Better approach: use listUsers
-                const { data: users, error: listError } = await supabase.auth.admin.listUsers()
+                const { data: users } = await adminClient.auth.admin.listUsers()
                 const existingUser = users.users.find(u => u.email === email)
-
                 if (existingUser) {
                     userId = existingUser.id
-                    // Optional: Update password if needed? No, keep existing.
                 } else {
-                    console.error('Could not find existing user despite 422 error')
                     throw new Error(authError.message)
                 }
             } else {
-                console.error('Auth error:', authError)
                 throw new Error(authError.message)
             }
         } else {
             userId = authData.user.id
         }
 
-        // Create user record (Use upsert to handle potential triggers or retries)
-        const { error: userError } = await supabase
+        // 3. Update/Upsert user profile in public.users table
+        const { error: userError } = await adminClient
             .from('users')
             .upsert({
                 id: userId,
@@ -226,7 +239,9 @@ export async function createWorker(data: {
                 email: email,
                 role: 'worker',
                 worker_type: data.workerType,
-                account_info: data.accountInfo
+                account_info: data.accountInfo,
+                company_id: companyId,
+                status: 'active'
             })
 
         if (userError) {
