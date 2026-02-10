@@ -11,8 +11,10 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, CheckCircle2 } from 'lucide-react'
+import { Loader2, CheckCircle2, Image as ImageIcon, ZoomIn, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import Image from 'next/image'
 
 const DEFAULT_TEMPLATE = {
     title: '작업 완료 확인서',
@@ -28,10 +30,11 @@ const DEFAULT_TEMPLATE = {
 
 interface CustomerChecklistProps {
     siteId: string
+    photos?: any[]
     onSuccess?: () => void
 }
 
-export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps) {
+export function CustomerChecklist({ siteId, photos = [], onSuccess }: CustomerChecklistProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -39,8 +42,11 @@ export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps)
     const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
     const [signature, setSignature] = useState<string | null>(null)
     const [submitted, setSubmitted] = useState(false)
+    const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
 
     const [workerNotes, setWorkerNotes] = useState<string>('')
+
+    const specialPhotos = photos.filter(p => p.type === 'special')
 
     useEffect(() => {
         const supabase = createClient()
@@ -211,14 +217,41 @@ export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps)
                 </CardContent>
             </Card>
 
-            {/* Worker Notes Display */}
-            {workerNotes && (
-                <Card className="bg-yellow-50/50 border-yellow-100">
-                    <CardContent className="p-4 space-y-2">
-                        <Label className="font-bold text-yellow-800">팀장 특이사항 / 메모</Label>
-                        <div className="text-sm text-yellow-900 bg-white/50 p-3 rounded border border-yellow-100 whitespace-pre-wrap">
-                            {workerNotes}
+            {/* Worker Notes Display with Photos */}
+            {(workerNotes || specialPhotos.length > 0) && (
+                <Card className="bg-yellow-50/50 border-yellow-100 overflow-hidden">
+                    <CardContent className="p-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-yellow-800">팀장 특이사항 / 메모</Label>
+                            <div className="text-sm text-yellow-900 bg-white/50 p-3 rounded border border-yellow-100 whitespace-pre-wrap min-h-[60px]">
+                                {workerNotes || '작성된 메모가 없습니다.'}
+                            </div>
                         </div>
+
+                        {/* Real-time Special Photos Grid */}
+                        {specialPhotos.length > 0 && (
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold text-yellow-700 uppercase tracking-wider">관련 사진</Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {specialPhotos.map((photo: any) => (
+                                        <div
+                                            key={photo.id}
+                                            className="relative aspect-square rounded-md overflow-hidden border border-yellow-200 bg-white cursor-pointer hover:opacity-90 transition-opacity group shadow-sm"
+                                            onClick={() => setSelectedPhoto(photo.url)}
+                                        >
+                                            <img
+                                                src={photo.url}
+                                                alt="Special note photo"
+                                                className="object-cover w-full h-full"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+                                                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
@@ -247,6 +280,24 @@ export function CustomerChecklist({ siteId, onSuccess }: CustomerChecklistProps)
                     '작업 완료 확인 및 제출'
                 )}
             </Button>
+
+            {/* Photo Zoom Dialog */}
+            <Dialog open={!!selectedPhoto} onOpenChange={(open) => !open && setSelectedPhoto(null)}>
+                <DialogContent className="max-w-4xl w-full p-2 bg-black/90 border-none">
+                    <div id="photo-zoom-desc" className="sr-only">확대된 사진 보기</div>
+                    {selectedPhoto && (
+                        <div className="relative aspect-square md:aspect-video w-full">
+                            <Image
+                                src={selectedPhoto}
+                                alt="Zoomed special photo"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

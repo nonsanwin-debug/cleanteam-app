@@ -50,6 +50,33 @@ export function ShareView({ siteId }: { siteId: string }) {
 
     useEffect(() => {
         fetchData()
+
+        const supabase = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
+
+        // Realtime Photos Subscription
+        const channel = supabase
+            .channel(`public_photos_${siteId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'photos',
+                    filter: `site_id=eq.${siteId}`
+                },
+                (payload) => {
+                    console.log('Photo change detected:', payload)
+                    fetchData() // Re-fetch all photos to be safe
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [siteId])
 
     if (loading) return <div className="p-8 text-center bg-slate-50 min-h-screen">Loading...</div>
@@ -138,7 +165,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 </div>
                             </div>
                         ) : (
-                            <CustomerChecklist siteId={site.id} onSuccess={fetchData} />
+                            <CustomerChecklist siteId={site.id} photos={photos} onSuccess={fetchData} />
                         )}
                     </div>
                 </section>
