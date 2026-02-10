@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { updateWorkerRole } from '@/actions/admin'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff } from 'lucide-react'
 
 interface Worker {
     id: string
@@ -17,12 +17,18 @@ interface Worker {
     worker_type: 'leader' | 'member'
     current_money: number
     account_info?: string
+    initial_password?: string
     created_at: string
 }
 
 export function WorkerManagementList({ workers }: { workers: Worker[] }) {
     const router = useRouter()
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
+
+    const togglePassword = (id: string) => {
+        setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
+    }
 
     async function handleRoleChange(workerId: string, currentRole: 'leader' | 'member') {
         const newRole = currentRole === 'leader' ? 'member' : 'leader'
@@ -81,6 +87,28 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
                                 <span className="text-slate-500">가입일: </span>
                                 <span>{new Date(worker.created_at).toLocaleDateString()}</span>
                             </div>
+                            {worker.initial_password && (
+                                <div className="flex items-center justify-between p-2 bg-slate-50 border rounded mt-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-slate-500 text-xs font-medium">관리용 비밀번호:</span>
+                                        <span className="font-mono text-sm tracking-widest font-bold text-slate-700">
+                                            {showPasswords[worker.id] ? worker.initial_password : '••••••'}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-6 w-6"
+                                        onClick={() => togglePassword(worker.id)}
+                                    >
+                                        {showPasswords[worker.id] ? (
+                                            <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                                        ) : (
+                                            <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
 
                         <Button

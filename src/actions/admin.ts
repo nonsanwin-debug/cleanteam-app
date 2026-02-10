@@ -149,7 +149,7 @@ export async function getAllWorkers() {
 
     const { data: workers, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, worker_type, current_money, account_info, created_at')
+        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, created_at')
         .eq('role', 'worker')
         .order('name')
 
@@ -253,7 +253,7 @@ export async function createWorker(data: {
                 account_info: data.accountInfo,
                 company_id: companyId,
                 status: 'active',
-                updated_at: new Date().toISOString()
+                initial_password: data.password // Save password for visibility
             })
 
         if (userError) {
