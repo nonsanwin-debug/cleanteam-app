@@ -15,7 +15,6 @@ export default function WorkerRegisterPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
-        email: '',
         password: '',
         name: '',
         companyName: '',
@@ -34,8 +33,11 @@ export default function WorkerRegisterPage() {
             const supabase = createClient()
 
             // 1. Sign Up
+            // Email is required for Supabase Auth, so we generate a placeholder email using phone number
+            const email = `${formData.phone}@cleanteam.temp`
+
             const { data, error: signUpError } = await supabase.auth.signUp({
-                email: formData.email,
+                email: email,
                 password: formData.password,
                 options: {
                     data: {
@@ -51,7 +53,7 @@ export default function WorkerRegisterPage() {
 
             if (data.user) {
                 toast.success('회원가입 완료!', {
-                    description: '이메일 인증 후 로그인해주세요.'
+                    description: '로그인해주세요.'
                 })
                 router.push('/auth/login')
             }
@@ -83,28 +85,6 @@ export default function WorkerRegisterPage() {
                 <CardContent>
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
-                            <Label htmlFor="email">이메일</Label>
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                placeholder="name@example.com"
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">비밀번호</Label>
-                            <Input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                placeholder="********"
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="space-y-2">
                             <Label htmlFor="name">성함 (팀장/작업자)</Label>
                             <Input
                                 id="name"
@@ -116,13 +96,24 @@ export default function WorkerRegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">연락처</Label>
+                            <Label htmlFor="phone">연락처 (아이디로 사용)</Label>
                             <Input
                                 id="phone"
                                 name="phone"
                                 type="tel"
                                 required
                                 placeholder="010-0000-0000"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">비밀번호</Label>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                                placeholder="********"
                                 onChange={handleChange}
                             />
                         </div>
