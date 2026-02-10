@@ -153,14 +153,18 @@ export async function deleteSite(id: string) {
     const supabase = await createClient()
 
     try {
-        const { error } = await supabase
+        const { error, count } = await supabase
             .from('sites')
-            .delete()
+            .delete({ count: 'exact' })
             .eq('id', id)
 
         if (error) {
             console.error('Error deleting site:', error)
             return { success: false, error: error.message }
+        }
+
+        if (count === 0) {
+            return { success: false, error: '삭제할 현장을 찾을 수 없거나 삭제 권한이 없습니다.' }
         }
 
         revalidatePath('/admin/sites')
