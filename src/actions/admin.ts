@@ -174,8 +174,11 @@ export async function createWorker(data: {
         const supabase = await createClient()
 
         // Create auth user
+        let userId = ''
+        const email = data.email || `${data.phone}@cleanteam.temp`
+
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-            email: data.email || `${data.phone}@cleanteam.temp`,
+            email: email,
             password: data.password,
             email_confirm: true,
             user_metadata: {
@@ -185,18 +188,38 @@ export async function createWorker(data: {
         })
 
         if (authError) {
-            console.error('Auth error:', authError)
-            throw new Error(authError.message)
+            // If user already exists, try to find the user
+            if (authError.message.includes('already registered') || authError.status === 422) {
+                console.log('User already exists, fetching user id...')
+                // Admin function to list users doesn't allow filtering by email directly in all versions, 
+                // but we can try generic search or just assume failure if strict.
+                // Better approach: use listUsers
+                const { data: users, error: listError } = await supabase.auth.admin.listUsers()
+                const existingUser = users.users.find(u => u.email === email)
+
+                if (existingUser) {
+                    userId = existingUser.id
+                    // Optional: Update password if needed? No, keep existing.
+                } else {
+                    console.error('Could not find existing user despite 422 error')
+                    throw new Error(authError.message)
+                }
+            } else {
+                console.error('Auth error:', authError)
+                throw new Error(authError.message)
+            }
+        } else {
+            userId = authData.user.id
         }
 
         // Create user record (Use upsert to handle potential triggers or retries)
         const { error: userError } = await supabase
             .from('users')
             .upsert({
-                id: authData.user.id,
+                id: userId,
                 name: data.name,
                 phone: data.phone,
-                email: data.email || `${data.phone}@cleanteam.temp`,
+                email: email,
                 role: 'worker',
                 worker_type: data.workerType,
                 account_info: data.accountInfo
