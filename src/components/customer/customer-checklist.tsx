@@ -157,11 +157,6 @@ export function CustomerChecklist({ siteId, photos = [], onSuccess }: CustomerCh
             toast.success('확인서가 제출되었습니다.')
             router.refresh()
             if (onSuccess) onSuccess()
-
-            // Force redirect to landing page
-            setTimeout(() => {
-                window.location.href = 'https://cleanteam-app.vercel.app/'
-            }, 1000)
         } catch (error) {
             console.error('Checklist Submission Error:', error)
             toast.error('제출 실패', {
