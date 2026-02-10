@@ -74,8 +74,8 @@ export default function LoginPage() {
         const name = formData.get('name') as string // Only for signup
         const role = 'worker' // Always worker here
 
-        // 아이디를 이메일 형식으로 변환 (도메인 통일: .temp, 대소문자 무시)
-        const email = `${username.toLowerCase()}@cleanteam.temp`
+        // 아이디를 이메일 형식으로 변환 (도메인 통일: .temp, 대소문자 & 공백 무시)
+        const email = `${username.trim().toLowerCase()}@cleanteam.temp`
 
         try {
             // SIGN IN LOGIC
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
             const { data: signInData, error } = await supabase.auth.signInWithPassword({
                 email,
-                password,
+                password: password.trim(),
             })
 
             if (error) {

@@ -198,7 +198,7 @@ export async function createWorker(data: {
 
         // 2. Create auth user
         let userId = ''
-        const normalizedLoginId = data.loginId.toLowerCase()
+        const normalizedLoginId = data.loginId.trim().toLowerCase()
         const email = `${normalizedLoginId}@cleanteam.temp`
 
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
@@ -214,25 +214,39 @@ export async function createWorker(data: {
         })
 
         if (authError) {
+            // Check if user already exists
             if (authError.message.includes('already registered') || authError.status === 422) {
-                const { data: users } = await adminClient.auth.admin.listUsers()
-                const existingUser = users.users.find(u => u.email === email)
-                if (existingUser) {
-                    userId = existingUser.id
-                    // IMPORTANT: Update password if user already exists to ensure it matches admin's entry
-                    const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
-                        password: data.password,
-                        user_metadata: {
-                            name: data.name,
-                            phone: data.phone,
-                            role: 'worker',
-                            company_name: companyName
-                        }
-                    })
-                    if (updateError) throw new Error(`기존 계정 정보 업데이트 실패: ${updateError.message}`)
+                // Find existing user ID from our public.users table or list (more reliable than listUsers pagination)
+                const { data: existingProfile } = await standardSupabase
+                    .from('users')
+                    .select('id')
+                    .eq('email', email)
+                    .single()
+
+                if (existingProfile) {
+                    userId = existingProfile.id
                 } else {
-                    throw new Error(authError.message)
+                    // Fallback to listUsers if not in public.users
+                    const { data: authUsers } = await adminClient.auth.admin.listUsers()
+                    const found = authUsers.users.find(u => u.email === email)
+                    if (found) {
+                        userId = found.id
+                    } else {
+                        throw new Error(`계정 생성 실패: ${authError.message}`)
+                    }
                 }
+
+                // IMPORTANT: Update password if user already exists to ensure it matches admin's entry
+                const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+                    password: data.password.trim(),
+                    user_metadata: {
+                        name: data.name,
+                        phone: data.phone,
+                        role: 'worker',
+                        company_name: companyName
+                    }
+                })
+                if (updateError) throw new Error(`기존 계정 비밀번호 업데이트 실패: ${updateError.message}`)
             } else {
                 throw new Error(authError.message)
             }
