@@ -159,10 +159,109 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
             }
         }
 
+
         revalidatePath('/admin/users')
         return { success: true }
     } catch (error) {
         console.error('Process Withdrawal Error:', error)
         return { success: false, error: '출금 처리 중 오류가 발생했습니다.' }
+    }
+}
+
+// ============================================
+// Worker Management Functions
+// ============================================
+
+export async function getAllWorkers() {
+    const supabase = await createClient()
+
+    const { data: workers, error } = await supabase
+        .from('users')
+        .select('id, name, phone, email, worker_type, current_money, account_info, created_at')
+        .eq('role', 'worker')
+        .order('name')
+
+    if (error) {
+        console.error('Error fetching workers:', error)
+        return []
+    }
+
+    return workers
+}
+
+export async function createWorker(data: {
+    name: string
+    phone: string
+    password: string
+    workerType: 'leader' | 'member'
+    email?: string
+}): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        // Create auth user
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email: data.email || `${data.phone}@cleanteam.temp`,
+            password: data.password,
+            email_confirm: true,
+            user_metadata: {
+                name: data.name,
+                phone: data.phone
+            }
+        })
+
+        if (authError) {
+            console.error('Auth error:', authError)
+            throw new Error(authError.message)
+        }
+
+        // Create user record
+        const { error: userError } = await supabase
+            .from('users')
+            .insert({
+                id: authData.user.id,
+                name: data.name,
+                phone: data.phone,
+                email: data.email || `${data.phone}@cleanteam.temp`,
+                role: 'worker',
+                worker_type: data.workerType
+            })
+
+        if (userError) {
+            console.error('User creation error:', userError)
+            throw new Error(userError.message)
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error('Create worker error:', error)
+        return { success: false, error: '팀원 생성 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function updateWorkerRole(
+    userId: string,
+    newRole: 'leader' | 'member'
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase
+            .from('users')
+            .update({ worker_type: newRole })
+            .eq('id', userId)
+            .eq('role', 'worker') // Safety check: only update workers
+
+        if (error) {
+            console.error('Update role error:', error)
+            throw new Error(error.message)
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error('Update worker role error:', error)
+        return { success: false, error: '역할 변경 중 오류가 발생했습니다.' }
     }
 }
