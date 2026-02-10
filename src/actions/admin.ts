@@ -217,19 +217,19 @@ export async function createWorker(data: {
         if (authError) {
             // Check if user already exists
             if (authError.message.includes('already registered') || authError.status === 422) {
-                // Find existing user ID from our public.users table or list (more reliable than listUsers pagination)
+                // Find existing user ID from our public.users table or list (Case-insensitive search)
                 const { data: existingProfile } = await standardSupabase
                     .from('users')
                     .select('id')
-                    .eq('email', email)
+                    .ilike('email', email) // Use ilike for case-insensitivity
                     .single()
 
                 if (existingProfile) {
                     userId = existingProfile.id
                 } else {
-                    // Fallback to listUsers if not in public.users
+                    // Fallback to listUsers (Case-insensitive search)
                     const { data: authUsers } = await adminClient.auth.admin.listUsers()
-                    const found = authUsers.users.find(u => u.email === email)
+                    const found = authUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
                     if (found) {
                         userId = found.id
                     } else {
@@ -268,7 +268,7 @@ export async function createWorker(data: {
                 account_info: data.accountInfo,
                 company_id: companyId,
                 status: 'active',
-                initial_password: data.password // Save password for visibility
+                initial_password: password // Save trimmed password
             })
 
         if (userError) {
