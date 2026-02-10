@@ -41,7 +41,8 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
             const result = await processWithdrawal(requestId, action, reason)
             if (result.success) {
                 toast.success(action === 'paid' ? '지급 처리되었습니다.' : '반려 처리되었습니다.')
-                router.refresh()
+                // Force full page reload to ensure UI updates
+                window.location.reload()
             } else {
                 toast.error(result.error)
             }

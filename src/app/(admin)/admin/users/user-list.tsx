@@ -37,7 +37,8 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
             const result = await approvePayment(siteId, userId, amount)
             if (result.success) {
                 toast.success('지급 처리되었습니다.')
-                router.refresh()
+                // Force full page reload to ensure UI updates
+                window.location.reload()
             } else {
                 toast.error(result.error)
             }
