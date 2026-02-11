@@ -231,22 +231,11 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                         />
                     </div>
 
-                    <div className="flex justify-end">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSave()}
-                            disabled={submitting}
-                            className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                        >
-                            <Save className="w-4 h-4 mr-2" />
-                            중간 저장
-                        </Button>
-                    </div>
                 </CardContent>
             </Card>
 
-            <Card>
+            {/* 서명 섹션 숨김 (팀장은 제출 권한 없음, 고객이 서명함) */}
+            {/* <Card>
                 <CardContent className="p-4 space-y-4">
                     <Label className="text-base font-bold">서명</Label>
                     <p className="text-sm text-slate-500 mb-2">
@@ -254,22 +243,29 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                     </p>
                     <SignaturePad onEnd={setSignature} />
                 </CardContent>
-            </Card>
+            </Card> */}
 
-            <Button
-                className="w-full h-12 text-lg"
-                onClick={handleSubmit}
-                disabled={submitting}
-            >
-                {submitting ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        제출 중...
-                    </>
-                ) : (
-                    '작업 완료 및 제출'
-                )}
-            </Button>
+            {/* 기존 제출 버튼 제거하고 저장 버튼을 메인으로 사용 */}
+            <div className="flex gap-2">
+                <Button
+                    className="w-full h-12 text-lg"
+                    variant="outline"
+                    onClick={() => handleSave()}
+                    disabled={submitting}
+                >
+                    {submitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            저장 중...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="mr-2 h-5 w-5" />
+                            작업 내용 저장
+                        </>
+                    )}
+                </Button>
+            </div>
         </div>
     )
 })

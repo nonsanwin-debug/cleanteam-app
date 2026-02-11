@@ -291,6 +291,30 @@ export async function updateSite(id: string, formData: CreateSiteDTO) {
     }
 }
 
+export async function forceCompleteSite(id: string) {
+    const supabase = await createClient()
+
+    try {
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            } as any)
+            .eq('id', id)
+
+        if (error) throw error
+
+        revalidatePath(`/admin/sites/${id}`)
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (e: any) {
+        console.error('Error force completing site:', e)
+        return { success: false, error: e.message || '작업 완료 처리 중 오류가 발생했습니다.' }
+    }
+}
+
 
 export async function getDashboardStats() {
     const supabase = await createClient()

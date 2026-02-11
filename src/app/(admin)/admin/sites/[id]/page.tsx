@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { AdminForceCompleteButton } from "@/components/admin/admin-force-complete-button"
 
 export default async function AdminSiteDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -142,6 +143,9 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                             <div className="text-center py-10 text-muted-foreground">
                                 <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-20" />
                                 <p>아직 체크리스트가 제출되지 않았습니다.</p>
+                                {site.status !== 'completed' && (
+                                    <AdminForceCompleteButton siteId={site.id} siteName={site.name} />
+                                )}
                             </div>
                         )}
                     </CardContent>
