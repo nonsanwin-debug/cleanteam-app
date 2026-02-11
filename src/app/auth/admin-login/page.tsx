@@ -69,14 +69,16 @@ export default function AdminLoginPage() {
         const formData = new FormData(e.currentTarget)
         const username = formData.get('username') as string
         const password = formData.get('password') as string
-        const email = `${username}@cleanteam.local`
+        // 아이디 정규화 (소문자 및 공백 제거)
+        const normalizedUsername = username.trim().toLowerCase()
+        const email = `${normalizedUsername}@cleanteam.local`
 
         try {
-            console.log('🔐 관리자 로그인 시도:', { username, email });
+            console.log('🔐 관리자 로그인 시도:', { username: normalizedUsername, email });
 
             const { data: signInData, error } = await supabase.auth.signInWithPassword({
                 email,
-                password,
+                password: password.trim(), // password trim 추가
             })
 
             if (error) {
@@ -104,17 +106,14 @@ export default function AdminLoginPage() {
                     if (roleToSet === 'admin') {
                         await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'admin' }])
                         profile = { role: 'admin' }
-                    } else {
-                        // If they are not admin in metadata, they shouldn't be logging in here potentially
-                        // But let's check profile role first
                     }
                 }
 
                 // Redirect based on role
                 if (profile?.role === 'admin') {
                     console.log('👑 관리자로 리다이렉트');
-                    router.push('/admin/dashboard')
                     toast.success('관리자 로그인 성공')
+                    window.location.href = '/admin/dashboard'
                 } else {
                     console.log('❌ 권한 부족 - worker가 admin 페이지 접근 시도');
                     toast.error('로그인 실패: 권한 부족', {

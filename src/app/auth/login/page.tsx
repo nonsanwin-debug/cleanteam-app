@@ -115,12 +115,12 @@ export default function LoginPage() {
                 }
 
                 // Redirect based on role
-                if (profile?.role === 'admin') {
-                    router.push('/admin/dashboard')
-                } else {
-                    router.push('/worker/home')
-                }
                 toast.success('로그인 성공')
+                if (profile?.role === 'admin') {
+                    window.location.href = '/admin/dashboard'
+                } else {
+                    window.location.href = '/worker/home'
+                }
             }
         } catch (err: any) {
             console.error('🚨 인증 오류:', err);

@@ -128,12 +128,12 @@ export default function Home() {
             profile = { role: 'worker' }
           }
 
-          if (profile?.role === 'admin') {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/worker/home')
-          }
           toast.success('로그인 성공')
+          if (profile?.role === 'admin') {
+            window.location.href = '/admin/dashboard'
+          } else {
+            window.location.href = '/worker/home'
+          }
         }
       }
     } catch (err: any) {
