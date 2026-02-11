@@ -113,7 +113,7 @@ export default function WorkerHomePage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
                 <div>
-                    <h2 className="text-lg font-bold">작업 관리</h2>
+                    <h2 className="text-lg font-bold">작업 관리 (V2)</h2>
                 </div>
                 <Button variant="outline" size="sm" onClick={loadSites} disabled={loading}>
                     <RefreshCcw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
@@ -198,13 +198,15 @@ function SiteCard({
                     {site.customer_name && (
                         <p className="text-sm text-slate-500 font-normal">고객: {site.customer_name}</p>
                     )}
-                    {site.customer_phone && (
+                    {site.customer_phone ? (
                         <a href={`tel:${site.customer_phone}`} className="flex items-center text-blue-600 font-medium text-sm">
                             <span className="mr-1.5">{site.customer_phone}</span>
                             <div className="bg-blue-100 p-1.5 rounded-full">
                                 <Phone className="h-3.5 w-3.5" />
                             </div>
                         </a>
+                    ) : (
+                        <span className="text-slate-400 text-xs italic">연락처 없음</span>
                     )}
                 </div>
             </CardHeader>
