@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, Menu } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, Menu, UserPlus } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
 import { createClient } from '@/lib/supabase/server'
@@ -84,6 +84,12 @@ export default async function AdminLayout({
                 <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
                     <AlertCircle className="mr-2 h-4 w-4" />
                     AS 관리
+                </Button>
+            </Link>
+            <Link href="/admin/users/new">
+                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-indigo-50 border-l-4 border-transparent hover:border-indigo-600">
+                    <UserPlus className="mr-2 h-4 w-4 text-indigo-600" />
+                    팀원 등록
                 </Button>
             </Link>
             <Link href="/admin/settings">

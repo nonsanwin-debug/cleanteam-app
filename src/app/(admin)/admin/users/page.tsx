@@ -2,7 +2,9 @@ import { getUsersWithClaims, getWithdrawalRequests, getAllWorkers } from '@/acti
 import { UserList } from './user-list'
 import { WithdrawalList } from './withdrawal-list'
 import { WorkerManagementList } from './worker-management-list'
-import { CreateWorkerDialog } from './create-worker-dialog'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { UserPlus } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const dynamic = 'force-dynamic'
@@ -42,7 +44,12 @@ export default async function UsersPage() {
                 </TabsContent>
                 <TabsContent value="workers" className="mt-6">
                     <div className="flex justify-end mb-4">
-                        <CreateWorkerDialog />
+                        <Link href="/admin/users/new">
+                            <Button className="bg-indigo-600 hover:bg-indigo-700">
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                새 팀원 추가
+                            </Button>
+                        </Link>
                     </div>
                     <WorkerManagementList workers={workers} />
                 </TabsContent>
