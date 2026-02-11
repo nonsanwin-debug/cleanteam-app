@@ -6,12 +6,23 @@ import { ActionResponse } from '@/types'
 
 export async function getUsersWithClaims() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
 
-    // Fetch users with role 'worker'
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    // Fetch users with role 'worker' and same company_id
     const { data: users, error } = await supabase
         .from('users')
         .select('*')
         .eq('role', 'worker')
+        .eq('company_id', profile.company_id)
         .order('name')
 
     if (error) {
@@ -19,13 +30,12 @@ export async function getUsersWithClaims() {
         return []
     }
 
-    // Fetch pending claims for each user
-    // We could do this with a join, but for simplicity and type safety let's do it here or use a better query
-    // Let's try to get sites with payment_status = 'requested' grouped by worker_id
+    // Fetch pending claims for each user in the same company
     const { data: claims } = await supabase
         .from('sites')
         .select('id, name, worker_id, claimed_amount, payment_status, created_at')
         .eq('payment_status', 'requested')
+        .eq('company_id', profile.company_id)
 
     // Attach claims to users
     const usersWithClaims = users.map(user => {
@@ -43,9 +53,16 @@ export async function getUsersWithClaims() {
 
 export async function getWithdrawalRequests() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
 
-    // Join with users to get names (if foreign key exists and RLS allows)
-    // Supabase - we can just fetch requests and then map users manually or use select
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
 
     const { data: requests, error } = await supabase
         .from('withdrawal_requests')
@@ -53,9 +70,11 @@ export async function getWithdrawalRequests() {
             *,
             users (
                 name,
-                phone
+                phone,
+                company_id
             )
         `)
+        .eq('users.company_id', profile.company_id)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -68,11 +87,22 @@ export async function getWithdrawalRequests() {
 
 export async function getPendingWithdrawalCount() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return 0
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return 0
 
     const { count, error } = await supabase
         .from('withdrawal_requests')
-        .select('*', { count: 'exact', head: true })
+        .select('*, users!inner(company_id)', { count: 'exact', head: true })
         .eq('status', 'pending')
+        .eq('users.company_id', profile.company_id)
 
     if (error) {
         console.error('Error fetching pending withdrawal count:', error)
@@ -147,10 +177,22 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
 export async function getAllWorkers() {
     const supabase = await createClient()
 
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
     const { data: workers, error } = await supabase
         .from('users')
         .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at')
         .eq('role', 'worker')
+        .eq('company_id', profile.company_id)
         .order('name')
 
     if (error) {
@@ -190,7 +232,12 @@ export async function createWorker(data: {
 
             if (adminProfile) {
                 companyId = adminProfile.company_id
-                companyName = (adminProfile.companies as any)?.name
+                const company = (adminProfile.companies as any)
+                if (company && company.name && company.code) {
+                    companyName = `${company.name}#${company.code}`
+                } else {
+                    companyName = company?.name
+                }
             }
         }
 

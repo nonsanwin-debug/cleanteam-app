@@ -22,38 +22,21 @@ export default async function AdminLayout({
     if (user) {
         console.log('🔍 User ID:', user.id)
 
-        // First, get user profile with company_id
-        const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('name, company_id')
-            .eq('id', user.id)
-            .single()
+        if (user) {
+            // Fetch user profile with company info in a single join
+            const { data: profile } = await supabase
+                .from('users')
+                .select('name, company_id, companies(name, code)')
+                .eq('id', user.id)
+                .single()
 
-        console.log('🔍 Profile:', profile)
-        console.log('🔍 Profile Error:', profileError)
-
-        if (profile) {
-            // If user has a company_id, fetch the company name
-            if (profile.company_id) {
-                console.log('🔍 Company ID:', profile.company_id)
-
-                const { data: company, error: companyError } = await supabase
-                    .from('companies')
-                    .select('name, code')
-                    .eq('id', profile.company_id)
-                    .single()
-
-                console.log('🔍 Company:', company)
-                console.log('🔍 Company Error:', companyError)
-
-                if (company) {
+            if (profile) {
+                const company = profile.companies as any
+                if (company && company.name && company.code) {
                     displayName = `${company.name}#${company.code}`
                 } else {
                     displayName = profile.name || '관리자'
                 }
-            } else {
-                console.log('🔍 No company_id found')
-                displayName = profile.name || '관리자'
             }
         }
 
