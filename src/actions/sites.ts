@@ -40,7 +40,7 @@ export type Site = {
 export type CreateSiteDTO = {
     name: string
     address: string
-    worker_id?: string
+    worker_id?: string | null
     status?: 'scheduled' | 'in_progress' | 'completed'
     // New Fields
     customer_name?: string
@@ -153,6 +153,26 @@ export async function createSite(formData: CreateSiteDTO) {
             .select('company_id')
             .eq('id', user.id)
             .single()
+
+        if (!userData?.company_id) {
+            throw new Error('소속 업체를 찾을 수 없습니다.')
+        }
+
+        // 중복 체크: 동일 업체, 동일 날짜, 동일 현장명
+        const { data: existingSite } = await supabase
+            .from('sites')
+            .select('id')
+            .eq('company_id', userData.company_id)
+            .eq('cleaning_date', formData.cleaning_date || '')
+            .eq('name', formData.name)
+            .maybeSingle()
+
+        if (existingSite) {
+            return {
+                success: false,
+                error: '기존 현장이 있습니다 삭제 후 현장배정 요망'
+            }
+        }
 
         // Fetch worker name/phone if worker_id is present
         let workerName = null

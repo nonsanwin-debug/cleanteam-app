@@ -166,7 +166,7 @@ export function SiteDialog({
             const data = {
                 name: values.name,
                 address: values.address,
-                worker_id: values.worker_id === 'unassigned' ? undefined : values.worker_id,
+                worker_id: values.worker_id === 'unassigned' ? null : values.worker_id,
                 customer_name: values.customer_name,
                 customer_phone: values.customer_phone,
                 residential_type: values.residential_type,
