@@ -127,17 +127,23 @@ export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
             .getPublicUrl(fileName)
 
         // 3. Insert into Photos table
+        const { data: { user } } = await supabase.auth.getUser()
+
         const { error: dbError } = await supabase
             .from('photos')
             .insert([
                 {
                     site_id: siteId,
                     url: publicUrl,
-                    type: type
+                    type: type,
+                    user_id: user?.id || null // Track who uploaded the photo
                 }
             ])
 
-        if (dbError) return { success: false, error: dbError.message }
+        if (dbError) {
+            console.error('Photo DB Insert Error:', dbError)
+            return { success: false, error: dbError.message }
+        }
 
         revalidatePath(`/worker/sites/${siteId}`)
         return { success: true, data: { publicUrl } }

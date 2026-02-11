@@ -256,13 +256,18 @@ export async function getRecentActivities() {
     }
 
     // 3. Map to dashboard activity format
-    return (photos || []).map(photo => ({
-        id: `photo-${photo.id}`,
-        type: 'photo_uploaded' as const,
-        actor: (photo.user as any)?.name || '알 수 없음',
-        target: (photo.site as any)?.name || '알 수 없음',
-        timestamp: photo.created_at
-    }))
+    return (photos || []).map(photo => {
+        const siteData = (photo as any).site
+        const userData = (photo as any).user
+
+        return {
+            id: `photo-${photo.id}`,
+            type: 'photo_uploaded' as const,
+            actor: userData?.name || '현장팀장',
+            target: siteData?.name || '알 수 없음',
+            timestamp: photo.created_at
+        }
+    })
 }
 
 export async function getSiteById(id: string) {
