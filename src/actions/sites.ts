@@ -510,34 +510,4 @@ export async function getTodayActivitySites() {
     return data as (Site & { started_at?: string, completed_at?: string, updated_at?: string })[]
 }
 
-export async function getSites(company_id?: string) {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
 
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
-
-    const targetCompanyId = company_id || profile.company_id
-
-    const { data, error } = await supabase
-        .from('sites')
-        .select(`
-            *,
-            worker:users!worker_id (name)
-        `)
-        .eq('company_id', targetCompanyId)
-        .order('created_at', { ascending: false })
-
-    if (error) {
-        console.error('Error fetching sites:', error)
-        return []
-    }
-
-    return data
-}
