@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw } from 'lucide-react'
+import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -194,7 +194,19 @@ function SiteCard({
                     </span>
                 </div>
                 <CardTitle className="text-xl mt-2">{site.name}</CardTitle>
-                {site.customer_name && <p className="text-sm text-slate-500 font-normal">고객: {site.customer_name}</p>}
+                <div className="flex items-center justify-between mt-1">
+                    {site.customer_name && (
+                        <p className="text-sm text-slate-500 font-normal">고객: {site.customer_name}</p>
+                    )}
+                    {site.customer_phone && (
+                        <a href={`tel:${site.customer_phone}`} className="flex items-center text-blue-600 font-medium text-sm">
+                            <span className="mr-1.5">{site.customer_phone}</span>
+                            <div className="bg-blue-100 p-1.5 rounded-full">
+                                <Phone className="h-3.5 w-3.5" />
+                            </div>
+                        </a>
+                    )}
+                </div>
             </CardHeader>
             <CardContent className="pb-2 text-sm text-slate-600 space-y-3">
                 <div className="flex items-start">

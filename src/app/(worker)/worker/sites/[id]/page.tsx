@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2 } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { WorkerSiteActions } from '@/components/worker/worker-site-actions'
@@ -230,7 +230,17 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">연락처</p>
-                            <p className="text-gray-800">{site.manager_phone || site.customer_phone || '-'}</p>
+                            <div className="flex items-center justify-between">
+                                <p className="text-gray-800">{site.manager_phone || site.customer_phone || '-'}</p>
+                                {(site.manager_phone || site.customer_phone) && (
+                                    <a
+                                        href={`tel:${site.manager_phone || site.customer_phone}`}
+                                        className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
+                                    >
+                                        <Phone className="h-4 w-4" />
+                                    </a>
+                                )}
+                            </div>
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">시작일</p>
