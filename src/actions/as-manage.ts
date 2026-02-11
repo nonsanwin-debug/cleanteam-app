@@ -6,14 +6,25 @@ import { ActionResponse, ASRequest } from '@/types'
 
 export async function getASRequests() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
 
     const { data, error } = await supabase
         .from('as_requests')
         .select(`
             *,
-            site:sites!site_id (name),
+            site:sites!site_id (name, company_id),
             worker:users!worker_id (name)
         `)
+        .eq('site.company_id', profile.company_id)
         .order('occurred_at', { ascending: false })
 
     if (error) {
@@ -86,28 +97,41 @@ export async function updateASRequest(id: string, formData: {
 
 export async function getASStats() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    const companyId = profile.company_id
 
     // Needs to get: Worker Name | Total Completed Sites | AS Count | AS Rate
-    // 1. Get all workers
+    // 1. Get all workers in this company
     const { data: workers } = await supabase
         .from('users')
         .select('id, name')
         .eq('role', 'worker')
+        .eq('company_id', companyId)
 
     if (!workers) return []
 
-    // 2. Get completed sites count per worker
-    // Using a raw query or grouping might be better, but loop is simpler for now or RPC
-    // Let's fetch all completed sites and aggregate in memory (assuming not huge scale yet)
+    // 2. Get completed sites count per worker in this company
     const { data: sites } = await supabase
         .from('sites')
         .select('worker_id')
         .eq('status', 'completed')
+        .eq('company_id', companyId)
 
-    // 3. Get all AS requests
+    // 3. Get all AS requests for this company
     const { data: asRequests } = await supabase
         .from('as_requests')
-        .select('worker_id')
+        .select('worker_id, site!inner(company_id)')
+        .eq('site.company_id', companyId)
 
     const stats = workers.map(worker => {
         const completedCount = sites?.filter(s => s.worker_id === worker.id).length || 0
