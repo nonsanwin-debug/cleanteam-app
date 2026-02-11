@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils'
 interface ASManageClientProps {
     requests: ASRequest[]
     sites: Site[]
-    workers: { id: string; name: string }[]
+    workers: { id: string; name: string; current_money?: number }[]
 }
 
 export function ASManageClient({ requests, sites, workers }: ASManageClientProps) {
@@ -107,6 +107,7 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">AS 내용</th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-[100px]">상태</th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">처리 결과</th>
+                                    <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-[100px]">차감 금액</th>
                                     <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-[100px]">관리</th>
                                 </tr>
                             </thead>
@@ -142,6 +143,15 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                                             <td className="p-4 align-middle whitespace-pre-wrap text-muted-foreground">
                                                 {req.processing_details || '-'}
                                                 {req.resolved_at && <div className="text-xs mt-1">({req.resolved_at} 완료)</div>}
+                                            </td>
+                                            <td className="p-4 align-middle text-right">
+                                                {req.penalty_amount && req.penalty_amount > 0 ? (
+                                                    <span className="text-red-500 font-medium">
+                                                        -{(req.penalty_amount).toLocaleString()}원
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-300">-</span>
+                                                )}
                                             </td>
                                             <td className="p-4 align-middle text-right">
                                                 <div className="flex justify-end gap-2">
@@ -184,7 +194,7 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
     open: boolean
     onOpenChange: (open: boolean) => void
     sites: Site[]
-    workers: { id: string; name: string }[]
+    workers: { id: string; name: string; current_money?: number }[]
 }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
@@ -193,14 +203,21 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
         site_name: '',
         worker_id: '',
         description: '',
+        penalty_amount: 0,
         occurred_at: format(new Date(), 'yyyy-MM-dd'),
         status: 'pending' as 'pending' | 'resolved' | 'monitoring'
     })
+
+    const selectedWorkerBalance = workers.find(w => w.id === formData.worker_id)?.current_money || 0
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!formData.site_id) {
             toast.error('현장을 선택해주세요.')
+            return
+        }
+        if (formData.penalty_amount > selectedWorkerBalance) {
+            toast.error('차감 금액이 해당 팀장의 잔액보다 큽니다.')
             return
         }
         setLoading(true)
@@ -218,6 +235,7 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                     site_name: '',
                     worker_id: '',
                     description: '',
+                    penalty_amount: 0,
                     occurred_at: format(new Date(), 'yyyy-MM-dd'),
                     status: 'pending'
                 })
@@ -281,21 +299,45 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {workers.map(worker => (
-                                        <SelectItem key={worker.id} value={worker.id}>{worker.name}</SelectItem>
+                                        <SelectItem key={worker.id} value={worker.id}>
+                                            {worker.name} (잔액: {(worker.current_money || 0).toLocaleString()}원)
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>발생일</Label>
-                        <Input
-                            type="date"
-                            value={formData.occurred_at}
-                            onChange={(e) => setFormData(prev => ({ ...prev, occurred_at: e.target.value }))}
-                            required
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>발생일</Label>
+                            <Input
+                                type="date"
+                                value={formData.occurred_at}
+                                onChange={(e) => setFormData(prev => ({ ...prev, occurred_at: e.target.value }))}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="flex justify-between items-center">
+                                <span>차감 금액</span>
+                                {formData.worker_id && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                        최대 차감 가능: {selectedWorkerBalance.toLocaleString()}원
+                                    </span>
+                                )}
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    type="number"
+                                    placeholder="0"
+                                    value={formData.penalty_amount}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, penalty_amount: Number(e.target.value) }))}
+                                    className="pr-8"
+                                />
+                                <span className="absolute right-3 top-2.5 text-sm text-slate-400">원</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-2">

@@ -49,6 +49,7 @@ export type ASRequest = {
     resolved_at: string | null
     created_at: string
     updated_at: string
+    penalty_amount?: number
     // Joins
     site?: {
         name: string

@@ -115,7 +115,7 @@ export async function getWorkers() {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, name')
+        .select('id, name, current_money')
         .eq('role', 'worker')
         .eq('company_id', userData.company_id)
         .order('name')

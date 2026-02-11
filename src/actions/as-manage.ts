@@ -43,24 +43,28 @@ export async function createASRequest(formData: {
     processing_details?: string
     occurred_at: string
     status: 'pending' | 'resolved' | 'monitoring'
+    penalty_amount?: number
 }) {
     const supabase = await createClient()
 
-    const { error } = await supabase
-        .from('as_requests')
-        .insert({
-            site_id: formData.site_id || null,
-            site_name: formData.site_name,
-            worker_id: formData.worker_id || null,
-            description: formData.description,
-            processing_details: formData.processing_details || null,
-            occurred_at: formData.occurred_at,
-            status: formData.status
-        })
+    // Use RPC for atomic transaction: balance check + deduction + AS insert
+    const { data, error } = await supabase.rpc('create_as_with_penalty_v1', {
+        p_site_id: formData.site_id || null,
+        p_site_name: formData.site_name,
+        p_worker_id: formData.worker_id || null,
+        p_description: formData.description,
+        p_occurred_at: formData.occurred_at,
+        p_status: formData.status,
+        p_penalty_amount: formData.penalty_amount || 0
+    })
 
     if (error) {
-        console.error('Error creating AS request:', error)
+        console.error('Error creating AS request via RPC:', error)
         return { success: false, error: error.message }
+    }
+
+    if (data && !data.success) {
+        return { success: false, error: data.error || '등록 실패' }
     }
 
     revalidatePath('/admin/as-manage')
