@@ -142,17 +142,17 @@ export default function WorkerRegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="companyName">소속 업체명 (정확히 입력)</Label>
+                            <Label htmlFor="companyName">소속 업체명 및 코드 (업체명#0000)</Label>
                             <Input
                                 id="companyName"
                                 name="companyName"
                                 type="text"
                                 required
-                                placeholder="예: 클린프로 강남점"
+                                placeholder="예: 클린프로#1234"
                                 className="border-blue-200 focus:border-blue-500"
                                 onChange={handleChange}
                             />
-                            <p className="text-xs text-slate-500">* 관리자에게 확인한 정확한 업체명을 입력해주세요.</p>
+                            <p className="text-xs text-slate-500">* 관리자에게 확인한 업체명과 고유코드(#)를 정확히 입력해주세요.</p>
                         </div>
 
                         <Button type="submit" className="w-full py-6 mt-4" disabled={loading}>

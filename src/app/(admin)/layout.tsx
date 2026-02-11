@@ -45,14 +45,18 @@ export default async function AdminLayout({
 
                 const { data: company, error: companyError } = await supabase
                     .from('companies')
-                    .select('name')
+                    .select('name, code')
                     .eq('id', profile.company_id)
                     .single()
 
                 console.log('🔍 Company:', company)
                 console.log('🔍 Company Error:', companyError)
 
-                displayName = company?.name || profile.name || '관리자'
+                if (company) {
+                    displayName = `${company.name}#${company.code}`
+                } else {
+                    displayName = profile.name || '관리자'
+                }
             } else {
                 console.log('🔍 No company_id found')
                 displayName = profile.name || '관리자'

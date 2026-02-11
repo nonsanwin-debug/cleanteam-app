@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { updateWorkerRole } from '@/actions/admin'
+import { updateWorkerRole, approveWorker } from '@/actions/admin'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck } from 'lucide-react'
 
 interface Worker {
     id: string
@@ -16,6 +16,7 @@ interface Worker {
     email?: string
     worker_type: 'leader' | 'member'
     current_money: number
+    status: 'active' | 'pending'
     account_info?: string
     initial_password?: string
     created_at: string
@@ -52,6 +53,25 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
         }
     }
 
+    async function handleApprove(workerId: string) {
+        if (!confirm('가입을 승인하시겠습니까?')) return
+
+        setProcessingId(workerId)
+        try {
+            const result = await approveWorker(workerId)
+            if (result.success) {
+                toast.success('가입이 승인되었습니다.')
+                router.refresh()
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setProcessingId(null)
+        }
+    }
+
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {workers.map(worker => (
@@ -67,9 +87,14 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
                                     <p className="text-sm text-slate-500">{worker.phone}</p>
                                 </div>
                             </div>
-                            <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
-                                {worker.worker_type === 'leader' ? '팀장' : '팀원'}
-                            </Badge>
+                            <div className="flex flex-col items-end gap-1">
+                                <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
+                                    {worker.worker_type === 'leader' ? '팀장' : '팀원'}
+                                </Badge>
+                                {worker.status === 'pending' && (
+                                    <Badge variant="destructive" className="text-[10px] py-0">승인대기</Badge>
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-2 text-sm mb-4">
@@ -111,31 +136,50 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
                             )}
                         </div>
 
-                        <Button
-                            size="sm"
-                            variant={worker.worker_type === 'leader' ? 'outline' : 'default'}
-                            className="w-full"
-                            onClick={() => handleRoleChange(worker.id, worker.worker_type)}
-                            disabled={!!processingId}
-                        >
-                            {processingId === worker.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <>
-                                    {worker.worker_type === 'leader' ? (
-                                        <>
-                                            <ArrowDown className="w-4 h-4 mr-1" />
-                                            팀원으로 강등
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ArrowUp className="w-4 h-4 mr-1" />
-                                            팀장으로 승격
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </Button>
+                        {worker.status === 'pending' ? (
+                            <Button
+                                size="sm"
+                                variant="default"
+                                className="w-full bg-green-600 hover:bg-green-700"
+                                onClick={() => handleApprove(worker.id)}
+                                disabled={!!processingId}
+                            >
+                                {processingId === worker.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <UserCheck className="w-4 h-4 mr-1" />
+                                        가입 승인
+                                    </>
+                                )}
+                            </Button>
+                        ) : (
+                            <Button
+                                size="sm"
+                                variant={worker.worker_type === 'leader' ? 'outline' : 'default'}
+                                className="w-full"
+                                onClick={() => handleRoleChange(worker.id, worker.worker_type)}
+                                disabled={!!processingId}
+                            >
+                                {processingId === worker.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        {worker.worker_type === 'leader' ? (
+                                            <>
+                                                <ArrowDown className="w-4 h-4 mr-1" />
+                                                팀원으로 강등
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ArrowUp className="w-4 h-4 mr-1" />
+                                                팀장으로 승격
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </CardContent>
                 </Card>
             ))}

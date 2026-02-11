@@ -138,6 +138,7 @@ export default function AdminRegisterPage() {
                                 className="border-indigo-200 focus:border-indigo-500"
                                 onChange={handleChange}
                             />
+                            <p className="text-xs text-slate-500">* 업체 생성 시 4자리 고유 코드가 자동 발급됩니다. 가입 후 팀원들에게 코드를 공유해주세요.</p>
                         </div>
 
                         <Button type="submit" className="w-full py-6 mt-4 bg-indigo-600 hover:bg-indigo-700" disabled={loading}>

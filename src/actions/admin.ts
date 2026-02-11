@@ -149,7 +149,7 @@ export async function getAllWorkers() {
 
     const { data: workers, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, created_at')
+        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at')
         .eq('role', 'worker')
         .order('name')
 
@@ -184,7 +184,7 @@ export async function createWorker(data: {
         if (adminUser) {
             const { data: adminProfile } = await standardSupabase
                 .from('users')
-                .select('company_id, companies(name)')
+                .select('company_id, companies(name, code)')
                 .eq('id', adminUser.id)
                 .single()
 
@@ -310,5 +310,27 @@ export async function updateWorkerRole(
     } catch (error) {
         console.error('Update worker role error:', error)
         return { success: false, error: '역할 변경 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function approveWorker(userId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase
+            .from('users')
+            .update({ status: 'active' })
+            .eq('id', userId)
+
+        if (error) {
+            console.error('Approve worker error:', error)
+            throw new Error(error.message)
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Approve worker unexpected error:', error)
+        return { success: false, error: error.message || '승인 처리 중 오류가 발생했습니다.' }
     }
 }
