@@ -53,7 +53,7 @@ const formSchema = z.object({
     balance_amount: z.string().optional(),
     additional_amount: z.string().optional(),
     additional_description: z.string().optional(),
-    collection_type: z.enum(['site', 'company']).optional().default('company'),
+    collection_type: z.enum(['site', 'company']),
 })
 
 type Worker = {
