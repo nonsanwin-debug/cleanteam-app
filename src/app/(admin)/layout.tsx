@@ -20,27 +20,24 @@ export default async function AdminLayout({
     let displayName = '관리자'
 
     if (user) {
-        console.log('🔍 User ID:', user.id)
+        // Fetch user profile with company info in a single join
+        const { data: profile } = await supabase
+            .from('users')
+            .select('name, company_id, companies(name, code)')
+            .eq('id', user.id)
+            .single()
 
-        if (user) {
-            // Fetch user profile with company info in a single join
-            const { data: profile } = await supabase
-                .from('users')
-                .select('name, company_id, companies(name, code)')
-                .eq('id', user.id)
-                .single()
+        if (profile) {
+            // Check if companies is an object or array (Supabase join result)
+            const companyData = profile.companies
+            const company = Array.isArray(companyData) ? (companyData as any)[0] : companyData
 
-            if (profile) {
-                const company = profile.companies as any
-                if (company && company.name && company.code) {
-                    displayName = `${company.name}#${company.code}`
-                } else {
-                    displayName = profile.name || '관리자'
-                }
+            if (company && (company as any).name && (company as any).code) {
+                displayName = `${(company as any).name}#${(company as any).code}`
+            } else if (profile.name) {
+                displayName = profile.name
             }
         }
-
-        console.log('🔍 Final displayName:', displayName)
     }
 
     // Get pending withdrawal count

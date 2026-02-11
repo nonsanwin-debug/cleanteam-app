@@ -51,6 +51,16 @@ export type CreateSiteDTO = {
 export async function getSites() {
     noStore()
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
 
     const { data, error } = await supabase
         .from('sites')
@@ -58,6 +68,7 @@ export async function getSites() {
       *,
       worker:users!worker_id (name)
     `)
+        .eq('company_id', profile.company_id)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -318,6 +329,18 @@ export async function forceCompleteSite(id: string) {
 
 export async function getDashboardStats() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return { todayScheduled: 0, inProgress: 0, completed: 0, activeWorkers: 0, totalWorkers: 0 }
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return { todayScheduled: 0, inProgress: 0, completed: 0, activeWorkers: 0, totalWorkers: 0 }
+
+    const companyId = profile.company_id
 
     // Get Today in KST (Asia/Seoul)
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
@@ -334,28 +357,33 @@ export async function getDashboardStats() {
         supabase
             .from('sites')
             .select('*', { count: 'exact', head: true })
+            .eq('company_id', companyId)
             .eq('status', 'scheduled')
             .eq('cleaning_date', today),
         // 2. 진행 중
         supabase
             .from('sites')
             .select('*', { count: 'exact', head: true })
+            .eq('company_id', companyId)
             .eq('status', 'in_progress'),
         // 3. 완료
         supabase
             .from('sites')
             .select('*', { count: 'exact', head: true })
+            .eq('company_id', companyId)
             .eq('status', 'completed'),
         // 4. 활동 중인 팀장
         supabase
             .from('sites')
             .select('worker_id')
+            .eq('company_id', companyId)
             .eq('status', 'in_progress')
             .not('worker_id', 'is', null),
         // 5. 전체 팀장 수
         supabase
             .from('users')
             .select('*', { count: 'exact', head: true })
+            .eq('company_id', companyId)
             .eq('role', 'worker')
     ])
 
@@ -409,9 +437,16 @@ export async function getSiteAdminDetails(id: string) {
 
 export async function getTodayActivitySites() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
 
-    // Get Today in KST (Asia/Seoul)
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
 
     // Fetch sites that are either in_progress OR (completed AND cleaning_date = today)
     // We want to see everything happening today.
@@ -424,6 +459,7 @@ export async function getTodayActivitySites() {
             *,
             worker:users!worker_id (name)
         `)
+        .eq('company_id', profile.company_id)
         .or('status.eq.in_progress,status.eq.completed')
         .order('started_at', { ascending: false })
         .limit(20)
@@ -439,6 +475,18 @@ export async function getTodayActivitySites() {
 
 export async function getRecentActivities() {
     const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    const companyId = profile.company_id
 
     // 1. Sites Activity (Start/Complete) - Fetch recent ones
     // We rely on started_at and completed_at since updated_at might be missing
@@ -448,6 +496,7 @@ export async function getRecentActivities() {
             id, name, status, started_at, completed_at,
             worker:users!worker_id (name)
         `)
+        .eq('company_id', companyId)
         .or('status.eq.in_progress,status.eq.completed')
         .limit(10)
 
@@ -460,9 +509,11 @@ export async function getRecentActivities() {
                 id,
                 name,
                 worker_id,
+                company_id,
                 worker:users!worker_id (name)
             )
         `)
+        .eq('site.company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(30) // Fetch more to allow grouping
 
