@@ -219,6 +219,7 @@ export async function deleteSite(id: string) {
 }
 
 export async function getRecentActivities() {
+    noStore()
     const supabase = await createClient()
 
     // 1. Get current user's company_id for isolation
@@ -482,6 +483,7 @@ export async function getSiteAdminDetails(id: string) {
 }
 
 export async function getTodayActivitySites() {
+    noStore()
     const supabase = await createClient()
     const { data: { user: adminUser } } = await supabase.auth.getUser()
     if (!adminUser) return []
