@@ -381,3 +381,33 @@ export async function approveWorker(userId: string): Promise<ActionResponse> {
         return { success: false, error: error.message || '승인 처리 중 오류가 발생했습니다.' }
     }
 }
+
+export async function getAdminLogs() {
+    const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    const { data: logs, error } = await supabase
+        .from('wallet_logs')
+        .select(`
+            *,
+            user:users(name)
+        `)
+        .eq('company_id', profile.company_id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching admin logs:', error)
+        return []
+    }
+
+    return logs
+}

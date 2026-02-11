@@ -95,6 +95,12 @@ export default async function AdminLayout({
                     AS 관리
                 </Button>
             </Link>
+            <Link href="/admin/logs">
+                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
+                    <LogOut className="mr-2 h-4 w-4 rotate-180" />
+                    정산 로그
+                </Button>
+            </Link>
             <Link href="/admin/users/new">
                 <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-indigo-50 border-l-4 border-transparent hover:border-indigo-600">
                     <UserPlus className="mr-2 h-4 w-4 text-indigo-600" />

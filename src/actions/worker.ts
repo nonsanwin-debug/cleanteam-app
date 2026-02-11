@@ -338,51 +338,22 @@ export async function requestWithdrawal(amount: number, bankInfo: { bank: string
 
         if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
 
-        // 1. Check Balance
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('current_money')
-            .eq('id', user.id)
-            .single()
+        // Use RPC for atomic processing: balance check + request insert + log creation
+        const { data, error } = await supabase.rpc('request_withdrawal_v1', {
+            p_user_id: user.id,
+            p_amount: amount,
+            p_bank_name: bankInfo.bank,
+            p_account_number: bankInfo.account,
+            p_account_holder: bankInfo.holder
+        })
 
-        if (userError || !userData) {
-            return { success: false, error: '사용자 정보를 불러올 수 없습니다.' }
+        if (error) {
+            console.error('RPC Error (request_withdrawal_v1):', error)
+            return { success: false, error: error.message }
         }
 
-        if ((userData.current_money || 0) < amount) {
-            return { success: false, error: '출금 가능 금액이 부족합니다.' }
-        }
-
-        // 2. Insert Withdrawal Request
-        const { error: insertError } = await supabase
-            .from('withdrawal_requests')
-            .insert({
-                user_id: user.id,
-                amount: amount,
-                bank_name: bankInfo.bank,
-                account_number: bankInfo.account,
-                account_holder: bankInfo.holder,
-                status: 'pending'
-            })
-
-        if (insertError) {
-            console.error('Withdrawal Insert Error:', insertError)
-            return { success: false, error: '출금 요청 중 오류가 발생했습니다.' }
-        }
-
-        // 3. Deduct Balance (Optimistic deduction)
-        // If admin rejects, we will refund it.
-        const { error: updateError } = await supabase
-            .from('users')
-            .update({
-                current_money: (userData.current_money || 0) - amount
-            })
-            .eq('id', user.id)
-
-        if (updateError) {
-            // Revert insert if possible, or log critical error
-            console.error('Balance Deduction Error:', updateError)
-            return { success: false, error: '잔액 차감 중 오류가 발생했습니다. 관리자에게 문의하세요.' }
+        if (data && !data.success) {
+            return { success: false, error: data.error || '출금 요청 실패' }
         }
 
         revalidatePath('/worker/profile')
@@ -391,6 +362,25 @@ export async function requestWithdrawal(amount: number, bankInfo: { bank: string
         console.error('Request Withdrawal Error:', error)
         return { success: false, error: '출금 요청 중 오류가 발생했습니다.' }
     }
+}
+
+export async function getMyLogs() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data: logs, error } = await supabase
+        .from('wallet_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching worker logs:', error)
+        return []
+    }
+
+    return logs
 }
 
 export async function uploadClaimPhoto(formData: FormData): Promise<ActionResponse<{ publicUrl: string }>> {
