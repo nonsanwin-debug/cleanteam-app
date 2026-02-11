@@ -11,20 +11,22 @@ interface LogoutButtonProps {
     className?: string
     showText?: boolean
     iconOnly?: boolean
+    redirectTo?: string
 }
 
 export function LogoutButton({
     variant = 'outline',
     className,
     showText = true,
-    iconOnly = false
+    iconOnly = false,
+    redirectTo = '/auth/login'
 }: LogoutButtonProps) {
     const [isPending, setIsPending] = useState(false)
 
     async function handleLogout() {
         if (!confirm('로그아웃 하시겠습니까?')) return
         setIsPending(true)
-        await signOut()
+        await signOut(redirectTo)
     }
 
     return (

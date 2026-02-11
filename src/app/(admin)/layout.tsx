@@ -126,7 +126,7 @@ export default async function AdminLayout({
                 </div>
 
                 <div className="p-4 border-t border-slate-100">
-                    <LogoutButton variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
+                    <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
                 </div>
             </aside>
 
@@ -157,7 +157,7 @@ export default async function AdminLayout({
                                     <NavLinks />
                                 </div>
                                 <div className="p-4 border-t mt-auto mb-10">
-                                    <LogoutButton variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
+                                    <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
                                 </div>
                             </div>
                         </SheetContent>
