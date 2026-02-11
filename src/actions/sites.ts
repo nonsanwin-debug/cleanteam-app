@@ -510,8 +510,7 @@ export async function getTodayActivitySites() {
     return data as (Site & { started_at?: string, completed_at?: string, updated_at?: string })[]
 }
 
-
-export async function getRecentActivities() {
+export async function getSites(company_id?: string) {
     const supabase = await createClient()
     const { data: { user: adminUser } } = await supabase.auth.getUser()
     if (!adminUser) return []
@@ -524,131 +523,106 @@ export async function getRecentActivities() {
 
     if (!profile?.company_id) return []
 
-    const companyId = profile.company_id
+    const targetCompanyId = company_id || profile.company_id
 
-    // 1. Sites Activity (Start/Complete) - Fetch recent ones
-    // We rely on started_at and completed_at since updated_at might be missing
-    const { data: sites } = await supabase
+    const { data, error } = await supabase
         .from('sites')
         .select(`
-            id, name, status, started_at, completed_at,
+            *,
             worker:users!worker_id (name)
         `)
-        .eq('company_id', companyId)
-        .or('status.eq.in_progress,status.eq.completed')
-        .limit(10)
-
-    // 3. Photos Activity (Upload) - Fetch more than 10 to group them
-    const { data: photos } = await supabase
-        .from('photos')
-        .select(`
-            id, created_at, site_id, type,
-            site:sites!site_id (
-                id,
-                name,
-                worker_id,
-                company_id,
-                worker:users!worker_id (name)
-            )
-        `)
-        .eq('site.company_id', companyId)
+        .eq('company_id', targetCompanyId)
         .order('created_at', { ascending: false })
-        .limit(30) // Fetch more to allow grouping
+    const groupedPhotos: {
+        [key: string]: {
+            firstPhoto: any,
+            count: number,
+            latestTimestamp: string
+        }
+    } = {}
 
-    const photoActivities: any[] = []
+    photos.forEach(photo => {
+        const siteId = photo.site_id
+        const type = photo.type
+        const workerId = (photo.site as any)?.worker_id
+        // Create a time bucket key (e.g. to minute precision) or just check difference manually
+        // Interactive grouping: iterate and checking compatible previous group?
+        // Simpler approach: Time bucket.
+        const time = new Date(photo.created_at)
+        // Round down to nearest 5 minutes to group "recent" uploads together
+        // Or simpler: just key by YYYY-MM-DD-HH-MM
+        const timeKey = `${time.getFullYear()}-${time.getMonth()}-${time.getDate()}-${time.getHours()}-${time.getMinutes()}`
 
-    if (photos && photos.length > 0) {
-        // Group photos by site_id, worker_id, type, and time window (e.g., 1 minute)
-        const groupedPhotos: {
-            [key: string]: {
-                firstPhoto: any,
-                count: number,
-                latestTimestamp: string
+        const groupKey = `${siteId}-${workerId}-${type}-${timeKey}`
+
+        if (!groupedPhotos[groupKey]) {
+            groupedPhotos[groupKey] = {
+                firstPhoto: photo,
+                count: 1,
+                latestTimestamp: photo.created_at
             }
-        } = {}
-
-        photos.forEach(photo => {
-            const siteId = photo.site_id
-            const type = photo.type
-            const workerId = (photo.site as any)?.worker_id
-            // Create a time bucket key (e.g. to minute precision) or just check difference manually
-            // Interactive grouping: iterate and checking compatible previous group?
-            // Simpler approach: Time bucket.
-            const time = new Date(photo.created_at)
-            // Round down to nearest 5 minutes to group "recent" uploads together
-            // Or simpler: just key by YYYY-MM-DD-HH-MM
-            const timeKey = `${time.getFullYear()}-${time.getMonth()}-${time.getDate()}-${time.getHours()}-${time.getMinutes()}`
-
-            const groupKey = `${siteId}-${workerId}-${type}-${timeKey}`
-
-            if (!groupedPhotos[groupKey]) {
-                groupedPhotos[groupKey] = {
-                    firstPhoto: photo,
-                    count: 1,
-                    latestTimestamp: photo.created_at
-                }
-            } else {
-                groupedPhotos[groupKey].count++
-                // Keep the latest timestamp of the group
-                if (new Date(photo.created_at) > new Date(groupedPhotos[groupKey].latestTimestamp)) {
-                    groupedPhotos[groupKey].latestTimestamp = photo.created_at
-                }
+        } else {
+            groupedPhotos[groupKey].count++
+            // Keep the latest timestamp of the group
+            if (new Date(photo.created_at) > new Date(groupedPhotos[groupKey].latestTimestamp)) {
+                groupedPhotos[groupKey].latestTimestamp = photo.created_at
             }
+        }
+    })
+
+    // Check if we need to merge groups that are close in time (optional, but 1-min bucket is decent)
+
+    Object.values(groupedPhotos).forEach(group => {
+        const photo = group.firstPhoto
+        const siteData = photo.site as any
+        const workerName = siteData?.worker?.name
+
+        photoActivities.push({
+            id: `photo-group-${photo.id}`, // Use one ID
+            type: 'photo_uploaded',
+            actor: workerName || '알 수 없음',
+            target: siteData?.name || '알 수 없음',
+            timestamp: group.latestTimestamp,
+            detail: group.count > 1 ? `${photo.type} 사진 ${group.count}장` : photo.type, // "before 사진 3장" or just "before"
+            count: group.count
         })
+    })
+}
 
-        // Check if we need to merge groups that are close in time (optional, but 1-min bucket is decent)
-
-        Object.values(groupedPhotos).forEach(group => {
-            const photo = group.firstPhoto
-            const siteData = photo.site as any
-            const workerName = siteData?.worker?.name
-
-            photoActivities.push({
-                id: `photo-group-${photo.id}`, // Use one ID
-                type: 'photo_uploaded',
+// Mix and Sort
+const activities = [
+    ...(sites?.map(site => {
+        const workerName = (site.worker as any)?.name
+        if (site.status === 'in_progress' && site.started_at) {
+            return {
+                id: `start-${site.id}`,
+                type: 'work_started',
                 actor: workerName || '알 수 없음',
-                target: siteData?.name || '알 수 없음',
-                timestamp: group.latestTimestamp,
-                detail: group.count > 1 ? `${photo.type} 사진 ${group.count}장` : photo.type, // "before 사진 3장" or just "before"
-                count: group.count
-            })
-        })
-    }
-
-    // Mix and Sort
-    const activities = [
-        ...(sites?.map(site => {
-            const workerName = (site.worker as any)?.name
-            if (site.status === 'in_progress' && site.started_at) {
-                return {
-                    id: `start-${site.id}`,
-                    type: 'work_started',
-                    actor: workerName || '알 수 없음',
-                    target: site.name,
-                    timestamp: site.started_at
-                }
-            } else if (site.status === 'completed' && site.completed_at) {
-                return {
-                    id: `complete-${site.id}`,
-                    type: 'work_completed',
-                    actor: workerName || '알 수 없음',
-                    target: site.name,
-                    timestamp: site.completed_at
-                }
+                target: site.name,
+                timestamp: site.started_at
             }
-            return null
-        }).filter(Boolean) || []),
-        ...photoActivities
-    ] as {
-        id: string
-        type: 'work_started' | 'work_completed' | 'photo_uploaded'
-        actor: string
-        target: string
-        timestamp: string
-        detail?: string
-        count?: number
-    }[]
+        } else if (site.status === 'completed' && site.completed_at) {
+            return {
+                id: `complete-${site.id}`,
+                type: 'work_completed',
+                actor: workerName || '알 수 없음',
+                target: site.name,
+                timestamp: site.completed_at
+            }
+        }
+        return null
+    }).filter(Boolean) || []),
+    ...photoActivities
+] as {
+    id: string
+    type: 'work_started' | 'work_completed' | 'photo_uploaded'
+    actor: string
+    target: string
+    timestamp: string
+    detail?: string
+    count?: number
+}[]
 
-    // Sort by timestamp descending
-    return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
+// Sort by timestamp descending
+return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10)
 }
