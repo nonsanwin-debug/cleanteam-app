@@ -194,20 +194,21 @@ function SiteCard({
                     </span>
                 </div>
                 <CardTitle className="text-xl mt-2">{site.name}</CardTitle>
-                <div className="flex items-center justify-between mt-1">
+                <div className="mt-2 space-y-1">
                     {site.customer_name && (
-                        <p className="text-sm text-slate-500 font-normal">고객: {site.customer_name}</p>
+                        <p className="text-sm text-slate-600">고객: <span className="font-semibold text-slate-900">{site.customer_name}</span></p>
                     )}
-                    {site.customer_phone ? (
-                        <a href={`tel:${site.customer_phone}`} className="flex items-center text-blue-600 font-medium text-sm">
-                            <span className="mr-1.5">{site.customer_phone}</span>
-                            <div className="bg-blue-100 p-1.5 rounded-full">
-                                <Phone className="h-3.5 w-3.5" />
-                            </div>
-                        </a>
-                    ) : (
-                        <span className="text-slate-400 text-xs italic">연락처 없음</span>
-                    )}
+                    <div className="flex items-center justify-between">
+                        {site.customer_phone ? (
+                            <a href={`tel:${site.customer_phone}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+                                <Phone className="h-4 w-4 mr-2" />
+                                <span>{site.customer_phone}</span>
+                                <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
+                            </a>
+                        ) : (
+                            <span className="text-slate-400 text-xs italic bg-slate-100 px-2 py-1 rounded">연락처 미등록</span>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="pb-2 text-sm text-slate-600 space-y-3">

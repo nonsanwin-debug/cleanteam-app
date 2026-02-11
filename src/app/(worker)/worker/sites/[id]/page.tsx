@@ -229,15 +229,16 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             <p className="text-gray-800">{site.manager_name || site.customer_name || '-'}</p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">연락처</p>
-                            <div className="flex items-center justify-between">
-                                <p className="text-gray-800">{site.manager_phone || site.customer_phone || '-'}</p>
-                                {(site.manager_phone || site.customer_phone) && (
+                            <p className="text-sm font-bold text-blue-600 mb-1">고객 연락처 (해피콜용)</p>
+                            <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                <p className="text-xl font-bold text-slate-900">{site.customer_phone || site.manager_phone || '-'}</p>
+                                {(site.customer_phone || site.manager_phone) && (
                                     <a
-                                        href={`tel:${site.manager_phone || site.customer_phone}`}
-                                        className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-sm"
+                                        href={`tel:${site.customer_phone || site.manager_phone}`}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
                                     >
-                                        <Phone className="h-4 w-4" />
+                                        <Phone className="h-5 w-5 mr-2" />
+                                        전화걸기
                                     </a>
                                 )}
                             </div>
