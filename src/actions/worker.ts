@@ -20,7 +20,6 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         const { data, error } = await supabase
             .from('sites')
             .select('*')
-            .or(`worker_id.eq.${user.id},worker_id.is.null`) // For demo purposed allow unassigned view or explicit
             .eq('worker_id', user.id) // Strict: only assigned
             .order('created_at', { ascending: true })
 
