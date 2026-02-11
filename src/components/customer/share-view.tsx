@@ -24,7 +24,7 @@ export function ShareView({ siteId }: { siteId: string }) {
             // Fetch Site
             const { data: siteData, error: siteError } = await supabase
                 .from('sites')
-                .select('*')
+                .select('*, worker:users!worker_id(name, phone)') // Join with users table
                 .eq('id', siteId)
                 .single()
 
@@ -122,9 +122,9 @@ export function ShareView({ siteId }: { siteId: string }) {
                         </div>
                         <div className="flex items-center gap-2 text-slate-600">
                             <User className="h-4 w-4" />
-                            <span>담당자: {site.worker_name || '미배정'}</span>
-                            {site.worker_phone && (
-                                <a href={`tel:${site.worker_phone}`} className="ml-2 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3">
+                            <span>담당자: {site.worker?.name || site.worker_name || '미배정'}</span>
+                            {(site.worker?.phone || site.worker_phone) && (
+                                <a href={`tel:${site.worker?.phone || site.worker_phone}`} className="ml-2 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3">
                                     <span className="sr-only">전화하기</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
                                     전화하기
