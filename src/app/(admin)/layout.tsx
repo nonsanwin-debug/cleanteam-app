@@ -21,21 +21,27 @@ export default async function AdminLayout({
 
     if (user) {
         // Fetch user profile with company info in a single join
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('name, company_id, companies(name, code)')
+            .select('name, role, company_id, companies(name, code)')
             .eq('id', user.id)
             .single()
 
-        if (profile) {
-            // Check if companies is an object or array (Supabase join result)
-            const companyData = profile.companies
-            const company = Array.isArray(companyData) ? (companyData as any)[0] : companyData
+        if (profileError) {
+            console.error('❌ AdminLayout Profile Fetch Error:', profileError)
+        }
 
-            if (company && (company as any).name && (company as any).code) {
-                displayName = `${(company as any).name}#${(company as any).code}`
+        if (profile) {
+            // Safe access to join data
+            const companyData = (profile as any).companies
+            const company = Array.isArray(companyData) ? companyData[0] : companyData
+
+            if (company && company.name && company.code) {
+                displayName = `${company.name}#${company.code}`
             } else if (profile.name) {
                 displayName = profile.name
+            } else {
+                displayName = `${profile.role === 'admin' ? '관리자' : '팀원'}`
             }
         }
     }
