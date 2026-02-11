@@ -262,7 +262,7 @@ export async function getRecentActivities() {
 
         return {
             id: `photo-${photo.id}`,
-            type: 'photo_uploaded' as const,
+            type: 'photo_uploaded' as 'photo_uploaded' | 'work_started' | 'work_completed',
             actor: userData?.name || '현장팀장',
             target: siteData?.name || '알 수 없음',
             timestamp: photo.created_at
