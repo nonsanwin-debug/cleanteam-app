@@ -27,14 +27,23 @@ export default async function AdminLayout({
             .eq('id', user.id)
             .single()
 
-        if (profileError) {
-            console.error('❌ AdminLayout Profile Fetch Error:', profileError)
-        }
+        console.log('🔍 AdminLayout Data:', { profile, profileError, userId: user.id })
 
         if (profile) {
-            // Safe access to join data
+            // Check if profile.company_id exists but companies join result is null (RLS Issue)
             const companyData = (profile as any).companies
-            const company = Array.isArray(companyData) ? companyData[0] : companyData
+            let company = Array.isArray(companyData) ? companyData[0] : companyData
+
+            // Double check if join failed but company_id exists
+            if (!company && profile.company_id) {
+                console.warn('⚠️ Link to company exists but data not fetched. Checking RLS...')
+                const { data: directCompany } = await supabase
+                    .from('companies')
+                    .select('name, code')
+                    .eq('id', profile.company_id)
+                    .single()
+                if (directCompany) company = directCompany
+            }
 
             if (company && company.name && company.code) {
                 displayName = `${company.name}#${company.code}`
