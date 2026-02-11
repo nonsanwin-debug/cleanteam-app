@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { CheckCircle2, Home, User, LogOut } from 'lucide-react'
+import { CheckCircle2, Home, User } from 'lucide-react'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default function WorkerLayout({
     children,
@@ -11,10 +12,7 @@ export default function WorkerLayout({
             {/* Header */}
             <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-10">
                 <h1 className="font-bold text-slate-800">Clean Worker</h1>
-                <Link href="/auth/login" className="text-sm text-slate-500 flex items-center">
-                    <LogOut className="h-4 w-4 mr-1" />
-                    나가기
-                </Link>
+                <LogoutButton variant="ghost" showText={true} className="text-sm text-slate-500 hover:text-red-500 p-0 h-auto" />
             </header>
 
             {/* Main Content */}

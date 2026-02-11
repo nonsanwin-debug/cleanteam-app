@@ -2,17 +2,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, Menu } from 'lucide-react'
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
-
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default async function AdminLayout({
     children,
@@ -132,12 +126,7 @@ export default async function AdminLayout({
                 </div>
 
                 <div className="p-4 border-t border-slate-100">
-                    <Link href="/auth/login">
-                        <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            로그아웃
-                        </Button>
-                    </Link>
+                    <LogoutButton variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
                 </div>
             </aside>
 
@@ -168,12 +157,7 @@ export default async function AdminLayout({
                                     <NavLinks />
                                 </div>
                                 <div className="p-4 border-t mt-auto mb-10">
-                                    <Link href="/auth/login">
-                                        <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50">
-                                            <LogOut className="mr-2 h-4 w-4" />
-                                            로그아웃
-                                        </Button>
-                                    </Link>
+                                    <LogoutButton variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
                                 </div>
                             </div>
                         </SheetContent>
