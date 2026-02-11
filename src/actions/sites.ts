@@ -218,6 +218,44 @@ export async function deleteSite(id: string) {
     }
 }
 
+export async function getRecentActivities() {
+    const supabase = await createClient()
+
+    // Get current user's company_id for isolation
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    const { data: photos, error } = await supabase
+        .from('photos')
+        .select(`
+            id,
+            url,
+            type,
+            created_at,
+            site_id,
+            sites!inner(name, company_id),
+            users(name)
+        `)
+        .eq('sites.company_id', profile.company_id) // Filter by company_id through join
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+    if (error) {
+        console.error('getRecentActivities error:', error)
+        return []
+    }
+
+    return photos || []
+}
+
 export async function getSiteById(id: string) {
     const supabase = await createClient()
 
