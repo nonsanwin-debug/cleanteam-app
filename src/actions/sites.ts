@@ -221,30 +221,31 @@ export async function deleteSite(id: string) {
 export async function getRecentActivities() {
     const supabase = await createClient()
 
-    // Get current user's company_id for isolation
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
+    // 1. Get current user's company_id for isolation
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    if (!authUser) return []
 
     const { data: profile } = await supabase
         .from('users')
         .select('company_id')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single()
 
     if (!profile?.company_id) return []
 
+    const companyId = profile.company_id
+
+    // 2. Fetch recent photos with joins
     const { data: photos, error } = await supabase
         .from('photos')
         .select(`
             id,
-            url,
             type,
             created_at,
-            site_id,
-            sites!inner(name, company_id),
-            users(name)
+            site:sites!inner(name, company_id),
+            user:users(name)
         `)
-        .eq('sites.company_id', profile.company_id) // Filter by company_id through join
+        .eq('site.company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(10)
 
@@ -253,7 +254,14 @@ export async function getRecentActivities() {
         return []
     }
 
-    return photos || []
+    // 3. Map to dashboard activity format
+    return (photos || []).map(photo => ({
+        id: `photo-${photo.id}`,
+        type: 'photo_uploaded' as const,
+        actor: (photo.user as any)?.name || '알 수 없음',
+        target: (photo.site as any)?.name || '알 수 없음',
+        timestamp: photo.created_at
+    }))
 }
 
 export async function getSiteById(id: string) {
