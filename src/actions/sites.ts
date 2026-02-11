@@ -30,6 +30,11 @@ export type Site = {
     payment_status?: 'requested' | 'paid' | 'rejected'
     claim_details?: any[]
     claim_photos?: string[]
+    // New Settlement Fields
+    balance_amount?: number
+    additional_amount?: number
+    additional_description?: string
+    collection_type?: 'site' | 'company'
 }
 
 export type CreateSiteDTO = {
@@ -46,6 +51,10 @@ export type CreateSiteDTO = {
     cleaning_date?: string
     start_time?: string
     special_notes?: string
+    balance_amount?: number
+    additional_amount?: number
+    additional_description?: string
+    collection_type?: 'site' | 'company'
 }
 
 export async function getSites() {
@@ -175,7 +184,11 @@ export async function createSite(formData: CreateSiteDTO) {
                     structure_type: formData.structure_type,
                     cleaning_date: formData.cleaning_date || null,
                     start_time: formData.start_time || null,
-                    special_notes: formData.special_notes || null
+                    special_notes: formData.special_notes || null,
+                    balance_amount: formData.balance_amount || 0,
+                    additional_amount: formData.additional_amount || 0,
+                    additional_description: formData.additional_description || null,
+                    collection_type: formData.collection_type || 'company'
                 }
             ])
 
@@ -321,7 +334,11 @@ export async function updateSite(id: string, formData: CreateSiteDTO) {
                 structure_type: formData.structure_type,
                 cleaning_date: formData.cleaning_date,
                 start_time: formData.start_time,
-                special_notes: formData.special_notes
+                special_notes: formData.special_notes,
+                balance_amount: formData.balance_amount,
+                additional_amount: formData.additional_amount,
+                additional_description: formData.additional_description,
+                collection_type: formData.collection_type
             })
             .eq('id', id)
 

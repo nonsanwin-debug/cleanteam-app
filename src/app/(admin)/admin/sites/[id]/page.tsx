@@ -117,19 +117,63 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                     </CardContent>
                 </Card>
 
+                {/* Settlement Info */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">정산 및 수금 정보</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span className="text-muted-foreground block mb-1">수금 형태</span>
+                                <Badge variant="outline" className={site.collection_type === 'site' ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-blue-50 text-blue-700 border-blue-200"}>
+                                    {site.collection_type === 'site' ? '현장수금' : '회사수금'}
+                                </Badge>
+                            </div>
+                            <div>
+                                <span className="text-muted-foreground block mb-1">잔금</span>
+                                <div className="font-bold text-slate-900">
+                                    {site.balance_amount ? `${site.balance_amount.toLocaleString()}원` : '0원'}
+                                </div>
+                            </div>
+                            {site.additional_amount > 0 && (
+                                <>
+                                    <div>
+                                        <span className="text-muted-foreground block mb-1">추가 금액</span>
+                                        <div className="font-bold text-red-600">
+                                            +{site.additional_amount.toLocaleString()}원
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground block mb-1">추가 사유</span>
+                                        <div className="font-medium">{site.additional_description || '-'}</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold">총 합계(잔금 + 추가)</span>
+                            <span className="text-lg font-bold text-blue-600">
+                                {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
+                            </span>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Checklist Summary */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg">체크리스트 제출 현황</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {checklist ? (
+                        {checklist && checklist.status === 'submitted' ? (
                             <div className="text-center py-6 space-y-4">
                                 <div className="flex items-center justify-center text-green-600 gap-2 text-lg font-bold">
                                     <CheckCircle2 className="h-6 w-6" /> 제출 완료
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                    {new Date(checklist.created_at).toLocaleString()}에 제출됨
+                                    {new Date(checklist.updated_at || checklist.created_at).toLocaleString()}에 제출됨
                                 </div>
                                 {checklist.signature_url && (
                                     <div className="mt-4 border rounded-lg p-2 bg-slate-50 inline-block">
@@ -142,7 +186,11 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                         ) : (
                             <div className="text-center py-10 text-muted-foreground">
                                 <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-20" />
-                                <p>아직 체크리스트가 제출되지 않았습니다.</p>
+                                <p>
+                                    {checklist && checklist.status === 'pending'
+                                        ? '체크리스트 작성 중 (중간 저장됨)'
+                                        : '아직 체크리스트가 제출되지 않았습니다.'}
+                                </p>
                                 {site.status !== 'completed' && (
                                     <AdminForceCompleteButton siteId={site.id} siteName={site.name} />
                                 )}
@@ -241,7 +289,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                 <TabsContent value="checklist" className="mt-4">
                     <Card>
                         <CardContent className="pt-6">
-                            {checklist ? (
+                            {checklist && checklist.data ? (
                                 <div className="space-y-6">
                                     {/* Checklist Viewer - Simple JSON Dump for now, improve if structure known */}
                                     <div className="grid gap-4">

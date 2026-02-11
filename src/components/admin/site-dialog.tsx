@@ -23,6 +23,7 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import {
     Select,
     SelectContent,
@@ -49,6 +50,10 @@ const formSchema = z.object({
     cleaning_date: z.string().optional(),
     start_time: z.string().optional(),
     special_notes: z.string().optional(),
+    balance_amount: z.string().optional(),
+    additional_amount: z.string().optional(),
+    additional_description: z.string().optional(),
+    collection_type: z.enum(['site', 'company']).optional().default('company'),
 })
 
 type Worker = {
@@ -72,6 +77,10 @@ interface SiteDialogProps {
         cleaning_date?: string
         start_time?: string
         special_notes?: string
+        balance_amount?: number
+        additional_amount?: number
+        additional_description?: string
+        collection_type?: 'site' | 'company'
     }
     open?: boolean
     onOpenChange?: (open: boolean) => void
@@ -115,6 +124,10 @@ export function SiteDialog({
             cleaning_date: initialData?.cleaning_date || format(new Date(), 'yyyy-MM-dd'),
             start_time: initialData?.start_time || '',
             special_notes: initialData?.special_notes || '',
+            balance_amount: initialData?.balance_amount?.toString() || '0',
+            additional_amount: initialData?.additional_amount?.toString() || '0',
+            additional_description: initialData?.additional_description || '',
+            collection_type: (initialData?.collection_type as "site" | "company") || 'company',
         },
     })
 
@@ -162,6 +175,10 @@ export function SiteDialog({
                 cleaning_date: values.cleaning_date,
                 start_time: values.start_time,
                 special_notes: values.special_notes,
+                balance_amount: parseInt(values.balance_amount || '0'),
+                additional_amount: parseInt(values.additional_amount || '0'),
+                additional_description: values.additional_description,
+                collection_type: values.collection_type as 'site' | 'company',
             }
 
             let result;
@@ -480,6 +497,75 @@ export function SiteDialog({
                                         <FormLabel>특이사항</FormLabel>
                                         <FormControl>
                                             <Input placeholder="고객 요청사항 등" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <Separator className="col-span-2 my-2" />
+                            <div className="col-span-2">
+                                <h4 className="text-sm font-bold text-slate-900 mb-2">정산 및 수금 정보</h4>
+                            </div>
+
+                            <FormField
+                                control={form.control}
+                                name="collection_type"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>수금 형태</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="수금 형태 선택" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="company">회사수금 (계좌이체 등)</SelectItem>
+                                                <SelectItem value="site">현장수금 (팀장 직접수납)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="balance_amount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>잔금 (원)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="0" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="additional_amount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>추가금액 (원)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="0" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="additional_description"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>추가 금액 사유</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="예: 피톤치드 추가, 오염 심함 등" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

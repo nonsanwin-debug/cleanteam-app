@@ -122,6 +122,7 @@ export async function saveChecklistProgress(
             site_id: siteId,
             worker_id: user.id,
             data: checklistData,
+            status: 'pending',
             updated_at: new Date().toISOString() // Restore updated_at
         }, {
             onConflict: 'site_id'
