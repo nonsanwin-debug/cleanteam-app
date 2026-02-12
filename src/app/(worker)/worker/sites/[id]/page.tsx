@@ -86,8 +86,9 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     setPhotos(photoResponse.data)
                 }
 
-                // 3. Fetch Worker SMS Settings
+                // 3. Fetch Company SMS Settings
                 const smsResponse = await getCompanySmsSettings()
+                console.log('📱 Client SMS Response:', JSON.stringify(smsResponse))
                 if (smsResponse.success && smsResponse.data) {
                     setSmsSettings(smsResponse.data)
                 }

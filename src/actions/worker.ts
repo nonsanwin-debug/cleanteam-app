@@ -443,6 +443,8 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
             .eq('id', user.id)
             .single()
 
+        console.log('📱 SMS Settings - Profile:', { userId: user.id, companyId: profile?.company_id })
+
         if (!profile?.company_id) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
 
         const { data, error } = await supabase
@@ -451,17 +453,20 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
             .eq('id', profile.company_id)
             .single()
 
+        console.log('📱 SMS Settings - Company Data:', { data, error })
+
         if (error) return { success: false, error: error.message }
         return {
             success: true,
             data: {
-                sms_enabled: data?.sms_enabled || false,
+                sms_enabled: data?.sms_enabled === true,
                 sms_bank_name: data?.sms_bank_name || '',
                 sms_account_number: data?.sms_account_number || '',
                 sms_message_template: data?.sms_message_template || ''
             }
         }
     } catch (error) {
+        console.error('📱 SMS Settings - Error:', error)
         return { success: false, error: 'SMS 설정을 불러오는 중 오류가 발생했습니다.' }
     }
 }
