@@ -28,7 +28,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [additionalAmountVal, setAdditionalAmountVal] = useState('')
     const [additionalDescVal, setAdditionalDescVal] = useState('')
     const [savingAdditional, setSavingAdditional] = useState(false)
-    const [smsSettings, setSmsSettings] = useState<{ sms_bank_name: string; sms_account_number: string } | null>(null)
+    const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string } | null>(null)
 
     const router = useRouter()
 
@@ -397,38 +397,43 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         {site.collection_type === 'site' ? (
                             <div className="space-y-3">
                                 <p className="font-bold text-red-600 text-lg text-center">
-                                    ⚠️ 현장 팀장님 수금입니다
+                                    ⚠️ 현장 팀장 수금입니다
                                 </p>
-                                <p className="text-sm text-red-600 text-center font-medium">
-                                    클릭 시 고객에게 메시지를 보냅니다
-                                </p>
-                                <a
-                                    href={(() => {
-                                        const balance = site.balance_amount || 0
-                                        const additional = site.additional_amount || 0
-                                        const total = balance + additional
-                                        const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
-                                        const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
-                                        const messageBody = `고객님 청소는 잘 마무리 되었습니다\n아래 계좌번호로 명시된 금액 입금 후\n예금주 성함과 함께 문자 부탁드리겠습니다\n\n입금 계좌번호 :\n${bankName}\n${accountNumber}\n잔금 : ${balance.toLocaleString()}원\n추가금 : ${additional.toLocaleString()}원\n합계 : ${total.toLocaleString()}원\n\n추후 부족하신 부분이나 문제가 있는 부분에 대해서\n연락주시면 바로 처리 도와드리겠습니다`
-                                        const phone = site.customer_phone || site.manager_phone || ''
-                                        const cleanPhone = phone.replace(/-/g, '')
-                                        return `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
-                                    })()}
-                                    className="block"
-                                >
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
-                                    >
-                                        <MessageSquare className="w-5 h-5 mr-2" />
-                                        📱 고객에게 수금 문자 보내기
-                                    </Button>
-                                </a>
-                                {(!smsSettings?.sms_bank_name || !smsSettings?.sms_account_number) && (
-                                    <p className="text-xs text-orange-600 text-center">
-                                        ⚠️ 관리자에게 설정 {'>'} 수금 문자 설정에서 은행명과 계좌번호 등록을 요청해주세요
-                                    </p>
-                                )}
+                                {smsSettings?.sms_enabled ? (
+                                    <>
+                                        <p className="text-sm text-red-600 text-center font-medium">
+                                            클릭 시 고객에게 메시지를 보냅니다
+                                        </p>
+                                        <a
+                                            href={(() => {
+                                                const balance = site.balance_amount || 0
+                                                const additional = site.additional_amount || 0
+                                                const total = balance + additional
+                                                const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
+                                                const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
+                                                const template = smsSettings?.sms_message_template || ''
+                                                const messageBody = template
+                                                    .replace('{은행명}', bankName)
+                                                    .replace('{계좌번호}', accountNumber)
+                                                    .replace('{잔금}', balance.toLocaleString())
+                                                    .replace('{추가금}', additional.toLocaleString())
+                                                    .replace('{합계}', total.toLocaleString())
+                                                const phone = site.customer_phone || site.manager_phone || ''
+                                                const cleanPhone = phone.replace(/-/g, '')
+                                                return `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
+                                            })()}
+                                            className="block"
+                                        >
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
+                                            >
+                                                <MessageSquare className="w-5 h-5 mr-2" />
+                                                📱 고객에게 수금 문자 보내기
+                                            </Button>
+                                        </a>
+                                    </>
+                                ) : null}
                             </div>
                         ) : (
                             <div className="space-y-2">

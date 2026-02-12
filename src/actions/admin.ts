@@ -517,7 +517,7 @@ export async function getCompanySettings() {
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, code, sms_bank_name, sms_account_number')
+        .select('id, name, code, sms_enabled, sms_bank_name, sms_account_number, sms_message_template')
         .eq('id', profile.company_id)
         .single()
 
@@ -529,7 +529,12 @@ export async function getCompanySettings() {
     return data
 }
 
-export async function updateCompanySettings(smsBankName: string, smsAccountNumber: string): Promise<ActionResponse> {
+export async function updateCompanySettings(
+    smsEnabled: boolean,
+    smsBankName: string,
+    smsAccountNumber: string,
+    smsMessageTemplate: string
+): Promise<ActionResponse> {
     try {
         const supabase = await createClient()
         const { data: { user: adminUser } } = await supabase.auth.getUser()
@@ -546,8 +551,10 @@ export async function updateCompanySettings(smsBankName: string, smsAccountNumbe
         const { error } = await supabase
             .from('companies')
             .update({
+                sms_enabled: smsEnabled,
                 sms_bank_name: smsBankName,
-                sms_account_number: smsAccountNumber
+                sms_account_number: smsAccountNumber,
+                sms_message_template: smsMessageTemplate
             })
             .eq('id', profile.company_id)
 
