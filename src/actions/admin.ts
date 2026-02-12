@@ -497,3 +497,69 @@ export async function getCommissionLogs() {
 
     return logs
 }
+
+// ============================================
+// Company Settings Functions
+// ============================================
+
+export async function getCompanySettings() {
+    const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return null
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return null
+
+    const { data, error } = await supabase
+        .from('companies')
+        .select('id, name, code, sms_bank_name, sms_account_number')
+        .eq('id', profile.company_id)
+        .single()
+
+    if (error) {
+        console.error('Error fetching company settings:', error)
+        return null
+    }
+
+    return data
+}
+
+export async function updateCompanySettings(smsBankName: string, smsAccountNumber: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user: adminUser } } = await supabase.auth.getUser()
+        if (!adminUser) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        const { data: profile } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', adminUser.id)
+            .single()
+
+        if (!profile?.company_id) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
+
+        const { error } = await supabase
+            .from('companies')
+            .update({
+                sms_bank_name: smsBankName,
+                sms_account_number: smsAccountNumber
+            })
+            .eq('id', profile.company_id)
+
+        if (error) {
+            console.error('Error updating company settings:', error)
+            return { success: false, error: '설정 저장 실패: ' + error.message }
+        }
+
+        revalidatePath('/admin/settings')
+        return { success: true }
+    } catch (error) {
+        console.error('Unexpected error in updateCompanySettings:', error)
+        return { success: false, error: '설정 저장 중 오류가 발생했습니다.' }
+    }
+}

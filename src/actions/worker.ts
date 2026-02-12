@@ -430,6 +430,39 @@ export async function updateWorkerProfile(phone: string, accountInfo?: string): 
     }
 }
 
+export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_bank_name: string; sms_account_number: string }>> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // Get worker's company_id
+        const { data: profile } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
+        if (!profile?.company_id) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
+
+        const { data, error } = await supabase
+            .from('companies')
+            .select('sms_bank_name, sms_account_number')
+            .eq('id', profile.company_id)
+            .single()
+
+        if (error) return { success: false, error: error.message }
+        return {
+            success: true,
+            data: {
+                sms_bank_name: data?.sms_bank_name || '',
+                sms_account_number: data?.sms_account_number || ''
+            }
+        }
+    } catch (error) {
+        return { success: false, error: 'SMS 설정을 불러오는 중 오류가 발생했습니다.' }
+    }
+}
 
 export async function requestPayment(siteId: string, amount: number, details: any[] = [], photos: string[] = []): Promise<ActionResponse> {
     try {

@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSiteDetails, getSitePhotos, updateSiteAdditional } from '@/actions/worker'
+import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings } from '@/actions/worker'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
@@ -28,6 +28,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [additionalAmountVal, setAdditionalAmountVal] = useState('')
     const [additionalDescVal, setAdditionalDescVal] = useState('')
     const [savingAdditional, setSavingAdditional] = useState(false)
+    const [smsSettings, setSmsSettings] = useState<{ sms_bank_name: string; sms_account_number: string } | null>(null)
 
     const router = useRouter()
 
@@ -83,6 +84,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 const photoResponse = await getSitePhotos(siteId)
                 if (photoResponse.success && photoResponse.data) {
                     setPhotos(photoResponse.data)
+                }
+
+                // 3. Fetch Worker SMS Settings
+                const smsResponse = await getCompanySmsSettings()
+                if (smsResponse.success && smsResponse.data) {
+                    setSmsSettings(smsResponse.data)
                 }
             } catch (err) {
                 console.error('Failed to fetch data:', err)
@@ -386,11 +393,54 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         </span>
                     </div>
 
-                    <div className={`mt-2 text-center py-3 rounded-lg font-bold text-lg ${site.collection_type === 'site'
-                            ? 'bg-orange-100 text-orange-700 border border-orange-300'
-                            : 'bg-indigo-100 text-indigo-700 border border-indigo-300'
-                        }`}>
-                        {site.collection_type === 'site' ? '📍 현장수금' : '🏢 업체수금'}
+                    <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4">
+                        {site.collection_type === 'site' ? (
+                            <div className="space-y-3">
+                                <p className="font-bold text-red-600 text-lg text-center">
+                                    ⚠️ 현장 팀장님 수금입니다
+                                </p>
+                                <p className="text-sm text-red-600 text-center font-medium">
+                                    클릭 시 고객에게 메시지를 보냅니다
+                                </p>
+                                <a
+                                    href={(() => {
+                                        const balance = site.balance_amount || 0
+                                        const additional = site.additional_amount || 0
+                                        const total = balance + additional
+                                        const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
+                                        const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
+                                        const messageBody = `고객님 청소는 잘 마무리 되었습니다\n아래 계좌번호로 명시된 금액 입금 후\n예금주 성함과 함께 문자 부탁드리겠습니다\n\n입금 계좌번호 :\n${bankName}\n${accountNumber}\n잔금 : ${balance.toLocaleString()}원\n추가금 : ${additional.toLocaleString()}원\n합계 : ${total.toLocaleString()}원\n\n추후 부족하신 부분이나 문제가 있는 부분에 대해서\n연락주시면 바로 처리 도와드리겠습니다`
+                                        const phone = site.customer_phone || site.manager_phone || ''
+                                        const cleanPhone = phone.replace(/-/g, '')
+                                        return `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
+                                    })()}
+                                    className="block"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
+                                    >
+                                        <MessageSquare className="w-5 h-5 mr-2" />
+                                        📱 고객에게 수금 문자 보내기
+                                    </Button>
+                                </a>
+                                {(!smsSettings?.sms_bank_name || !smsSettings?.sms_account_number) && (
+                                    <p className="text-xs text-orange-600 text-center">
+                                        ⚠️ 관리자에게 설정 {'>'} 수금 문자 설정에서 은행명과 계좌번호 등록을 요청해주세요
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <p className="font-bold text-red-600 text-lg text-center">
+                                    ⚠️ <span className="text-red-600">업체수금</span> 입니다
+                                </p>
+                                <p className="text-sm text-red-700 text-center font-medium leading-relaxed">
+                                    청소 종료 시 고객에게<br />
+                                    금액은 대표님께 직접 연락드리면 된다고 전달
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
