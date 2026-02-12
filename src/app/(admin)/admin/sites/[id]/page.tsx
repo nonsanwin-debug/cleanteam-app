@@ -30,7 +30,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
         <div className="space-y-6 pb-20">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Link href="/admin/sites">
+                <Link href={`/admin/sites${site.cleaning_date ? `?date=${site.cleaning_date}` : ''}`}>
                     <Button variant="outline" size="icon">
                         <ArrowLeft className="h-4 w-4" />
                     </Button>

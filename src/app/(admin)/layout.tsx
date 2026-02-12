@@ -1,9 +1,6 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus } from 'lucide-react'
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
 import { MobileNav } from '@/components/admin/mobile-nav'
+import { AdminNavLinks } from '@/components/admin/admin-nav-links'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
@@ -58,63 +55,7 @@ export default async function AdminLayout({
     // Get pending withdrawal count
     const pendingCount = await getPendingWithdrawalCount()
 
-    const NavLinks = () => (
-        <nav className="flex-1 space-y-1">
-            <Link href="/admin/dashboard">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    대시보드
-                </Button>
-            </Link>
-            <Link href="/admin/sites">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    현장 관리
-                </Button>
-            </Link>
-            <Link href="/admin/checklists">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <CheckSquare className="mr-2 h-4 w-4" />
-                    체크리스트 관리
-                </Button>
-            </Link>
-            <Link href="/admin/users">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50 relative">
-                    <Users className="mr-2 h-4 w-4" />
-                    사용자 관리
-                    {pendingCount > 0 && (
-                        <Badge className="ml-auto bg-red-500 text-white hover:bg-red-600 h-5 min-w-5 flex items-center justify-center px-1.5">
-                            {pendingCount}
-                        </Badge>
-                    )}
-                </Button>
-            </Link>
-            <Link href="/admin/as-manage">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    AS 관리
-                </Button>
-            </Link>
-            <Link href="/admin/logs">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <LogOut className="mr-2 h-4 w-4 rotate-180" />
-                    정산 로그
-                </Button>
-            </Link>
-            <Link href="/admin/users/new">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-indigo-50 border-l-4 border-transparent hover:border-indigo-600">
-                    <UserPlus className="mr-2 h-4 w-4 text-indigo-600" />
-                    팀원 등록
-                </Button>
-            </Link>
-            <Link href="/admin/settings">
-                <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50">
-                    <Settings className="mr-2 h-4 w-4" />
-                    설정
-                </Button>
-            </Link>
-        </nav>
-    )
+
 
     return (
         <div className="flex h-screen bg-slate-100">
@@ -129,7 +70,7 @@ export default async function AdminLayout({
                 </div>
 
                 <div className="p-4 flex-1">
-                    <NavLinks />
+                    <AdminNavLinks pendingCount={pendingCount} />
                 </div>
 
                 <div className="p-4 border-t border-slate-100">
@@ -142,7 +83,7 @@ export default async function AdminLayout({
                 <MobileNav displayName={displayName}>
                     <div className="flex flex-col h-full">
                         <div className="p-4 flex-1">
-                            <NavLinks />
+                            <AdminNavLinks pendingCount={pendingCount} />
                         </div>
                         <div className="p-4 border-t mt-auto mb-10">
                             <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />

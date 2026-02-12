@@ -3,6 +3,7 @@ import { SiteDialog } from '@/components/admin/site-dialog'
 import { SiteActions } from '@/components/admin/site-actions'
 import { AdminSiteDateFilter } from '@/components/admin/site-date-filter'
 import { AdminWorkerFilter } from '@/components/admin/worker-filter'
+import { TimePeriodFilter } from '@/components/admin/time-period-filter'
 import { AdminSitesRealtime } from '@/components/admin/admin-sites-realtime'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +14,7 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminSitesPage(props: { searchParams: Promise<{ date?: string; worker?: string }> }) {
+export default async function AdminSitesPage(props: { searchParams: Promise<{ date?: string; worker?: string; period?: string }> }) {
     const searchParams = await props.searchParams;
     const sites = await getSites()
     const workers = await getWorkers()
@@ -22,6 +23,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
     const filterDate = searchParams.date || today;
     const filterWorker = searchParams.worker || '';
+    const filterPeriod = searchParams.period || '';
 
     // Filter sites by date
     let filteredSites = filterDate
@@ -31,6 +33,23 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
     // Filter sites by worker
     if (filterWorker) {
         filteredSites = filteredSites.filter(site => site.worker_id === filterWorker)
+    }
+
+    // Filter sites by time period (am/pm)
+    if (filterPeriod === 'am') {
+        filteredSites = filteredSites.filter(site => {
+            const startTime = (site as any).start_time
+            if (!startTime) return false
+            const hour = parseInt(startTime.split(':')[0], 10)
+            return hour < 12
+        })
+    } else if (filterPeriod === 'pm') {
+        filteredSites = filteredSites.filter(site => {
+            const startTime = (site as any).start_time
+            if (!startTime) return false
+            const hour = parseInt(startTime.split(':')[0], 10)
+            return hour >= 12
+        })
     }
 
     const isValidDate = filterDate && !isNaN(new Date(filterDate).getTime())
@@ -63,6 +82,9 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
 
             {/* Worker Filter */}
             <AdminWorkerFilter workers={workers} />
+
+            {/* Time Period Filter */}
+            <TimePeriodFilter />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredSites.length === 0 ? (
