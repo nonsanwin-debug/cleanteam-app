@@ -84,9 +84,24 @@ export async function getChecklistTemplate(id: string) {
 export async function createChecklistTemplate(title: string) {
     try {
         const supabase = await createClient()
-        const companyId = await getCompanyId()
+        const { data: { user } } = await supabase.auth.getUser()
 
-        const insertData: any = {
+        if (!user) {
+            console.error('createChecklistTemplate: No authenticated user')
+            return { success: false, error: '인증되지 않은 사용자입니다.' }
+        }
+
+        const { data: profile } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
+        const companyId = profile?.company_id
+
+        console.log('📝 Creating template:', { title, companyId, userId: user.id })
+
+        const insertData: Record<string, any> = {
             title,
             items: []
         }
@@ -94,9 +109,12 @@ export async function createChecklistTemplate(title: string) {
             insertData.company_id = companyId
         }
 
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('checklist_templates')
             .insert([insertData])
+            .select()
+
+        console.log('📝 Insert result:', { data, error })
 
         if (error) {
             console.error('Error creating template:', error)
