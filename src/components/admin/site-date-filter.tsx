@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { KOREAN_HOLIDAYS } from '@/lib/korean-holidays'
 
@@ -40,6 +40,14 @@ export function AdminSiteDateFilter() {
     const selectedDate = dateParam ? new Date(dateParam + 'T00:00:00') : today
 
     const [weekStart, setWeekStart] = useState(() => getMonday(selectedDate))
+
+    // Sync weekStart when URL date changes (e.g. on back navigation)
+    useEffect(() => {
+        const newWeekStart = getMonday(selectedDate)
+        if (!isSameDay(newWeekStart, weekStart)) {
+            setWeekStart(newWeekStart)
+        }
+    }, [dateParam])
 
     const weekDays = useMemo(() => {
         const days: Date[] = []
