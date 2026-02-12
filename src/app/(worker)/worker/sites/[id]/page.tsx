@@ -424,8 +424,10 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                         <p className="text-sm text-red-600 text-center font-medium">
                                             버튼 클릭 시 고객에게 안내문자 발송 합니다
                                         </p>
-                                        <a
-                                            href={(() => {
+                                        <Button
+                                            variant="outline"
+                                            className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
+                                            onClick={() => {
                                                 const balance = site.balance_amount || 0
                                                 const additional = site.additional_amount || 0
                                                 const total = balance + additional
@@ -440,18 +442,36 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                                     .replace('{합계}', total.toLocaleString())
                                                 const phone = site.customer_phone || site.manager_phone || ''
                                                 const cleanPhone = phone.replace(/-/g, '')
-                                                return `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
-                                            })()}
-                                            className="block"
+
+                                                // 1. 클립보드에 복사
+                                                try {
+                                                    navigator.clipboard.writeText(messageBody)
+                                                    toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                } catch {
+                                                    // Fallback
+                                                    const textArea = document.createElement("textarea")
+                                                    textArea.value = messageBody
+                                                    textArea.style.position = "fixed"
+                                                    textArea.style.left = "0"
+                                                    textArea.style.top = "0"
+                                                    textArea.style.opacity = "0"
+                                                    document.body.appendChild(textArea)
+                                                    textArea.focus({ preventScroll: true })
+                                                    textArea.select()
+                                                    document.execCommand('copy')
+                                                    document.body.removeChild(textArea)
+                                                    toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                }
+
+                                                // 2. SMS 앱 열기
+                                                setTimeout(() => {
+                                                    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
+                                                }, 300)
+                                            }}
                                         >
-                                            <Button
-                                                variant="outline"
-                                                className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
-                                            >
-                                                <MessageSquare className="w-5 h-5 mr-2" />
-                                                📱 고객에게 수금 문자 보내기
-                                            </Button>
-                                        </a>
+                                            <MessageSquare className="w-5 h-5 mr-2" />
+                                            📱 고객에게 수금 문자 보내기
+                                        </Button>
                                     </>
                                 ) : null}
                             </div>
