@@ -198,13 +198,18 @@ function SiteCard({
                     {site.customer_name && (
                         <p className="text-sm text-slate-600">고객: <span className="font-semibold text-slate-900">{site.customer_name}</span></p>
                     )}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                         {site.customer_phone ? (
-                            <a href={`tel:${site.customer_phone}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
-                                <Phone className="h-4 w-4 mr-2" />
-                                <span>{site.customer_phone}</span>
-                                <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
-                            </a>
+                            site.customer_phone.split('/').map((phone, idx) => {
+                                const trimmed = phone.trim()
+                                return (
+                                    <a key={idx} href={`tel:${trimmed}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+                                        <Phone className="h-4 w-4 mr-2" />
+                                        <span>{trimmed}</span>
+                                        <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
+                                    </a>
+                                )
+                            })
                         ) : (
                             <span className="text-slate-400 text-xs italic bg-slate-100 px-2 py-1 rounded">연락처 미등록</span>
                         )}

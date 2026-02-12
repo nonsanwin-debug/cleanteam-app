@@ -259,18 +259,29 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         </div>
                         <div>
                             <p className="text-sm font-bold text-blue-600 mb-1">고객 연락처 (해피콜용)</p>
-                            <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                <p className="text-xl font-bold text-slate-900">{site.customer_phone || site.manager_phone || '-'}</p>
-                                {(site.customer_phone || site.manager_phone) && (
-                                    <a
-                                        href={`tel:${site.customer_phone || site.manager_phone}`}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
-                                    >
-                                        <Phone className="h-5 w-5 mr-2" />
-                                        전화걸기
-                                    </a>
-                                )}
-                            </div>
+                            {(site.customer_phone || site.manager_phone) ? (
+                                <div className="space-y-2">
+                                    {(site.customer_phone || site.manager_phone || '').split('/').map((phone, idx) => {
+                                        const trimmed = phone.trim()
+                                        return (
+                                            <div key={idx} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                                <p className="text-xl font-bold text-slate-900">{trimmed}</p>
+                                                <a
+                                                    href={`tel:${trimmed}`}
+                                                    className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
+                                                >
+                                                    <Phone className="h-5 w-5 mr-2" />
+                                                    전화걸기
+                                                </a>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                    <p className="text-xl font-bold text-slate-900">-</p>
+                                </div>
+                            )}
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">시작일</p>

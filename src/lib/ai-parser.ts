@@ -22,8 +22,8 @@ const SYSTEM_PROMPT = `당신은 청소 업체의 오더 텍스트를 분석하�
 {
   "customer_name": "고객 성함",
   "customer_phone": "연락처 (여러 개면 / 로 구분)",
-  "name": "현장명 (건물명+호수, 없으면 주소에서 추출)",
-  "address": "전체 주소",
+  "name": "현장명 (아파트/건물명 + 동 + 호수)",
+  "address": "도로명 또는 지번 주소 (동/호수 제외)",
   "cleaning_date": "YYYY-MM-DD 형식 (올해는 2026년)",
   "start_time": "HH:MM 형식 (24시간, 오전 8~9시면 08:00)",
   "structure_type": "구조 정보 (예: 방3 화2 베1)",
@@ -38,10 +38,11 @@ const SYSTEM_PROMPT = `당신은 청소 업체의 오더 텍스트를 분석하�
 - 날짜에 연도가 없으면 2026년으로 가정
 - "잔금 14만원" → balance_amount: 140000
 - "잔금 없음" 또는 언급 없으면 → balance_amount: 0
-- 현장명은 건물명+호수가 기본 (예: "세진빌 302호")
-- 건물명이 없으면 주소의 마지막 부분 사용
-- collection_type은 기본 "site"
-- 추가 서비스(코팅, 방역 등)는 special_notes에 포함`
+- **현장명(name)**: 아파트/건물명 + 동 + 호수 조합 (예: "수루배마을4단지 408동 203호", "세진빌 302호")
+- **주소(address)**: 시/구/도로명 또는 지번까지만. 동/호수는 절대 포함하지 않음 (예: "세종시 시청대로500", "대전 서구 도안동 1195번지")
+- collection_type은 기본 "site". "회사수금" 또는 "업체수금"이 언급되면 "company"
+- 추가 서비스(코팅, 방역 등)는 special_notes에 포함
+- 연락처가 2개 이상이면 / 로 구분 (예: "010-1234-5678 / 010-9876-5432")`
 
 export async function parseOrderWithAI(orderText: string): Promise<{
     success: boolean
