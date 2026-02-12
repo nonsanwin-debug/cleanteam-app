@@ -233,17 +233,21 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                     <div className="space-y-4">
                         {template.items.map((item: any) => (
                             <div key={item.id} className="border-b pb-4 last:border-0 last:pb-0">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-start space-x-2">
                                     <Checkbox
                                         id={item.id}
                                         checked={answers[item.id] === 'checked'}
                                         onCheckedChange={(checked: any) => handleAnswerChange(item.id, checked ? 'checked' : '')}
+                                        className="mt-0.5"
                                     />
                                     <Label
                                         htmlFor={item.id}
-                                        className={`text-base font-medium cursor-pointer ${answers[item.id] === 'checked' ? 'text-green-600 font-bold' : ''}`}
+                                        className={`text-sm font-medium cursor-pointer leading-snug ${answers[item.id] === 'checked' ? 'text-green-600 font-bold' : ''}`}
                                     >
-                                        {item.text} <span className={`text-sm ml-1 ${answers[item.id] === 'checked' ? 'text-green-600' : 'text-slate-400 font-normal'}`}>(확인완료)</span>
+                                        {item.text}
+                                        {answers[item.id] === 'checked' && (
+                                            <span className="text-xs text-green-500 ml-1">(확인완료)</span>
+                                        )}
                                     </Label>
                                 </div>
                             </div>
