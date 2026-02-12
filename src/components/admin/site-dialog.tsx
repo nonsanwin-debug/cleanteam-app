@@ -37,6 +37,7 @@ import { Loader2, Plus, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { KOREAN_HOLIDAYS } from '@/lib/korean-holidays'
 
 const formSchema = z.object({
     name: z.string().min(1, '현장명을 입력해주세요'),
@@ -275,32 +276,53 @@ export function SiteDialog({
                                             </div>
                                             <div className="grid grid-cols-7 gap-1">
                                                 {weekDays.map(day => {
-                                                    const isSelected = field.value === format(day, 'yyyy-MM-dd')
+                                                    const dateStr = format(day, 'yyyy-MM-dd')
+                                                    const isSelected = field.value === dateStr
                                                     const isToday = isSameDay(day, new Date())
+                                                    const holiday = KOREAN_HOLIDAYS[dateStr]
+                                                    const isSunday = day.getDay() === 0
+                                                    const isSaturday = day.getDay() === 6
+                                                    const isHoliday = !!holiday
                                                     return (
                                                         <button
                                                             key={day.toISOString()}
                                                             type="button"
-                                                            onClick={() => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                            onClick={() => field.onChange(dateStr)}
                                                             className={cn(
-                                                                "flex flex-col items-center justify-center p-2 rounded-md transition-colors",
+                                                                "flex flex-col items-center justify-center p-2 rounded-md transition-colors relative",
                                                                 isSelected
                                                                     ? "bg-blue-600 text-white shadow-md scale-105"
-                                                                    : "bg-white text-slate-700 hover:bg-slate-100 border border-transparent",
+                                                                    : "bg-white hover:bg-slate-100 border border-transparent",
                                                                 isToday && !isSelected && "border-blue-300 bg-blue-50"
                                                             )}
+                                                            title={holiday || undefined}
                                                         >
-                                                            <span className="text-[10px] opacity-70 mb-1">{format(day, 'E', { locale: ko })}</span>
-                                                            <span className={cn("text-lg font-bold", isSelected ? "text-white" : "text-slate-900")}>
+                                                            <span className={cn(
+                                                                "text-[10px] mb-1",
+                                                                isSelected ? "text-blue-200" : (isHoliday || isSunday) ? "text-red-400" : isSaturday ? "text-blue-400" : "opacity-70"
+                                                            )}>{format(day, 'E', { locale: ko })}</span>
+                                                            <span className={cn(
+                                                                "text-lg font-bold",
+                                                                isSelected ? "text-white" : (isHoliday || isSunday) ? "text-red-500" : isSaturday ? "text-blue-500" : "text-slate-900"
+                                                            )}>
                                                                 {format(day, 'd')}
                                                             </span>
+                                                            {holiday && (
+                                                                <span className={cn(
+                                                                    "text-[7px] mt-0.5 leading-tight text-center truncate w-full",
+                                                                    isSelected ? "text-blue-200" : "text-red-400"
+                                                                )}>{holiday}</span>
+                                                            )}
+                                                            {isHoliday && !isSelected && (
+                                                                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                                                            )}
                                                         </button>
                                                     )
                                                 })}
                                             </div>
                                             <div className="text-center mt-2">
-                                                <span className="text-xs text-slate-500">
-                                                    선택된 날짜: {field.value ? format(new Date(field.value), 'yyyy년 MM월 dd일 (E)', { locale: ko }) : '없음'}
+                                                <span className={cn("text-xs font-medium", field.value && KOREAN_HOLIDAYS[field.value] ? "text-red-500" : "text-slate-500")}>
+                                                    선택된 날짜: {field.value ? `${format(new Date(field.value), 'yyyy년 MM월 dd일 (E)', { locale: ko })}${KOREAN_HOLIDAYS[field.value] ? ` · ${KOREAN_HOLIDAYS[field.value]}` : ''}` : '없음'}
                                                 </span>
                                             </div>
                                         </div>

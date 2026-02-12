@@ -3,71 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { KOREAN_HOLIDAYS } from '@/lib/korean-holidays'
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
-
-// Korean public holidays (fixed + lunar-based for 2025-2027)
-const KOREAN_HOLIDAYS: Record<string, string> = {
-    // ── 2025 ──
-    '2025-01-01': '신정',
-    '2025-01-28': '설날 연휴',
-    '2025-01-29': '설날',
-    '2025-01-30': '설날 연휴',
-    '2025-03-01': '삼일절',
-    '2025-05-05': '어린이날',
-    '2025-05-06': '대체공휴일(석탄일)',
-    '2025-05-15': '석가탄신일',  // Actually May 5 is 석탄일 for 2025, but 어린이날 overlap
-    '2025-06-06': '현충일',
-    '2025-08-15': '광복절',
-    '2025-10-03': '개천절',
-    '2025-10-05': '추석 연휴',
-    '2025-10-06': '추석',
-    '2025-10-07': '추석 연휴',
-    '2025-10-08': '대체공휴일(추석)',
-    '2025-10-09': '한글날',
-    '2025-12-25': '크리스마스',
-
-    // ── 2026 ──
-    '2026-01-01': '신정',
-    '2026-02-16': '설날 연휴',
-    '2026-02-17': '설날',
-    '2026-02-18': '설날 연휴',
-    '2026-03-01': '삼일절',
-    '2026-03-02': '대체공휴일(삼일절)',
-    '2026-05-05': '어린이날',
-    '2026-05-24': '석가탄신일',
-    '2026-05-25': '대체공휴일(석가탄신일)',
-    '2026-06-06': '현충일',
-    '2026-08-15': '광복절',
-    '2026-09-24': '추석 연휴',
-    '2026-09-25': '추석',
-    '2026-09-26': '추석 연휴',
-    '2026-10-03': '개천절',
-    '2026-10-05': '대체공휴일(개천절)',
-    '2026-10-09': '한글날',
-    '2026-12-25': '크리스마스',
-
-    // ── 2027 ──
-    '2027-01-01': '신정',
-    '2027-02-06': '설날 연휴',
-    '2027-02-07': '설날',
-    '2027-02-08': '설날 연휴',
-    '2027-02-09': '대체공휴일(설날)',
-    '2027-03-01': '삼일절',
-    '2027-05-05': '어린이날',
-    '2027-05-13': '석가탄신일',
-    '2027-06-06': '현충일',
-    '2027-06-07': '대체공휴일(현충일)',
-    '2027-08-15': '광복절',
-    '2027-08-16': '대체공휴일(광복절)',
-    '2027-10-03': '개천절',
-    '2027-10-04': '대체공휴일(개천절)',
-    '2027-10-09': '한글날',
-    '2027-10-13': '추석 연휴',
-    '2027-10-14': '추석',
-    '2027-10-15': '추석 연휴',
-    '2027-12-25': '크리스마스',
-}
 
 function getMonday(d: Date): Date {
     const date = new Date(d)
@@ -207,16 +145,16 @@ export function AdminSiteDateFilter() {
                             title={holiday || undefined}
                         >
                             <span className={`text-[11px] font-medium mb-1 ${isSelected ? 'text-blue-100'
-                                    : (isHoliday || isSunday) ? 'text-red-400'
-                                        : isSaturday ? 'text-blue-400'
-                                            : 'text-slate-400'
+                                : (isHoliday || isSunday) ? 'text-red-400'
+                                    : isSaturday ? 'text-blue-400'
+                                        : 'text-slate-400'
                                 }`}>
                                 {DAY_LABELS[i]}
                             </span>
                             <span className={`text-lg font-bold leading-none ${isSelected ? 'text-white'
-                                    : (isHoliday || isSunday) ? 'text-red-500'
-                                        : isSaturday ? 'text-blue-500'
-                                            : ''
+                                : (isHoliday || isSunday) ? 'text-red-500'
+                                    : isSaturday ? 'text-blue-500'
+                                        : ''
                                 }`}>
                                 {day.getDate()}
                             </span>
