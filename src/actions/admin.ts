@@ -469,3 +469,31 @@ export async function getAdminLogs() {
 
     return logs
 }
+
+export async function getCommissionLogs() {
+    const supabase = await createClient()
+    const { data: { user: adminUser } } = await supabase.auth.getUser()
+    if (!adminUser) return []
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('company_id')
+        .eq('id', adminUser.id)
+        .single()
+
+    if (!profile?.company_id) return []
+
+    const { data: logs, error } = await supabase
+        .from('wallet_logs')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .eq('type', 'commission')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching commission logs:', error)
+        return []
+    }
+
+    return logs
+}

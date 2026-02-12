@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission } from '@/actions/admin'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -38,7 +38,16 @@ interface Worker {
     commission_rate?: number | null
 }
 
-export function WorkerManagementList({ workers }: { workers: Worker[] }) {
+interface CommissionLog {
+    id: string
+    user_id: string
+    amount: number
+    description: string
+    reference_id: string
+    created_at: string
+}
+
+export function WorkerManagementList({ workers, commissionLogs = [] }: { workers: Worker[], commissionLogs?: CommissionLog[] }) {
     const router = useRouter()
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
@@ -47,6 +56,7 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
     const [commissionEditing, setCommissionEditing] = useState<string | null>(null)
     const [commissionValue, setCommissionValue] = useState<string>('')
     const [commissionLoading, setCommissionLoading] = useState<string | null>(null)
+    const [historyOpen, setHistoryOpen] = useState<string | null>(null)
 
     const togglePassword = (id: string) => {
         setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
@@ -310,6 +320,51 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
                                 </div>
                             )}
                         </div>
+
+                        {/* Commission History */}
+                        {(() => {
+                            const workerLogs = commissionLogs.filter(log => log.user_id === worker.id)
+                            const totalCommission = workerLogs.reduce((sum, log) => sum + log.amount, 0)
+                            if (workerLogs.length === 0) return null
+                            return (
+                                <div className="mb-4">
+                                    <button
+                                        onClick={() => setHistoryOpen(historyOpen === worker.id ? null : worker.id)}
+                                        className="flex items-center justify-between w-full text-sm px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Receipt className="w-4 h-4 text-blue-600" />
+                                            <span className="text-blue-700 font-medium">
+                                                추가금 적립 내역 ({workerLogs.length}건)
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-blue-700">
+                                                총 {totalCommission.toLocaleString()}원
+                                            </span>
+                                            {historyOpen === worker.id ? (
+                                                <ChevronUp className="w-4 h-4 text-blue-500" />
+                                            ) : (
+                                                <ChevronDown className="w-4 h-4 text-blue-500" />
+                                            )}
+                                        </div>
+                                    </button>
+                                    {historyOpen === worker.id && (
+                                        <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+                                            {workerLogs.map(log => (
+                                                <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
+                                                    <span className="text-slate-600 truncate mr-2">{log.description}</span>
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <span className="font-semibold text-green-600">+{log.amount.toLocaleString()}원</span>
+                                                        <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })()}
 
                         {worker.status === 'pending' ? (
                             <Button

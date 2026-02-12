@@ -70,10 +70,10 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
 
         if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
 
-        // 1. Fetch site to get additional_amount
+        // 1. Fetch site info
         const { data: site, error: siteError } = await supabase
             .from('sites')
-            .select('additional_amount, worker_id')
+            .select('additional_amount, worker_id, name')
             .eq('id', siteId)
             .single()
 
@@ -82,13 +82,21 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             return { success: false, error: '현장 정보 조회에 실패했습니다.' }
         }
 
-        // 2. Base update: mark as completed
-        const updateData: any = {
-            status: 'completed',
-            completed_at: new Date().toISOString()
+        // 2. Mark as completed
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            } as any)
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('completeWork error:', error)
+            return { success: false, error: error.message || '작업 완료 처리에 실패했습니다.' }
         }
 
-        // 3. Auto-claim if there's additional_amount > 0
+        // 3. Auto-commission: add to current_money + wallet_logs via RPC
         const additionalAmount = site?.additional_amount || 0
         if (additionalAmount > 0 && site?.worker_id) {
             // Fetch worker's commission_rate
@@ -99,27 +107,22 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
                 .single()
 
             const commissionRate = worker?.commission_rate ?? 100
-            const claimAmount = Math.round(additionalAmount * (commissionRate / 100))
+            const commissionAmount = Math.round(additionalAmount * (commissionRate / 100))
 
-            if (claimAmount > 0) {
-                updateData.claimed_amount = claimAmount
-                updateData.payment_status = 'requested'
-                updateData.claim_details = [{
-                    label: `추가금 ${additionalAmount.toLocaleString()}원 × ${commissionRate}%`,
-                    amount: claimAmount
-                }]
+            if (commissionAmount > 0) {
+                const { data: rpcResult, error: rpcError } = await supabase.rpc('auto_commission_on_complete', {
+                    p_site_id: siteId,
+                    p_worker_id: site.worker_id,
+                    p_amount: commissionAmount,
+                    p_site_name: site.name || '현장',
+                    p_commission_rate: commissionRate
+                })
+
+                if (rpcError) {
+                    console.error('Auto commission RPC error:', rpcError)
+                    // Don't fail the whole operation, just log
+                }
             }
-        }
-
-        // 4. Update site
-        const { error } = await supabase
-            .from('sites')
-            .update(updateData)
-            .eq('id', siteId)
-
-        if (error) {
-            console.error('completeWork error:', error)
-            return { success: false, error: error.message || '작업 완료 처리에 실패했습니다.' }
         }
 
         revalidatePath('/worker/home')
@@ -133,6 +136,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
         return { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.' }
     }
 }
+
 
 export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
     try {

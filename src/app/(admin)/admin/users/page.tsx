@@ -1,4 +1,4 @@
-import { getUsersWithClaims, getWithdrawalRequests, getAllWorkers } from '@/actions/admin'
+import { getUsersWithClaims, getWithdrawalRequests, getAllWorkers, getCommissionLogs } from '@/actions/admin'
 import { UserList } from './user-list'
 import { WithdrawalList } from './withdrawal-list'
 import { WorkerManagementList } from './worker-management-list'
@@ -13,6 +13,7 @@ export default async function UsersPage() {
     const users = await getUsersWithClaims()
     const withdrawals = await getWithdrawalRequests()
     const workers = await getAllWorkers()
+    const commissionLogs = await getCommissionLogs()
 
     // Count pending withdrawals
     const pendingCount = withdrawals.filter(w => w.status === 'pending').length
@@ -51,7 +52,7 @@ export default async function UsersPage() {
                             </Button>
                         </Link>
                     </div>
-                    <WorkerManagementList workers={workers} />
+                    <WorkerManagementList workers={workers} commissionLogs={commissionLogs} />
                 </TabsContent>
             </Tabs>
         </div>
