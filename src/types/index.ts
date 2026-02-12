@@ -20,7 +20,12 @@ export type AssignedSite = {
     manager_phone?: string
     start_date?: string
     end_date?: string
+    // Settlement fields
+    balance_amount?: number
+    additional_amount?: number
+    additional_description?: string
 }
+
 
 export type SitePhoto = {
     id: string

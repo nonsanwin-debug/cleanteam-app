@@ -258,6 +258,42 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
     }
 }
 
+export async function updateSiteAdditional(
+    siteId: string,
+    additionalAmount: number,
+    additionalDescription: string
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        if (additionalAmount < 0) {
+            return { success: false, error: '추가금은 0 이상이어야 합니다.' }
+        }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                additional_amount: additionalAmount,
+                additional_description: additionalDescription
+            })
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('updateSiteAdditional error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath(`/worker/sites/${siteId}`)
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (error) {
+        console.error('updateSiteAdditional error:', error)
+        return { success: false, error: '추가금 수정 중 오류가 발생했습니다.' }
+    }
+}
+
 export async function getSitePhotos(id: string): Promise<ActionResponse<SitePhoto[]>> {
     try {
         const supabase = await createClient()

@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSiteDetails, getSitePhotos } from '@/actions/worker'
+import { getSiteDetails, getSitePhotos, updateSiteAdditional } from '@/actions/worker'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { WorkerSiteActions } from '@/components/worker/worker-site-actions'
@@ -22,6 +24,10 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const checklistRef = useRef<ChecklistFormHandle>(null)
+    const [editingAdditional, setEditingAdditional] = useState(false)
+    const [additionalAmountVal, setAdditionalAmountVal] = useState('')
+    const [additionalDescVal, setAdditionalDescVal] = useState('')
+    const [savingAdditional, setSavingAdditional] = useState(false)
 
     const router = useRouter()
 
@@ -260,6 +266,125 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             </div>
                         </div>
                     )}
+                </CardContent>
+            </Card>
+
+            {/* Settlement Info Card */}
+            <Card className="border-blue-200 bg-blue-50/30">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Wallet className="h-5 w-5 text-blue-600" />
+                        정산 정보
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b">
+                        <span className="text-sm text-slate-500">잔금</span>
+                        <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
+                    </div>
+
+                    {editingAdditional ? (
+                        <div className="space-y-3 py-2 border-b">
+                            <div>
+                                <label className="text-sm text-slate-500 block mb-1">추가금액</label>
+                                <Input
+                                    type="number"
+                                    value={additionalAmountVal}
+                                    onChange={(e) => setAdditionalAmountVal(e.target.value)}
+                                    placeholder="추가금액 입력"
+                                    className="bg-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-slate-500 block mb-1">추가 사유</label>
+                                <Textarea
+                                    value={additionalDescVal}
+                                    onChange={(e) => setAdditionalDescVal(e.target.value)}
+                                    placeholder="추가 작업 내용을 입력하세요"
+                                    className="bg-white resize-none"
+                                    rows={2}
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    size="sm"
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                    onClick={async () => {
+                                        setSavingAdditional(true)
+                                        const result = await updateSiteAdditional(
+                                            site.id,
+                                            parseInt(additionalAmountVal) || 0,
+                                            additionalDescVal
+                                        )
+                                        setSavingAdditional(false)
+                                        if (result.success) {
+                                            toast.success('추가금이 수정되었습니다.')
+                                            setSite(prev => prev ? {
+                                                ...prev,
+                                                additional_amount: parseInt(additionalAmountVal) || 0,
+                                                additional_description: additionalDescVal
+                                            } : prev)
+                                            setEditingAdditional(false)
+                                        } else {
+                                            toast.error(result.error || '수정 실패')
+                                        }
+                                    }}
+                                    disabled={savingAdditional}
+                                >
+                                    {savingAdditional ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                    ) : (
+                                        <Save className="h-4 w-4 mr-1" />
+                                    )}
+                                    저장
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setEditingAdditional(false)}
+                                    disabled={savingAdditional}
+                                >
+                                    <X className="h-4 w-4 mr-1" />
+                                    취소
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-2 border-b">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-slate-500">추가금</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-lg text-blue-700">
+                                        {(site.additional_amount || 0).toLocaleString()}원
+                                    </span>
+                                    {site.status !== 'completed' && (
+                                        <button
+                                            onClick={() => {
+                                                setAdditionalAmountVal(String(site.additional_amount || 0))
+                                                setAdditionalDescVal(site.additional_description || '')
+                                                setEditingAdditional(true)
+                                            }}
+                                            className="p-1 rounded hover:bg-blue-100"
+                                        >
+                                            <Pencil className="h-3.5 w-3.5 text-blue-500" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            {site.additional_description && (
+                                <p className="text-sm text-slate-600 mt-1 bg-white/60 p-2 rounded">
+                                    {site.additional_description}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1">
+                        <span className="text-sm font-medium text-slate-700">총 합계 (잔금 + 추가)</span>
+                        <span className="font-bold text-xl text-green-700">
+                            {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
+                        </span>
+                    </div>
                 </CardContent>
             </Card>
 
