@@ -270,7 +270,10 @@ export async function getRecentActivities() {
 
     const companyId = profile.company_id
 
-    // 2. Fetch recent photos with joins
+    // 2. Fetch recent photos (last 7 days, enough to cover recent activity)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
     const { data: photos, error } = await supabase
         .from('photos')
         .select(`
@@ -283,15 +286,16 @@ export async function getRecentActivities() {
             user:users(name)
         `)
         .eq('site.company_id', companyId)
+        .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(500)
 
     if (error) {
         console.error('getRecentActivities error:', error)
         return []
     }
 
-    // 3. Group photos by site + user to consolidate
+    // 3. Group photos by site + user + date (so morning and afternoon show separately)
     const groupMap = new Map<string, {
         siteId: string
         userId: string
@@ -304,7 +308,9 @@ export async function getRecentActivities() {
     for (const photo of (photos || [])) {
         const siteData = (photo as any).site
         const userData = (photo as any).user
-        const key = `${(photo as any).site_id}_${(photo as any).user_id}`
+        // Group by site + user + date (YYYY-MM-DD)
+        const photoDate = photo.created_at.substring(0, 10)
+        const key = `${(photo as any).site_id}_${(photo as any).user_id}_${photoDate}`
 
         if (!groupMap.has(key)) {
             groupMap.set(key, {
@@ -323,9 +329,9 @@ export async function getRecentActivities() {
     // 4. Convert to activity format, sorted by latest timestamp
     return Array.from(groupMap.values())
         .sort((a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime())
-        .slice(0, 10)
+        .slice(0, 15)
         .map(group => ({
-            id: `photo-group-${group.siteId}-${group.userId}`,
+            id: `photo-group-${group.siteId}-${group.userId}-${group.latestTimestamp.substring(0, 10)}`,
             type: 'photo_uploaded' as 'photo_uploaded' | 'work_started' | 'work_completed',
             actor: group.userName,
             target: group.siteName,
