@@ -227,9 +227,15 @@ function SiteCard({
                         <span>{site.structure_type || '-'}</span>
                     </div>
                     {site.special_notes && (
-                        <div className="col-span-2">
-                            <span className="text-slate-400 block">특이사항</span>
-                            <span className="text-red-500">{site.special_notes}</span>
+                        <div className="col-span-2 mt-1">
+                            <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-2.5 animate-pulse">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-red-500 text-xs font-bold tracking-wider animate-bounce" style={{ animationDuration: '2s' }}>⚠️ 특이사항</span>
+                                </div>
+                                <span className="text-red-600 font-bold text-sm block" style={{
+                                    textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
+                                }}>{site.special_notes}</span>
+                            </div>
                         </div>
                     )}
                 </div>

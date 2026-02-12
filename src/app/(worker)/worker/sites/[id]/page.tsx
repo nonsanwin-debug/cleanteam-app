@@ -268,9 +268,13 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     </div>
                     {site.special_notes && (
                         <div className="pt-2 border-t mt-2">
-                            <span className="text-slate-500 block text-xs mb-1">특이사항</span>
-                            <div className="bg-yellow-50 p-2 rounded text-slate-700">
-                                {site.special_notes}
+                            <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-3 animate-pulse">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-red-500 text-xs font-bold tracking-wider animate-bounce" style={{ animationDuration: '2s' }}>⚠️ 특이사항</span>
+                                </div>
+                                <div className="text-red-600 font-bold text-sm" style={{
+                                    textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
+                                }}>{site.special_notes}</div>
                             </div>
                         </div>
                     )}
