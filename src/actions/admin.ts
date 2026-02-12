@@ -116,21 +116,67 @@ export async function approvePayment(siteId: string, userId: string, amount: num
     try {
         const supabase = await createClient()
 
-        // Use a unique RPC name to avoid any overloading/conflict issues
-        const { data, error } = await supabase.rpc('approve_site_payment_final_v1', {
-            p_site_id: siteId,
-            p_user_id: userId,
-            p_amount: amount
-        })
+        // 1. Fetch site info (name, additional_amount, payment_status)
+        const { data: site, error: siteError } = await supabase
+            .from('sites')
+            .select('name, additional_amount, payment_status, company_id')
+            .eq('id', siteId)
+            .single()
 
-        if (error) {
-            console.error('RPC Error:', error)
-            return { success: false, error: `DB 연동 오류: ${error.message}` }
+        if (siteError || !site) {
+            return { success: false, error: '현장 정보를 찾을 수 없습니다.' }
         }
 
-        if (!data || !data.success) {
-            console.error('Payment approval failed:', data)
-            return { success: false, error: data?.error || '지급 처리에 실패했습니다.' }
+        if (site.payment_status === 'paid') {
+            return { success: false, error: '이미 지급 완료 처리된 현장입니다.' }
+        }
+
+        // 2. Fetch worker's commission_rate
+        const { data: worker } = await supabase
+            .from('users')
+            .select('commission_rate, current_money')
+            .eq('id', userId)
+            .single()
+
+        const commissionRate = worker?.commission_rate ?? 100
+
+        // 3. Update site payment status
+        const { error: siteUpdateError } = await supabase
+            .from('sites')
+            .update({ payment_status: 'paid', updated_at: new Date().toISOString() } as any)
+            .eq('id', siteId)
+
+        if (siteUpdateError) {
+            return { success: false, error: '현장 상태 업데이트에 실패했습니다.' }
+        }
+
+        // 4. Update worker balance
+        const newBalance = (worker?.current_money || 0) + amount
+        const { error: balanceError } = await supabase
+            .from('users')
+            .update({ current_money: newBalance })
+            .eq('id', userId)
+
+        if (balanceError) {
+            return { success: false, error: '잔액 업데이트에 실패했습니다.' }
+        }
+
+        // 5. Insert wallet log with commission description
+        const description = `커미션: ${site.name || '현장'} (추가금 ${commissionRate}%)`
+        const { error: logError } = await supabase
+            .from('wallet_logs')
+            .insert({
+                user_id: userId,
+                company_id: site.company_id,
+                type: 'commission',
+                amount: amount,
+                balance_after: newBalance,
+                description: description,
+                reference_id: siteId
+            })
+
+        if (logError) {
+            console.error('Wallet log insert error:', logError)
         }
 
         revalidatePath('/admin/users')
