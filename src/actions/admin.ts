@@ -487,7 +487,7 @@ export async function getCommissionLogs() {
         .from('wallet_logs')
         .select('*')
         .eq('company_id', profile.company_id)
-        .eq('type', 'commission')
+        .in('type', ['commission', 'manual_add', 'manual_deduct'])
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -496,6 +496,88 @@ export async function getCommissionLogs() {
     }
 
     return logs
+}
+
+export async function adjustWorkerBalance(
+    workerId: string,
+    amount: number,
+    type: 'add' | 'deduct',
+    reason: string
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user: adminUser } } = await supabase.auth.getUser()
+        if (!adminUser) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // Get admin profile
+        const { data: adminProfile } = await supabase
+            .from('users')
+            .select('company_id, role')
+            .eq('id', adminUser.id)
+            .single()
+
+        if (!adminProfile || adminProfile.role !== 'admin') {
+            return { success: false, error: '관리자 권한이 필요합니다.' }
+        }
+
+        // Get worker's current balance
+        const { data: worker } = await supabase
+            .from('users')
+            .select('current_money, name, company_id')
+            .eq('id', workerId)
+            .single()
+
+        if (!worker) return { success: false, error: '팀원을 찾을 수 없습니다.' }
+        if (worker.company_id !== adminProfile.company_id) {
+            return { success: false, error: '같은 업체의 팀원만 관리할 수 있습니다.' }
+        }
+
+        const currentBalance = worker.current_money || 0
+        const adjustAmount = type === 'add' ? amount : -amount
+        const newBalance = currentBalance + adjustAmount
+
+        if (newBalance < 0) {
+            return { success: false, error: '잔액이 부족합니다.' }
+        }
+
+        // Update balance
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ current_money: newBalance })
+            .eq('id', workerId)
+
+        if (updateError) {
+            console.error('Balance update error:', updateError)
+            return { success: false, error: '잔액 업데이트에 실패했습니다.' }
+        }
+
+        // Insert wallet log
+        const logType = type === 'add' ? 'manual_add' : 'manual_deduct'
+        const description = type === 'add'
+            ? `관리자 지급: ${reason}`
+            : `관리자 차감: ${reason}`
+
+        const { error: logError } = await supabase
+            .from('wallet_logs')
+            .insert({
+                user_id: workerId,
+                company_id: adminProfile.company_id,
+                type: logType,
+                amount: type === 'add' ? amount : -amount,
+                balance_after: newBalance,
+                description: description
+            })
+
+        if (logError) {
+            console.error('Wallet log insert error:', logError)
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error('adjustWorkerBalance error:', error)
+        return { success: false, error: '처리 중 오류가 발생했습니다.' }
+    }
 }
 
 // ============================================

@@ -5,10 +5,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission } from '@/actions/admin'
+import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission, adjustWorkerBalance } from '@/actions/admin'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -57,6 +58,11 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
     const [commissionValue, setCommissionValue] = useState<string>('')
     const [commissionLoading, setCommissionLoading] = useState<string | null>(null)
     const [historyOpen, setHistoryOpen] = useState<string | null>(null)
+    const [adjustOpen, setAdjustOpen] = useState<string | null>(null)
+    const [adjustType, setAdjustType] = useState<'add' | 'deduct'>('add')
+    const [adjustAmount, setAdjustAmount] = useState('')
+    const [adjustReason, setAdjustReason] = useState('')
+    const [adjustLoading, setAdjustLoading] = useState(false)
 
     const togglePassword = (id: string) => {
         setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
@@ -147,6 +153,44 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
             toast.error('퍼센티지 변경 중 오류가 발생했습니다.')
         } finally {
             setCommissionLoading(null)
+        }
+    }
+
+    function openAdjustForm(workerId: string, type: 'add' | 'deduct') {
+        setAdjustOpen(workerId)
+        setAdjustType(type)
+        setAdjustAmount('')
+        setAdjustReason('')
+    }
+
+    async function handleAdjustSubmit(workerId: string) {
+        const amount = parseInt(adjustAmount)
+        if (isNaN(amount) || amount <= 0) {
+            toast.error('올바른 금액을 입력하세요.')
+            return
+        }
+        if (!adjustReason.trim()) {
+            toast.error('사유를 입력하세요.')
+            return
+        }
+
+        const actionText = adjustType === 'add' ? '지급' : '차감'
+        if (!confirm(`${amount.toLocaleString()}원을 ${actionText}하시겠습니까?\n사유: ${adjustReason}`)) return
+
+        setAdjustLoading(true)
+        try {
+            const result = await adjustWorkerBalance(workerId, amount, adjustType, adjustReason.trim())
+            if (result.success) {
+                toast.success(`${actionText} 처리되었습니다.`)
+                setAdjustOpen(null)
+                router.refresh()
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setAdjustLoading(false)
         }
     }
 
@@ -321,10 +365,78 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                             )}
                         </div>
 
-                        {/* Commission History */}
+                        {/* Payment/Deduction Buttons */}
+                        <div className="flex gap-2 mb-3">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
+                                onClick={() => openAdjustForm(worker.id, 'add')}
+                            >
+                                <Plus className="w-3.5 h-3.5 mr-1" />
+                                지급
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
+                                onClick={() => openAdjustForm(worker.id, 'deduct')}
+                            >
+                                <Minus className="w-3.5 h-3.5 mr-1" />
+                                차감
+                            </Button>
+                        </div>
+
+                        {/* Adjust Form */}
+                        {adjustOpen === worker.id && (
+                            <div className={`mb-3 p-3 rounded-lg border-2 ${adjustType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                <h4 className={`text-sm font-bold mb-2 ${adjustType === 'add' ? 'text-green-700' : 'text-red-700'}`}>
+                                    {adjustType === 'add' ? '💰 금액 지급' : '📉 금액 차감'}
+                                </h4>
+                                <div className="space-y-2">
+                                    <Input
+                                        type="number"
+                                        placeholder="금액 입력"
+                                        value={adjustAmount}
+                                        onChange={(e) => setAdjustAmount(e.target.value)}
+                                        className="bg-white"
+                                    />
+                                    <Textarea
+                                        placeholder="사유 입력 (필수)"
+                                        value={adjustReason}
+                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAdjustReason(e.target.value)}
+                                        rows={2}
+                                        className="bg-white text-sm"
+                                    />
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            className={`flex-1 ${adjustType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                            onClick={() => handleAdjustSubmit(worker.id)}
+                                            disabled={adjustLoading}
+                                        >
+                                            {adjustLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                adjustType === 'add' ? '지급 확인' : '차감 확인'
+                                            )}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setAdjustOpen(null)}
+                                            disabled={adjustLoading}
+                                        >
+                                            취소
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Commission & Adjustment History */}
                         {(() => {
                             const workerLogs = commissionLogs.filter(log => log.user_id === worker.id)
-                            const totalCommission = workerLogs.reduce((sum, log) => sum + log.amount, 0)
                             if (workerLogs.length === 0) return null
                             return (
                                 <div className="mb-4">
@@ -335,19 +447,14 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                         <div className="flex items-center gap-2">
                                             <Receipt className="w-4 h-4 text-blue-600" />
                                             <span className="text-blue-700 font-medium">
-                                                추가금 적립 내역 ({workerLogs.length}건)
+                                                정산 기록 ({workerLogs.length}건)
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-blue-700">
-                                                총 {totalCommission.toLocaleString()}원
-                                            </span>
-                                            {historyOpen === worker.id ? (
-                                                <ChevronUp className="w-4 h-4 text-blue-500" />
-                                            ) : (
-                                                <ChevronDown className="w-4 h-4 text-blue-500" />
-                                            )}
-                                        </div>
+                                        {historyOpen === worker.id ? (
+                                            <ChevronUp className="w-4 h-4 text-blue-500" />
+                                        ) : (
+                                            <ChevronDown className="w-4 h-4 text-blue-500" />
+                                        )}
                                     </button>
                                     {historyOpen === worker.id && (
                                         <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
@@ -355,7 +462,9 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                                 <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
                                                     <span className="text-slate-600 truncate mr-2">{log.description}</span>
                                                     <div className="flex items-center gap-3 shrink-0">
-                                                        <span className="font-semibold text-green-600">+{log.amount.toLocaleString()}원</span>
+                                                        <span className={`font-semibold ${log.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                            {log.amount >= 0 ? '+' : ''}{log.amount.toLocaleString()}원
+                                                        </span>
                                                         <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
