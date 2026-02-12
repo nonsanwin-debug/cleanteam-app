@@ -558,12 +558,12 @@ export async function adjustWorkerBalance(
         // Get admin profile
         const { data: adminProfile } = await supabase
             .from('users')
-            .select('company_id, role')
+            .select('company_id')
             .eq('id', adminUser.id)
             .single()
 
-        if (!adminProfile || adminProfile.role !== 'admin') {
-            return { success: false, error: '관리자 권한이 필요합니다.' }
+        if (!adminProfile?.company_id) {
+            return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
         }
 
         // Get worker's current balance
