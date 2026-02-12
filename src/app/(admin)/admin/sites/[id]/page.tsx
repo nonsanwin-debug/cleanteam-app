@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { AdminForceCompleteButton } from "@/components/admin/admin-force-complete-button"
+import { SettlementEditForm } from "@/components/admin/settlement-edit-form"
 
 export default async function AdminSiteDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -119,8 +120,15 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
 
                 {/* Settlement Info */}
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-lg">정산 및 수금 정보</CardTitle>
+                        <SettlementEditForm
+                            siteId={site.id}
+                            collectionType={(site.collection_type as 'site' | 'company') || 'company'}
+                            balanceAmount={site.balance_amount || 0}
+                            additionalAmount={site.additional_amount || 0}
+                            additionalDescription={site.additional_description || ''}
+                        />
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4 text-sm">

@@ -524,6 +524,40 @@ export async function getSiteAdminDetails(id: string) {
     }
 }
 
+export async function updateSettlementInfo(
+    siteId: string,
+    data: {
+        collection_type: 'site' | 'company'
+        balance_amount: number
+        additional_amount: number
+        additional_description: string
+    }
+) {
+    const supabase = await createClient()
+
+    try {
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                collection_type: data.collection_type,
+                balance_amount: data.balance_amount,
+                additional_amount: data.additional_amount,
+                additional_description: data.additional_description,
+            })
+            .eq('id', siteId)
+
+        if (error) {
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath(`/admin/sites/${siteId}`)
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (e: any) {
+        return { success: false, error: e.message || '정산 정보 수정 중 오류가 발생했습니다.' }
+    }
+}
+
 export async function getTodayActivitySites() {
     noStore()
     const supabase = await createClient()
