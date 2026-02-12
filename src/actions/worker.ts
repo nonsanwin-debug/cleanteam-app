@@ -103,66 +103,33 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             return { success: false, error: error.message || '작업 완료 처리에 실패했습니다.' }
         }
 
-        // 3. Auto-commission: add to current_money + wallet_logs
+        // 3. Create pending commission claim (admin approval required)
         const additionalAmount = site?.additional_amount || 0
         if (additionalAmount > 0 && site?.worker_id) {
             // Fetch worker's commission_rate
             const { data: worker } = await supabase
                 .from('users')
-                .select('commission_rate, current_money, company_id')
+                .select('commission_rate')
                 .eq('id', site.worker_id)
                 .single()
 
             const commissionRate = worker?.commission_rate ?? 100
             const commissionAmount = Math.round(additionalAmount * (commissionRate / 100))
 
-            console.log('Auto commission calc:', { additionalAmount, commissionRate, commissionAmount, worker_id: site.worker_id })
+            console.log('Commission claim created (pending approval):', { additionalAmount, commissionRate, commissionAmount, worker_id: site.worker_id })
 
             if (commissionAmount > 0) {
-                // Try RPC first
-                const { data: rpcResult, error: rpcError } = await supabase.rpc('auto_commission_on_complete', {
-                    p_site_id: siteId,
-                    p_worker_id: site.worker_id,
-                    p_amount: commissionAmount,
-                    p_site_name: site.name || '현장',
-                    p_commission_rate: commissionRate
-                })
+                // Set payment_status to 'requested' so it appears in admin approval queue
+                const { error: claimError } = await supabase
+                    .from('sites')
+                    .update({
+                        payment_status: 'requested',
+                        claimed_amount: commissionAmount
+                    } as any)
+                    .eq('id', siteId)
 
-                if (rpcError) {
-                    console.error('Auto commission RPC error, using fallback:', rpcError)
-
-                    // Fallback: directly update current_money and insert wallet_log
-                    const newBalance = (worker?.current_money || 0) + commissionAmount
-
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update({ current_money: newBalance })
-                        .eq('id', site.worker_id)
-
-                    if (updateError) {
-                        console.error('Fallback balance update error:', updateError)
-                    } else {
-                        // Insert wallet log
-                        const { error: logError } = await supabase
-                            .from('wallet_logs')
-                            .insert({
-                                user_id: site.worker_id,
-                                company_id: worker?.company_id || site.company_id,
-                                type: 'commission',
-                                amount: commissionAmount,
-                                balance_after: newBalance,
-                                description: `추가금 자동 적립: ${site.name || '현장'} (추가금 ${commissionRate}%)`,
-                                reference_id: siteId
-                            })
-
-                        if (logError) {
-                            console.error('Fallback wallet log insert error:', logError)
-                        } else {
-                            console.log('Fallback commission applied successfully:', { commissionAmount, newBalance })
-                        }
-                    }
-                } else {
-                    console.log('Auto commission RPC success:', rpcResult)
+                if (claimError) {
+                    console.error('Failed to create commission claim:', claimError)
                 }
             }
         }
