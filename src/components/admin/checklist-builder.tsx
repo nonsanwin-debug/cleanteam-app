@@ -77,23 +77,23 @@ export function ChecklistBuilder({ templateId, initialItems, title }: ChecklistB
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h2 className="text-2xl font-bold">{title}</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
                         <p className="text-sm text-muted-foreground">총 {items.length}개 항목</p>
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 ml-auto">
                     <Button variant="outline" size="icon" onClick={handleDelete} disabled={isDeleting} className="text-red-500 border-red-200 hover:bg-red-50">
                         {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
-                    <Button onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        변경사항 저장
+                    <Button onClick={handleSave} disabled={isSaving} size="sm">
+                        {isSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+                        저장
                     </Button>
                 </div>
             </div>
@@ -101,43 +101,45 @@ export function ChecklistBuilder({ templateId, initialItems, title }: ChecklistB
             <div className="space-y-4">
                 {items.map((item, index) => (
                     <Card key={item.id} className="relative group">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <div className="cursor-move text-slate-400 hover:text-slate-600">
-                                <GripVertical className="h-5 w-5" />
-                            </div>
-
-                            <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                                        Step {index + 1}
-                                    </span>
+                        <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="cursor-move text-slate-400 hover:text-slate-600 mt-1 hidden sm:block">
+                                    <GripVertical className="h-5 w-5" />
                                 </div>
-                                <Input
-                                    value={item.text}
-                                    onChange={(e) => updateItem(item.id, 'text', e.target.value)}
-                                    placeholder="점검 항목 내용을 입력하세요 (예: 거실 창틀 먼지 제거)"
-                                />
-                            </div>
 
-                            <div className="flex items-center gap-4 border-l pl-4">
-                                <div className="flex items-center space-x-2">
-                                    <Switch
-                                        id={`req-${item.id}`}
-                                        checked={item.required}
-                                        onCheckedChange={(checked) => updateItem(item.id, 'required', checked)}
+                                <div className="flex-1 space-y-2 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                            {index + 1}
+                                        </span>
+                                    </div>
+                                    <Input
+                                        value={item.text}
+                                        onChange={(e) => updateItem(item.id, 'text', e.target.value)}
+                                        placeholder="점검 항목 내용을 입력하세요"
                                     />
-                                    <Label htmlFor={`req-${item.id}`} className="text-xs cursor-pointer">
-                                        필수
-                                    </Label>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-slate-400 hover:text-red-500"
-                                    onClick={() => removeItem(item.id)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+
+                                <div className="flex items-center gap-2 sm:gap-4 sm:border-l sm:pl-4 shrink-0 mt-6">
+                                    <div className="flex items-center space-x-1.5">
+                                        <Switch
+                                            id={`req-${item.id}`}
+                                            checked={item.required}
+                                            onCheckedChange={(checked) => updateItem(item.id, 'required', checked)}
+                                        />
+                                        <Label htmlFor={`req-${item.id}`} className="text-xs cursor-pointer">
+                                            필수
+                                        </Label>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-slate-400 hover:text-red-500 h-8 w-8"
+                                        onClick={() => removeItem(item.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
