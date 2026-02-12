@@ -6,7 +6,7 @@ import { AdminWorkerFilter } from '@/components/admin/worker-filter'
 import { AdminSitesRealtime } from '@/components/admin/admin-sites-realtime'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, User, Calendar } from 'lucide-react'
+import { MapPin, User, Calendar, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import Link from 'next/link'
@@ -83,9 +83,17 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
                                         <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
                                             {site.name}
                                         </CardTitle>
-                                        <CardDescription className="flex items-center text-xs">
-                                            <Calendar className="mr-1 h-3 w-3" />
-                                            청소일: {site.cleaning_date || '-'}
+                                        <CardDescription className="flex items-center text-xs gap-2">
+                                            <span className="flex items-center">
+                                                <Calendar className="mr-1 h-3 w-3" />
+                                                청소일: {site.cleaning_date || '-'}
+                                            </span>
+                                            {(site as any).start_time && (
+                                                <span className="flex items-center text-blue-600 font-medium">
+                                                    <Clock className="mr-0.5 h-3 w-3" />
+                                                    {(site as any).start_time}
+                                                </span>
+                                            )}
                                         </CardDescription>
                                     </div>
                                     <Badge
