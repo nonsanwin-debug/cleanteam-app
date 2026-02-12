@@ -13,15 +13,21 @@ export function AdminSiteDateFilter() {
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newDate = e.target.value
+        const params = new URLSearchParams(searchParams.toString())
         if (newDate) {
-            router.push(`/admin/sites?date=${newDate}`)
+            params.set('date', newDate)
         } else {
-            router.push('/admin/sites')
+            params.delete('date')
         }
+        const query = params.toString()
+        router.push(`/admin/sites${query ? `?${query}` : ''}`)
     }
 
     const clearFilter = () => {
-        router.push('/admin/sites')
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete('date')
+        const query = params.toString()
+        router.push(`/admin/sites${query ? `?${query}` : ''}`)
     }
 
     return (
@@ -41,3 +47,4 @@ export function AdminSiteDateFilter() {
         </div>
     )
 }
+

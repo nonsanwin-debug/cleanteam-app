@@ -112,7 +112,7 @@ export async function getWorkers() {
         console.log('User has no company_id, fetching all workers')
         const { data, error } = await supabase
             .from('users')
-            .select('id, name')
+            .select('id, name, display_color')
             .eq('role', 'worker')
             .order('name')
 
@@ -125,7 +125,7 @@ export async function getWorkers() {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, current_money')
+        .select('id, name, current_money, display_color')
         .eq('role', 'worker')
         .eq('company_id', userData.company_id)
         .order('name')
