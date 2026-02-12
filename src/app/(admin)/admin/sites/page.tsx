@@ -1,5 +1,6 @@
 import { getSites, getWorkers } from '@/actions/sites'
 import { SiteDialog } from '@/components/admin/site-dialog'
+import { OrderParserDialog } from '@/components/admin/order-parser-dialog'
 import { SiteActions } from '@/components/admin/site-actions'
 import { AdminSiteDateFilter } from '@/components/admin/site-date-filter'
 import { AdminWorkerFilter } from '@/components/admin/worker-filter'
@@ -77,7 +78,10 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
                         <span className="ml-1">({filteredSites.length}건)</span>
                     </p>
                 </div>
-                <SiteDialog workers={workers} />
+                <div className="flex gap-2">
+                    <OrderParserDialog workers={workers} />
+                    <SiteDialog workers={workers} />
+                </div>
             </div>
 
             {/* Worker Filter */}
