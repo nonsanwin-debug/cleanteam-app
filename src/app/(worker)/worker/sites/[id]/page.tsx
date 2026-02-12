@@ -184,14 +184,28 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
 
                         <div className="flex flex-col gap-2">
-                            <Button
-                                variant="outline"
-                                className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
-                                onClick={handleTriggerCopy}
-                            >
-                                <Share2 className="w-4 h-4 mr-2" />
-                                고객 공유 링크 (저장 & 복사)
-                            </Button>
+                            {site.customer_phone ? (
+                                <a
+                                    href={`sms:${site.customer_phone}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 청소 완료 사진 및 체크리스트를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
+                                    className="w-full"
+                                >
+                                    <Button
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        <MessageSquare className="w-4 h-4 mr-2" />
+                                        고객전용페이지 고객에게 보내기
+                                    </Button>
+                                </a>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                                    onClick={handleTriggerCopy}
+                                >
+                                    <Share2 className="w-4 h-4 mr-2" />
+                                    고객 공유 링크 (저장 & 복사)
+                                </Button>
+                            )}
 
                             <div className="grid grid-cols-2 gap-2">
                                 <a
