@@ -73,7 +73,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
         // 1. Fetch site info
         const { data: site, error: siteError } = await supabase
             .from('sites')
-            .select('additional_amount, worker_id, name')
+            .select('additional_amount, worker_id, name, company_id')
             .eq('id', siteId)
             .single()
 
@@ -81,6 +81,13 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             console.error('completeWork site fetch error:', siteError)
             return { success: false, error: '현장 정보 조회에 실패했습니다.' }
         }
+
+        console.log('completeWork site data:', {
+            siteId,
+            additional_amount: site?.additional_amount,
+            worker_id: site?.worker_id,
+            name: site?.name
+        })
 
         // 2. Mark as completed
         const { error } = await supabase
@@ -96,20 +103,23 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             return { success: false, error: error.message || '작업 완료 처리에 실패했습니다.' }
         }
 
-        // 3. Auto-commission: add to current_money + wallet_logs via RPC
+        // 3. Auto-commission: add to current_money + wallet_logs
         const additionalAmount = site?.additional_amount || 0
         if (additionalAmount > 0 && site?.worker_id) {
             // Fetch worker's commission_rate
             const { data: worker } = await supabase
                 .from('users')
-                .select('commission_rate')
+                .select('commission_rate, current_money, company_id')
                 .eq('id', site.worker_id)
                 .single()
 
             const commissionRate = worker?.commission_rate ?? 100
             const commissionAmount = Math.round(additionalAmount * (commissionRate / 100))
 
+            console.log('Auto commission calc:', { additionalAmount, commissionRate, commissionAmount, worker_id: site.worker_id })
+
             if (commissionAmount > 0) {
+                // Try RPC first
                 const { data: rpcResult, error: rpcError } = await supabase.rpc('auto_commission_on_complete', {
                     p_site_id: siteId,
                     p_worker_id: site.worker_id,
@@ -119,8 +129,40 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
                 })
 
                 if (rpcError) {
-                    console.error('Auto commission RPC error:', rpcError)
-                    // Don't fail the whole operation, just log
+                    console.error('Auto commission RPC error, using fallback:', rpcError)
+
+                    // Fallback: directly update current_money and insert wallet_log
+                    const newBalance = (worker?.current_money || 0) + commissionAmount
+
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ current_money: newBalance })
+                        .eq('id', site.worker_id)
+
+                    if (updateError) {
+                        console.error('Fallback balance update error:', updateError)
+                    } else {
+                        // Insert wallet log
+                        const { error: logError } = await supabase
+                            .from('wallet_logs')
+                            .insert({
+                                user_id: site.worker_id,
+                                company_id: worker?.company_id || site.company_id,
+                                type: 'commission',
+                                amount: commissionAmount,
+                                balance_after: newBalance,
+                                description: `추가금 자동 적립: ${site.name || '현장'} (추가금 ${commissionRate}%)`,
+                                reference_id: siteId
+                            })
+
+                        if (logError) {
+                            console.error('Fallback wallet log insert error:', logError)
+                        } else {
+                            console.log('Fallback commission applied successfully:', { commissionAmount, newBalance })
+                        }
+                    }
+                } else {
+                    console.log('Auto commission RPC success:', rpcResult)
                 }
             }
         }
