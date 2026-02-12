@@ -30,6 +30,7 @@ const DEFAULT_TEMPLATE = {
 
 interface ChecklistFormProps {
     siteId: string
+    siteName?: string
     isPhotosUploaded: boolean // Only enable if photos are present?
 }
 
@@ -37,7 +38,7 @@ export interface ChecklistFormHandle {
     copyLink: () => Promise<void>;
 }
 
-export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>(({ siteId, isPhotosUploaded }, ref) => {
+export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>(({ siteId, siteName, isPhotosUploaded }, ref) => {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -114,18 +115,18 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
     }
 
     const handleCopyLink = async () => {
-        // 1. Optimistic Copy (Sync)
         const link = `${window.location.origin}/share/${siteId}`
+        const copyText = siteName ? `[${siteName}] 청소 완료 사진 및 체크리스트를 확인해주세요.\n${link}` : link
         let copied = false
 
         try {
-            await navigator.clipboard.writeText(link)
+            await navigator.clipboard.writeText(copyText)
             copied = true
         } catch (e) {
             // Fallback for iOS/older browsers
             try {
                 const textArea = document.createElement("textarea")
-                textArea.value = link
+                textArea.value = copyText
 
                 // Prevent scrolling by fixing position to top-left
                 textArea.style.position = "fixed"

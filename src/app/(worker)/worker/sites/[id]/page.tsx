@@ -113,11 +113,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         } else {
             if (!site) return
             const link = `${window.location.origin}/share/${site.id}`
+            const copyText = `[${site.name}] 청소 완료 사진 및 체크리스트를 확인해주세요.\n${link}`
 
             // Fallback Copy
             try {
                 const textArea = document.createElement("textarea")
-                textArea.value = link
+                textArea.value = copyText
                 textArea.style.position = "fixed"
                 textArea.style.left = "0"
                 textArea.style.top = "0"
@@ -129,7 +130,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 document.body.removeChild(textArea)
                 toast.success('링크가 복사되었습니다.')
             } catch (err) {
-                navigator.clipboard.writeText(link).then(() => {
+                navigator.clipboard.writeText(copyText).then(() => {
                     toast.success('링크가 복사되었습니다.')
                 }).catch(() => {
                     toast.error('복사 실패')
@@ -486,6 +487,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </h3>
                 <ChecklistForm
                     siteId={site.id}
+                    siteName={site.name}
                     isPhotosUploaded={photos.length > 0}
                     ref={checklistRef}
                 />
