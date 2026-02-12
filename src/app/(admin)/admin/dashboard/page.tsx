@@ -119,7 +119,9 @@ export default async function AdminDashboard() {
                                                 </div>
                                                 <div className="flex items-center text-xs text-slate-500">
                                                     <Users className="mr-1 h-3 w-3" />
-                                                    {site.worker?.name || '팀장 미지정'}
+                                                    <span style={{ color: site.worker?.display_color || undefined }}>
+                                                        {site.worker?.name || '팀장 미지정'}
+                                                    </span>
                                                 </div>
                                                 <div className="text-xs text-slate-400 mt-1 truncate">
                                                     {site.address}

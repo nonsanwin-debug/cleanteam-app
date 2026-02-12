@@ -24,6 +24,7 @@ export type Site = {
     worker_phone?: string // New field for call button
     worker?: {
         name: string | null
+        display_color?: string | null
     } | null
     // Claim Fields
     claimed_amount?: number
@@ -75,7 +76,7 @@ export async function getSites() {
         .from('sites')
         .select(`
       *,
-      worker:users!worker_id (name)
+      worker:users!worker_id (name, display_color)
     `)
         .eq('company_id', profile.company_id)
         .order('created_at', { ascending: false })
@@ -310,7 +311,7 @@ export async function getSiteById(id: string) {
         .from('sites')
         .select(`
       *,
-      worker:users!worker_id (name)
+      worker:users!worker_id (name, display_color)
     `)
         .eq('id', id)
         .single()
@@ -496,7 +497,7 @@ export async function getSiteAdminDetails(id: string) {
         .from('sites')
         .select(`
             *,
-            worker:users!worker_id (name, phone)
+            worker:users!worker_id (name, phone, display_color)
         `)
         .eq('id', id)
         .single()
@@ -581,7 +582,7 @@ export async function getTodayActivitySites() {
         .from('sites')
         .select(`
             *,
-            worker:users!worker_id (name)
+            worker:users!worker_id (name, display_color)
         `)
         .eq('company_id', profile.company_id)
         .or('status.eq.in_progress,status.eq.completed')

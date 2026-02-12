@@ -56,5 +56,6 @@ export type ASRequest = {
     }
     worker?: {
         name: string
+        display_color?: string | null
     } | null
 }

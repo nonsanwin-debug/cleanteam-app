@@ -22,7 +22,7 @@ export async function getASRequests() {
         .select(`
             *,
             site:sites!site_id (name, company_id),
-            worker:users!worker_id (name)
+            worker:users!worker_id (name, display_color)
         `)
         .eq('site.company_id', profile.company_id)
         .order('occurred_at', { ascending: false })

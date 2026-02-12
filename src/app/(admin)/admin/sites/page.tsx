@@ -95,7 +95,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
                                         <User className="mr-2 h-4 w-4 text-slate-400" />
                                         <span>
                                             {site.worker?.name ? (
-                                                <span className="font-medium text-slate-900">{site.worker.name}</span>
+                                                <span className="font-medium" style={{ color: site.worker.display_color || undefined }}>{site.worker.name}</span>
                                             ) : (
                                                 <span className="text-slate-400 italic">담당자 미지정</span>
                                             )}

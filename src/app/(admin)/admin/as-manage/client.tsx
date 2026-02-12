@@ -126,7 +126,11 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                                                 {req.site?.name || req.site_name}
                                                 {!req.site_id && <Badge variant="outline" className="ml-2 text-[10px] scale-90">수동입력</Badge>}
                                             </td>
-                                            <td className="p-4 align-middle">{req.worker?.name || '-'}</td>
+                                            <td className="p-4 align-middle">
+                                                <span style={{ color: req.worker?.display_color || undefined }}>
+                                                    {req.worker?.name || '-'}
+                                                </span>
+                                            </td>
                                             <td className="p-4 align-middle whitespace-pre-wrap">{req.description}</td>
                                             <td className="p-4 align-middle">
                                                 <Badge variant={

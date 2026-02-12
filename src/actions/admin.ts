@@ -190,7 +190,7 @@ export async function getAllWorkers() {
 
     const { data: workers, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at')
+        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at, display_color')
         .eq('role', 'worker')
         .eq('company_id', profile.company_id)
         .order('name')
@@ -379,6 +379,33 @@ export async function approveWorker(userId: string): Promise<ActionResponse> {
     } catch (error: any) {
         console.error('Approve worker unexpected error:', error)
         return { success: false, error: error.message || '승인 처리 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function updateWorkerColor(
+    userId: string,
+    color: string | null
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase
+            .from('users')
+            .update({ display_color: color })
+            .eq('id', userId)
+            .eq('role', 'worker')
+
+        if (error) {
+            console.error('Update color error:', error)
+            throw new Error(error.message)
+        }
+
+        revalidatePath('/admin/users')
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (error) {
+        console.error('Update worker color error:', error)
+        return { success: false, error: '색상 변경 중 오류가 발생했습니다.' }
     }
 }
 

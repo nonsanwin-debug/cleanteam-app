@@ -64,7 +64,9 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                 <span className="text-muted-foreground block mb-1">담당 팀장</span>
                                 <div className="font-medium flex items-center">
                                     <User className="h-3 w-3 mr-1" />
-                                    {site.worker?.name || '미지정'}
+                                    <span style={{ color: site.worker?.display_color || undefined }}>
+                                        {site.worker?.name || '미지정'}
+                                    </span>
                                 </div>
                             </div>
                             <div>
