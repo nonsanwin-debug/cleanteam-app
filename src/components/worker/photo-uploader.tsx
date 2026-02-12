@@ -327,12 +327,10 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false }: Phot
 
 
                             <div className="relative w-full h-full bg-black/80 rounded-lg overflow-hidden flex items-center justify-center">
-                                <Image
+                                <img
                                     src={currentPhotos[selectedPhotoIndex].url}
                                     alt="Enlarged photo"
-                                    fill
-                                    className="object-contain"
-                                    priority
+                                    className="object-contain w-full h-full"
                                 />
                                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm bg-black/50 px-3 py-1 rounded-full">
                                     {selectedPhotoIndex + 1} / {currentPhotos.length}
