@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthCompany } from '@/lib/supabase/auth-context'
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export type Site = {
@@ -60,17 +61,8 @@ export type CreateSiteDTO = {
 
 export async function getSites() {
     noStore()
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     const { data, error } = await supabase
         .from('sites')
@@ -78,7 +70,7 @@ export async function getSites() {
       *,
       worker:users!worker_id (name, display_color)
     `)
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -91,25 +83,10 @@ export async function getSites() {
 
 export async function getWorkers() {
     noStore()
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
+    const { supabase, user, companyId } = await getAuthCompany()
     if (!user) return []
 
-    // Get current user's company_id
-    const { data: userData } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', user.id)
-        .single()
-
-    if (!userData?.company_id) {
-        // If admin has no company, maybe return all or none? 
-        // For safety, return all (if super admin) or empty?
-        // Let's assume return all for now if no company assigned, or return empty.
-        // Better: Return only those with NO company? Or all?
-        // Let's Log it.
-        console.log('User has no company_id, fetching all workers')
+    if (!companyId) {
         const { data, error } = await supabase
             .from('users')
             .select('id, name, display_color')
@@ -127,7 +104,7 @@ export async function getWorkers() {
         .from('users')
         .select('id, name, current_money, display_color')
         .eq('role', 'worker')
-        .eq('company_id', userData.company_id)
+        .eq('company_id', companyId)
         .order('name')
 
     if (error) {
@@ -254,23 +231,9 @@ export async function deleteSite(id: string) {
 
 export async function getRecentActivities() {
     noStore()
-    const supabase = await createClient()
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
-    // 1. Get current user's company_id for isolation
-    const { data: { user: authUser } } = await supabase.auth.getUser()
-    if (!authUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', authUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
-
-    const companyId = profile.company_id
-
-    // 2. Fetch recent photos (last 7 days, enough to cover recent activity)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
@@ -295,7 +258,7 @@ export async function getRecentActivities() {
         return []
     }
 
-    // 3. Group photos by site + user + date (so morning and afternoon show separately)
+    // Group photos by site + user + date
     const groupMap = new Map<string, {
         siteId: string
         userId: string
@@ -306,27 +269,28 @@ export async function getRecentActivities() {
     }>()
 
     for (const photo of (photos || [])) {
-        const siteData = (photo as any).site
-        const userData = (photo as any).user
-        // Group by site + user + date (YYYY-MM-DD)
-        const photoDate = photo.created_at.substring(0, 10)
-        const key = `${(photo as any).site_id}_${(photo as any).user_id}_${photoDate}`
+        const p = photo as any
+        const photoDate = (p.created_at as string).substring(0, 10)
+        const key = `${p.site_id}_${p.user_id}_${photoDate}`
+
+        const siteName = Array.isArray(p.site) ? p.site[0]?.name : p.site?.name
+        const userName = Array.isArray(p.user) ? p.user[0]?.name : p.user?.name
 
         if (!groupMap.has(key)) {
             groupMap.set(key, {
-                siteId: (photo as any).site_id,
-                userId: (photo as any).user_id,
-                siteName: siteData?.name || '알 수 없음',
-                userName: userData?.name || '현장팀장',
+                siteId: p.site_id,
+                userId: p.user_id,
+                siteName: siteName || '알 수 없음',
+                userName: userName || '현장팀장',
                 count: 1,
-                latestTimestamp: photo.created_at
+                latestTimestamp: p.created_at
             })
         } else {
             groupMap.get(key)!.count++
         }
     }
 
-    // 4. Convert to activity format, sorted by latest timestamp
+    // 4. Convert to activity format
     return Array.from(groupMap.values())
         .sort((a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime())
         .slice(0, 15)
@@ -438,7 +402,7 @@ export async function forceCompleteSite(id: string) {
                 status: 'completed',
                 completed_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
-            } as any)
+            })
             .eq('id', id)
 
         if (error) throw error
@@ -454,21 +418,9 @@ export async function forceCompleteSite(id: string) {
 
 
 export async function getDashboardStats() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return { todayScheduled: 0, inProgress: 0, completed: 0, activeWorkers: 0, totalWorkers: 0 }
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { todayScheduled: 0, inProgress: 0, completed: 0, activeWorkers: 0, totalWorkers: 0 }
 
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return { todayScheduled: 0, inProgress: 0, completed: 0, activeWorkers: 0, totalWorkers: 0 }
-
-    const companyId = profile.company_id
-
-    // Get Today in KST (Asia/Seoul)
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 
     // Execute all queries in parallel
@@ -524,12 +476,11 @@ export async function getDashboardStats() {
         totalWorkers: totalWorkers || 0
     }
 }
-
 export async function getSiteAdminDetails(id: string) {
     const supabase = await createClient()
 
-    // 1. Site Info
-    const { data: site } = await supabase
+    // Parallelize: site info, photos, and checklist
+    const siteQuery = supabase
         .from('sites')
         .select(`
             *,
@@ -538,21 +489,25 @@ export async function getSiteAdminDetails(id: string) {
         .eq('id', id)
         .single()
 
-    if (!site) return null
-
-    // 2. Photos
-    const { data: photos } = await supabase
+    const photosQuery = supabase
         .from('photos')
-        .select('*')
+        .select('id, site_id, url, type, created_at')
         .eq('site_id', id)
         .order('created_at')
 
-    // 3. Checklist Submission
-    const { data: checklist } = await supabase
+    const checklistQuery = supabase
         .from('checklist_submissions')
         .select('*')
         .eq('site_id', id)
-        .single() // Assuming one submission per site for now
+        .single()
+
+    const [{ data: site }, { data: photos }, { data: checklist }] = await Promise.all([
+        siteQuery,
+        photosQuery,
+        checklistQuery
+    ])
+
+    if (!site) return null
 
     return {
         site,
@@ -597,17 +552,8 @@ export async function updateSettlementInfo(
 
 export async function getTodayActivitySites() {
     noStore()
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     // Fetch sites that are either in_progress OR (completed AND cleaning_date = today)
     // We want to see everything happening today.
@@ -620,7 +566,7 @@ export async function getTodayActivitySites() {
             *,
             worker:users!worker_id (name, display_color)
         `)
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
         .or('status.eq.in_progress,status.eq.completed')
         .order('started_at', { ascending: false })
         .limit(20)

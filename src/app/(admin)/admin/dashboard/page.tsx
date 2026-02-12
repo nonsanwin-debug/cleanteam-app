@@ -30,9 +30,11 @@ function formatTime(isoString?: string) {
 }
 
 export default async function AdminDashboard() {
-    const stats = await getDashboardStats()
-    const activeSites = await getTodayActivitySites()
-    const recentActivities = await getRecentActivities()
+    const [stats, activeSites, recentActivities] = await Promise.all([
+        getDashboardStats(),
+        getTodayActivitySites(),
+        getRecentActivities()
+    ])
 
     return (
         <div className="space-y-4 md:space-y-6">
@@ -194,7 +196,7 @@ export default async function AdminDashboard() {
                                                 <span className="text-slate-500 mx-1">[{activity.target}]</span>
                                                 {activity.type === 'work_started' && '작업을 시작했습니다.'}
                                                 {activity.type === 'work_completed' && '작업을 완료했습니다.'}
-                                                {activity.type === 'photo_uploaded' && `사진을 올렸습니다 (${(activity as any).count || 1}장)`}
+                                                {activity.type === 'photo_uploaded' && `사진을 올렸습니다 (${activity.count || 1}장)`}
                                             </p>
                                             <p className="text-[10px] text-slate-400 mt-0.5">
                                                 {formatTime(activity.timestamp)}

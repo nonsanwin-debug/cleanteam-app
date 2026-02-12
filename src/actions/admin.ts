@@ -1,28 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthCompany } from '@/lib/supabase/auth-context'
 import { revalidatePath } from 'next/cache'
 import { ActionResponse } from '@/types'
 
 export async function getUsersWithClaims() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
-
-    // Fetch users with role 'worker' and same company_id
     const { data: users, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, name, phone, email, worker_type, current_money, account_info, status, created_at, display_color, commission_rate')
         .eq('role', 'worker')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
         .order('name')
 
     if (error) {
@@ -35,7 +26,7 @@ export async function getUsersWithClaims() {
         .from('sites')
         .select('id, name, worker_id, claimed_amount, payment_status, created_at')
         .eq('payment_status', 'requested')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
 
     // Attach claims to users
     const usersWithClaims = users.map(user => {
@@ -52,17 +43,8 @@ export async function getUsersWithClaims() {
 }
 
 export async function getWithdrawalRequests() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     const { data: requests, error } = await supabase
         .from('withdrawal_requests')
@@ -74,7 +56,7 @@ export async function getWithdrawalRequests() {
                 company_id
             )
         `)
-        .eq('users.company_id', profile.company_id)
+        .eq('users.company_id', companyId)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -86,23 +68,14 @@ export async function getWithdrawalRequests() {
 }
 
 export async function getPendingWithdrawalCount() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return 0
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return 0
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return 0
 
     const { count, error } = await supabase
         .from('withdrawal_requests')
         .select('*, users!inner(company_id)', { count: 'exact', head: true })
         .eq('status', 'pending')
-        .eq('users.company_id', profile.company_id)
+        .eq('users.company_id', companyId)
 
     if (error) {
         console.error('Error fetching pending withdrawal count:', error)
@@ -221,24 +194,14 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
 // ============================================
 
 export async function getAllWorkers() {
-    const supabase = await createClient()
-
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     const { data: workers, error } = await supabase
         .from('users')
         .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at, display_color, commission_rate')
         .eq('role', 'worker')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
         .order('name')
 
     if (error) {
@@ -487,17 +450,8 @@ export async function updateWorkerCommission(
 
 
 export async function getAdminLogs() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     const { data: logs, error } = await supabase
         .from('wallet_logs')
@@ -505,7 +459,7 @@ export async function getAdminLogs() {
             *,
             user:users(name)
         `)
-        .eq('company_id', profile.company_id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -517,22 +471,13 @@ export async function getAdminLogs() {
 }
 
 export async function getCommissionLogs() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return []
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return []
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
 
     const { data: logs, error } = await supabase
         .from('wallet_logs')
-        .select('*')
-        .eq('company_id', profile.company_id)
+        .select('id, user_id, type, amount, balance_after, description, reference_id, created_at')
+        .eq('company_id', companyId)
         .in('type', ['commission', 'manual_add', 'manual_deduct'])
         .order('created_at', { ascending: false })
 
@@ -551,20 +496,8 @@ export async function adjustWorkerBalance(
     reason: string
 ): Promise<ActionResponse> {
     try {
-        const supabase = await createClient()
-        const { data: { user: adminUser } } = await supabase.auth.getUser()
-        if (!adminUser) return { success: false, error: '인증되지 않은 사용자입니다.' }
-
-        // Get admin profile
-        const { data: adminProfile } = await supabase
-            .from('users')
-            .select('company_id')
-            .eq('id', adminUser.id)
-            .single()
-
-        if (!adminProfile?.company_id) {
-            return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
-        }
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
 
         // Get worker's current balance
         const { data: worker } = await supabase
@@ -574,7 +507,7 @@ export async function adjustWorkerBalance(
             .single()
 
         if (!worker) return { success: false, error: '팀원을 찾을 수 없습니다.' }
-        if (worker.company_id !== adminProfile.company_id) {
+        if (worker.company_id !== companyId) {
             return { success: false, error: '같은 업체의 팀원만 관리할 수 있습니다.' }
         }
 
@@ -607,7 +540,7 @@ export async function adjustWorkerBalance(
             .from('wallet_logs')
             .insert({
                 user_id: workerId,
-                company_id: adminProfile.company_id,
+                company_id: companyId,
                 type: logType,
                 amount: type === 'add' ? amount : -amount,
                 balance_after: newBalance,
@@ -631,22 +564,13 @@ export async function adjustWorkerBalance(
 // ============================================
 
 export async function getCompanySettings() {
-    const supabase = await createClient()
-    const { data: { user: adminUser } } = await supabase.auth.getUser()
-    if (!adminUser) return null
-
-    const { data: profile } = await supabase
-        .from('users')
-        .select('company_id')
-        .eq('id', adminUser.id)
-        .single()
-
-    if (!profile?.company_id) return null
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return null
 
     const { data, error } = await supabase
         .from('companies')
         .select('id, name, code, sms_enabled, sms_bank_name, sms_account_number, sms_message_template, company_collection_message')
-        .eq('id', profile.company_id)
+        .eq('id', companyId)
         .single()
 
     if (error) {
@@ -665,17 +589,8 @@ export async function updateCompanySettings(
     companyCollectionMessage?: string
 ): Promise<ActionResponse> {
     try {
-        const supabase = await createClient()
-        const { data: { user: adminUser } } = await supabase.auth.getUser()
-        if (!adminUser) return { success: false, error: '인증되지 않은 사용자입니다.' }
-
-        const { data: profile } = await supabase
-            .from('users')
-            .select('company_id')
-            .eq('id', adminUser.id)
-            .single()
-
-        if (!profile?.company_id) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
 
         const { error } = await supabase
             .from('companies')
@@ -686,7 +601,7 @@ export async function updateCompanySettings(
                 sms_message_template: smsMessageTemplate,
                 company_collection_message: companyCollectionMessage || null
             })
-            .eq('id', profile.company_id)
+            .eq('id', companyId)
 
         if (error) {
             console.error('Error updating company settings:', error)

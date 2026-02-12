@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthCompany } from '@/lib/supabase/auth-context'
 import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -19,8 +20,8 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
 
         const { data, error } = await supabase
             .from('sites')
-            .select('*')
-            .eq('worker_id', user.id) // Strict: only assigned
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
+            .eq('worker_id', user.id)
             .order('created_at', { ascending: true })
 
         if (error) {
@@ -46,7 +47,7 @@ export async function startWork(siteId: string, location: string): Promise<Actio
             .update({
                 status: 'in_progress',
                 started_at: new Date().toISOString()
-            } as any) // Cast to any to avoid type errors if types are not perfectly synced
+            })
             .eq('id', siteId)
 
         if (error) {
@@ -82,12 +83,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             return { success: false, error: '현장 정보 조회에 실패했습니다.' }
         }
 
-        console.log('completeWork site data:', {
-            siteId,
-            additional_amount: site?.additional_amount,
-            worker_id: site?.worker_id,
-            name: site?.name
-        })
+
 
         // 2. Mark as completed
         const { error } = await supabase
@@ -95,7 +91,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             .update({
                 status: 'completed',
                 completed_at: new Date().toISOString()
-            } as any)
+            })
             .eq('id', siteId)
 
         if (error) {
@@ -116,7 +112,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             const commissionRate = worker?.commission_rate ?? 100
             const commissionAmount = Math.round(additionalAmount * (commissionRate / 100))
 
-            console.log('Commission claim created (pending approval):', { additionalAmount, commissionRate, commissionAmount, worker_id: site.worker_id })
+
 
             if (commissionAmount > 0) {
                 // Set payment_status to 'requested' so it appears in admin approval queue
@@ -125,7 +121,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
                     .update({
                         payment_status: 'requested',
                         claimed_amount: commissionAmount
-                    } as any)
+                    })
                     .eq('id', siteId)
 
                 if (claimError) {
@@ -213,7 +209,7 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('*')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
             .eq('id', id)
             .single()
 
@@ -399,28 +395,14 @@ export async function updateWorkerProfile(phone: string, accountInfo?: string): 
 
 export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string }>> {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
-
-        // Get worker's company_id
-        const { data: profile } = await supabase
-            .from('users')
-            .select('company_id')
-            .eq('id', user.id)
-            .single()
-
-        console.log('📱 SMS Settings - Profile:', { userId: user.id, companyId: profile?.company_id })
-
-        if (!profile?.company_id) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '소속 업체를 찾을 수 없습니다.' }
 
         const { data, error } = await supabase
             .from('companies')
             .select('sms_enabled, sms_bank_name, sms_account_number, sms_message_template, company_collection_message')
-            .eq('id', profile.company_id)
+            .eq('id', companyId)
             .single()
-
-        console.log('📱 SMS Settings - Company Data:', { data, error })
 
         if (error) return { success: false, error: error.message }
         return {
@@ -434,7 +416,7 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
             }
         }
     } catch (error) {
-        console.error('📱 SMS Settings - Error:', error)
+        console.error('SMS Settings Error:', error)
         return { success: false, error: 'SMS 설정을 불러오는 중 오류가 발생했습니다.' }
     }
 }
