@@ -282,12 +282,6 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <span className="text-sm text-slate-500">잔금</span>
                         <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
                     </div>
-                    <div className="flex items-center justify-between py-2 border-b">
-                        <span className="text-sm text-slate-500">수금방식</span>
-                        <Badge variant={site.collection_type === 'site' ? 'default' : 'secondary'}>
-                            {site.collection_type === 'site' ? '현장수금' : '업체수금'}
-                        </Badge>
-                    </div>
 
                     {editingAdditional ? (
                         <div className="space-y-3 py-2 border-b">
@@ -390,6 +384,13 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <span className="font-bold text-xl text-green-700">
                             {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
                         </span>
+                    </div>
+
+                    <div className={`mt-2 text-center py-3 rounded-lg font-bold text-lg ${site.collection_type === 'site'
+                            ? 'bg-orange-100 text-orange-700 border border-orange-300'
+                            : 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+                        }`}>
+                        {site.collection_type === 'site' ? '📍 현장수금' : '🏢 업체수금'}
                     </div>
                 </CardContent>
             </Card>
