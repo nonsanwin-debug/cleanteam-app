@@ -39,6 +39,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
     return (
         <div className="space-y-6">
             <AdminSitesRealtime />
+            <AdminSiteDateFilter />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">현장 관리</h2>
@@ -57,10 +58,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
                         <span className="ml-1">({filteredSites.length}건)</span>
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <AdminSiteDateFilter />
-                    <SiteDialog workers={workers} />
-                </div>
+                <SiteDialog workers={workers} />
             </div>
 
             {/* Worker Filter */}
