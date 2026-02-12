@@ -53,7 +53,7 @@ export async function parseOrderWithAI(orderText: string): Promise<{
         return { success: false, error: 'Gemini API Key가 설정되지 않았습니다.' }
     }
 
-    const models = ['gemini-1.5-flash-latest', 'gemini-2.0-flash-lite']
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash']
     const body = JSON.stringify({
         contents: [{
             parts: [{
