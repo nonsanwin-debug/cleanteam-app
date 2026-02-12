@@ -28,7 +28,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [additionalAmountVal, setAdditionalAmountVal] = useState('')
     const [additionalDescVal, setAdditionalDescVal] = useState('')
     const [savingAdditional, setSavingAdditional] = useState(false)
-    const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string } | null>(null)
+    const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string } | null>(null)
 
     const router = useRouter()
 
@@ -460,9 +460,8 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 <p className="font-bold text-red-600 text-lg text-center">
                                     ⚠️ <span className="text-red-600">업체수금</span> 입니다
                                 </p>
-                                <p className="text-sm text-red-700 text-center font-medium leading-relaxed">
-                                    청소 종료 시 고객에게<br />
-                                    금액은 대표님께 직접 연락드리면 된다고 전달
+                                <p className="text-sm text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
+                                    {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
                                 </p>
                             </div>
                         )}

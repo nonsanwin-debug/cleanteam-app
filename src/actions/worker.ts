@@ -397,7 +397,7 @@ export async function updateWorkerProfile(phone: string, accountInfo?: string): 
     }
 }
 
-export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string }>> {
+export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string }>> {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -416,7 +416,7 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
 
         const { data, error } = await supabase
             .from('companies')
-            .select('sms_enabled, sms_bank_name, sms_account_number, sms_message_template')
+            .select('sms_enabled, sms_bank_name, sms_account_number, sms_message_template, company_collection_message')
             .eq('id', profile.company_id)
             .single()
 
@@ -429,7 +429,8 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
                 sms_enabled: data?.sms_enabled === true,
                 sms_bank_name: data?.sms_bank_name || '',
                 sms_account_number: data?.sms_account_number || '',
-                sms_message_template: data?.sms_message_template || ''
+                sms_message_template: data?.sms_message_template || '',
+                company_collection_message: data?.company_collection_message || ''
             }
         }
     } catch (error) {

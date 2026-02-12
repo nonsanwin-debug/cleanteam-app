@@ -29,6 +29,7 @@ export default function SettingsPage() {
     const [smsBankName, setSmsBankName] = useState('')
     const [smsAccountNumber, setSmsAccountNumber] = useState('')
     const [smsMessageTemplate, setSmsMessageTemplate] = useState(DEFAULT_TEMPLATE)
+    const [companyCollectionMessage, setCompanyCollectionMessage] = useState('')
     const [saving, setSaving] = useState(false)
     const [loading, setLoading] = useState(true)
 
@@ -40,6 +41,7 @@ export default function SettingsPage() {
                 setSmsBankName(settings.sms_bank_name || '')
                 setSmsAccountNumber(settings.sms_account_number || '')
                 setSmsMessageTemplate(settings.sms_message_template || DEFAULT_TEMPLATE)
+                setCompanyCollectionMessage(settings.company_collection_message || '')
             }
             setLoading(false)
         }
@@ -49,7 +51,7 @@ export default function SettingsPage() {
     async function handleSave() {
         setSaving(true)
         try {
-            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate)
+            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate, companyCollectionMessage)
             if (result.success) {
                 toast.success('설정이 저장되었습니다.')
             } else {
@@ -154,6 +156,48 @@ export default function SettingsPage() {
                         <div className="bg-slate-50 border border-dashed rounded-lg p-6 text-center text-slate-500">
                             <p className="text-sm">수금 문자 기능이 비활성화되어 있습니다.</p>
                             <p className="text-xs mt-1">활성화하면 팀장수금 현장에서 고객에게 문자를 보낼 수 있습니다.</p>
+                        </div>
+                    )}
+
+                    <Button onClick={handleSave} disabled={saving} className="w-full">
+                        {saving ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                        )}
+                        저장
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">🏢 업체수금 안내 멘트</CardTitle>
+                    <p className="text-sm text-slate-500 mt-1">
+                        수금 방식이 &quot;업체수금&quot;인 현장에서 팀장에게 보여지는 안내 문구입니다.
+                    </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">안내 문구</label>
+                        <Textarea
+                            value={companyCollectionMessage}
+                            onChange={(e) => setCompanyCollectionMessage(e.target.value)}
+                            rows={3}
+                            placeholder="예: 청소 종료 시 고객에게 금액은 대표님께 직접 연락드리면 된다고 전달"
+                            className="text-sm"
+                        />
+                        <p className="text-xs text-slate-400">
+                            비워두면 기본 문구가 표시됩니다.
+                        </p>
+                    </div>
+
+                    {companyCollectionMessage && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-xs font-medium text-red-600 mb-1">📋 미리보기</p>
+                            <p className="text-sm text-red-700 font-medium whitespace-pre-line leading-relaxed">
+                                {companyCollectionMessage}
+                            </p>
                         </div>
                     )}
 
