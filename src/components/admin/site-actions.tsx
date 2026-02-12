@@ -111,6 +111,10 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                     cleaning_date: site.cleaning_date,
                     start_time: site.start_time,
                     special_notes: site.special_notes,
+                    balance_amount: site.balance_amount,
+                    additional_amount: site.additional_amount,
+                    additional_description: site.additional_description,
+                    collection_type: site.collection_type,
                 }}
                 open={showEditDialog}
                 onOpenChange={setShowEditDialog}

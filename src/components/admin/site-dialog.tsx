@@ -514,7 +514,7 @@ export function SiteDialog({
                                 render={({ field }) => (
                                     <FormItem className="col-span-2">
                                         <FormLabel>수금 형태</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="수금 형태 선택" />
@@ -579,7 +579,7 @@ export function SiteDialog({
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>담당 팀장 (선택)</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="담당자를 선택하세요" />
