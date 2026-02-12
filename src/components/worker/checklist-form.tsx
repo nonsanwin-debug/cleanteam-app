@@ -3,6 +3,7 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 
 import { getChecklistForSite, submitChecklist, saveChecklistProgress } from '@/actions/checklist-submission'
+import { completeWork } from '@/actions/worker'
 import { SignaturePad } from '@/components/worker/signature-pad'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { Loader2, CheckCircle2, Share2, Save } from 'lucide-react'
+import { Loader2, CheckCircle2, Share2, Save, CheckCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 // Fallback Template if none in DB
@@ -40,6 +41,7 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
+    const [completing, setCompleting] = useState(false)
     const [template, setTemplate] = useState<any>(null)
     const [answers, setAnswers] = useState<Record<string, string>>({})
     const [signature, setSignature] = useState<string | null>(null)
@@ -83,6 +85,31 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
             toast.error('저장 실패', { description: '저장 중 오류가 발생했습니다.' })
         } finally {
             setSubmitting(false)
+        }
+    }
+
+    const handleCompleteWork = async () => {
+        if (!confirm('작업을 완료 처리하시겠습니까?\n\n완료하면 되돌릴 수 없습니다.')) return
+
+        setCompleting(true)
+        try {
+            // Save checklist first
+            await saveChecklistProgress(siteId, answers)
+
+            // Then complete the work
+            const result = await completeWork(siteId)
+            if (!result.success) {
+                throw new Error(result.error || '작업 완료 처리에 실패했습니다.')
+            }
+
+            toast.success('작업이 완료되었습니다!', {
+                description: '추가금이 자동으로 적립되었습니다.'
+            })
+            router.push('/worker/home')
+        } catch (error) {
+            toast.error('완료 처리 실패', { description: (error as Error).message })
+        } finally {
+            setCompleting(false)
         }
     }
 
@@ -245,13 +272,13 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                 </CardContent>
             </Card> */}
 
-            {/* 기존 제출 버튼 제거하고 저장 버튼을 메인으로 사용 */}
+            {/* 중간저장 버튼 */}
             <div className="flex gap-2">
                 <Button
                     className="w-full h-12 text-lg"
                     variant="outline"
                     onClick={() => handleSave()}
-                    disabled={submitting}
+                    disabled={submitting || completing}
                 >
                     {submitting ? (
                         <>
@@ -261,7 +288,28 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                     ) : (
                         <>
                             <Save className="mr-2 h-5 w-5" />
-                            작업 내용 저장
+                            중간저장
+                        </>
+                    )}
+                </Button>
+            </div>
+
+            {/* 작업 완료 버튼 */}
+            <div className="flex gap-2">
+                <Button
+                    className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                    onClick={handleCompleteWork}
+                    disabled={submitting || completing}
+                >
+                    {completing ? (
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            완료 처리 중...
+                        </>
+                    ) : (
+                        <>
+                            <CheckCheck className="mr-2 h-6 w-6" />
+                            작업 완료
                         </>
                     )}
                 </Button>
@@ -271,3 +319,4 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
 })
 
 ChecklistForm.displayName = 'ChecklistForm'
+
