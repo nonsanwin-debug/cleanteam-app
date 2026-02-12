@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 
 interface Log {
     id: string
-    type: 'earning' | 'penalty' | 'withdrawal_request' | 'withdrawal_paid' | 'withdrawal_refund'
+    type: 'earning' | 'commission' | 'penalty' | 'withdrawal_request' | 'withdrawal_paid' | 'withdrawal_refund' | 'manual_add' | 'manual_deduct'
     amount: number
     balance_after: number
     description: string
@@ -17,11 +17,14 @@ interface Log {
 export function ActivityLogs({ logs }: { logs: any[] }) {
     const getTypeBadge = (type: string) => {
         switch (type) {
-            case 'earning': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">정산지급</Badge>
+            case 'earning': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">커미션</Badge>
+            case 'commission': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">커미션</Badge>
             case 'penalty': return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">AS차감</Badge>
             case 'withdrawal_request': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">출금요청</Badge>
             case 'withdrawal_paid': return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">출금완료</Badge>
             case 'withdrawal_refund': return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">출금반려</Badge>
+            case 'manual_add': return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">수동지급</Badge>
+            case 'manual_deduct': return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">수동차감</Badge>
             default: return <Badge variant="outline">{type}</Badge>
         }
     }
