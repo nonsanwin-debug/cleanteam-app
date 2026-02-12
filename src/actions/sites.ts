@@ -277,31 +277,61 @@ export async function getRecentActivities() {
             id,
             type,
             created_at,
+            site_id,
+            user_id,
             site:sites!inner(name, company_id),
             user:users(name)
         `)
         .eq('site.company_id', companyId)
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(50)
 
     if (error) {
         console.error('getRecentActivities error:', error)
         return []
     }
 
-    // 3. Map to dashboard activity format
-    return (photos || []).map(photo => {
+    // 3. Group photos by site + user to consolidate
+    const groupMap = new Map<string, {
+        siteId: string
+        userId: string
+        siteName: string
+        userName: string
+        count: number
+        latestTimestamp: string
+    }>()
+
+    for (const photo of (photos || [])) {
         const siteData = (photo as any).site
         const userData = (photo as any).user
+        const key = `${(photo as any).site_id}_${(photo as any).user_id}`
 
-        return {
-            id: `photo-${photo.id}`,
-            type: 'photo_uploaded' as 'photo_uploaded' | 'work_started' | 'work_completed',
-            actor: userData?.name || '현장팀장',
-            target: siteData?.name || '알 수 없음',
-            timestamp: photo.created_at
+        if (!groupMap.has(key)) {
+            groupMap.set(key, {
+                siteId: (photo as any).site_id,
+                userId: (photo as any).user_id,
+                siteName: siteData?.name || '알 수 없음',
+                userName: userData?.name || '현장팀장',
+                count: 1,
+                latestTimestamp: photo.created_at
+            })
+        } else {
+            groupMap.get(key)!.count++
         }
-    })
+    }
+
+    // 4. Convert to activity format, sorted by latest timestamp
+    return Array.from(groupMap.values())
+        .sort((a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime())
+        .slice(0, 10)
+        .map(group => ({
+            id: `photo-group-${group.siteId}-${group.userId}`,
+            type: 'photo_uploaded' as 'photo_uploaded' | 'work_started' | 'work_completed',
+            actor: group.userName,
+            target: group.siteName,
+            timestamp: group.latestTimestamp,
+            count: group.count
+        }))
 }
 
 export async function getSiteById(id: string) {
