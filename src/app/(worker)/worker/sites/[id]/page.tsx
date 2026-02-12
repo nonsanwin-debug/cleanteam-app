@@ -113,7 +113,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         } else {
             if (!site) return
             const link = `${window.location.origin}/share/${site.id}`
-            const copyText = `[${site.name}] 청소 완료 사진 및 체크리스트를 확인해주세요.\n${link}`
+            const copyText = `[${site.name}] 작업 보고서를 확인해주세요.\n${link}`
 
             // Fallback Copy
             try {
@@ -187,7 +187,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <div className="flex flex-col gap-2">
                             {site.customer_phone ? (
                                 <a
-                                    href={`sms:${site.customer_phone}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 청소 완료 사진 및 체크리스트를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
+                                    href={`sms:${site.customer_phone}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
                                     className="w-full"
                                 >
                                     <Button

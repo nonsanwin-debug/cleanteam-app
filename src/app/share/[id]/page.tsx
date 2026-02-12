@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const { data: site } = await supabase.from('sites').select('name').eq('id', resolvedParams.id).single()
         if (site) {
             return {
-                title: `${site.name} - 작업 완료 보고서 | Clean Team`,
+                title: `${site.name} - 작업 보고서 | Clean Team`,
                 description: '현장 작업 사진 및 완료 내역을 확인하세요.',
             }
         }
