@@ -34,18 +34,11 @@ async function getCompanyId() {
 export async function getChecklistTemplates() {
     try {
         const supabase = await createClient()
-        const companyId = await getCompanyId()
 
-        let query = supabase
+        const { data, error } = await supabase
             .from('checklist_templates')
             .select('*')
             .order('created_at', { ascending: false })
-
-        if (companyId) {
-            query = query.eq('company_id', companyId)
-        }
-
-        const { data, error } = await query
 
         if (error) {
             console.error('Error fetching templates:', error)
