@@ -24,6 +24,7 @@ export type AssignedSite = {
     balance_amount?: number
     additional_amount?: number
     additional_description?: string
+    collection_type?: string
 }
 
 

@@ -282,6 +282,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <span className="text-sm text-slate-500">잔금</span>
                         <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
                     </div>
+                    <div className="flex items-center justify-between py-2 border-b">
+                        <span className="text-sm text-slate-500">수금방식</span>
+                        <Badge variant={site.collection_type === 'site' ? 'default' : 'secondary'}>
+                            {site.collection_type === 'site' ? '현장수금' : '업체수금'}
+                        </Badge>
+                    </div>
 
                     {editingAdditional ? (
                         <div className="space-y-3 py-2 border-b">
