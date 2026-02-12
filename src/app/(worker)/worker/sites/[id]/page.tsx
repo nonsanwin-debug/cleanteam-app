@@ -402,7 +402,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 {smsSettings?.sms_enabled ? (
                                     <>
                                         <p className="text-sm text-red-600 text-center font-medium">
-                                            클릭 시 고객에게 메시지를 보냅니다
+                                            버튼 클릭 시 고객에게 안내문자 발송 합니다
                                         </p>
                                         <a
                                             href={(() => {
