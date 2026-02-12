@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { updateWorkerRole, approveWorker, updateWorkerColor } from '@/actions/admin'
+import { Input } from '@/components/ui/input'
+import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission } from '@/actions/admin'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -34,6 +35,7 @@ interface Worker {
     initial_password?: string
     created_at: string
     display_color?: string | null
+    commission_rate?: number | null
 }
 
 export function WorkerManagementList({ workers }: { workers: Worker[] }) {
@@ -42,6 +44,9 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
     const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({})
     const [colorPickerOpen, setColorPickerOpen] = useState<string | null>(null)
     const [colorLoading, setColorLoading] = useState<string | null>(null)
+    const [commissionEditing, setCommissionEditing] = useState<string | null>(null)
+    const [commissionValue, setCommissionValue] = useState<string>('')
+    const [commissionLoading, setCommissionLoading] = useState<string | null>(null)
 
     const togglePassword = (id: string) => {
         setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
@@ -103,6 +108,35 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
             toast.error('색상 변경 중 오류가 발생했습니다.')
         } finally {
             setColorLoading(null)
+        }
+    }
+
+    function startCommissionEdit(worker: Worker) {
+        setCommissionEditing(worker.id)
+        setCommissionValue(String(worker.commission_rate ?? 100))
+    }
+
+    async function handleCommissionSave(workerId: string) {
+        const rate = parseInt(commissionValue)
+        if (isNaN(rate) || rate < 0 || rate > 100) {
+            toast.error('0~100 사이의 숫자를 입력하세요.')
+            return
+        }
+
+        setCommissionLoading(workerId)
+        try {
+            const result = await updateWorkerCommission(workerId, rate)
+            if (result.success) {
+                toast.success(`퍼센티지가 ${rate}%로 변경되었습니다.`)
+                setCommissionEditing(null)
+                router.refresh()
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('퍼센티지 변경 중 오류가 발생했습니다.')
+        } finally {
+            setCommissionLoading(null)
         }
     }
 
@@ -194,6 +228,56 @@ export function WorkerManagementList({ workers }: { workers: Worker[] }) {
                                 <span className="font-semibold text-green-600">
                                     ₩ {worker.current_money?.toLocaleString() || 0}
                                 </span>
+                            </div>
+                            {/* Commission Rate */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-slate-500">추가금 퍼센티지: </span>
+                                {commissionEditing === worker.id ? (
+                                    <div className="flex items-center gap-1">
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            value={commissionValue}
+                                            onChange={(e) => setCommissionValue(e.target.value)}
+                                            className="w-16 h-7 text-sm text-center"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleCommissionSave(worker.id)
+                                                if (e.key === 'Escape') setCommissionEditing(null)
+                                            }}
+                                            autoFocus
+                                        />
+                                        <span className="text-sm text-slate-500">%</span>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={() => handleCommissionSave(worker.id)}
+                                            disabled={commissionLoading === worker.id}
+                                        >
+                                            {commissionLoading === worker.id ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Check className="w-3.5 h-3.5 text-green-600" />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={() => setCommissionEditing(null)}
+                                        >
+                                            <X className="w-3.5 h-3.5 text-slate-400" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => startCommissionEdit(worker)}
+                                        className="font-semibold text-blue-600 hover:underline cursor-pointer"
+                                    >
+                                        {worker.commission_rate ?? 100}%
+                                    </button>
+                                )}
                             </div>
                             <div>
                                 <span className="text-slate-500">계좌: </span>

@@ -190,7 +190,7 @@ export async function getAllWorkers() {
 
     const { data: workers, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at, display_color')
+        .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at, display_color, commission_rate')
         .eq('role', 'worker')
         .eq('company_id', profile.company_id)
         .order('name')
@@ -408,6 +408,37 @@ export async function updateWorkerColor(
         return { success: false, error: '색상 변경 중 오류가 발생했습니다.' }
     }
 }
+
+export async function updateWorkerCommission(
+    userId: string,
+    rate: number
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        if (rate < 0 || rate > 100) {
+            return { success: false, error: '퍼센티지는 0~100 사이여야 합니다.' }
+        }
+
+        const { error } = await supabase
+            .from('users')
+            .update({ commission_rate: rate })
+            .eq('id', userId)
+            .eq('role', 'worker')
+
+        if (error) {
+            console.error('Update commission error:', error)
+            throw new Error(error.message)
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error('Update worker commission error:', error)
+        return { success: false, error: '퍼센티지 변경 중 오류가 발생했습니다.' }
+    }
+}
+
 
 export async function getAdminLogs() {
     const supabase = await createClient()

@@ -66,14 +66,55 @@ export async function startWork(siteId: string, location: string): Promise<Actio
 export async function completeWork(siteId: string): Promise<ActionResponse> {
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-        // Direct update to bypass RPC/DB function issues
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 1. Fetch site to get additional_amount
+        const { data: site, error: siteError } = await supabase
+            .from('sites')
+            .select('additional_amount, worker_id')
+            .eq('id', siteId)
+            .single()
+
+        if (siteError) {
+            console.error('completeWork site fetch error:', siteError)
+            return { success: false, error: '현장 정보 조회에 실패했습니다.' }
+        }
+
+        // 2. Base update: mark as completed
+        const updateData: any = {
+            status: 'completed',
+            completed_at: new Date().toISOString()
+        }
+
+        // 3. Auto-claim if there's additional_amount > 0
+        const additionalAmount = site?.additional_amount || 0
+        if (additionalAmount > 0 && site?.worker_id) {
+            // Fetch worker's commission_rate
+            const { data: worker } = await supabase
+                .from('users')
+                .select('commission_rate')
+                .eq('id', site.worker_id)
+                .single()
+
+            const commissionRate = worker?.commission_rate ?? 100
+            const claimAmount = Math.round(additionalAmount * (commissionRate / 100))
+
+            if (claimAmount > 0) {
+                updateData.claimed_amount = claimAmount
+                updateData.payment_status = 'requested'
+                updateData.claim_details = [{
+                    label: `추가금 ${additionalAmount.toLocaleString()}원 × ${commissionRate}%`,
+                    amount: claimAmount
+                }]
+            }
+        }
+
+        // 4. Update site
         const { error } = await supabase
             .from('sites')
-            .update({
-                status: 'completed',
-                completed_at: new Date().toISOString()
-            } as any)
+            .update(updateData)
             .eq('id', siteId)
 
         if (error) {
@@ -83,7 +124,9 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
 
         revalidatePath('/worker/home')
         revalidatePath(`/worker/sites/${siteId}`)
+        revalidatePath('/worker/schedule')
         revalidatePath('/admin/dashboard')
+        revalidatePath('/admin/users')
         return { success: true }
     } catch (error) {
         console.error('Unexpected error in completeWork:', error)
