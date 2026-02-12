@@ -136,19 +136,22 @@ export async function createSite(formData: CreateSiteDTO) {
             throw new Error('소속 업체를 찾을 수 없습니다.')
         }
 
-        // 중복 체크: 동일 업체, 동일 날짜, 동일 현장명
-        const { data: existingSite } = await supabase
-            .from('sites')
-            .select('id')
-            .eq('company_id', userData.company_id)
-            .eq('cleaning_date', formData.cleaning_date || '')
-            .eq('name', formData.name)
-            .maybeSingle()
+        // 중복 체크: 동일 업체, 동일 날짜, 동일 현장명, 동일 주소
+        if (formData.cleaning_date && formData.name) {
+            const { data: existingSite } = await supabase
+                .from('sites')
+                .select('id')
+                .eq('company_id', userData.company_id)
+                .eq('cleaning_date', formData.cleaning_date)
+                .eq('name', formData.name)
+                .eq('address', formData.address)
+                .maybeSingle()
 
-        if (existingSite) {
-            return {
-                success: false,
-                error: '기존 현장이 있습니다 삭제 후 현장배정 요망'
+            if (existingSite) {
+                return {
+                    success: false,
+                    error: '기존 현장이 있습니다 삭제 후 현장배정 요망'
+                }
             }
         }
 
