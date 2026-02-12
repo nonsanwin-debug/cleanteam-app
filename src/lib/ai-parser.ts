@@ -53,49 +53,59 @@ export async function parseOrderWithAI(orderText: string): Promise<{
         return { success: false, error: 'Gemini API Key가 설정되지 않았습니다.' }
     }
 
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${SYSTEM_PROMPT}\n\n--- 오더 텍스트 ---\n${orderText}`
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.1,
-                        responseMimeType: 'application/json'
-                    }
-                })
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash']
+    const body = JSON.stringify({
+        contents: [{
+            parts: [{
+                text: `${SYSTEM_PROMPT}\n\n--- 오더 텍스트 ---\n${orderText}`
+            }]
+        }],
+        generationConfig: {
+            temperature: 0.1,
+            responseMimeType: 'application/json'
+        }
+    })
+
+    for (const model of models) {
+        try {
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body
+                }
+            )
+
+            if (response.status === 429) {
+                console.warn(`${model} rate limited, trying next model...`)
+                await new Promise(r => setTimeout(r, 1000))
+                continue
             }
-        )
 
-        if (!response.ok) {
-            const errorData = await response.text()
-            console.error('Gemini API error:', errorData)
-            return { success: false, error: `AI API 오류: ${response.status}` }
+            if (!response.ok) {
+                const errorData = await response.text()
+                console.error(`Gemini API error (${model}):`, errorData)
+                continue
+            }
+
+            const result = await response.json()
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text
+
+            if (!text) continue
+
+            const parsed: ParsedOrder = JSON.parse(text)
+
+            if (!parsed.name && !parsed.address) {
+                return { success: false, error: '현장명 또는 주소를 추출할 수 없습니다.' }
+            }
+
+            return { success: true, data: parsed }
+        } catch (error: any) {
+            console.error(`AI parsing error (${model}):`, error)
+            continue
         }
-
-        const result = await response.json()
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text
-
-        if (!text) {
-            return { success: false, error: 'AI 응답이 비어있습니다.' }
-        }
-
-        const parsed: ParsedOrder = JSON.parse(text)
-
-        // Validate required fields
-        if (!parsed.name && !parsed.address) {
-            return { success: false, error: '현장명 또는 주소를 추출할 수 없습니다.' }
-        }
-
-        return { success: true, data: parsed }
-    } catch (error: any) {
-        console.error('AI parsing error:', error)
-        return { success: false, error: error.message || 'AI 파싱 중 오류가 발생했습니다.' }
     }
+
+    return { success: false, error: 'AI 서비스가 일시적으로 사용 불가합니다. 잠시 후 다시 시도해주세요.' }
 }
