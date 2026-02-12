@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, Menu, UserPlus } from 'lucide-react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus } from 'lucide-react'
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
+import { MobileNav } from '@/components/admin/mobile-nav'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
@@ -139,37 +139,16 @@ export default async function AdminLayout({
 
             {/* Main Content */}
             <main className="flex-1 overflow-auto relative">
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:hidden">
-                    <div>
-                        <h1 className="text-lg font-bold">Clean Admin</h1>
-                        <p className="text-xs text-primary">{displayName}님</p>
+                <MobileNav displayName={displayName}>
+                    <div className="flex flex-col h-full">
+                        <div className="p-4 flex-1">
+                            <NavLinks />
+                        </div>
+                        <div className="p-4 border-t mt-auto mb-10">
+                            <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
+                        </div>
                     </div>
-
-                    {/* Mobile Menu */}
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <Menu className="h-6 w-6" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-[80%] sm:w-[385px] p-0">
-                            <SheetHeader className="p-6 border-b">
-                                <SheetTitle className="text-left text-xl font-bold">Clean Admin</SheetTitle>
-                                <div className="mt-2 space-y-1 text-left">
-                                    <p className="text-sm font-semibold text-primary">{displayName}님 반갑습니다</p>
-                                </div>
-                            </SheetHeader>
-                            <div className="flex flex-col h-full">
-                                <div className="p-4 flex-1">
-                                    <NavLinks />
-                                </div>
-                                <div className="p-4 border-t mt-auto mb-10">
-                                    <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
-                                </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
-                </header>
+                </MobileNav>
                 <div className="p-4 md:p-6">
                     {children}
                 </div>
