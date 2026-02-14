@@ -29,6 +29,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [additionalDescVal, setAdditionalDescVal] = useState('')
     const [savingAdditional, setSavingAdditional] = useState(false)
     const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string } | null>(null)
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
     const router = useRouter()
 
@@ -40,6 +41,10 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             try {
                 const resolvedParams = await params
                 const siteId = resolvedParams.id
+
+                // 현재 사용자 ID 가져오기
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user) setCurrentUserId(user.id)
 
                 // Setup Realtime if not already set
                 if (!channel) {
@@ -159,6 +164,8 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         )
     }
 
+    const isLeader = !!(currentUserId && site.worker_id === currentUserId)
+
     return (
         <div className="space-y-6 pb-20">
             {/* Header */}
@@ -185,7 +192,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
 
                         <div className="flex flex-col gap-2">
-                            {site.customer_phone ? (
+                            {isLeader && site.customer_phone ? (
                                 <a
                                     href={`sms:${site.customer_phone}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
                                     className="w-full"
@@ -197,7 +204,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                         고객전용페이지 고객에게 보내기
                                     </Button>
                                 </a>
-                            ) : (
+                            ) : isLeader ? (
                                 <Button
                                     variant="outline"
                                     className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
@@ -206,7 +213,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                     <Share2 className="w-4 h-4 mr-2" />
                                     고객 공유 링크 (저장 & 복사)
                                 </Button>
-                            )}
+                            ) : null}
 
                             <div className="grid grid-cols-2 gap-2">
                                 <a
@@ -257,32 +264,34 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             <p className="text-sm font-medium text-gray-500">담당자</p>
                             <p className="text-gray-800">{site.manager_name || site.customer_name || '-'}</p>
                         </div>
-                        <div>
-                            <p className="text-sm font-bold text-blue-600 mb-1">고객 연락처 (해피콜용)</p>
-                            {(site.customer_phone || site.manager_phone) ? (
-                                <div className="space-y-2">
-                                    {(site.customer_phone || site.manager_phone || '').split('/').map((phone, idx) => {
-                                        const trimmed = phone.trim()
-                                        return (
-                                            <div key={idx} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                                <p className="text-xl font-bold text-slate-900">{trimmed}</p>
-                                                <a
-                                                    href={`tel:${trimmed}`}
-                                                    className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
-                                                >
-                                                    <Phone className="h-5 w-5 mr-2" />
-                                                    전화걸기
-                                                </a>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                    <p className="text-xl font-bold text-slate-900">-</p>
-                                </div>
-                            )}
-                        </div>
+                        {isLeader && (
+                            <div>
+                                <p className="text-sm font-bold text-blue-600 mb-1">고객 연락처 (해피콜용)</p>
+                                {(site.customer_phone || site.manager_phone) ? (
+                                    <div className="space-y-2">
+                                        {(site.customer_phone || site.manager_phone || '').split('/').map((phone, idx) => {
+                                            const trimmed = phone.trim()
+                                            return (
+                                                <div key={idx} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                                    <p className="text-xl font-bold text-slate-900">{trimmed}</p>
+                                                    <a
+                                                        href={`tel:${trimmed}`}
+                                                        className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
+                                                    >
+                                                        <Phone className="h-5 w-5 mr-2" />
+                                                        전화걸기
+                                                    </a>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                        <p className="text-xl font-bold text-slate-900">-</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div>
                             <p className="text-sm font-medium text-gray-500">시작일</p>
                             <p className="text-gray-800">{site.cleaning_date || (site.start_date ? new Date(site.start_date).toLocaleDateString() : '-')}</p>

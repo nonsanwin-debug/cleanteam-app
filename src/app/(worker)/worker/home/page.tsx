@@ -23,9 +23,15 @@ export default function WorkerHomePage() {
     const [asRequests, setAsRequests] = useState<ASRequest[]>([])
     const [loading, setLoading] = useState(true)
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
     async function loadSites() {
         try {
+            // 현재 사용자 ID 가져오기
+            const supabaseClient = createClient()
+            const { data: { user } } = await supabaseClient.auth.getUser()
+            if (user) setCurrentUserId(user.id)
+
             const [sitesData, asData] = await Promise.all([
                 getAssignedSites(),
                 getMyASRequests()
@@ -198,6 +204,7 @@ export default function WorkerHomePage() {
                                 site={site}
                                 onStartWork={handleStartWork}
                                 processingId={processingId}
+                                currentUserId={currentUserId}
                             />
                         ))
                     )}
@@ -215,6 +222,7 @@ export default function WorkerHomePage() {
                                 key={site.id}
                                 site={site}
                                 isCompleted={true}
+                                currentUserId={currentUserId}
                             />
                         ))
                     )}
@@ -228,13 +236,16 @@ function SiteCard({
     site,
     isCompleted = false,
     onStartWork,
-    processingId
+    processingId,
+    currentUserId
 }: {
     site: AssignedSite,
     isCompleted?: boolean,
     onStartWork?: (id: string) => void,
-    processingId?: string | null
+    processingId?: string | null,
+    currentUserId?: string | null
 }) {
+    const isLeader = !!(currentUserId && site.worker_id === currentUserId)
     return (
         <Card className={`border-l-4 ${site.status === 'in_progress' ? 'border-l-blue-500 shadow-md' : isCompleted ? 'border-l-green-500 opacity-80' : 'border-l-slate-300'}`}>
             <CardHeader className="pb-2">
@@ -252,22 +263,24 @@ function SiteCard({
                     {site.customer_name && (
                         <p className="text-sm text-slate-600">고객: <span className="font-semibold text-slate-900">{site.customer_name}</span></p>
                     )}
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                        {site.customer_phone ? (
-                            site.customer_phone.split('/').map((phone, idx) => {
-                                const trimmed = phone.trim()
-                                return (
-                                    <a key={idx} href={`tel:${trimmed}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
-                                        <Phone className="h-4 w-4 mr-2" />
-                                        <span>{trimmed}</span>
-                                        <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
-                                    </a>
-                                )
-                            })
-                        ) : (
-                            <span className="text-slate-400 text-xs italic bg-slate-100 px-2 py-1 rounded">연락처 미등록</span>
-                        )}
-                    </div>
+                    {isLeader && (
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            {site.customer_phone ? (
+                                site.customer_phone.split('/').map((phone, idx) => {
+                                    const trimmed = phone.trim()
+                                    return (
+                                        <a key={idx} href={`tel:${trimmed}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+                                            <Phone className="h-4 w-4 mr-2" />
+                                            <span>{trimmed}</span>
+                                            <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
+                                        </a>
+                                    )
+                                })
+                            ) : (
+                                <span className="text-slate-400 text-xs italic bg-slate-100 px-2 py-1 rounded">연락처 미등록</span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="pb-2 text-sm text-slate-600 space-y-3">
@@ -330,7 +343,7 @@ function SiteCard({
                             완료된 작업 보기
                         </Button>
                     </Link>
-                ) : site.status === 'scheduled' ? (
+                ) : site.status === 'scheduled' && isLeader ? (
                     <Button
                         className="w-full text-lg h-12"
                         onClick={() => onStartWork && onStartWork(site.id)}
@@ -339,6 +352,12 @@ function SiteCard({
                         {processingId === site.id ? <Loader2 className="animate-spin" /> : <PlayCircle className="mr-2" />}
                         작업 시작
                     </Button>
+                ) : site.status === 'scheduled' && !isLeader ? (
+                    <Link href={`/worker/sites/${site.id}`} className="w-full">
+                        <Button className="w-full text-lg h-12" variant="secondary">
+                            상세 보기
+                        </Button>
+                    </Link>
                 ) : (
                     <Link href={`/worker/sites/${site.id}`} className="w-full">
                         <Button className="w-full text-lg h-12" variant="secondary">
