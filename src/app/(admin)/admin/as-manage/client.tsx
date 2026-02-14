@@ -284,11 +284,21 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                                     <SelectValue placeholder="현장 선택" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sites.map(site => (
-                                        <SelectItem key={site.id} value={site.id}>
-                                            {site.name} ({site.cleaning_date})
-                                        </SelectItem>
-                                    ))}
+                                    {sites.map(site => {
+                                        const dateStr = site.cleaning_date
+                                            ? (() => {
+                                                const d = new Date(site.cleaning_date + 'T00:00:00')
+                                                return `${d.getMonth() + 1}/${d.getDate()}`
+                                            })()
+                                            : ''
+                                        const workerName = site.worker?.name || ''
+                                        const label = [site.name, dateStr, workerName].filter(Boolean).join(' · ')
+                                        return (
+                                            <SelectItem key={site.id} value={site.id}>
+                                                {label}
+                                            </SelectItem>
+                                        )
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
