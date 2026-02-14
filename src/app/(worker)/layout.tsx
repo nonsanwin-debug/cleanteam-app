@@ -1,12 +1,30 @@
 import Link from 'next/link'
 import { CheckCircle2, Home, User } from 'lucide-react'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function WorkerLayout({
+export default async function WorkerLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    // 역할 검증: 관리자는 워커 페이지 접근 불가
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (profile?.role === 'admin') {
+            redirect('/admin/dashboard')
+        }
+    }
+
     return (
         <div className="flex flex-col h-screen bg-slate-50">
             {/* Header */}
