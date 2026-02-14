@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { AdminForceCompleteButton } from "@/components/admin/admin-force-complete-button"
 import { SettlementEditForm } from "@/components/admin/settlement-edit-form"
+import { AdminPhotoDeleteButton } from "@/components/admin/admin-photo-delete-button"
 
 export default async function AdminSiteDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -281,6 +282,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                                         <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded uppercase">
                                                             {photo.type}
                                                         </div>
+                                                        <AdminPhotoDeleteButton photoId={photo.id} photoUrl={photo.url} siteId={site.id} />
                                                     </div>
                                                 ))}
                                             {(tab === 'all' ? photos : photosByType[tab as keyof typeof photosByType]).length === 0 && (
