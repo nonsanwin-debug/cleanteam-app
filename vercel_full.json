@@ -1,0 +1,3181 @@
+{
+  "projects": {
+    "projects": [
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "rhJd8cVF9O9xUs8ElUV20XcE3Cp",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "commandForIgnoringBuildStep": null,
+        "createdAt": 1770799740460,
+        "crons": {
+          "enabledAt": 1770836405298,
+          "disabledAt": null,
+          "updatedAt": 1770937015928,
+          "deploymentId": "dpl_6Pb24syiZrR6poi9VBYmQ9JxTQtr",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "cleanteam",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1770937015928,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "FZ1d7kf00hAzUp9M4DmRlbue5"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "cleanteam-app",
+          "repoId": 1153607917,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "createdAt": 1770799742431,
+          "updatedAt": 1770799742431,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "cleanteam-theta.vercel.app",
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770937015840,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770936969407,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "cleanteam-8oysdhuct-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_6Pb24syiZrR6poi9VBYmQ9JxTQtr",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "feat: AI 프롬프트 ���선 - 다양한 오더 형식 지원, 시간 미기재시 해피콜 자동 추가, 중복체크 완화",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "d4b56574fb8b81d18acc4715646bff9340f24da5",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-8oysdhuct-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770936971110,
+            "readyAt": 1770937015660,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam",
+              "project_id": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          {
+            "alias": [
+              "cleanteam-theta.vercel.app",
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770901712091,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770901663405,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "cleanteam-k7qnb38b7-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_CKqjyUkcVhus3hqxXewd6XQMyea2",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "fix: 올바른 Gemini 모델명 사용 - gemini-2.5-flash (API 확인 완료)",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "4e1f741f940a30d5121d7de10182ae82e5bb1161",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1153607917",
+              "githubRepoId": "1153607917",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "repoPushedAt": "1770901661000",
+              "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-k7qnb38b7-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770901664637,
+            "readyAt": 1770901711905,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam",
+              "project_id": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "cleanteam-theta.vercel.app",
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770937015840,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770936969407,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "cleanteam-8oysdhuct-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_6Pb24syiZrR6poi9VBYmQ9JxTQtr",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "feat: AI 프롬프트 개선 - 다양한 오더 형식 지원, 시간 미기재시 해피콜 자동 추가, 중복체크 완화",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "d4b56574fb8b81d18acc4715646bff9340f24da5",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-8oysdhuct-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770936971110,
+            "readyAt": 1770937015660,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam",
+              "project_id": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "KpmrZzziBE6cvZ179015hL41A2Q",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "createdAt": 1770646595942,
+        "crons": {
+          "enabledAt": 1770646660898,
+          "disabledAt": null,
+          "updatedAt": 1770901449791,
+          "deploymentId": "dpl_2WpUHS51VJ18V46HAeAM1oP4Kwzy",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "env": [
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "value": "8D2TUhL2XswoV5RG1QD/9x7Xqp+qjjv5SHGGJar5fAPC9K77zeAlp5CRbpYINIJpIVI6cwXRB4E/OP1lNHJTq6/IPkbp9/C8fRFRrR+08OmLiMKEKCYY4o44m017frP6OA4z+0z/xdBv/KuKOz2d1EyDenMDRG2OFIdGYtqPBm5BMcRj/3yBu7aIDsiybKTdJHGKuiA5xNJjmiKyMGBJLC2QLPSo1GLi+f+h0yp2xT1tHNAZlVc90RXUn/EElNrvZqEkWt6OfsDjdFwsMeHYhHH6756yvmXifCoZXQtLsqgaLhU94vZDFUs/sYIBKKTX",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1770646595440,
+            "updatedAt": 1770646595440,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "0jlEldUWr1jhnVzR"
+          },
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_URL",
+            "value": "XgwkNukD6bQYb0LthpC80tBWAk1odCm3nMDtVYwinDRDfmBwE2bmpZPMDIW4IWozhhsY6PeBeKwEfooCpcYvXg==",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1770646595440,
+            "updatedAt": 1770646595440,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "AG6PI0PBsQ3rTMQL"
+          },
+          {
+            "type": "encrypted",
+            "value": "2G4S+k+pefq/n/yhpPYuarf8mSZyIBzA4gjvDDRI2AZn8nlvIOhIaLQOxqIBwwxRc7G0UqySzWuOfTXEUo6n8He11iNtVKAbYplit7+RNVj76XgQJcD2bQ2RkJDoEbm6iWVkbVL1hwtjrx/8tNZ/HVfFypWfFrvylnB+7nuERCYn1WlRLOUgt5cbr1n9cMVpTBl86G/K9hgXJxREpP853kqsYvx5O3GapJWJo5P9zn0SExs4xK5DCOZ9Fc9TI9Hvc5j9qro5j+jeAEr0RNvkLLCTBIvJhH0jbUZG6/JFjKlYfM/teMj+Au+NiweYrt/e",
+            "target": [
+              "development",
+              "preview",
+              "production"
+            ],
+            "configurationId": null,
+            "comment": "",
+            "customEnvironmentIds": [],
+            "id": "c0NrFRPXyveVWDOu",
+            "key": "SUPABASE_SERVICE_ROLE_KEY",
+            "createdAt": 1770725206169,
+            "updatedAt": 1770725206169,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null
+          },
+          {
+            "type": "encrypted",
+            "value": "eyJ2IjoidjIiLCJjIjoiVUVPSEE3dFhmSklGaTdWeS9CZjB6TXZrT1RiQ1RyT1luaFR4cXNLWFQvT2N2ZFQ3YnFEVlNCcXIzM2UvNnpkUVpxRUdtTnNlV1lMTExLaStzeS85aDN3YWM2NTRqbGJQVzZaQkM4bVlmOEpmVWVCQnB4UTV5MGF4eWVoMUdRRE0wQThGZ0VvRHl5ZTNzUlpNQ1FzNGtHVUY1SUF4ZTRPcXNuNG9RTUZwclNrUWUvbHAiLCJrIjpbMTg0LDEsMiwzLDAsMTIwLDM3LDIxMCw0OCwxMjksMjExLDEwNCwxODUsNiwyMzgsMjcsMjU1LDU4LDIwOSwxNDYsMTIzLDEyNiwxOTEsMTU5LDE3MiwxNjAsOTAsMTU1LDEzNSwxMjMsMjM2LDExNSwxOTYsMzEsOTIsMTI4LDEzMSwzMywxLDU3LDE2OSwxNiwyMjQsOTksODQsMTEyLDE3OSwxOTQsMjM5LDEwNywxMjcsMTAsMTQ5LDIxMCwyMTYsMCwwLDAsMTI2LDQ4LDEyNCw2LDksNDIsMTM0LDcyLDEzNCwyNDcsMTMsMSw3LDYsMTYwLDExMSw0OCwxMDksMiwxLDAsNDgsMTA0LDYsOSw0MiwxMzQsNzIsMTM0LDI0NywxMywxLDcsMSw0OCwzMCw2LDksOTYsMTM0LDcyLDEsMTAxLDMsNCwxLDQ2LDQ4LDE3LDQsMTIsNzksNDIsNzEsMjI2LDMzLDE0NCwxNzcsMjQzLDE3NCwyMjIsMTQ4LDE0MiwyLDEsMTYsMTI4LDU5LDIzNiwyOCw3NywxNTYsMjE4LDIxMCwyMDUsOTcsODMsMjA4LDU5LDE1OCwxNyw1MCwxNTgsMTU1LDEzLDY4LDkyLDE3NiwxNjYsMTU5LDI0NCw4NywxNjUsMjE1LDkxLDIxOSwyNTUsMTk0LDEzNCw2LDM1LDI0Nyw0OCwxMzgsMTg4LDkyLDkzLDExNiwyMiwzMCwxMiwyMjEsMTYyLDI0MCwxMzgsMTU0LDIxNCw3Nyw2NywxMjEsMzIsMjUxLDEwNCwxNjksNDgsMTk2LDU1XX0=",
+            "target": [
+              "development",
+              "preview",
+              "production"
+            ],
+            "configurationId": null,
+            "comment": "",
+            "customEnvironmentIds": [],
+            "id": "eKBgDcd2LGK7BIzG",
+            "key": "GEMINI_API_KEY",
+            "createdAt": 1770900882254,
+            "updatedAt": 1770900882254,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "legacyValue": "iqRPPO5LLMmpfGSC/z7PwVALgEHJqsgFK8vzhzdDm0a/ZRmKQG1B/M+0f2dS6uLw3sJXtpxaDMGnNZJm5CxYUA=="
+          }
+        ],
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "cleanteam-app",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "icn1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "icn1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "icn1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1770901449791,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "oHjPAkpNyI9MYn7uVuuy9qxqL"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "cleanteam-app",
+          "repoId": 1153607917,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "sourceless": true,
+          "createdAt": 1770646595438,
+          "updatedAt": 1770646595438,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "cleanteam-app.vercel.app",
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770901449724,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770901353819,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "cleanteam-r15hinrky-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_2WpUHS51VJ18V46HAeAM1oP4Kwzy",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "fix: Gemini 모델 변경 - gemini-1.5-flash-latest 우선 사용 (15 RPM)",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "85f2f6f426a93960d79df0911f18c73b98af7076",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1153607917",
+              "githubRepoId": "1153607917",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "repoPushedAt": "1770901351000",
+              "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam-app",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-r15hinrky-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770901402936,
+            "readyAt": 1770901449520,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam-app",
+              "project_id": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          {
+            "alias": [
+              "cleanteam-app.vercel.app",
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770901192473,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770901098896,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "cleanteam-3xri6vq9k-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_ENSP8vq8CKHXhQCLC5a8c2AbLAdQ",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "fix: AI 파서 429 에러 대응 - 모델 폴백 및 재시도 로직 추가",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "d81ba0bb906bd707802f40aa5c1368bc0dbe3f01",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1153607917",
+              "githubRepoId": "1153607917",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "repoPushedAt": "1770901096000",
+              "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam-app",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-3xri6vq9k-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770901145147,
+            "readyAt": 1770901192304,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam-app",
+              "project_id": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "cleanteam-app.vercel.app",
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770901449724,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-app-kimyongmins-projects-0691bbec.vercel.app",
+              "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770901353819,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "cleanteam-r15hinrky-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_2WpUHS51VJ18V46HAeAM1oP4Kwzy",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "fix: Gemini 모델 변경 - gemini-1.5-flash-latest 우선 사용 (15 RPM)",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "85f2f6f426a93960d79df0911f18c73b98af7076",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1153607917",
+              "githubRepoId": "1153607917",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "repoPushedAt": "1770901351000",
+              "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam-app",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-r15hinrky-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770901402936,
+            "readyAt": 1770901449520,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam-app",
+              "project_id": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          "preview": {
+            "alias": [
+              "cleanteam-app-git-master-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770797607115,
+            "aliasError": null,
+            "automaticAliases": [
+              "cleanteam-app-git-master-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770797515320,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "cleanteam-8xc6jdieb-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_ESSGSDX7dVwaAkozhdHAaj7N5QdH",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+              "githubCommitMessage": "Feat: Implement comprehensive wallet logging system and UI for admin and workers",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "master",
+              "githubCommitRepo": "cleanteam-app",
+              "githubCommitSha": "4068eb6bef21bdfabdf7bb656ee9560292053a54",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "cleanteam-app",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1153607917",
+              "githubRepoId": "1153607917",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "repoPushedAt": "1770797513000",
+              "branchAlias": "cleanteam-app-git-master-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "cleanteam-app",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "STAGED",
+            "target": null,
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "cleanteam-8xc6jdieb-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770797561436,
+            "readyAt": 1770797606949,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:preview",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:cleanteam-app:environment:preview",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "cleanteam-app",
+              "project_id": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+              "environment": "preview",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "e1uxnaudHIzO66zdTRldUH06lKa",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "createdAt": 1770643149359,
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "env": [
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_URL",
+            "value": "dy++ldl3uGJywYTguZVdBqt8jzm/pSVCfbJTW7vx5LehKE3MlwfFtLp3+yl1v29fHK9XRQsVj8Ubtzoq56991g==",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1770643148933,
+            "updatedAt": 1770643148933,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "fSZKnRYifPv3HjBT"
+          },
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "value": "tPCsjMy9Q3J1rgMwKk2Kia8qEi1SBszYqayL7ydO8i4t/datya0DzK9xw52rD+ig9y2WIU9gQmmvRQ1uPYxY5C1bSDrzpg1DkQFoZJPS76SLh9SBw/UwXFiA5wnrLYp5MNvxpcUi4rM861c6LQFRPmMBP6Sn+ztMId9tu8/Di8zWJkToSNsAVNOVY5QGWje0tqee95ndFrOoOyd2aK9myTO3UQPXD8obEc7fNYxZ3TwDSX2/A1EW6V5uXcmTTNrE/0Lfqb7Cgz3i2uXmwQNj7AJ2Lh/yJmWC8w8qqgoMT2buhjGbPgWTbXVSxi73TVB8",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1770643148933,
+            "updatedAt": 1770643148933,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "avQPMZT7V9QaKgtY"
+          }
+        ],
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_FpOnrVCP9hP9HqPFhL7h4hfzwIpv",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "clean-aa92",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1770643152812,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "fJASOxJvLuqWiH6efsRr9oQZD"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "clean",
+          "repoId": 1131653794,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "sourceless": true,
+          "createdAt": 1770643148929,
+          "updatedAt": 1770643148929,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "clean-aa92-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": null,
+            "automaticAliases": [
+              "clean-aa92-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770643152271,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-aa92-8nfnuanyu-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_DrgdU59EaJL13Ebv3EEwh8PSSG7E",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "branchAlias": "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            },
+            "name": "clean-aa92",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "CANCELED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-aa92-8nfnuanyu-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770643154290,
+            "readyAt": 1770643160766,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean-aa92:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean-aa92:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean-aa92",
+              "project_id": "prj_FpOnrVCP9hP9HqPFhL7h4hfzwIpv",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "clean-aa92-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": null,
+            "automaticAliases": [
+              "clean-aa92-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770643152271,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-aa92-8nfnuanyu-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_DrgdU59EaJL13Ebv3EEwh8PSSG7E",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "branchAlias": "clean-aa92-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            },
+            "name": "clean-aa92",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "CANCELED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-aa92-8nfnuanyu-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770643154290,
+            "readyAt": 1770643160766,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean-aa92:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean-aa92:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean-aa92",
+              "project_id": "prj_FpOnrVCP9hP9HqPFhL7h4hfzwIpv",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "Kk1PFMORkEUkrxWqYxUgnoaXPc6",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "createdAt": 1770319559801,
+        "crons": {
+          "enabledAt": 1770319590040,
+          "disabledAt": null,
+          "updatedAt": 1770319590040,
+          "deploymentId": "dpl_BZ2nyGwtVk1QPdEqgebE4vAuPpSK",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "env": [],
+        "framework": "vite",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_CvRC8WRTNaG9w0F4P0ac3YNhxAyI",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "kimchizzimzzim",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1770319590040,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "zBMlyddc6uX9jbziSCt7uoqAU"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "kimchizzimzzim",
+          "repoId": 1086095119,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "sourceless": true,
+          "createdAt": 1770319559715,
+          "updatedAt": 1770319559715,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "kimchizzimzzim.vercel.app",
+              "kimchizzimzzim-kimyongmins-projects-0691bbec.vercel.app",
+              "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770319589894,
+            "aliasError": null,
+            "automaticAliases": [
+              "kimchizzimzzim-kimyongmins-projects-0691bbec.vercel.app",
+              "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770319562016,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "kimchizzimzzim-bz7b1978l-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_BZ2nyGwtVk1QPdEqgebE4vAuPpSK",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "nonsanwin@gmail.com",
+              "githubCommitMessage": "refactor: Simplify inventory UI and layout\n\nRemoves the Dashboard component and adjusts the InventoryList grid for better responsiveness. Updates InventoryItemCard styling for improved readability and layout consistency.",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "kimchizzimzzim",
+              "githubCommitSha": "dde650d29cf35e7439eee4b9602114080eb46a62",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "kimchizzimzzim",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1086095119",
+              "githubRepoId": "1086095119",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "branchAlias": "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            },
+            "name": "kimchizzimzzim",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "kimchizzimzzim-bz7b1978l-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770319563521,
+            "readyAt": 1770319589727,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:kimchizzimzzim:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:kimchizzimzzim:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "kimchizzimzzim",
+              "project_id": "prj_CvRC8WRTNaG9w0F4P0ac3YNhxAyI",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "kimchizzimzzim.vercel.app",
+              "kimchizzimzzim-kimyongmins-projects-0691bbec.vercel.app",
+              "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770319589894,
+            "aliasError": null,
+            "automaticAliases": [
+              "kimchizzimzzim-kimyongmins-projects-0691bbec.vercel.app",
+              "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770319562016,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "nonsanwin-debug"
+            },
+            "deploymentHostname": "kimchizzimzzim-bz7b1978l-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_BZ2nyGwtVk1QPdEqgebE4vAuPpSK",
+            "meta": {
+              "githubCommitAuthorName": "nonsanwin-debug",
+              "githubCommitAuthorEmail": "nonsanwin@gmail.com",
+              "githubCommitMessage": "refactor: Simplify inventory UI and layout\n\nRemoves the Dashboard component and adjusts the InventoryList grid for better responsiveness. Updates InventoryItemCard styling for improved readability and layout consistency.",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "kimchizzimzzim",
+              "githubCommitSha": "dde650d29cf35e7439eee4b9602114080eb46a62",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "kimchizzimzzim",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1086095119",
+              "githubRepoId": "1086095119",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "nonsanwin-debug",
+              "branchAlias": "kimchizzimzzim-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            },
+            "name": "kimchizzimzzim",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "kimchizzimzzim-bz7b1978l-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770319563521,
+            "readyAt": 1770319589727,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:kimchizzimzzim:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:kimchizzimzzim:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "kimchizzimzzim",
+              "project_id": "prj_CvRC8WRTNaG9w0F4P0ac3YNhxAyI",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "fsJbyyYHUF9OYUCoAMXxPRNliD5",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "createdAt": 1770311472603,
+        "crons": {
+          "enabledAt": 1770311516784,
+          "disabledAt": null,
+          "updatedAt": 1770311516784,
+          "deploymentId": "dpl_5qNGKEU4GQD8DSVT1jYHog1WbyT3",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "env": [],
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_RWTP5jbnfOtSB4CUzw8a9oe1jSsY",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "clean-f8l2",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1770311516784,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "Qz7WZAyrAgO0S5vveQqZmoYcZ"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "clean",
+          "repoId": 1131653794,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "sourceless": true,
+          "createdAt": 1770311472540,
+          "updatedAt": 1770311472540,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "clean-f8l2.vercel.app",
+              "clean-f8l2-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770311516697,
+            "aliasError": null,
+            "automaticAliases": [
+              "clean-f8l2-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770311474489,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-f8l2-iy9xlss7m-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_5qNGKEU4GQD8DSVT1jYHog1WbyT3",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "branchAlias": "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "clean-f8l2",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-f8l2-iy9xlss7m-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770311475939,
+            "readyAt": 1770311516473,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean-f8l2:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean-f8l2:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean-f8l2",
+              "project_id": "prj_RWTP5jbnfOtSB4CUzw8a9oe1jSsY",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "clean-f8l2.vercel.app",
+              "clean-f8l2-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1770311516697,
+            "aliasError": null,
+            "automaticAliases": [
+              "clean-f8l2-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1770311474489,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-f8l2-iy9xlss7m-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_5qNGKEU4GQD8DSVT1jYHog1WbyT3",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "branchAlias": "clean-f8l2-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "lambdaRuntimeStats": "{\"nodejs\":4}",
+              "bundler": "turbopack"
+            },
+            "name": "clean-f8l2",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-f8l2-iy9xlss7m-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1770311475939,
+            "readyAt": 1770311516473,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean-f8l2:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean-f8l2:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean-f8l2",
+              "project_id": "prj_RWTP5jbnfOtSB4CUzw8a9oe1jSsY",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "LvcekoE6WFE1kSwSWa28emLc74N",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "createdAt": 1768050042566,
+        "crons": {
+          "enabledAt": 1768050084119,
+          "disabledAt": null,
+          "updatedAt": 1768095559164,
+          "deploymentId": "dpl_2BF8D49ptWdUhsnMSR932Ne4X67c",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "env": [
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_URL",
+            "value": "BZR85LpKuUDGP7NCeEB9Ghsov7WFmvtheVF75M9/AtEVHFvUvQqURyjsCechXDX1XJtmA4pR85PbDqx6GUT8RQ==",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1768050042438,
+            "updatedAt": 1768050042438,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "h77uxbO7fSKeu6aP"
+          },
+          {
+            "type": "encrypted",
+            "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+            "value": "XNwDYIh5fp3D6ooUeP/wonByP9eanTrgvRTo5+0N41mAM/YsyyZ15/jlnkEe3jygbxKM59z9Pxuj3teWHgRJ3A==",
+            "target": [
+              "production",
+              "preview",
+              "development"
+            ],
+            "configurationId": null,
+            "createdAt": 1768050042438,
+            "updatedAt": 1768050042438,
+            "createdBy": "AydVCx5XBC00DwMU0gvQPwUB",
+            "updatedBy": null,
+            "id": "84qkloJ9Ta81gbVi"
+          }
+        ],
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_1txKBfJi62Knyckb0aC1ZIdeAWyF",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "clean",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1768095559164,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "B1HYxrqBnq4N3sPiZlu33YKm3"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "link": {
+          "type": "github",
+          "repo": "clean",
+          "repoId": 1131653794,
+          "org": "nonsanwin-debug",
+          "repoOwnerId": 232249562,
+          "gitCredentialId": "cred_f2d147a6b53ccb50b685c41ab9b90bb56556a330",
+          "productionBranch": "main",
+          "sourceless": true,
+          "createdAt": 1768050042437,
+          "updatedAt": 1768050042437,
+          "deployHooks": []
+        },
+        "latestDeployments": [
+          {
+            "alias": [
+              "clean-eosin-ten.vercel.app",
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1768095559037,
+            "aliasError": null,
+            "automaticAliases": [
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1768095529457,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-9waflz6no-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_2BF8D49ptWdUhsnMSR932Ne4X67c",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "repoPushedAt": "1768095527000",
+              "branchAlias": "clean-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "bundler": "turbopack"
+            },
+            "name": "clean",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-9waflz6no-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1768095530530,
+            "readyAt": 1768095558832,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean",
+              "project_id": "prj_1txKBfJi62Knyckb0aC1ZIdeAWyF",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          {
+            "alias": [
+              "clean-eosin-ten.vercel.app",
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1768095016928,
+            "aliasError": null,
+            "automaticAliases": [
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1768094986646,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-owbdcgxdk-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_s9hrAPuNojyUpe9vKYPjm85Npqc1",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "모바일_입력창_포커스_시_자동스크롤_기능_추가",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "72d1bd4d811dc19866c842ca054eb6e3678a311b",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "repoPushedAt": "1768094984000",
+              "branchAlias": "clean-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "bundler": "turbopack"
+            },
+            "name": "clean",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-owbdcgxdk-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1768094987751,
+            "readyAt": 1768095016746,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean",
+              "project_id": "prj_1txKBfJi62Knyckb0aC1ZIdeAWyF",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "clean-eosin-ten.vercel.app",
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1768095559037,
+            "aliasError": null,
+            "automaticAliases": [
+              "clean-kimyongmins-projects-0691bbec.vercel.app",
+              "clean-git-main-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1768095529457,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522",
+              "githubLogin": "superman32432432"
+            },
+            "deploymentHostname": "clean-9waflz6no-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_2BF8D49ptWdUhsnMSR932Ne4X67c",
+            "meta": {
+              "githubCommitAuthorName": "User",
+              "githubCommitAuthorEmail": "user@example.com",
+              "githubCommitMessage": "견적요청_완료_시_고객을_홈으로_이동하도록_수정",
+              "githubCommitOrg": "nonsanwin-debug",
+              "githubCommitRef": "main",
+              "githubCommitRepo": "clean",
+              "githubCommitSha": "36ce1009dea7217660f42f7c3c3f891be060bba2",
+              "githubDeployment": "1",
+              "githubOrg": "nonsanwin-debug",
+              "githubRepo": "clean",
+              "githubRepoOwnerType": "User",
+              "githubCommitRepoId": "1131653794",
+              "githubRepoId": "1131653794",
+              "githubRepoVisibility": "public",
+              "githubHost": "github.com",
+              "githubCommitAuthorLogin": "superman32432432",
+              "repoPushedAt": "1768095527000",
+              "branchAlias": "clean-git-main-kimyongmins-projects-0691bbec.vercel.app",
+              "bundler": "turbopack"
+            },
+            "name": "clean",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "clean-9waflz6no-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1768095530530,
+            "readyAt": 1768095558832,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:clean:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "clean",
+              "project_id": "prj_1txKBfJi62Knyckb0aC1ZIdeAWyF",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      },
+      {
+        "accountId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "speedInsights": {
+          "id": "vmCMQTTzipibXwDLrXQSeslHdq6",
+          "hasData": false
+        },
+        "autoExposeSystemEnvs": true,
+        "autoAssignCustomDomains": true,
+        "autoAssignCustomDomainsUpdatedBy": "system",
+        "buildCommand": null,
+        "commandForIgnoringBuildStep": null,
+        "createdAt": 1765322900501,
+        "crons": {
+          "enabledAt": 1765324171258,
+          "disabledAt": null,
+          "updatedAt": 1767421436606,
+          "deploymentId": "dpl_FuM8d6fmhBicTRjUzLWnLTd4DPE9",
+          "definitions": []
+        },
+        "deploymentExpiration": {
+          "expirationDays": 180,
+          "expirationDaysProduction": 365,
+          "expirationDaysCanceled": 30,
+          "expirationDaysErrored": 90,
+          "deploymentsToKeep": 10
+        },
+        "devCommand": null,
+        "directoryListing": false,
+        "framework": "nextjs",
+        "gitForkProtection": true,
+        "gitLFS": false,
+        "id": "prj_s1AN2yoV0du6zLlpL9c4aCrboO72",
+        "installCommand": null,
+        "lastRollbackTarget": null,
+        "lastAliasRequest": null,
+        "name": "the-clean-new",
+        "nodeVersion": "24.x",
+        "outputDirectory": null,
+        "productionDeploymentsFastLane": true,
+        "publicSource": null,
+        "defaultResourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ],
+          "functionDefaultTimeout": 300,
+          "functionDefaultMemoryType": "standard",
+          "functionZeroConfigFailover": false,
+          "elasticConcurrencyEnabled": false
+        },
+        "resourceConfig": {
+          "fluid": true,
+          "functionDefaultRegions": [
+            "iad1"
+          ]
+        },
+        "rootDirectory": null,
+        "serverlessFunctionRegion": "iad1",
+        "sourceFilesOutsideRootDirectory": true,
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "updatedAt": 1767421436606,
+        "live": false,
+        "gitComments": {
+          "onCommit": false,
+          "onPullRequest": true
+        },
+        "gitProviderOptions": {
+          "createDeployments": "enabled"
+        },
+        "webAnalytics": {
+          "id": "oQN3RDH9GIl4gcd31yuuTwMJq"
+        },
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "hasDeployments": true,
+        "latestDeployments": [
+          {
+            "alias": [
+              "the-clean-new.vercel.app",
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1767421436369,
+            "aliasError": null,
+            "automaticAliases": [
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1767421390243,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "the-clean-f5p6ui2t6-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_FuM8d6fmhBicTRjUzLWnLTd4DPE9",
+            "meta": {
+              "bundler": "turbopack"
+            },
+            "name": "the-clean-new",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "the-clean-f5p6ui2t6-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1767421391481,
+            "readyAt": 1767421436201,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "the-clean-new",
+              "project_id": "prj_s1AN2yoV0du6zLlpL9c4aCrboO72",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          {
+            "alias": [
+              "the-clean-new.vercel.app",
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1767421258077,
+            "aliasError": null,
+            "automaticAliases": [
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1767421215108,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "the-clean-6dnyd7tex-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_9VYoGXMEYwmhgg4m4RnJmeq3jubL",
+            "meta": {
+              "bundler": "turbopack"
+            },
+            "name": "the-clean-new",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "the-clean-6dnyd7tex-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1767421216121,
+            "readyAt": 1767421257869,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "the-clean-new",
+              "project_id": "prj_s1AN2yoV0du6zLlpL9c4aCrboO72",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          }
+        ],
+        "targets": {
+          "production": {
+            "alias": [
+              "the-clean-new.vercel.app",
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1767421436369,
+            "aliasError": null,
+            "automaticAliases": [
+              "the-clean-new-kimyongmins-projects-0691bbec.vercel.app",
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1767421390243,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "the-clean-f5p6ui2t6-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_FuM8d6fmhBicTRjUzLWnLTd4DPE9",
+            "meta": {
+              "bundler": "turbopack"
+            },
+            "name": "the-clean-new",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "PROMOTED",
+            "target": "production",
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "the-clean-f5p6ui2t6-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1767421391481,
+            "readyAt": 1767421436201,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:production",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "the-clean-new",
+              "project_id": "prj_s1AN2yoV0du6zLlpL9c4aCrboO72",
+              "environment": "production",
+              "plan": "hobby"
+            }
+          },
+          "preview": {
+            "alias": [
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "aliasAssigned": 1765323969804,
+            "aliasError": null,
+            "automaticAliases": [
+              "the-clean-new-nonsanwin-8522-kimyongmins-projects-0691bbec.vercel.app"
+            ],
+            "builds": [],
+            "createdAt": 1765323932234,
+            "createdIn": "sfo1",
+            "creator": {
+              "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+              "email": "nonsanwin@gmail.com",
+              "username": "nonsanwin-8522"
+            },
+            "deploymentHostname": "the-clean-o4keuokc2-kimyongmins-projects-0691bbec",
+            "forced": false,
+            "id": "dpl_EGHZPxazxBW1iqVrwtpVPm2AC1VT",
+            "meta": {
+              "bundler": "turbopack"
+            },
+            "name": "the-clean-new",
+            "plan": "hobby",
+            "private": true,
+            "readyState": "READY",
+            "readySubstate": "STAGED",
+            "target": null,
+            "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+            "type": "LAMBDAS",
+            "url": "the-clean-o4keuokc2-kimyongmins-projects-0691bbec.vercel.app",
+            "userId": "AydVCx5XBC00DwMU0gvQPwUB",
+            "withCache": false,
+            "buildingAt": 1765323933246,
+            "readyAt": 1765323969637,
+            "previewCommentsEnabled": true,
+            "oidcTokenClaims": {
+              "sub": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:preview",
+              "iss": "https://oidc.vercel.com/kimyongmins-projects-0691bbec",
+              "scope": "owner:kimyongmins-projects-0691bbec:project:the-clean-new:environment:preview",
+              "aud": "https://vercel.com/kimyongmins-projects-0691bbec",
+              "owner": "kimyongmins-projects-0691bbec",
+              "owner_id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+              "project": "the-clean-new",
+              "project_id": "prj_s1AN2yoV0du6zLlpL9c4aCrboO72",
+              "environment": "preview",
+              "plan": "hobby"
+            }
+          }
+        },
+        "features": {
+          "webAnalytics": false
+        }
+      }
+    ],
+    "pagination": {
+      "count": 7,
+      "next": null,
+      "prev": 1770937015928
+    }
+  },
+  "deployments": {
+    "deployments": [
+      {
+        "uid": "dpl_6Pb24syiZrR6poi9VBYmQ9JxTQtr",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-8oysdhuct-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770936969407,
+        "source": "cli",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/6Pb24syiZrR6poi9VBYmQ9JxTQtr",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: AI 프롬프트 개선 - 다양한 오더 형식 지원, 시간 미기재시 해피콜 자동 추가, 중복체크 완화",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "d4b56574fb8b81d18acc4715646bff9340f24da5",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770937015840,
+        "isRollbackCandidate": false,
+        "createdAt": 1770936969407,
+        "buildingAt": 1770936971110,
+        "ready": 1770937015660,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_CKqjyUkcVhus3hqxXewd6XQMyea2",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-k7qnb38b7-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770901663405,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/CKqjyUkcVhus3hqxXewd6XQMyea2",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: 올바른 Gemini 모델명 사용 - gemini-2.5-flash (API 확인 완료)",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "4e1f741f940a30d5121d7de10182ae82e5bb1161",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770901661000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901712091,
+        "isRollbackCandidate": false,
+        "createdAt": 1770901663405,
+        "buildingAt": 1770901664637,
+        "ready": 1770901711905,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_2WpUHS51VJ18V46HAeAM1oP4Kwzy",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-r15hinrky-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770901353819,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/2WpUHS51VJ18V46HAeAM1oP4Kwzy",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: Gemini 모델 변경 - gemini-1.5-flash-latest 우선 사용 (15 RPM)",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "85f2f6f426a93960d79df0911f18c73b98af7076",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770901351000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901449724,
+        "isRollbackCandidate": false,
+        "createdAt": 1770901353819,
+        "buildingAt": 1770901402936,
+        "ready": 1770901449520,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_Dm33D325ecqS7DjnNYPn2azShACn",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-99dmmaqvj-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770901353776,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/Dm33D325ecqS7DjnNYPn2azShACn",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: Gemini 모델 변경 - gemini-1.5-flash-latest 우선 사용 (15 RPM)",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "85f2f6f426a93960d79df0911f18c73b98af7076",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770901351000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901402097,
+        "isRollbackCandidate": false,
+        "createdAt": 1770901353776,
+        "buildingAt": 1770901354859,
+        "ready": 1770901401926,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_ENSP8vq8CKHXhQCLC5a8c2AbLAdQ",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-3xri6vq9k-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770901098896,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/ENSP8vq8CKHXhQCLC5a8c2AbLAdQ",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: AI 파서 429 에러 대응 - 모델 폴백 및 재시도 로직 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "d81ba0bb906bd707802f40aa5c1368bc0dbe3f01",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770901096000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901192473,
+        "isRollbackCandidate": false,
+        "createdAt": 1770901098896,
+        "buildingAt": 1770901145147,
+        "ready": 1770901192304,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_5wPpSZjwNqB6jUk3hKHUEgHBBw5r",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-q9cu9wh7u-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770901098794,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/5wPpSZjwNqB6jUk3hKHUEgHBBw5r",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: AI 파서 429 에러 대응 - 모델 폴백 및 재시도 로직 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "d81ba0bb906bd707802f40aa5c1368bc0dbe3f01",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770901096000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901144258,
+        "isRollbackCandidate": false,
+        "createdAt": 1770901098794,
+        "buildingAt": 1770901099863,
+        "ready": 1770901144086,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_GGy1NXLN8pRcu4WiSss1bU5ff7bE",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-naz12nphs-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770900966952,
+        "source": "redeploy",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/GGy1NXLN8pRcu4WiSss1bU5ff7bE",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: AI 오더 자동 파싱 기능 - Gemini API 연동, 오더 텍스트 붙여넣기로 현장 자동 등록",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "9cc6b680d5ac836f6f8c2288f8bd5ba51faf1351",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770900787000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack",
+          "action": "redeploy",
+          "originalDeploymentId": "dpl_CRDezYjXN7ktCHWYj9yYPQ3SzPZh"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770901026073,
+        "isRollbackCandidate": false,
+        "createdAt": 1770900966952,
+        "buildingAt": 1770900968351,
+        "ready": 1770901025839,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_CRDezYjXN7ktCHWYj9yYPQ3SzPZh",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-jfqa8frzg-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770900790165,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/CRDezYjXN7ktCHWYj9yYPQ3SzPZh",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: AI 오더 자동 파싱 기능 - Gemini API 연동, 오더 텍스트 붙여넣기로 현장 자동 등록",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "9cc6b680d5ac836f6f8c2288f8bd5ba51faf1351",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770900787000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770900887246,
+        "isRollbackCandidate": false,
+        "createdAt": 1770900790165,
+        "buildingAt": 1770900838610,
+        "ready": 1770900887053,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_G7ivzND56876aP3fbM9apnGWpCrv",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-f71l83ik6-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770900790154,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/G7ivzND56876aP3fbM9apnGWpCrv",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: AI 오더 자동 파싱 기능 - Gemini API 연동, 오더 텍스트 붙여넣기로 현장 자동 등록",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "9cc6b680d5ac836f6f8c2288f8bd5ba51faf1351",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770900787000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770900837684,
+        "isRollbackCandidate": false,
+        "createdAt": 1770900790154,
+        "buildingAt": 1770900791410,
+        "ready": 1770900837501,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_GXpVeg2g586e4PQVLM2X3P1VeEjh",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-powjuhx7t-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770897460162,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/GXpVeg2g586e4PQVLM2X3P1VeEjh",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "refactor: 코드베이스 전체 최적화 - auth 보일러플레이트 추출, Promise.all 병렬화, select 최적화, as any 제거, 디버그 로그 정리",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "d146f5fdbf257f4c7ec4c9d8360b7ecb36526b66",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770897457000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770897554690,
+        "isRollbackCandidate": false,
+        "createdAt": 1770897460162,
+        "buildingAt": 1770897507222,
+        "ready": 1770897554528,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_8oFG6swZTaAnhokFgeZALRXpS2Wm",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-3xma8cdrq-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770897460053,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/8oFG6swZTaAnhokFgeZALRXpS2Wm",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "refactor: 코드베이스 전체 최적화 - auth 보일러플레이트 추출, Promise.all 병렬화, select 최적화, as any 제거, 디버그 로그 정리",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "d146f5fdbf257f4c7ec4c9d8360b7ecb36526b66",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770897457000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770897506454,
+        "isRollbackCandidate": false,
+        "createdAt": 1770897460053,
+        "buildingAt": 1770897461260,
+        "ready": 1770897506282,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_3zxYoj2gYzTYAX1YEyXrqxj9Ccmq",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-f5i0hav97-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770894263737,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/3zxYoj2gYzTYAX1YEyXrqxj9Ccmq",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 모바일 메뉴 활성 하이라이트, 오전/오후 시간대 필터, 뒤로가기 날짜 유지",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "c5dd8141f9d6925f5685d280ba63843c1ee2ce16",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770894261000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770894357737,
+        "isRollbackCandidate": false,
+        "createdAt": 1770894263737,
+        "buildingAt": 1770894310755,
+        "ready": 1770894357562,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_3FUNFKfiBU3YBBH26wX4T7c7YFFA",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-kodjh45as-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770894263622,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/3FUNFKfiBU3YBBH26wX4T7c7YFFA",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 모바일 메뉴 활성 하이라이트, 오전/오후 시간대 필터, 뒤로가기 날짜 유지",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "c5dd8141f9d6925f5685d280ba63843c1ee2ce16",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770894261000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770894309852,
+        "isRollbackCandidate": false,
+        "createdAt": 1770894263622,
+        "buildingAt": 1770894264846,
+        "ready": 1770894309675,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_9aASBozFiAUf4fcNTPWAfi53mfNQ",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-8w272151y-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770893687638,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/9aASBozFiAUf4fcNTPWAfi53mfNQ",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 모바일 메뉴 페이지 이동 시 자동 닫힘 기능 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "1cd1b1650af099d0afc55380a58c732bebb0fbe4",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770893685000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770893781429,
+        "isRollbackCandidate": false,
+        "createdAt": 1770893687638,
+        "buildingAt": 1770893736137,
+        "ready": 1770893781265,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_67tQYr4YqjMT7K9J2K9oKWpWFfio",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-frzb2880k-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770893687584,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/67tQYr4YqjMT7K9J2K9oKWpWFfio",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 모바일 메뉴 페이지 이동 시 자동 닫힘 기능 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "1cd1b1650af099d0afc55380a58c732bebb0fbe4",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770893685000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770893735598,
+        "isRollbackCandidate": false,
+        "createdAt": 1770893687584,
+        "buildingAt": 1770893688950,
+        "ready": 1770893735388,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_AYyzxeqpKd318cH3S6oDTau5nd3p",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-hqk1z30k5-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770892809437,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/AYyzxeqpKd318cH3S6oDTau5nd3p",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 현장 관리 목록에 작업 요청 시간 표시 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "53c1f36525909b77684a527a6ffd93258e66b8f4",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770892806000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770892898603,
+        "isRollbackCandidate": false,
+        "createdAt": 1770892809437,
+        "buildingAt": 1770892857896,
+        "ready": 1770892898434,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_GJKZuxSQ8unShizVavwTMXr54ymg",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-gxtclep63-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770892809432,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/GJKZuxSQ8unShizVavwTMXr54ymg",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "feat: 현장 관리 목록에 작업 요청 시간 표시 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "53c1f36525909b77684a527a6ffd93258e66b8f4",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770892806000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770892857281,
+        "isRollbackCandidate": false,
+        "createdAt": 1770892809432,
+        "buildingAt": 1770892810727,
+        "ready": 1770892857107,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_8VAuTeHGKnC5QQ1W3wkKQWyZgHaa",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-72dbnk8x7-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770892595404,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/8VAuTeHGKnC5QQ1W3wkKQWyZgHaa",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: 현장관리 뒤로가기 시 날짜 초기화 방지 - dateParam 동기화 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "eea137455fbda11e531541794462ec048fe0a51b",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770892593000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770892688576,
+        "isRollbackCandidate": false,
+        "createdAt": 1770892595404,
+        "buildingAt": 1770892642289,
+        "ready": 1770892688406,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_2H9gPW4FEZxNiTUt5rKdrVPuk9nZ",
+        "name": "cleanteam-app",
+        "projectId": "prj_6dVnVRIV3mnw8GwRqAz86A1A4Czh",
+        "url": "cleanteam-ez9bbrnjf-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770892595306,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam-app/2H9gPW4FEZxNiTUt5rKdrVPuk9nZ",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: 현장관리 뒤로가기 시 날짜 초기화 방지 - dateParam 동기화 추가",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "eea137455fbda11e531541794462ec048fe0a51b",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770892593000",
+          "branchAlias": "cleanteam-app-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770892641671,
+        "isRollbackCandidate": false,
+        "createdAt": 1770892595306,
+        "buildingAt": 1770892596555,
+        "ready": 1770892641503,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      },
+      {
+        "uid": "dpl_Hj5vqKz15zbSWj11a7NrCc2bXmUu",
+        "name": "cleanteam",
+        "projectId": "prj_7EIQvoWTxeS1qSyxxbmmI85XR2d5",
+        "url": "cleanteam-cikcrkyoh-kimyongmins-projects-0691bbec.vercel.app",
+        "created": 1770889982031,
+        "source": "git",
+        "state": "READY",
+        "readyState": "READY",
+        "readySubstate": "PROMOTED",
+        "type": "LAMBDAS",
+        "creator": {
+          "uid": "AydVCx5XBC00DwMU0gvQPwUB",
+          "email": "nonsanwin@gmail.com",
+          "username": "nonsanwin-8522",
+          "githubLogin": "nonsanwin-debug"
+        },
+        "inspectorUrl": "https://vercel.com/kimyongmins-projects-0691bbec/cleanteam/Hj5vqKz15zbSWj11a7NrCc2bXmUu",
+        "meta": {
+          "githubCommitAuthorName": "nonsanwin-debug",
+          "githubCommitAuthorEmail": "232249562+nonsanwin-debug@users.noreply.github.com",
+          "githubCommitMessage": "fix: 링크/메시지 텍스트 '작업 완료 보고서' -> '작업 보고서'로 변경",
+          "githubCommitOrg": "nonsanwin-debug",
+          "githubCommitRef": "main",
+          "githubCommitRepo": "cleanteam-app",
+          "githubCommitSha": "6bf652c881c0541d037987fa57c6d0da809212d0",
+          "githubDeployment": "1",
+          "githubOrg": "nonsanwin-debug",
+          "githubRepo": "cleanteam-app",
+          "githubRepoOwnerType": "User",
+          "githubCommitRepoId": "1153607917",
+          "githubRepoId": "1153607917",
+          "githubRepoVisibility": "public",
+          "githubHost": "github.com",
+          "githubCommitAuthorLogin": "nonsanwin-debug",
+          "repoPushedAt": "1770889979000",
+          "branchAlias": "cleanteam-git-main-kimyongmins-projects-0691bbec.vercel.app",
+          "lambdaRuntimeStats": "{\"nodejs\":4}",
+          "bundler": "turbopack"
+        },
+        "target": "production",
+        "aliasError": null,
+        "aliasAssigned": 1770890076150,
+        "isRollbackCandidate": false,
+        "createdAt": 1770889982031,
+        "buildingAt": 1770890031545,
+        "ready": 1770890075960,
+        "projectSettings": {
+          "commandForIgnoringBuildStep": null
+        }
+      }
+    ],
+    "pagination": {
+      "count": 20,
+      "next": 1770889982031,
+      "prev": 1770936969407
+    }
+  }
+}

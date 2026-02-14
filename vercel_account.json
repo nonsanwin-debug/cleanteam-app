@@ -1,0 +1,24 @@
+{
+  "name": null,
+  "username": "nonsanwin-8522",
+  "email": "nonsanwin@gmail.com",
+  "softBlock": null,
+  "billing": {
+    "plan": "hobby",
+    "period": null,
+    "trial": null,
+    "cancelation": null,
+    "email": null,
+    "platform": "stripe",
+    "tax": null,
+    "language": null,
+    "address": null,
+    "name": null,
+    "currency": "usd",
+    "status": "active"
+  },
+  "resourceConfig": {
+    "concurrentBuilds": 1
+  },
+  "createdAt": 1761725352745
+}

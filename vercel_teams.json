@@ -1,0 +1,81 @@
+{
+  "teams": [
+    {
+      "id": "team_ghTKFHvXOKsFlDw6W9meKsan",
+      "slug": "kimyongmins-projects-0691bbec",
+      "name": "kimyongmin's projects",
+      "avatar": null,
+      "createdAt": 1761725352826,
+      "created": "2025-10-29T08:09:12.826Z",
+      "membership": {
+        "role": "OWNER",
+        "confirmed": true,
+        "created": 1761725353831,
+        "createdAt": 1761725353831,
+        "teamId": "team_ghTKFHvXOKsFlDw6W9meKsan",
+        "updatedAt": 1761725353831
+      },
+      "enableImageOptimizationNewPrice": true,
+      "enablePreviewFeedback": null,
+      "enableProductionFeedback": null,
+      "sensitiveEnvironmentVariablePolicy": "default",
+      "isMigratingToSensitiveEnvVars": false,
+      "creatorId": "AydVCx5XBC00DwMU0gvQPwUB",
+      "updatedAt": 1761725358324,
+      "platformVersion": null,
+      "billing": {
+        "address": null,
+        "cancelation": null,
+        "email": "nonsanwin@gmail.com",
+        "language": null,
+        "name": "kimyongmin's projects",
+        "platform": "stripe",
+        "period": null,
+        "plan": "hobby",
+        "tax": null,
+        "currency": "usd",
+        "trial": null,
+        "invoiceItems": null,
+        "status": "active",
+        "planIteration": "legacy",
+        "billingVersion": 2,
+        "plusMigrationEnabled": true
+      },
+      "description": null,
+      "profiles": [],
+      "stagingPrefix": "kimyongmins-projects-0691bbec",
+      "resourceConfig": {
+        "concurrentBuilds": 1,
+        "elasticConcurrencyEnabled": false
+      },
+      "previewDeploymentSuffix": null,
+      "softBlock": null,
+      "blocked": null,
+      "remoteCaching": {
+        "enabled": true
+      },
+      "enabledInvoiceItems": {
+        "vercelMarketplace": {
+          "enabled": true
+        }
+      },
+      "featureBlocks": {},
+      "spaces": {
+        "enabled": false
+      },
+      "createdDirectToHobby": true,
+      "defaultExpirationSettings": {
+        "expirationDays": 180,
+        "expirationDaysProduction": 365,
+        "expirationDaysCanceled": 30,
+        "expirationDaysErrored": 90,
+        "deploymentsToKeep": 10
+      }
+    }
+  ],
+  "pagination": {
+    "count": 1,
+    "next": 1761725352826,
+    "prev": 1761725352826
+  }
+}

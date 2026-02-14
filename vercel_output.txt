@@ -1,0 +1,151 @@
+﻿node.exe : Vercel CLI 50.1.6
+위치 줄:1 문자:1
++ & "C:\Program Files\nodejs/
+node.exe" "C:\Users\UserPC\Ap
+pData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Vercel   
+  CLI 50.1.6:String) [], R   
+ emoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Retrieving project??Fetching 
+deployments in kimyongmins-pr
+ojects-0691bbec
+> Deployments for kimyongmins
+-projects-0691bbec/cleanteam 
+[195ms]
+
+  Age     Deployment         
+                             
+                         Stat
+us      Environment     Durat
+ion     Username           
+  2m      https://cleanteam-8
+oysdhuct-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  10h     https://cleanteam-k
+7qnb38b7-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      47s  
+        nonsanwin-8522     
+  10h     https://cleanteam-9
+9dmmaqvj-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      47s  
+        nonsanwin-8522     
+  10h     https://cleanteam-q
+9cu9wh7u-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      44s  
+        nonsanwin-8522     
+  10h     https://cleanteam-f
+71l83ik6-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      46s  
+        nonsanwin-8522     
+  11h     https://cleanteam-3
+xma8cdrq-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  12h     https://cleanteam-f
+5i0hav97-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      47s  
+        nonsanwin-8522     
+  12h     https://cleanteam-8
+w272151y-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  12h     https://cleanteam-g
+xtclep63-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      46s  
+        nonsanwin-8522     
+  12h     https://cleanteam-7
+2dbnk8x7-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      46s  
+        nonsanwin-8522     
+  13h     https://cleanteam-c
+ikcrkyoh-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      44s  
+        nonsanwin-8522     
+  13h     https://cleanteam-k
+ip6gr551-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      46s  
+        nonsanwin-8522     
+  13h     https://cleanteam-2
+8lmk62rk-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  13h     https://cleanteam-g
+v5y2h88a-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  14h     https://cleanteam-9
+gfabd1gx-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      43s  
+        nonsanwin-8522     
+  14h     https://cleanteam-l
+unoyhlka-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      47s  
+        nonsanwin-8522     
+  14h     https://cleanteam-a
+zjdzg4gs-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      45s  
+        nonsanwin-8522     
+  14h     https://cleanteam-3
+m02owwg3-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      43s  
+        nonsanwin-8522     
+  14h     https://cleanteam-f
+5ixhdcrc-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      44s  
+        nonsanwin-8522     
+  14h     https://cleanteam-4
+y514ak9n-kimyongmins-projects
+-0691bbec.vercel.app     ??Re
+ady     Production      46s  
+        nonsanwin-8522     
+
+> To display the next page, r
+un `vercel ls --next 17708863
+38195`
+https://cleanteam-8oysdhuct-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-k7qnb38b7-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-99dmmaqvj-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-q9cu9wh7u-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-f71l83ik6-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-3xma8cdrq-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-f5i0hav97-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-8w272151y-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-gxtclep63-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-72dbnk8x7-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-cikcrkyoh-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-kip6gr551-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-28lmk62rk-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-gv5y2h88a-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-9gfabd1gx-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-lunoyhlka-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-azjdzg4gs-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-3m02owwg3-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-f5ixhdcrc-kimyongmins-projects-0691bbec.vercel.app
+https://cleanteam-4y514ak9n-kimyongmins-projects-0691bbec.vercel.app

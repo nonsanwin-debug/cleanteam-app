@@ -1,0 +1,13 @@
+{
+  "total": 100,
+  "allReturned": 100,
+  "byProject": {
+    "cleanteam": 53,
+    "cleanteam-app": 47
+  },
+  "byState": {
+    "READY": 100
+  },
+  "oldest": "2026-02-11T20:16:05.677Z",
+  "newest": "2026-02-12T22:56:09.407Z"
+}

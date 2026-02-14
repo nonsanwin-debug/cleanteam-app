@@ -164,7 +164,14 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
     try {
         const supabase = await createClient()
 
-        // Use RPC function for atomic updates and RLS bypass
+        // 1. 먼저 출금 요청 정보 조회 (wallet_logs 기록용)
+        const { data: request } = await supabase
+            .from('withdrawal_requests')
+            .select('user_id, amount, users(name, current_money, company_id)')
+            .eq('id', requestId)
+            .single()
+
+        // 2. Use RPC function for atomic updates and RLS bypass
         const { data, error } = await supabase.rpc('process_withdrawal_admin', {
             p_request_id: requestId,
             p_status: action,
@@ -179,6 +186,30 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
         if (!data || !data.success) {
             console.error('Process withdrawal failed:', data)
             return { success: false, error: data?.error || '처리 실패' }
+        }
+
+        // 3. 지급완료 시 wallet_logs에 정산 기록 추가
+        if (action === 'paid' && request) {
+            const user = request.users as any
+            const currentMoney = user?.current_money || 0
+            const companyId = user?.company_id
+            const workerName = user?.name || '알 수 없음'
+
+            const { error: logError } = await supabase
+                .from('wallet_logs')
+                .insert({
+                    user_id: request.user_id,
+                    company_id: companyId,
+                    type: 'withdrawal',
+                    amount: -request.amount,
+                    balance_after: currentMoney,
+                    description: `출금 지급완료: ${workerName} ${request.amount.toLocaleString()}원`,
+                    reference_id: requestId
+                })
+
+            if (logError) {
+                console.error('Withdrawal wallet log insert error:', logError)
+            }
         }
 
         revalidatePath('/admin/users')
@@ -478,7 +509,7 @@ export async function getCommissionLogs() {
         .from('wallet_logs')
         .select('id, user_id, type, amount, balance_after, description, reference_id, created_at')
         .eq('company_id', companyId)
-        .in('type', ['commission', 'manual_add', 'manual_deduct'])
+        .in('type', ['commission', 'manual_add', 'manual_deduct', 'withdrawal'])
         .order('created_at', { ascending: false })
 
     if (error) {
