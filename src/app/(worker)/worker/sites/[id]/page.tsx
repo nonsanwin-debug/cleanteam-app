@@ -517,7 +517,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 1</span>
                     사진 기록
                 </h3>
-                <PhotoUploader siteId={site.id} existingPhotos={photos} />
+                <PhotoUploader siteId={site.id} existingPhotos={photos} canDelete={isLeader} />
             </section>
 
             {/* Checklist Section */}

@@ -19,9 +19,10 @@ interface PhotoUploaderProps {
     siteId: string
     existingPhotos: any[]
     readOnly?: boolean
+    canDelete?: boolean
 }
 
-export function PhotoUploader({ siteId, existingPhotos, readOnly = false }: PhotoUploaderProps) {
+export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false }: PhotoUploaderProps) {
     const router = useRouter()
     const [isUploading, setIsUploading] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -311,7 +312,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false }: Phot
                                     {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-slate-700" />}
                                 </Button>
 
-                                {!readOnly && (
+                                {canDelete && (
                                     <Button
                                         variant="destructive"
                                         size="icon"
