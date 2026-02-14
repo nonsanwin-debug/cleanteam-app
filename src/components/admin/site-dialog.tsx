@@ -609,12 +609,12 @@ export function SiteDialog({
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="unassigned">미지정</SelectItem>
-                                            {workers.length === 0 ? (
+                                            {workers.filter(w => (w as any).worker_type === 'leader').length === 0 ? (
                                                 <SelectItem value="none" disabled>
                                                     조회된 팀장이 없습니다 (권한 확인 필요)
                                                 </SelectItem>
                                             ) : (
-                                                workers.map((worker) => (
+                                                workers.filter(w => (w as any).worker_type === 'leader').map((worker) => (
                                                     <SelectItem key={worker.id} value={worker.id}>
                                                         {worker.name || '이름 없음'}
                                                     </SelectItem>
