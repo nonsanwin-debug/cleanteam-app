@@ -14,6 +14,7 @@ import { Sparkles, Loader2, Check, AlertCircle } from 'lucide-react'
 type Worker = {
     id: string
     name: string | null
+    worker_type?: 'leader' | 'member'
 }
 
 type ParsedData = {
@@ -280,7 +281,7 @@ export function OrderParserDialog({ workers }: OrderParserDialogProps) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">미배정</SelectItem>
-                                    {workers.map(w => (
+                                    {workers.filter(w => w.worker_type === 'leader').map(w => (
                                         <SelectItem key={w.id} value={w.id}>
                                             {w.name || '이름 없음'}
                                         </SelectItem>
