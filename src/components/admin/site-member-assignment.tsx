@@ -44,6 +44,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
     const [isPending, startTransition] = useTransition()
     const [selectedMember, setSelectedMember] = useState<string | null>(null)
     const [draggedMember, setDraggedMember] = useState<string | null>(null)
+    const [dragOverSiteId, setDragOverSiteId] = useState<string | null>(null)
 
     // 팀원 필터 (leader가 아닌 모든 워커)
     const members = workers.filter(w => w.worker_type !== 'leader')
@@ -98,10 +99,12 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
             handleAssign(siteId, workerId)
         }
         setDraggedMember(null)
+        setDragOverSiteId(null)
     }
 
     function onDragEnd() {
         setDraggedMember(null)
+        setDragOverSiteId(null)
     }
 
     // 터치(모바일): 팀원 선택 후 현장 탭
@@ -188,19 +191,29 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                 ) : (
                     sites.map((site, idx) => {
                         const assigned = siteMembersMap.get(site.id) || []
-                        const isDropTarget = selectedMember !== null || draggedMember !== null
+                        const isHovered = dragOverSiteId === site.id
+                        const isSelecting = selectedMember !== null
 
                         return (
                             <Card
                                 key={site.id}
                                 onDragOver={onDragOver}
+                                onDragEnter={() => setDragOverSiteId(site.id)}
+                                onDragLeave={(e) => {
+                                    // 자식 요소로의 이동은 무시
+                                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                        setDragOverSiteId(null)
+                                    }
+                                }}
                                 onDrop={(e) => onDrop(e, site.id)}
                                 onClick={() => handleSiteTap(site.id)}
                                 className={`
                                     overflow-hidden group transition-all duration-150
-                                    ${isDropTarget
-                                        ? 'border-blue-300 border-2 border-dashed bg-blue-50/30 hover:border-blue-500 hover:bg-blue-50/60'
-                                        : 'hover:border-slate-400'
+                                    ${isHovered
+                                        ? 'border-blue-500 border-2 bg-blue-50/50 shadow-lg scale-[1.02]'
+                                        : isSelecting
+                                            ? 'hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer'
+                                            : 'hover:border-slate-400'
                                     }
                                 `}
                             >

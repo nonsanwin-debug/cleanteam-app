@@ -8,9 +8,11 @@ interface Worker {
     id: string
     name: string
     display_color?: string | null
+    worker_type?: 'leader' | 'member'
 }
 
 export function AdminWorkerFilter({ workers }: { workers: Worker[] }) {
+    const leaders = workers.filter(w => w.worker_type === 'leader')
     const router = useRouter()
     const searchParams = useSearchParams()
     const selectedWorkerId = searchParams.get('worker') || ''
@@ -26,7 +28,7 @@ export function AdminWorkerFilter({ workers }: { workers: Worker[] }) {
         router.push(`/admin/sites${query ? `?${query}` : ''}`)
     }
 
-    const selectedWorker = workers.find(w => w.id === selectedWorkerId)
+    const selectedWorker = leaders.find(w => w.id === selectedWorkerId)
 
     return (
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -38,7 +40,7 @@ export function AdminWorkerFilter({ workers }: { workers: Worker[] }) {
             >
                 전체
             </Button>
-            {workers.map(worker => (
+            {leaders.map(worker => (
                 <Button
                     key={worker.id}
                     variant={selectedWorkerId === worker.id ? 'default' : 'outline'}
