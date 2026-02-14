@@ -317,6 +317,7 @@ export async function getRecentActivities() {
             type: 'photo_uploaded' as 'photo_uploaded' | 'work_started' | 'work_completed',
             actor: group.userName,
             target: group.siteName,
+            siteId: group.siteId,
             timestamp: group.latestTimestamp,
             count: group.count
         }))

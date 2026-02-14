@@ -1,6 +1,7 @@
 import { getDashboardStats, getTodayActivitySites, getRecentActivities } from "@/actions/sites"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Building, ClipboardCheck, AlertCircle, Clock, CheckCircle2, PlayCircle, Image as ImageIcon } from "lucide-react"
+import Link from "next/link"
 
 function calculateDuration(start?: string, end?: string) {
     if (!start) return "알 수 없음"
@@ -198,9 +199,19 @@ export default async function AdminDashboard() {
                                                 {activity.type === 'work_completed' && '작업을 완료했습니다.'}
                                                 {activity.type === 'photo_uploaded' && `사진을 올렸습니다 (${activity.count || 1}장)`}
                                             </p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">
-                                                {formatTime(activity.timestamp)}
-                                            </p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <p className="text-[10px] text-slate-400">
+                                                    {formatTime(activity.timestamp)}
+                                                </p>
+                                                {activity.type === 'photo_uploaded' && activity.siteId && (
+                                                    <Link
+                                                        href={`/admin/sites/${activity.siteId}`}
+                                                        className="text-[10px] text-blue-500 hover:text-blue-700 font-medium hover:underline"
+                                                    >
+                                                        바로확인 →
+                                                    </Link>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))
