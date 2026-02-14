@@ -14,11 +14,10 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
 
-        // console.log('getAssignedSites user:', user?.id) // Debug log
-
         if (!user) return []
 
-        const { data, error } = await supabase
+        // 1. 팀장으로 배정된 현장 (기존)
+        const { data: leaderSites, error } = await supabase
             .from('sites')
             .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
             .eq('worker_id', user.id)
@@ -29,7 +28,32 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
             return []
         }
 
-        return data as AssignedSite[]
+        // 2. 팀원으로 배정된 현장 (site_members)
+        let memberSites: AssignedSite[] = []
+        try {
+            const { data: memberData } = await supabase
+                .from('site_members')
+                .select('site_id')
+                .eq('user_id', user.id)
+
+            if (memberData && memberData.length > 0) {
+                const siteIds = memberData.map(m => m.site_id)
+                const { data: sites } = await supabase
+                    .from('sites')
+                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
+                    .in('id', siteIds)
+                    .order('created_at', { ascending: true })
+
+                memberSites = (sites || []) as AssignedSite[]
+            }
+        } catch {
+            // site_members 테이블이 없을 수 있음
+        }
+
+        // 중복 제거 후 합산
+        const allSites = [...(leaderSites || []) as AssignedSite[], ...memberSites]
+        const uniqueSites = Array.from(new Map(allSites.map(s => [s.id, s])).values())
+        return uniqueSites
     } catch (error) {
         console.error('Unexpected error in getAssignedSites:', error)
         return []
