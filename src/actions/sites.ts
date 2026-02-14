@@ -639,6 +639,64 @@ export async function addSiteMember(siteId: string, userId: string) {
             return { success: false, error: error.message }
         }
 
+        // 푸시 알림 발송
+        try {
+            const { sendPushToUser } = await import('@/actions/push')
+
+            // 현장 정보 (이름, 팀장 ID)
+            const { data: site } = await supabase
+                .from('sites')
+                .select('name, worker_id')
+                .eq('id', siteId)
+                .single()
+
+            // 배정된 팀원 이름
+            const { data: member } = await supabase
+                .from('users')
+                .select('name')
+                .eq('id', userId)
+                .single()
+
+            const siteName = site?.name || '현장'
+            const memberName = member?.name || '팀원'
+
+            // 팀장에게 알림: "OOO 팀원이 OOO 현장에 배정되었습니다"
+            if (site?.worker_id) {
+                const { data: leader } = await supabase
+                    .from('users')
+                    .select('name')
+                    .eq('id', site.worker_id)
+                    .single()
+
+                await sendPushToUser(site.worker_id, {
+                    title: '팀원 배정 알림',
+                    body: `${memberName} 팀원이 ${siteName} 현장에 배정되었습니다`,
+                    url: '/worker',
+                    tag: 'member-assigned',
+                })
+
+                // 팀원에게 알림: "OOO 현장에 배정되었습니다 (팀장: OOO)"
+                const leaderName = leader?.name || '팀장'
+                await sendPushToUser(userId, {
+                    title: '현장 배정 알림',
+                    body: `${siteName} 현장에 배정되었습니다 (팀장: ${leaderName})`,
+                    url: '/worker',
+                    tag: 'site-assigned',
+                })
+            } else {
+                // 팀장 미배정인 경우 팀원에게만 알림
+                await sendPushToUser(userId, {
+                    title: '현장 배정 알림',
+                    body: `${siteName} 현장에 배정되었습니다`,
+                    url: '/worker',
+                    tag: 'site-assigned',
+                })
+            }
+        } catch (pushError) {
+            console.error('Push notification error:', pushError)
+            // 푸시 실패해도 배정은 성공 처리
+        }
+
         revalidatePath('/admin/sites')
         return { success: true }
     } catch (e: any) {
