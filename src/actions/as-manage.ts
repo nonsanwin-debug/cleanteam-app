@@ -209,11 +209,12 @@ export async function getASStats() {
         .eq('status', 'completed')
         .eq('company_id', companyId)
 
-    // 3. Get all AS requests for this company
+    // 3. Get all AS requests for workers in this company
+    const workerIds = workers.map(w => w.id)
     const { data: asRequests } = await supabase
         .from('as_requests')
-        .select('worker_id, site!inner(company_id)')
-        .eq('site.company_id', companyId)
+        .select('worker_id')
+        .in('worker_id', workerIds)
 
     const stats = workers.map(worker => {
         const completedCount = sites?.filter(s => s.worker_id === worker.id).length || 0
