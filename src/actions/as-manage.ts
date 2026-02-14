@@ -67,6 +67,33 @@ export async function createASRequest(formData: {
         return { success: false, error: data.error || '등록 실패' }
     }
 
+    // 차감 금액이 있으면 wallet_logs에 penalty 기록 추가 (팀장 활동 내역에 표시)
+    const penaltyAmount = formData.penalty_amount || 0
+    if (penaltyAmount > 0 && formData.worker_id) {
+        // 차감 후 잔액 조회
+        const { data: worker } = await supabase
+            .from('users')
+            .select('current_money, company_id')
+            .eq('id', formData.worker_id)
+            .single()
+
+        const { error: logError } = await supabase
+            .from('wallet_logs')
+            .insert({
+                user_id: formData.worker_id,
+                company_id: worker?.company_id,
+                type: 'penalty',
+                amount: -penaltyAmount,
+                balance_after: worker?.current_money || 0,
+                description: `AS 차감: ${formData.site_name} - ${formData.description.substring(0, 30)}`,
+                reference_id: data?.id || null
+            })
+
+        if (logError) {
+            console.error('AS penalty wallet log insert error:', logError)
+        }
+    }
+
     revalidatePath('/admin/as-manage')
     return { success: true }
 }
