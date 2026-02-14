@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getASRequestById } from '@/actions/as-manage'
+import { getASRequestById, updateASRequest } from '@/actions/as-manage'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, AlertTriangle, Share2, Copy, Loader2, MapPin, CalendarDays } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, CheckCircle2, Loader2, MapPin, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function WorkerASDetailPage() {
@@ -14,6 +14,7 @@ export default function WorkerASDetailPage() {
     const router = useRouter()
     const [asRequest, setAsRequest] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [completing, setCompleting] = useState(false)
 
     useEffect(() => {
         async function load() {
@@ -39,21 +40,26 @@ export default function WorkerASDetailPage() {
         )
     }
 
-    const shareUrl = `${window.location.origin}/share/as/${asRequest.id}`
-
-    async function handleShareLink() {
+    async function handleComplete() {
+        if (!confirm('AS 작업을 완료 처리하시겠습니까?')) return
+        setCompleting(true)
         try {
-            await navigator.clipboard.writeText(shareUrl)
-            toast.success('고객 공유 링크가 복사되었습니다.')
+            const res = await updateASRequest(asRequest.id, {
+                description: asRequest.description,
+                processing_details: asRequest.processing_details || '',
+                status: 'resolved',
+                resolved_at: new Date().toISOString(),
+            })
+            if (res.success) {
+                toast.success('AS 작업이 완료 처리되었습니다.')
+                setAsRequest({ ...asRequest, status: 'resolved' })
+            } else {
+                toast.error('처리 실패: ' + res.error)
+            }
         } catch {
-            // Fallback
-            const textArea = document.createElement('textarea')
-            textArea.value = shareUrl
-            document.body.appendChild(textArea)
-            textArea.select()
-            document.execCommand('copy')
-            textArea.remove()
-            toast.success('고객 공유 링크가 복사되었습니다.')
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setCompleting(false)
         }
     }
 
@@ -158,15 +164,24 @@ export default function WorkerASDetailPage() {
                 </Card>
             )}
 
-            {/* Share Button */}
-            <Button
-                className="w-full h-12 text-base"
-                variant="outline"
-                onClick={handleShareLink}
-            >
-                <Share2 className="mr-2 h-5 w-5" />
-                고객 공유 링크 복사
-            </Button>
+            {/* Complete Button */}
+            {asRequest.status !== 'resolved' ? (
+                <Button
+                    className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
+                    onClick={handleComplete}
+                    disabled={completing}
+                >
+                    {completing ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
+                    작업 완료
+                </Button>
+            ) : (
+                <div className="text-center py-4">
+                    <div className="inline-flex items-center gap-2 text-green-600 font-semibold">
+                        <CheckCircle2 className="h-5 w-5" />
+                        처리 완료됨
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
