@@ -264,62 +264,61 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>현장 선택</Label>
-                            <Select
-                                value={formData.site_id}
-                                onValueChange={(val) => {
-                                    const site = sites.find(s => s.id === val)
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        site_id: val,
-                                        site_name: site?.name || '',
-                                        worker_id: site?.worker_id || prev.worker_id
-                                    }))
-                                }}
-                                required
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="현장 선택" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {sites.map(site => {
-                                        const dateStr = site.cleaning_date
-                                            ? (() => {
-                                                const d = new Date(site.cleaning_date + 'T00:00:00')
-                                                return `${d.getMonth() + 1}/${d.getDate()}`
-                                            })()
-                                            : ''
-                                        const workerName = site.worker?.name || ''
-                                        const label = [site.name, dateStr, workerName].filter(Boolean).join(' · ')
-                                        return (
-                                            <SelectItem key={site.id} value={site.id}>
-                                                {label}
-                                            </SelectItem>
-                                        )
-                                    })}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>관련 팀장</Label>
-                            <Select
-                                value={formData.worker_id}
-                                onValueChange={(val) => setFormData(prev => ({ ...prev, worker_id: val }))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="팀장 선택 (선택)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {workers.map(worker => (
-                                        <SelectItem key={worker.id} value={worker.id}>
-                                            {worker.name} (잔액: {(worker.current_money || 0).toLocaleString()}원)
+                    <div className="space-y-2">
+                        <Label>현장 선택</Label>
+                        <Select
+                            value={formData.site_id}
+                            onValueChange={(val) => {
+                                const site = sites.find(s => s.id === val)
+                                setFormData(prev => ({
+                                    ...prev,
+                                    site_id: val,
+                                    site_name: site?.name || '',
+                                    worker_id: site?.worker_id || prev.worker_id
+                                }))
+                            }}
+                            required
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="현장 선택" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sites.map(site => {
+                                    const dateStr = site.cleaning_date
+                                        ? (() => {
+                                            const d = new Date(site.cleaning_date + 'T00:00:00')
+                                            return `${d.getMonth() + 1}/${d.getDate()}`
+                                        })()
+                                        : ''
+                                    const workerName = site.worker?.name || ''
+                                    const label = [site.name, dateStr, workerName].filter(Boolean).join(' · ')
+                                    return (
+                                        <SelectItem key={site.id} value={site.id}>
+                                            {label}
                                         </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                                    )
+                                })}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>AS담당팀장</Label>
+                        <Select
+                            value={formData.worker_id}
+                            onValueChange={(val) => setFormData(prev => ({ ...prev, worker_id: val }))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="팀장 선택 (선택)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {workers.map(worker => (
+                                    <SelectItem key={worker.id} value={worker.id}>
+                                        {worker.name} (잔액: {(worker.current_money || 0).toLocaleString()}원)
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
