@@ -45,8 +45,8 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
     const [selectedMember, setSelectedMember] = useState<string | null>(null)
     const [draggedMember, setDraggedMember] = useState<string | null>(null)
 
-    // 팀원만 필터 (member 타입)
-    const members = workers.filter(w => w.worker_type === 'member')
+    // 팀원 필터 (leader가 아닌 모든 워커)
+    const members = workers.filter(w => w.worker_type !== 'leader')
 
     // 현장별 배정 팀원 맵
     const siteMembersMap = new Map<string, SiteMember[]>()

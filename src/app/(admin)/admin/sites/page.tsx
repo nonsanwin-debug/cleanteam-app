@@ -13,11 +13,17 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminSitesPage(props: { searchParams: Promise<{ date?: string; worker?: string; period?: string }> }) {
     const searchParams = await props.searchParams;
-    const [sites, workers, siteMembers] = await Promise.all([
+    const [sites, workers] = await Promise.all([
         getSites(),
         getWorkers(),
-        getAllSiteMembers()
     ])
+    // site_members 테이블이 없을 수 있으므로 별도 처리
+    let siteMembers: any[] = []
+    try {
+        siteMembers = await getAllSiteMembers()
+    } catch {
+        // 테이블 미존재 시 빈 배열
+    }
 
     // Default to today if no date is provided
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
