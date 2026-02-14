@@ -676,11 +676,7 @@ export async function getAllSiteMembers() {
 
     const { data, error } = await supabase
         .from('site_members')
-        .select(`
-            site_id,
-            user_id,
-            user:users!user_id (name, display_color)
-        `)
+        .select('site_id, user_id')
         .eq('company_id', companyId)
 
     if (error) {

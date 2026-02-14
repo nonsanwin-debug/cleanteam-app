@@ -20,7 +20,6 @@ type Worker = {
 type SiteMember = {
     site_id: string
     user_id: string
-    user: { name: string; display_color?: string | null } | null
 }
 
 type Site = {
@@ -47,9 +46,13 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
     const [selectedMember, setSelectedMember] = useState<string | null>(null)
     const [draggedMember, setDraggedMember] = useState<string | null>(null)
     const [dragOverSiteId, setDragOverSiteId] = useState<string | null>(null)
+    const [hoveredMemberId, setHoveredMemberId] = useState<string | null>(null)
 
     // 팀원 필터 (leader가 아닌 모든 워커)
     const members = workers.filter(w => w.worker_type !== 'leader')
+
+    // 워커 ID → 워커 정보 맵
+    const workerMap = new Map(workers.map(w => [w.id, w]))
 
     // 현장별 배정 팀원 맵
     const siteMembersMap = new Map<string, SiteMember[]>()
@@ -143,39 +146,49 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                         )}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {members.map(member => (
-                            <div
-                                key={member.id}
-                                draggable
-                                onDragStart={(e) => onDragStart(e, member.id)}
-                                onDragEnd={onDragEnd}
-                                onClick={() => handleMemberTap(member.id)}
-                                className={`
-                                    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
-                                    cursor-grab active:cursor-grabbing select-none transition-all duration-150
-                                    hover:brightness-90 hover:shadow-lg
-                                    ${selectedMember === member.id
-                                        ? 'ring-2 ring-green-500 ring-offset-2 shadow-lg scale-105'
-                                        : 'hover:shadow-md hover:scale-[1.02]'
-                                    }
-                                    ${draggedMember === member.id ? 'opacity-50' : ''}
-                                `}
-                                style={{
-                                    ...{
-                                        backgroundColor: member.display_color
-                                            ? `${member.display_color}20`
-                                            : '#f1f5f9',
-                                        color: member.display_color || '#475569',
-                                        borderWidth: '1.5px',
-                                        borderColor: member.display_color || '#cbd5e1',
-                                    },
-                                    cursor: 'grab',
-                                }}
-                            >
-                                <GripHorizontal className="h-3 w-3 opacity-40" />
-                                {member.name}
-                            </div>
-                        ))}
+                        {members.map(member => {
+                            const isHoveredChip = hoveredMemberId === member.id
+                            return (
+                                <div
+                                    key={member.id}
+                                    draggable
+                                    onDragStart={(e) => onDragStart(e, member.id)}
+                                    onDragEnd={onDragEnd}
+                                    onClick={() => handleMemberTap(member.id)}
+                                    onMouseEnter={() => setHoveredMemberId(member.id)}
+                                    onMouseLeave={() => setHoveredMemberId(null)}
+                                    className={`
+                                        inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
+                                        cursor-grab active:cursor-grabbing select-none transition-all duration-150
+                                        ${selectedMember === member.id
+                                            ? 'ring-2 ring-green-500 ring-offset-2 shadow-lg scale-105'
+                                            : ''
+                                        }
+                                        ${draggedMember === member.id ? 'opacity-50' : ''}
+                                    `}
+                                    style={{
+                                        backgroundColor: isHoveredChip
+                                            ? '#dcfce7'
+                                            : member.display_color
+                                                ? `${member.display_color}20`
+                                                : '#f1f5f9',
+                                        color: isHoveredChip
+                                            ? '#16a34a'
+                                            : member.display_color || '#475569',
+                                        borderWidth: '2px',
+                                        borderColor: isHoveredChip
+                                            ? '#22c55e'
+                                            : member.display_color || '#cbd5e1',
+                                        cursor: 'grab',
+                                        transform: isHoveredChip ? 'scale(1.05)' : undefined,
+                                        boxShadow: isHoveredChip ? '0 4px 12px rgba(34,197,94,0.3)' : undefined,
+                                    }}
+                                >
+                                    <GripHorizontal className="h-3 w-3 opacity-40" />
+                                    {member.name}
+                                </div>
+                            )
+                        })}
                     </div>
                     {selectedMember && (
                         <Button
@@ -275,44 +288,50 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     <span className="text-slate-400 italic">담당자 미지정</span>
                                                 )}
                                             </span>
-                                            {assigned.map(sm => (
-                                                <span key={sm.user_id} className="inline-flex items-center">
-                                                    <span className="text-slate-300 mx-1">/</span>
-                                                    <span className="text-xs font-medium" style={{ color: sm.user?.display_color || '#64748b' }}>
-                                                        (팀원){sm.user?.name || '팀원'}
+                                            {assigned.map(sm => {
+                                                const memberInfo = workerMap.get(sm.user_id)
+                                                return (
+                                                    <span key={sm.user_id} className="inline-flex items-center">
+                                                        <span className="text-slate-300 mx-1">/</span>
+                                                        <span className="text-xs font-medium" style={{ color: memberInfo?.display_color || '#64748b' }}>
+                                                            (팀원){memberInfo?.name || '팀원'}
+                                                        </span>
                                                     </span>
-                                                </span>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
                                     </Link>
 
                                     {/* 배정된 팀원 */}
                                     {assigned.length > 0 && (
                                         <div className="flex flex-wrap gap-1 pt-1">
-                                            {assigned.map(sm => (
-                                                <span
-                                                    key={sm.user_id}
-                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
-                                                    style={{
-                                                        backgroundColor: sm.user?.display_color
-                                                            ? `${sm.user.display_color}20`
-                                                            : '#f1f5f9',
-                                                        color: sm.user?.display_color || '#64748b',
-                                                    }}
-                                                >
-                                                    {sm.user?.name || '팀원'}
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault()
-                                                            e.stopPropagation()
-                                                            handleRemove(site.id, sm.user_id)
+                                            {assigned.map(sm => {
+                                                const memberInfo = workerMap.get(sm.user_id)
+                                                return (
+                                                    <span
+                                                        key={sm.user_id}
+                                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
+                                                        style={{
+                                                            backgroundColor: memberInfo?.display_color
+                                                                ? `${memberInfo.display_color}20`
+                                                                : '#f1f5f9',
+                                                            color: memberInfo?.display_color || '#64748b',
                                                         }}
-                                                        className="ml-0.5 hover:text-red-500 transition-colors pointer-events-auto"
                                                     >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
+                                                        {memberInfo?.name || '팀원'}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault()
+                                                                e.stopPropagation()
+                                                                handleRemove(site.id, sm.user_id)
+                                                            }}
+                                                            className="ml-0.5 hover:text-red-500 transition-colors pointer-events-auto"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </span>
+                                                )
+                                            })}
                                         </div>
                                     )}
 
