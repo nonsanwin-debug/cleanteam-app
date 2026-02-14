@@ -316,198 +316,200 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </CardContent>
             </Card>
 
-            {/* Settlement Info Card */}
-            <Card className="border-blue-200 bg-blue-50/30">
-                <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                        <Wallet className="h-5 w-5 text-blue-600" />
-                        정산 정보
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b">
-                        <span className="text-sm text-slate-500">잔금</span>
-                        <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
-                    </div>
-
-                    {editingAdditional ? (
-                        <div className="space-y-3 py-2 border-b">
-                            <div>
-                                <label className="text-sm text-slate-500 block mb-1">추가금액</label>
-                                <Input
-                                    type="number"
-                                    value={additionalAmountVal}
-                                    onChange={(e) => setAdditionalAmountVal(e.target.value)}
-                                    placeholder="추가금액 입력"
-                                    className="bg-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm text-slate-500 block mb-1">추가 사유</label>
-                                <Textarea
-                                    value={additionalDescVal}
-                                    onChange={(e) => setAdditionalDescVal(e.target.value)}
-                                    placeholder="추가 작업 내용을 입력하세요"
-                                    className="bg-white resize-none"
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    size="sm"
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700"
-                                    onClick={async () => {
-                                        setSavingAdditional(true)
-                                        const result = await updateSiteAdditional(
-                                            site.id,
-                                            parseInt(additionalAmountVal) || 0,
-                                            additionalDescVal
-                                        )
-                                        setSavingAdditional(false)
-                                        if (result.success) {
-                                            toast.success('추가금이 수정되었습니다.')
-                                            setSite(prev => prev ? {
-                                                ...prev,
-                                                additional_amount: parseInt(additionalAmountVal) || 0,
-                                                additional_description: additionalDescVal
-                                            } : prev)
-                                            setEditingAdditional(false)
-                                        } else {
-                                            toast.error(result.error || '수정 실패')
-                                        }
-                                    }}
-                                    disabled={savingAdditional}
-                                >
-                                    {savingAdditional ? (
-                                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                    ) : (
-                                        <Save className="h-4 w-4 mr-1" />
-                                    )}
-                                    저장
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setEditingAdditional(false)}
-                                    disabled={savingAdditional}
-                                >
-                                    <X className="h-4 w-4 mr-1" />
-                                    취소
-                                </Button>
-                            </div>
+            {/* Settlement Info Card - 팀장만 표시 */}
+            {isLeader && (
+                <Card className="border-blue-200 bg-blue-50/30">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <Wallet className="h-5 w-5 text-blue-600" />
+                            정산 정보
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between py-2 border-b">
+                            <span className="text-sm text-slate-500">잔금</span>
+                            <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
                         </div>
-                    ) : (
-                        <div className="py-2 border-b">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm text-slate-500">추가금</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-bold text-lg text-blue-700">
-                                        {(site.additional_amount || 0).toLocaleString()}원
-                                    </span>
-                                    {site.status !== 'completed' && (
-                                        <button
-                                            onClick={() => {
-                                                setAdditionalAmountVal(String(site.additional_amount || 0))
-                                                setAdditionalDescVal(site.additional_description || '')
-                                                setEditingAdditional(true)
-                                            }}
-                                            className="p-1 rounded hover:bg-blue-100"
-                                        >
-                                            <Pencil className="h-3.5 w-3.5 text-blue-500" />
-                                        </button>
-                                    )}
+
+                        {editingAdditional ? (
+                            <div className="space-y-3 py-2 border-b">
+                                <div>
+                                    <label className="text-sm text-slate-500 block mb-1">추가금액</label>
+                                    <Input
+                                        type="number"
+                                        value={additionalAmountVal}
+                                        onChange={(e) => setAdditionalAmountVal(e.target.value)}
+                                        placeholder="추가금액 입력"
+                                        className="bg-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm text-slate-500 block mb-1">추가 사유</label>
+                                    <Textarea
+                                        value={additionalDescVal}
+                                        onChange={(e) => setAdditionalDescVal(e.target.value)}
+                                        placeholder="추가 작업 내용을 입력하세요"
+                                        className="bg-white resize-none"
+                                        rows={2}
+                                    />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                        onClick={async () => {
+                                            setSavingAdditional(true)
+                                            const result = await updateSiteAdditional(
+                                                site.id,
+                                                parseInt(additionalAmountVal) || 0,
+                                                additionalDescVal
+                                            )
+                                            setSavingAdditional(false)
+                                            if (result.success) {
+                                                toast.success('추가금이 수정되었습니다.')
+                                                setSite(prev => prev ? {
+                                                    ...prev,
+                                                    additional_amount: parseInt(additionalAmountVal) || 0,
+                                                    additional_description: additionalDescVal
+                                                } : prev)
+                                                setEditingAdditional(false)
+                                            } else {
+                                                toast.error(result.error || '수정 실패')
+                                            }
+                                        }}
+                                        disabled={savingAdditional}
+                                    >
+                                        {savingAdditional ? (
+                                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                        ) : (
+                                            <Save className="h-4 w-4 mr-1" />
+                                        )}
+                                        저장
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setEditingAdditional(false)}
+                                        disabled={savingAdditional}
+                                    >
+                                        <X className="h-4 w-4 mr-1" />
+                                        취소
+                                    </Button>
                                 </div>
                             </div>
-                            {site.additional_description && (
-                                <p className="text-sm text-slate-600 mt-1 bg-white/60 p-2 rounded">
-                                    {site.additional_description}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-1">
-                        <span className="text-sm font-medium text-slate-700">총 합계 (잔금 + 추가)</span>
-                        <span className="font-bold text-xl text-green-700">
-                            {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
-                        </span>
-                    </div>
-
-                    <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4">
-                        {site.collection_type === 'site' ? (
-                            <div className="space-y-3">
-                                <p className="font-bold text-red-600 text-lg text-center">
-                                    ⚠️ 현장 팀장 수금입니다
-                                </p>
-                                {smsSettings?.sms_enabled ? (
-                                    <>
-                                        <p className="text-sm text-red-600 text-center font-medium">
-                                            버튼 클릭 시 고객에게 안내문자 발송 합니다
-                                        </p>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
-                                            onClick={() => {
-                                                const balance = site.balance_amount || 0
-                                                const additional = site.additional_amount || 0
-                                                const total = balance + additional
-                                                const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
-                                                const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
-                                                const template = smsSettings?.sms_message_template || ''
-                                                const messageBody = template
-                                                    .replace('{은행명}', bankName)
-                                                    .replace('{계좌번호}', accountNumber)
-                                                    .replace('{잔금}', balance.toLocaleString())
-                                                    .replace('{추가금}', additional.toLocaleString())
-                                                    .replace('{합계}', total.toLocaleString())
-                                                const phone = site.customer_phone || site.manager_phone || ''
-                                                const cleanPhone = phone.replace(/-/g, '')
-
-                                                // 1. 클립보드에 복사
-                                                try {
-                                                    navigator.clipboard.writeText(messageBody)
-                                                    toast.success('문자 내용이 클립보드에 복사되었습니다')
-                                                } catch {
-                                                    // Fallback
-                                                    const textArea = document.createElement("textarea")
-                                                    textArea.value = messageBody
-                                                    textArea.style.position = "fixed"
-                                                    textArea.style.left = "0"
-                                                    textArea.style.top = "0"
-                                                    textArea.style.opacity = "0"
-                                                    document.body.appendChild(textArea)
-                                                    textArea.focus({ preventScroll: true })
-                                                    textArea.select()
-                                                    document.execCommand('copy')
-                                                    document.body.removeChild(textArea)
-                                                    toast.success('문자 내용이 클립보드에 복사되었습니다')
-                                                }
-
-                                                // 2. SMS 앱 열기
-                                                setTimeout(() => {
-                                                    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
-                                                }, 300)
-                                            }}
-                                        >
-                                            <MessageSquare className="w-5 h-5 mr-2" />
-                                            📱 고객에게 수금 문자 보내기
-                                        </Button>
-                                    </>
-                                ) : null}
-                            </div>
                         ) : (
-                            <div className="space-y-2">
-                                <p className="font-bold text-red-600 text-lg text-center">
-                                    ⚠️ <span className="text-red-600">업체수금</span> 입니다
-                                </p>
-                                <p className="text-sm text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
-                                    {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
-                                </p>
+                            <div className="py-2 border-b">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-slate-500">추가금</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-lg text-blue-700">
+                                            {(site.additional_amount || 0).toLocaleString()}원
+                                        </span>
+                                        {site.status !== 'completed' && (
+                                            <button
+                                                onClick={() => {
+                                                    setAdditionalAmountVal(String(site.additional_amount || 0))
+                                                    setAdditionalDescVal(site.additional_description || '')
+                                                    setEditingAdditional(true)
+                                                }}
+                                                className="p-1 rounded hover:bg-blue-100"
+                                            >
+                                                <Pencil className="h-3.5 w-3.5 text-blue-500" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                {site.additional_description && (
+                                    <p className="text-sm text-slate-600 mt-1 bg-white/60 p-2 rounded">
+                                        {site.additional_description}
+                                    </p>
+                                )}
                             </div>
                         )}
-                    </div>
-                </CardContent>
-            </Card>
+
+                        <div className="flex items-center justify-between pt-1">
+                            <span className="text-sm font-medium text-slate-700">총 합계 (잔금 + 추가)</span>
+                            <span className="font-bold text-xl text-green-700">
+                                {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
+                            </span>
+                        </div>
+
+                        <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4">
+                            {site.collection_type === 'site' ? (
+                                <div className="space-y-3">
+                                    <p className="font-bold text-red-600 text-lg text-center">
+                                        ⚠️ 현장 팀장 수금입니다
+                                    </p>
+                                    {smsSettings?.sms_enabled ? (
+                                        <>
+                                            <p className="text-sm text-red-600 text-center font-medium">
+                                                버튼 클릭 시 고객에게 안내문자 발송 합니다
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
+                                                onClick={() => {
+                                                    const balance = site.balance_amount || 0
+                                                    const additional = site.additional_amount || 0
+                                                    const total = balance + additional
+                                                    const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
+                                                    const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
+                                                    const template = smsSettings?.sms_message_template || ''
+                                                    const messageBody = template
+                                                        .replace('{은행명}', bankName)
+                                                        .replace('{계좌번호}', accountNumber)
+                                                        .replace('{잔금}', balance.toLocaleString())
+                                                        .replace('{추가금}', additional.toLocaleString())
+                                                        .replace('{합계}', total.toLocaleString())
+                                                    const phone = site.customer_phone || site.manager_phone || ''
+                                                    const cleanPhone = phone.replace(/-/g, '')
+
+                                                    // 1. 클립보드에 복사
+                                                    try {
+                                                        navigator.clipboard.writeText(messageBody)
+                                                        toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                    } catch {
+                                                        // Fallback
+                                                        const textArea = document.createElement("textarea")
+                                                        textArea.value = messageBody
+                                                        textArea.style.position = "fixed"
+                                                        textArea.style.left = "0"
+                                                        textArea.style.top = "0"
+                                                        textArea.style.opacity = "0"
+                                                        document.body.appendChild(textArea)
+                                                        textArea.focus({ preventScroll: true })
+                                                        textArea.select()
+                                                        document.execCommand('copy')
+                                                        document.body.removeChild(textArea)
+                                                        toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                    }
+
+                                                    // 2. SMS 앱 열기
+                                                    setTimeout(() => {
+                                                        window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
+                                                    }, 300)
+                                                }}
+                                            >
+                                                <MessageSquare className="w-5 h-5 mr-2" />
+                                                📱 고객에게 수금 문자 보내기
+                                            </Button>
+                                        </>
+                                    ) : null}
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <p className="font-bold text-red-600 text-lg text-center">
+                                        ⚠️ <span className="text-red-600">업체수금</span> 입니다
+                                    </p>
+                                    <p className="text-sm text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
+                                        {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Photo Section */}
             <section>
