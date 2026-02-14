@@ -89,7 +89,7 @@ export async function getWorkers() {
     if (!companyId) {
         const { data, error } = await supabase
             .from('users')
-            .select('id, name, display_color')
+            .select('id, name, display_color, worker_type')
             .eq('role', 'worker')
             .order('name')
 
@@ -102,7 +102,7 @@ export async function getWorkers() {
 
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, current_money, display_color')
+        .select('id, name, current_money, display_color, worker_type')
         .eq('role', 'worker')
         .eq('company_id', companyId)
         .order('name')
@@ -613,3 +613,80 @@ export async function getTodayActivitySites() {
 }
 
 
+// 현장에 팀원 배정
+export async function addSiteMember(siteId: string, userId: string) {
+    const supabase = await createClient()
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자' }
+
+        const { data: userData } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
+        const { error } = await supabase
+            .from('site_members')
+            .upsert({
+                site_id: siteId,
+                user_id: userId,
+                company_id: userData?.company_id
+            }, { onConflict: 'site_id,user_id' })
+
+        if (error) {
+            console.error('addSiteMember error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (e: any) {
+        return { success: false, error: e.message || '팀원 배정 실패' }
+    }
+}
+
+// 현장에서 팀원 제거
+export async function removeSiteMember(siteId: string, userId: string) {
+    const supabase = await createClient()
+    try {
+        const { error } = await supabase
+            .from('site_members')
+            .delete()
+            .eq('site_id', siteId)
+            .eq('user_id', userId)
+
+        if (error) {
+            console.error('removeSiteMember error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (e: any) {
+        return { success: false, error: e.message || '팀원 제거 실패' }
+    }
+}
+
+// 현장별 배정 팀원 조회 (전체)
+export async function getAllSiteMembers() {
+    noStore()
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return []
+
+    const { data, error } = await supabase
+        .from('site_members')
+        .select(`
+            site_id,
+            user_id,
+            user:users!user_id (name, display_color)
+        `)
+        .eq('company_id', companyId)
+
+    if (error) {
+        console.error('getAllSiteMembers error:', error)
+        return []
+    }
+
+    return data || []
+}
