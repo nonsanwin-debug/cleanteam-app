@@ -42,6 +42,17 @@ export default function WorkerHomePage() {
     useEffect(() => {
         loadSites()
 
+        // 로그인 후 푸시 구독 보장 (로그인 전에 실패했을 수 있음)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            import('@/lib/push-notifications').then(({ subscribePush }) => {
+                subscribePush().catch(() => { })
+            })
+        } else if ('Notification' in window && Notification.permission === 'default') {
+            import('@/lib/push-notifications').then(({ subscribePush }) => {
+                subscribePush().catch(() => { })
+            })
+        }
+
         const supabase = createClient()
         const channel = supabase
             .channel('worker_home_sites')

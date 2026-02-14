@@ -198,6 +198,21 @@ export async function createSite(formData: CreateSiteDTO) {
             return { success: false, error: error.message }
         }
 
+        // 팀장에게 푸시 알림 발송
+        if (formData.worker_id) {
+            try {
+                const { sendPushToUser } = await import('@/actions/push')
+                await sendPushToUser(formData.worker_id, {
+                    title: '🏠 새 현장 배정',
+                    body: `${formData.name} (${formData.cleaning_date || '날짜 미정'})`,
+                    url: '/worker/home',
+                    tag: 'site-assigned',
+                })
+            } catch (e) {
+                console.error('Push notification error:', e)
+            }
+        }
+
         revalidatePath('/admin/sites')
         return { success: true }
     } catch (e: any) {
@@ -368,6 +383,21 @@ export async function updateSite(id: string, formData: CreateSiteDTO) {
 
         if (error) {
             throw new Error(error.message)
+        }
+
+        // 배정된 팀장에게 현장 수정 알림 발송
+        if (formData.worker_id) {
+            try {
+                const { sendPushToUser } = await import('@/actions/push')
+                await sendPushToUser(formData.worker_id, {
+                    title: '📝 현장 정보 수정',
+                    body: `${formData.name} 현장 정보가 수정되었습니다.`,
+                    url: '/worker/home',
+                    tag: 'site-updated',
+                })
+            } catch (e) {
+                console.error('Push notification error:', e)
+            }
         }
 
         revalidatePath('/admin/sites')

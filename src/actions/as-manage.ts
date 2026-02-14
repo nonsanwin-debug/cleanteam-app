@@ -130,6 +130,21 @@ export async function createASRequest(formData: {
         }
     }
 
+    // 담당 팀장에게 AS 접수 푸시 알림 발송
+    if (formData.worker_id) {
+        try {
+            const { sendPushToUser } = await import('@/actions/push')
+            await sendPushToUser(formData.worker_id, {
+                title: '⚠️ AS 접수',
+                body: `${formData.site_name}: ${formData.description.substring(0, 50)}`,
+                url: '/worker/home',
+                tag: 'as-registered',
+            })
+        } catch (e) {
+            console.error('Push notification error:', e)
+        }
+    }
+
     revalidatePath('/admin/as-manage')
     return { success: true }
 }
@@ -247,6 +262,7 @@ export async function getMyASRequests() {
             site:sites!site_id (name)
         `)
         .eq('worker_id', user.id)
+        .neq('status', 'resolved')
         .order('occurred_at', { ascending: false })
 
     if (error) {

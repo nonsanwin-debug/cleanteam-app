@@ -4,6 +4,7 @@ import { AdminNavLinks } from '@/components/admin/admin-nav-links'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { PushSubscriber } from '@/components/PushSubscriber'
 
 export default async function AdminLayout({
     children,
@@ -60,6 +61,7 @@ export default async function AdminLayout({
     return (
         <div className="flex h-screen bg-slate-100">
             <RealtimeSubscriber />
+            <PushSubscriber />
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">

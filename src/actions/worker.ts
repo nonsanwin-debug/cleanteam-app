@@ -130,6 +130,27 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             }
         }
 
+        // 관리자에게 작업 완료 푸시 알림 발송
+        if (site?.company_id) {
+            try {
+                const { sendPushToAdmins } = await import('@/actions/push')
+                const { data: workerInfo } = await supabase
+                    .from('users')
+                    .select('name')
+                    .eq('id', user.id)
+                    .single()
+
+                await sendPushToAdmins(site.company_id, {
+                    title: '✅ 작업 완료',
+                    body: `${workerInfo?.name || '팀장'}님이 작업을 완료했습니다: ${site.name}`,
+                    url: '/admin/dashboard',
+                    tag: 'work-completed',
+                })
+            } catch (e) {
+                console.error('Push notification error:', e)
+            }
+        }
+
         revalidatePath('/worker/home')
         revalidatePath(`/worker/sites/${siteId}`)
         revalidatePath('/worker/schedule')
