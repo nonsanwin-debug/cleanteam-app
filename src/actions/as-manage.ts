@@ -36,6 +36,28 @@ export async function getASRequests() {
     return data as ASRequest[]
 }
 
+// AS 단건 조회 (상세 페이지용)
+export async function getASRequestById(id: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+        .from('as_requests')
+        .select(`
+            *,
+            site:sites!site_id (name, address, customer_name, customer_phone),
+            worker:users!worker_id (name, display_color)
+        `)
+        .eq('id', id)
+        .single()
+
+    if (error) {
+        console.error('Error fetching AS request by id:', error)
+        return null
+    }
+
+    return data
+}
+
 export async function createASRequest(formData: {
     site_id?: string | null
     site_name: string
