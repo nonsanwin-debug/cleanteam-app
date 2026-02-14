@@ -266,8 +266,8 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                             <MapPin className="mr-2 h-4 w-4 text-slate-400 mt-0.5" />
                                             <span className="flex-1 line-clamp-1">{site.address}</span>
                                         </div>
-                                        <div className="flex items-center text-sm text-slate-600">
-                                            <User className="mr-2 h-4 w-4 text-slate-400" />
+                                        <div className="flex items-center text-sm text-slate-600 flex-wrap">
+                                            <User className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                                             <span>
                                                 {site.worker?.name ? (
                                                     <span className="font-medium" style={{ color: site.worker.display_color || undefined }}>{site.worker.name}</span>
@@ -275,6 +275,14 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     <span className="text-slate-400 italic">담당자 미지정</span>
                                                 )}
                                             </span>
+                                            {assigned.map(sm => (
+                                                <span key={sm.user_id} className="inline-flex items-center">
+                                                    <span className="text-slate-300 mx-1">/</span>
+                                                    <span className="text-xs font-medium" style={{ color: sm.user?.display_color || '#64748b' }}>
+                                                        (팀원){sm.user?.name || '팀원'}
+                                                    </span>
+                                                </span>
+                                            ))}
                                         </div>
                                     </Link>
 
