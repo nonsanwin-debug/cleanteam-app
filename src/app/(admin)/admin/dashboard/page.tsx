@@ -108,7 +108,7 @@ export default async function AdminDashboard() {
                                     const duration = calculateDuration(site.started_at, completionTime)
 
                                     return (
-                                        <div key={site.id} className="flex flex-col sm:flex-row items-start sm:justify-between p-3 sm:p-4 border rounded-lg bg-white shadow-sm gap-3 sm:gap-0">
+                                        <Link key={site.id} href={`/admin/sites/${site.id}`} className="flex flex-col sm:flex-row items-start sm:justify-between p-3 sm:p-4 border rounded-lg bg-white shadow-sm gap-3 sm:gap-0 cursor-pointer transition-all hover:border-blue-400 hover:shadow-md">
                                             <div className="space-y-1 w-full sm:w-auto">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <span className={`flex h-2 w-2 rounded-full shrink-0 ${isComplete ? 'bg-green-500' : 'bg-blue-500 animate-pulse'}`} />
@@ -160,7 +160,7 @@ export default async function AdminDashboard() {
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
+                                        </Link>
                                     )
                                 })}
                             </div>
