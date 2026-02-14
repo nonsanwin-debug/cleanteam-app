@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,7 @@ interface Props {
 }
 
 export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions }: Props) {
+    const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [selectedMember, setSelectedMember] = useState<string | null>(null)
     const [draggedMember, setDraggedMember] = useState<string | null>(null)
@@ -62,6 +64,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
             const result = await addSiteMember(siteId, userId)
             if (result.success) {
                 toast.success('팀원이 배정되었습니다')
+                router.refresh()
             } else {
                 toast.error(result.error || '배정 실패')
             }
@@ -74,6 +77,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
             const result = await removeSiteMember(siteId, userId)
             if (result.success) {
                 toast.success('팀원이 제거되었습니다')
+                router.refresh()
             } else {
                 toast.error(result.error || '제거 실패')
             }
@@ -131,7 +135,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                 <div className="bg-white rounded-lg border p-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Users className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm font-semibold text-slate-700">팀원 배정</span>
+                        <span className="text-sm font-semibold text-slate-700">팀원 배정 (드래그로 배정가능)</span>
                         {selectedMember && (
                             <span className="text-xs text-blue-600 ml-2 animate-pulse">
                                 → 배정할 현장을 선택하세요
@@ -149,19 +153,23 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                 className={`
                                     inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
                                     cursor-grab active:cursor-grabbing select-none transition-all duration-150
+                                    hover:brightness-90 hover:shadow-lg
                                     ${selectedMember === member.id
-                                        ? 'ring-2 ring-blue-500 ring-offset-2 shadow-lg scale-105'
+                                        ? 'ring-2 ring-green-500 ring-offset-2 shadow-lg scale-105'
                                         : 'hover:shadow-md hover:scale-[1.02]'
                                     }
                                     ${draggedMember === member.id ? 'opacity-50' : ''}
                                 `}
                                 style={{
-                                    backgroundColor: member.display_color
-                                        ? `${member.display_color}20`
-                                        : '#f1f5f9',
-                                    color: member.display_color || '#475569',
-                                    borderWidth: '1.5px',
-                                    borderColor: member.display_color || '#cbd5e1',
+                                    ...{
+                                        backgroundColor: member.display_color
+                                            ? `${member.display_color}20`
+                                            : '#f1f5f9',
+                                        color: member.display_color || '#475569',
+                                        borderWidth: '1.5px',
+                                        borderColor: member.display_color || '#cbd5e1',
+                                    },
+                                    cursor: 'grab',
                                 }}
                             >
                                 <GripHorizontal className="h-3 w-3 opacity-40" />
