@@ -188,27 +188,39 @@ export async function processWithdrawal(requestId: string, action: 'paid' | 'rej
             return { success: false, error: data?.error || '처리 실패' }
         }
 
-        // 3. 지급완료 시 wallet_logs에 정산 기록 추가
+        // 3. 지급완료 시 기존 withdrawal_request 로그의 상태를 업데이트
         if (action === 'paid' && request) {
             const user = request.users as any
-            const currentMoney = user?.current_money || 0
-            const companyId = user?.company_id
             const workerName = user?.name || '알 수 없음'
 
+            // 기존 withdrawal_request 로그를 withdrawal_paid로 업데이트
             const { error: logError } = await supabase
                 .from('wallet_logs')
-                .insert({
-                    user_id: request.user_id,
-                    company_id: companyId,
-                    type: 'withdrawal',
-                    amount: -request.amount,
-                    balance_after: currentMoney,
+                .update({
+                    type: 'withdrawal_paid',
                     description: `출금 지급완료: ${workerName} ${request.amount.toLocaleString()}원`,
-                    reference_id: requestId
                 })
+                .eq('reference_id', requestId)
+                .eq('type', 'withdrawal_request')
 
             if (logError) {
-                console.error('Withdrawal wallet log insert error:', logError)
+                console.error('Withdrawal wallet log update error:', logError)
+            }
+        }
+
+        // 4. 반려 시 기존 로그를 withdrawal_refund로 업데이트
+        if (action === 'rejected' && request) {
+            const { error: logError } = await supabase
+                .from('wallet_logs')
+                .update({
+                    type: 'withdrawal_refund',
+                    description: `출금 반려${rejectionReason ? ': ' + rejectionReason : ''}`,
+                })
+                .eq('reference_id', requestId)
+                .eq('type', 'withdrawal_request')
+
+            if (logError) {
+                console.error('Withdrawal refund wallet log update error:', logError)
             }
         }
 
