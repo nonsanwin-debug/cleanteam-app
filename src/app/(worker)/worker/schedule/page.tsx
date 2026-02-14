@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { getAssignedSites } from '@/actions/worker'
+import { getMyASRequests } from '@/actions/as-manage'
+import { ASRequest } from '@/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -28,19 +30,24 @@ type AssignedSite = {
 export default function WorkerSchedulePage() {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [sites, setSites] = useState<AssignedSite[]>([])
+    const [asRequests, setAsRequests] = useState<ASRequest[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedSite, setSelectedSite] = useState<AssignedSite | null>(null)
     const [claimAmount, setClaimAmount] = useState('')
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
 
     useEffect(() => {
-        loadSites()
+        loadData()
     }, [])
 
-    async function loadSites() {
+    async function loadData() {
         try {
-            const data = await getAssignedSites()
-            setSites(data)
+            const [sitesData, asData] = await Promise.all([
+                getAssignedSites(),
+                getMyASRequests()
+            ])
+            setSites(sitesData)
+            setAsRequests(asData)
         } catch (err) {
             console.error(err)
         } finally {
@@ -212,6 +219,59 @@ export default function WorkerSchedulePage() {
                 </CardContent>
             </Card>
 
+            {/* AS 내역 섹션 */}
+            {asRequests.length > 0 && (
+                <div className="space-y-3">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        AS 내역
+                        <Badge variant="destructive" className="text-xs">{asRequests.length}건</Badge>
+                    </h3>
+                    {asRequests.map(req => (
+                        <Card key={req.id} className="border-red-100">
+                            <CardContent className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="font-semibold text-sm">
+                                        {req.site?.name || req.site_name}
+                                    </div>
+                                    <Badge variant={
+                                        req.status === 'resolved' ? 'outline' :
+                                            req.status === 'monitoring' ? 'secondary' : 'destructive'
+                                    } className={cn(
+                                        "text-[10px]",
+                                        req.status === 'resolved' && "border-green-500 text-green-600 bg-green-50"
+                                    )}>
+                                        {req.status === 'resolved' ? '처리 완료' :
+                                            req.status === 'monitoring' ? '모니터링' : '접수/대기'}
+                                    </Badge>
+                                </div>
+                                <p className="text-sm text-slate-600 mb-2 whitespace-pre-wrap">{req.description}</p>
+                                {req.processing_details && (
+                                    <p className="text-xs text-slate-500 bg-slate-50 p-2 rounded mb-2">
+                                        <span className="font-medium">처리결과:</span> {req.processing_details}
+                                    </p>
+                                )}
+                                {req.photos && req.photos.length > 0 && (
+                                    <div className="flex gap-2 mb-2 flex-wrap">
+                                        {req.photos.map((url, idx) => (
+                                            <img key={idx} src={url} alt="AS사진" className="w-16 h-16 rounded border object-cover" />
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center text-xs text-slate-400">
+                                    <span>발생일: {req.occurred_at}</span>
+                                    {req.penalty_amount && req.penalty_amount > 0 && (
+                                        <span className="text-red-500 font-semibold">
+                                            차감: -{req.penalty_amount.toLocaleString()}원
+                                        </span>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
             {isClaimModalOpen && (
                 <ClaimModal
                     site={selectedSite!}
@@ -219,7 +279,7 @@ export default function WorkerSchedulePage() {
                     onClose={() => setIsClaimModalOpen(false)}
                     onSuccess={() => {
                         setIsClaimModalOpen(false)
-                        loadSites()
+                        loadData()
                     }}
                 />
             )}

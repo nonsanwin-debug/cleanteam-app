@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ASRequest } from '@/types'
 import { Site } from '@/actions/sites'
-import { createASRequest, updateASRequest, deleteASRequest } from '@/actions/as-manage'
+import { createASRequest, updateASRequest, deleteASRequest, uploadASPhoto } from '@/actions/as-manage'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -31,7 +31,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { CalendarIcon, Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { CalendarIcon, Plus, Pencil, Trash2, Search, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -202,6 +202,9 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
 }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [photos, setPhotos] = useState<string[]>([])
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState({
         site_id: '',
         site_name: '',
@@ -213,6 +216,32 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
     })
 
     const selectedWorkerBalance = workers.find(w => w.id === formData.worker_id)?.current_money || 0
+
+    async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = e.target.files
+        if (!files || files.length === 0) return
+
+        setUploading(true)
+        try {
+            const { compressImage } = await import('@/lib/utils/image-compression')
+
+            for (let i = 0; i < files.length; i++) {
+                const compressed = await compressImage(files[i])
+                const fd = new FormData()
+                fd.append('file', compressed)
+
+                const result = await uploadASPhoto(fd)
+                if (result.success && result.data?.publicUrl) {
+                    setPhotos(prev => [...prev, result.data!.publicUrl])
+                }
+            }
+        } catch (err) {
+            toast.error('사진 업로드 실패')
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -229,7 +258,8 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
         try {
             const res = await createASRequest({
                 ...formData,
-                site_id: formData.site_id || null
+                site_id: formData.site_id || null,
+                photos: photos.length > 0 ? photos : undefined
             })
             if (res.success) {
                 toast.success('AS 내역이 등록되었습니다.')
@@ -243,6 +273,7 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                     occurred_at: format(new Date(), 'yyyy-MM-dd'),
                     status: 'pending'
                 })
+                setPhotos([])
                 router.refresh()
             } else {
                 toast.error('등록 실패: ' + res.error)
@@ -379,6 +410,38 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                                 <SelectItem value="resolved">처리 완료</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>AS 사진</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {photos.map((url, idx) => (
+                                <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                                    <img src={url} alt="AS" className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
+                                        className="absolute top-0 right-0 bg-black/50 text-white w-4 h-4 flex items-center justify-center text-[10px]"
+                                    >✕</button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-16 h-16 rounded border border-dashed flex items-center justify-center text-slate-400 hover:bg-slate-50"
+                                disabled={uploading}
+                            >
+                                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : '+'}
+                            </button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={handlePhotoUpload}
+                            />
+                        </div>
                     </div>
 
                     <DialogFooter>

@@ -56,6 +56,7 @@ export type ASRequest = {
     created_at: string
     updated_at: string
     penalty_amount?: number
+    photos?: string[]
     // Joins
     site?: {
         name: string

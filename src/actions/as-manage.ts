@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ActionResponse, ASRequest } from '@/types'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function getASRequests() {
     const supabase = await createClient()
@@ -44,6 +45,7 @@ export async function createASRequest(formData: {
     occurred_at: string
     status: 'pending' | 'resolved' | 'monitoring'
     penalty_amount?: number
+    photos?: string[]
 }) {
     const supabase = await createClient()
 
@@ -91,6 +93,18 @@ export async function createASRequest(formData: {
 
         if (logError) {
             console.error('AS penalty wallet log insert error:', logError)
+        }
+    }
+
+    // 사진 URL이 있으면 as_requests에 업데이트
+    if (formData.photos && formData.photos.length > 0 && data?.id) {
+        const { error: photoError } = await supabase
+            .from('as_requests')
+            .update({ photos: formData.photos })
+            .eq('id', data.id)
+
+        if (photoError) {
+            console.error('AS photos update error:', photoError)
         }
     }
 
@@ -196,4 +210,56 @@ export async function deleteASRequest(id: string) {
 
     revalidatePath('/admin/as-manage')
     return { success: true }
+}
+
+// 팀장용: 내 AS 내역 조회
+export async function getMyASRequests() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data, error } = await supabase
+        .from('as_requests')
+        .select(`
+            *,
+            site:sites!site_id (name)
+        `)
+        .eq('worker_id', user.id)
+        .order('occurred_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching my AS requests:', error)
+        return []
+    }
+
+    return data as ASRequest[]
+}
+
+// AS 사진 업로드
+export async function uploadASPhoto(formData: FormData): Promise<ActionResponse<{ publicUrl: string }>> {
+    try {
+        const supabase = await createClient()
+        const file = formData.get('file') as File
+
+        if (!file) return { success: false, error: '파일이 없습니다.' }
+
+        const fileName = `as-photos/${uuidv4()}-${file.name}`
+
+        const { error: uploadError } = await supabase
+            .storage
+            .from('site-photos')
+            .upload(fileName, file)
+
+        if (uploadError) return { success: false, error: uploadError.message }
+
+        const { data: { publicUrl } } = supabase
+            .storage
+            .from('site-photos')
+            .getPublicUrl(fileName)
+
+        return { success: true, data: { publicUrl } }
+    } catch (error) {
+        console.error('AS photo upload error:', error)
+        return { success: false, error: 'AS 사진 업로드 실패' }
+    }
 }
