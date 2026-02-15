@@ -627,6 +627,47 @@ export async function addSiteMember(siteId: string, userId: string) {
             .eq('id', user.id)
             .single()
 
+        // 이전 현장에서 자동 제거 (미완료 현장만)
+        // 완료된 현장의 기록은 유지
+        try {
+            // 1. 해당 팀원이 배정된 모든 현장 조회
+            const { data: existingMembers } = await supabase
+                .from('site_members')
+                .select('site_id')
+                .eq('user_id', userId)
+                .eq('company_id', userData?.company_id)
+
+            if (existingMembers && existingMembers.length > 0) {
+                // 2. 해당 현장 중 미완료 현장 필터링
+                const existingSiteIds = existingMembers
+                    .map(m => m.site_id)
+                    .filter(id => id !== siteId) // 새로 배정할 현장 제외
+
+                if (existingSiteIds.length > 0) {
+                    const { data: nonCompletedSites } = await supabase
+                        .from('sites')
+                        .select('id')
+                        .in('id', existingSiteIds)
+                        .neq('status', 'completed')
+
+                    // 3. 미완료 현장에서 팀원 제거
+                    if (nonCompletedSites && nonCompletedSites.length > 0) {
+                        const removeIds = nonCompletedSites.map(s => s.id)
+                        await supabase
+                            .from('site_members')
+                            .delete()
+                            .eq('user_id', userId)
+                            .in('site_id', removeIds)
+
+                        console.log(`팀원 ${userId}: 이전 현장 ${removeIds.length}개에서 자동 제거됨`)
+                    }
+                }
+            }
+        } catch (cleanupError) {
+            console.error('이전 현장 제거 중 오류 (무시):', cleanupError)
+            // 이전 현장 제거 실패해도 새 배정은 계속 진행
+        }
+
         const { error } = await supabase
             .from('site_members')
             .upsert({
