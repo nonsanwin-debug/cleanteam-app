@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { getAssignedSites, startWork } from '@/actions/worker'
 import { getMyASRequests } from '@/actions/as-manage'
 import { createClient } from '@/lib/supabase/client'
@@ -13,42 +13,43 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useCachedData } from '@/lib/data-cache'
 
 import { AssignedSite, ASRequest } from '@/types'
 
 
 export default function WorkerHomePage() {
     const router = useRouter()
-    const [sites, setSites] = useState<AssignedSite[]>([])
-    const [asRequests, setAsRequests] = useState<ASRequest[]>([])
-    const [loading, setLoading] = useState(true)
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
-    async function loadSites() {
-        try {
-            // 현재 사용자 ID 가져오기
-            const supabaseClient = createClient()
-            const { data: { user } } = await supabaseClient.auth.getUser()
-            if (user) setCurrentUserId(user.id)
+    // SWR 캐시 패턴: 캐시 있으면 즉시 렌더링, 백그라운드 갱신
+    const { data: sites, loading: sitesLoading, refresh: refreshSites } = useCachedData<AssignedSite[]>(
+        'worker-sites',
+        getAssignedSites,
+        { staleTime: 15_000 }
+    )
 
-            const [sitesData, asData] = await Promise.all([
-                getAssignedSites(),
-                getMyASRequests()
-            ])
-            setSites(sitesData)
-            setAsRequests(asData)
-        } catch (err) {
-            toast.error('현장 목록을 불러오지 못했습니다.')
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { data: asRequests, loading: asLoading, refresh: refreshAS } = useCachedData<ASRequest[]>(
+        'worker-as-requests',
+        getMyASRequests,
+        { staleTime: 15_000 }
+    )
+
+    const loading = sitesLoading || asLoading
+
+    const loadSites = useCallback(async () => {
+        await Promise.all([refreshSites(), refreshAS()])
+    }, [refreshSites, refreshAS])
 
     useEffect(() => {
-        loadSites()
+        // 현재 사용자 ID 가져오기
+        const supabaseClient = createClient()
+        supabaseClient.auth.getUser().then(({ data: { user } }) => {
+            if (user) setCurrentUserId(user.id)
+        })
 
-        // 로그인 후 푸시 구독 보장 (로그인 전에 실패했을 수 있음)
+        // 로그인 후 푸시 구독 보장
         if ('Notification' in window && Notification.permission === 'granted') {
             import('@/lib/push-notifications').then(({ subscribePush }) => {
                 subscribePush().catch(() => { })
@@ -71,14 +72,11 @@ export default function WorkerHomePage() {
                 },
                 (payload) => {
                     console.log('Sites realtime update:', payload)
-
-                    // Check if a site was updated to 'completed' status
                     if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
                         console.log('Site completed, reloading...')
                         loadSites()
                         return
                     }
-
                     loadSites()
                 }
             )
@@ -143,8 +141,8 @@ export default function WorkerHomePage() {
     }
 
     // Filter sites based on status
-    const activeSites = sites.filter(site => site.status !== 'completed')
-    const completedSites = sites.filter(site => site.status === 'completed')
+    const activeSites = (sites || []).filter(site => site.status !== 'completed')
+    const completedSites = (sites || []).filter(site => site.status === 'completed')
 
     return (
         <div className="space-y-4">
@@ -170,14 +168,14 @@ export default function WorkerHomePage() {
 
                 <TabsContent value="active" className="space-y-4">
                     {/* AS 내역 */}
-                    {asRequests.length > 0 && (
+                    {(asRequests || []).length > 0 && (
                         <div className="space-y-3 mb-4">
                             <h3 className="text-base font-bold flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-red-500" />
                                 AS 내역
-                                <Badge variant="destructive" className="text-xs">{asRequests.length}건</Badge>
+                                <Badge variant="destructive" className="text-xs">{(asRequests || []).length}건</Badge>
                             </h3>
-                            {asRequests.map(req => {
+                            {(asRequests || []).map(req => {
                                 const statusMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
                                     pending: { label: '접수/대기', variant: 'destructive' },
                                     monitoring: { label: '모니터링', variant: 'secondary' },

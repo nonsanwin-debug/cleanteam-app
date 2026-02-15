@@ -9,6 +9,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, en
 import { ko } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useCachedData } from '@/lib/data-cache'
 
 import { HOLIDAYS } from '@/lib/holidays'
 
@@ -27,26 +28,27 @@ type AssignedSite = {
 
 export default function WorkerSchedulePage() {
     const [currentDate, setCurrentDate] = useState(new Date())
-    const [sites, setSites] = useState<AssignedSite[]>([])
-    const [loading, setLoading] = useState(true)
     const [selectedSite, setSelectedSite] = useState<AssignedSite | null>(null)
     const [claimAmount, setClaimAmount] = useState('')
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
 
-    useEffect(() => {
-        loadData()
-    }, [])
+    // 같은 캐시 키 'worker-sites'를 공유 → 홈에서 이미 로드한 데이터 즉시 사용!
+    const { data: sites, loading, refresh: loadData } = useCachedData<AssignedSite[]>(
+        'worker-sites',
+        getAssignedSites,
+        { staleTime: 15_000 }
+    )
 
-    async function loadData() {
-        try {
-            const sitesData = await getAssignedSites()
-            setSites(sitesData)
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
+    // PWA 복귀 시 자동 갱신
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                loadData()
+            }
         }
-    }
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }, [loadData])
 
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
@@ -54,7 +56,7 @@ export default function WorkerSchedulePage() {
     // Generate calendar days
     const monthStart = startOfMonth(currentDate)
     const monthEnd = endOfMonth(monthStart)
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }) // Sunday start
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 })
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 })
 
     const calendarDays = eachDayOfInterval({
@@ -67,6 +69,8 @@ export default function WorkerSchedulePage() {
     if (loading) {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>
     }
+
+    const allSites = sites || []
 
 
     return (
@@ -118,7 +122,7 @@ export default function WorkerSchedulePage() {
                             const isSaturday = day.getDay() === 6
 
                             // Filter sites for this day
-                            const daySites = sites.filter(site => {
+                            const daySites = allSites.filter(site => {
                                 const siteDateStr = site.cleaning_date || site.created_at
                                 return isSameDay(new Date(siteDateStr), day)
                             })
