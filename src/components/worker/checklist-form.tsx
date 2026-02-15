@@ -32,13 +32,14 @@ interface ChecklistFormProps {
     siteId: string
     siteName?: string
     isPhotosUploaded: boolean // Only enable if photos are present?
+    isLeader?: boolean // 팀장 여부 (팀장만 작업 완료 가능)
 }
 
 export interface ChecklistFormHandle {
     copyLink: () => Promise<void>;
 }
 
-export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>(({ siteId, siteName, isPhotosUploaded }, ref) => {
+export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>(({ siteId, siteName, isPhotosUploaded, isLeader = false }, ref) => {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -299,26 +300,28 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
                 </Button>
             </div>
 
-            {/* 작업 완료 버튼 */}
-            <div className="flex gap-2">
-                <Button
-                    className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg"
-                    onClick={handleCompleteWork}
-                    disabled={submitting || completing}
-                >
-                    {completing ? (
-                        <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            완료 처리 중...
-                        </>
-                    ) : (
-                        <>
-                            <CheckCheck className="mr-2 h-6 w-6" />
-                            작업 완료
-                        </>
-                    )}
-                </Button>
-            </div>
+            {/* 작업 완료 버튼 - 팀장만 표시 */}
+            {isLeader && (
+                <div className="flex gap-2">
+                    <Button
+                        className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                        onClick={handleCompleteWork}
+                        disabled={submitting || completing}
+                    >
+                        {completing ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                완료 처리 중...
+                            </>
+                        ) : (
+                            <>
+                                <CheckCheck className="mr-2 h-6 w-6" />
+                                작업 완료
+                            </>
+                        )}
+                    </Button>
+                </div>
+            )}
         </div>
     )
 })

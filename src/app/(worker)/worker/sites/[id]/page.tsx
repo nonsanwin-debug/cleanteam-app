@@ -530,6 +530,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     siteId={site.id}
                     siteName={site.name}
                     isPhotosUploaded={photos.length > 0}
+                    isLeader={isLeader}
                     ref={checklistRef}
                 />
             </section>
