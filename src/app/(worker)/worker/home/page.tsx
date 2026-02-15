@@ -99,8 +99,12 @@ export default function WorkerHomePage() {
         }
     }, [])
 
-    // PWA 복귀 시 자동 갱신 (백그라운드에서 돌아올 때 WebSocket 재연결 보장)
+    // 폴링 fallback (Realtime이 RLS 등으로 안 될 경우 대비) + PWA 복귀 시 자동 갱신
     useEffect(() => {
+        const intervalId = setInterval(() => {
+            loadSites()
+        }, 30_000) // 30초마다 갱신
+
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 console.log('App resumed, refreshing data...')
@@ -108,7 +112,11 @@ export default function WorkerHomePage() {
             }
         }
         document.addEventListener('visibilitychange', handleVisibilityChange)
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+
+        return () => {
+            clearInterval(intervalId)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
     }, [])
 
     async function handleStartWork(siteId: string) {
