@@ -249,6 +249,45 @@ export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
     }
 }
 
+// 클라이언트 직접 업로드용: DB에 사진 레코드만 삽입 (Storage 업로드는 클라이언트에서 처리)
+export async function insertPhotoRecord(
+    siteId: string,
+    url: string,
+    type: 'before' | 'during' | 'after' | 'special'
+): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+        if (!siteId || !url || !type) {
+            return { success: false, error: '필수 항목이 누락되었습니다.' }
+        }
+
+        const { error: dbError } = await supabase
+            .from('photos')
+            .insert([
+                {
+                    site_id: siteId,
+                    url: url,
+                    type: type,
+                    user_id: user.id
+                }
+            ])
+
+        if (dbError) {
+            console.error('Photo DB Insert Error:', dbError)
+            return { success: false, error: dbError.message }
+        }
+
+        revalidatePath(`/worker/sites/${siteId}`)
+        return { success: true, data: { publicUrl: url } }
+    } catch (error) {
+        console.error('Unexpected error in insertPhotoRecord:', error)
+        return { success: false, error: error instanceof Error ? error.message : '사진 레코드 저장 중 오류가 발생했습니다.' }
+    }
+}
+
 export async function getSiteDetails(id: string): Promise<ActionResponse<AssignedSite>> {
     try {
         const supabase = await createClient()

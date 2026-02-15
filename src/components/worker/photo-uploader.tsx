@@ -2,7 +2,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { uploadPhoto, deletePhoto } from '@/actions/worker'
+import { insertPhotoRecord, deletePhoto } from '@/actions/worker'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -14,12 +15,40 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
+import { v4 as uuidv4 } from 'uuid'
 
 interface PhotoUploaderProps {
     siteId: string
     existingPhotos: any[]
     readOnly?: boolean
     canDelete?: boolean
+}
+
+// 재시도 유틸리티 (exponential backoff)
+async function withRetry<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 2,
+    baseDelay: number = 1000
+): Promise<T> {
+    let lastError: Error | null = null
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn()
+        } catch (error) {
+            lastError = error as Error
+            if (attempt < maxRetries) {
+                const delay = baseDelay * Math.pow(2, attempt)
+                await new Promise(r => setTimeout(r, delay))
+            }
+        }
+    }
+    throw lastError
+}
+
+interface UploadStatus {
+    fileName: string
+    status: 'compressing' | 'uploading' | 'done' | 'failed'
+    error?: string
 }
 
 export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false }: PhotoUploaderProps) {
@@ -30,6 +59,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
     const [tab, setTab] = useState<'before' | 'during' | 'after' | 'special'>('before')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
+    const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
     // Back button handling
     useEffect(() => {
@@ -67,15 +97,23 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         if (!files || files.length === 0) return
 
         setIsUploading(true)
-        setUploadProgress(`압축 중... (0/${files.length})`)
+        const fileArray = Array.from(files)
         let successCount = 0
         let failCount = 0
 
+        // 개별 파일 상태 초기화
+        const initialStatuses: UploadStatus[] = fileArray.map(f => ({
+            fileName: f.name,
+            status: 'compressing' as const,
+        }))
+        setUploadStatuses(initialStatuses)
+        setUploadProgress(`압축 중... (0/${fileArray.length})`)
+
         try {
             const { compressImage } = await import('@/lib/utils/image-compression')
+            const supabase = createClient()
 
             // 1단계: 모든 이미지를 먼저 압축 (3개씩 병렬)
-            const fileArray = Array.from(files)
             const compressed: File[] = []
             const batchSize = 3
 
@@ -83,27 +121,60 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                 const batch = fileArray.slice(i, i + batchSize)
                 const results = await Promise.all(batch.map(f => compressImage(f)))
                 compressed.push(...results)
-                setUploadProgress(`압축 중... (${Math.min(i + batchSize, fileArray.length)}/${fileArray.length})`)
+
+                const doneCount = Math.min(i + batchSize, fileArray.length)
+                setUploadProgress(`압축 중... (${doneCount}/${fileArray.length})`)
+
+                // 상태 업데이트: 압축 완료 → 업로드 대기
+                setUploadStatuses(prev => prev.map((s, idx) =>
+                    idx < doneCount ? { ...s, status: 'uploading' } : s
+                ))
             }
 
-            // 2단계: 압축된 이미지를 병렬 업로드 (3개씩)
+            // 2단계: 압축된 이미지를 클라이언트에서 직접 Supabase Storage 업로드 (3개씩)
             for (let i = 0; i < compressed.length; i += batchSize) {
                 const batch = compressed.slice(i, i + batchSize)
                 setUploadProgress(`업로드 중... (${i}/${compressed.length})`)
 
                 const results = await Promise.all(
-                    batch.map(async (file) => {
+                    batch.map(async (file, batchIdx) => {
+                        const globalIdx = i + batchIdx
                         try {
-                            const formData = new FormData()
-                            formData.append('file', file)
-                            formData.append('siteId', siteId)
-                            formData.append('type', tab)
+                            const fileName = `${siteId}/${tab}/${uuidv4()}-${file.name}`
 
-                            const result = await uploadPhoto(formData)
-                            if (!result.success) throw new Error(result.error || '업로드 실패')
+                            // 클라이언트에서 Supabase Storage에 직접 업로드 (재시도 포함)
+                            await withRetry(async () => {
+                                const { error: uploadError } = await supabase
+                                    .storage
+                                    .from('site-photos')
+                                    .upload(fileName, file, {
+                                        contentType: 'image/jpeg',
+                                        upsert: true,
+                                    })
+                                if (uploadError) throw uploadError
+                            })
+
+                            // Public URL 획득
+                            const { data: { publicUrl } } = supabase
+                                .storage
+                                .from('site-photos')
+                                .getPublicUrl(fileName)
+
+                            // DB에 레코드 삽입 (Server Action - 경량)
+                            const result = await insertPhotoRecord(siteId, publicUrl, tab)
+                            if (!result.success) throw new Error(result.error || 'DB 저장 실패')
+
+                            setUploadStatuses(prev => prev.map((s, idx) =>
+                                idx === globalIdx ? { ...s, status: 'done' } : s
+                            ))
                             return true
                         } catch (error) {
-                            console.error(`Upload failed:`, error)
+                            console.error(`Upload failed for file ${globalIdx}:`, error)
+                            setUploadStatuses(prev => prev.map((s, idx) =>
+                                idx === globalIdx
+                                    ? { ...s, status: 'failed', error: (error as Error).message }
+                                    : s
+                            ))
                             return false
                         }
                     })
@@ -127,6 +198,8 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         } finally {
             setIsUploading(false)
             setUploadProgress('')
+            // 3초 후 상태 클리어
+            setTimeout(() => setUploadStatuses([]), 3000)
         }
     }
 
@@ -247,6 +320,27 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 )}
                                 <span className="font-medium">{isUploading ? (uploadProgress || '처리 중...') : '사진 추가하기 (여러 장 가능)'}</span>
                             </Button>
+
+                            {/* 개별 파일 업로드 상태 표시 */}
+                            {uploadStatuses.length > 0 && (
+                                <div className="space-y-1 text-xs">
+                                    {uploadStatuses.map((s, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 px-2 py-1 rounded bg-slate-50">
+                                            {s.status === 'compressing' && <Loader2 className="h-3 w-3 animate-spin text-blue-500 shrink-0" />}
+                                            {s.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin text-orange-500 shrink-0" />}
+                                            {s.status === 'done' && <span className="text-green-500 shrink-0">✓</span>}
+                                            {s.status === 'failed' && <span className="text-red-500 shrink-0">✗</span>}
+                                            <span className={`truncate ${s.status === 'failed' ? 'text-red-600' : s.status === 'done' ? 'text-green-700' : 'text-slate-600'}`}>
+                                                {s.fileName}
+                                                {s.status === 'compressing' && ' — 압축 중'}
+                                                {s.status === 'uploading' && ' — 업로드 중'}
+                                                {s.status === 'done' && ' — 완료'}
+                                                {s.status === 'failed' && ` — 실패${s.error ? `: ${s.error}` : ''}`}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </>
                     )}
 
