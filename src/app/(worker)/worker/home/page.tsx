@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { getAssignedSites, startWork } from '@/actions/worker'
 import { getMyASRequests } from '@/actions/as-manage'
 import { createClient } from '@/lib/supabase/client'
@@ -13,109 +13,96 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useCachedData } from '@/lib/data-cache'
+import { invalidateCache } from '@/lib/data-cache'
 
 import { AssignedSite, ASRequest } from '@/types'
 
 
 export default function WorkerHomePage() {
     const router = useRouter()
+    const [sites, setSites] = useState<AssignedSite[]>([])
+    const [asRequests, setAsRequests] = useState<ASRequest[]>([])
+    const [loading, setLoading] = useState(true)
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const mountedRef = useRef(true)
 
-    // SWR 캐시 패턴: 캐시 있으면 즉시 렌더링, 백그라운드 갱신
-    const { data: sites, loading: sitesLoading, refresh: refreshSites } = useCachedData<AssignedSite[]>(
-        'worker-sites',
-        getAssignedSites,
-        { staleTime: 15_000 }
-    )
+    // 직접 서버 액션 호출 → 절대 stale closure 아님
+    async function loadSites() {
+        try {
+            const [sitesData, asData] = await Promise.all([
+                getAssignedSites(),
+                getMyASRequests()
+            ])
+            if (!mountedRef.current) return
+            setSites(sitesData)
+            setAsRequests(asData)
+            // 일정 페이지 등에서 사용하는 캐시도 무효화 (다음 진입 시 새로 fetch)
+            invalidateCache('worker-sites', 'worker-as-requests')
+        } catch (err) {
+            console.error('loadSites error:', err)
+        } finally {
+            if (mountedRef.current) setLoading(false)
+        }
+    }
 
-    const { data: asRequests, loading: asLoading, refresh: refreshAS } = useCachedData<ASRequest[]>(
-        'worker-as-requests',
-        getMyASRequests,
-        { staleTime: 15_000 }
-    )
-
-    const loading = sitesLoading || asLoading
-
-    const loadSites = useCallback(async () => {
-        await Promise.all([refreshSites(), refreshAS()])
-    }, [refreshSites, refreshAS])
+    // ref로 최신 loadSites 참조 유지 → setInterval에서 stale closure 방지
+    const loadRef = useRef(loadSites)
+    loadRef.current = loadSites
 
     useEffect(() => {
-        // 현재 사용자 ID 가져오기
+        mountedRef.current = true
+        loadSites()
+
+        // 현재 사용자 ID
         const supabaseClient = createClient()
         supabaseClient.auth.getUser().then(({ data: { user } }) => {
             if (user) setCurrentUserId(user.id)
         })
 
-        // 로그인 후 푸시 구독 보장
-        if ('Notification' in window && Notification.permission === 'granted') {
-            import('@/lib/push-notifications').then(({ subscribePush }) => {
-                subscribePush().catch(() => { })
-            })
-        } else if ('Notification' in window && Notification.permission === 'default') {
+        // 푸시 구독
+        if ('Notification' in window && (Notification.permission === 'granted' || Notification.permission === 'default')) {
             import('@/lib/push-notifications').then(({ subscribePush }) => {
                 subscribePush().catch(() => { })
             })
         }
 
+        // Realtime 구독 (RLS 정책이 있으면 즉시 반영)
         const supabase = createClient()
         const channel = supabase
             .channel('worker_home_realtime')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'sites'
-                },
-                (payload) => {
-                    console.log('Sites realtime update:', payload)
-                    if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
-                        console.log('Site completed, reloading...')
-                        loadSites()
-                        return
-                    }
-                    loadSites()
-                }
-            )
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'site_members'
-                },
-                (payload) => {
-                    console.log('Site members realtime update:', payload)
-                    loadSites()
-                }
-            )
-            .subscribe()
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'sites' }, () => {
+                console.log('[Realtime] sites changed')
+                loadRef.current()
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_members' }, () => {
+                console.log('[Realtime] site_members changed')
+                loadRef.current()
+            })
+            .subscribe((status) => {
+                console.log('[Realtime] subscription status:', status)
+            })
 
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [])
+        // 10초 폴링 (Realtime 미작동 시 fallback)
+        const pollId = setInterval(() => {
+            console.log('[Poll] refreshing...')
+            loadRef.current()
+        }, 10_000)
 
-    // 폴링 fallback (Realtime이 RLS 등으로 안 될 경우 대비) + PWA 복귀 시 자동 갱신
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            loadSites()
-        }, 10_000) // 10초마다 갱신 (Realtime fallback)
-
-        const handleVisibilityChange = () => {
+        // PWA 복귀 시 즉시 갱신
+        const onVisible = () => {
             if (document.visibilityState === 'visible') {
-                console.log('App resumed, refreshing data...')
-                loadSites()
+                console.log('[Visibility] app resumed')
+                loadRef.current()
             }
         }
-        document.addEventListener('visibilitychange', handleVisibilityChange)
+        document.addEventListener('visibilitychange', onVisible)
 
         return () => {
-            clearInterval(intervalId)
-            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            mountedRef.current = false
+            supabase.removeChannel(channel)
+            clearInterval(pollId)
+            document.removeEventListener('visibilitychange', onVisible)
         }
     }, [])
 
