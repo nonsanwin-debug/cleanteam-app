@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { CheckCircle2, Home, User } from 'lucide-react'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { UploadIndicator } from '@/components/worker/upload-indicator'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -37,6 +38,9 @@ export default async function WorkerLayout({
             <main className="flex-1 overflow-auto p-4 pb-20">
                 {children}
             </main>
+
+            {/* 글로벌 업로드 진행 인디케이터 */}
+            <UploadIndicator />
 
             {/* Bottom Navigation (Mobile) */}
             <nav className="h-16 bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 flex items-center justify-around z-10 safe-area-bottom">

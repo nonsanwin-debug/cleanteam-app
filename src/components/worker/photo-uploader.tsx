@@ -2,8 +2,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { insertPhotoRecord, deletePhoto } from '@/actions/worker'
-import { createClient } from '@/lib/supabase/client'
+import { deletePhoto } from '@/actions/worker'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -15,7 +14,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
-import { v4 as uuidv4 } from 'uuid'
+import { uploadManager } from '@/lib/upload-manager'
 
 interface PhotoUploaderProps {
     siteId: string
@@ -24,51 +23,20 @@ interface PhotoUploaderProps {
     canDelete?: boolean
 }
 
-// 재시도 유틸리티 (exponential backoff)
-async function withRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 2,
-    baseDelay: number = 1000
-): Promise<T> {
-    let lastError: Error | null = null
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            return await fn()
-        } catch (error) {
-            lastError = error as Error
-            if (attempt < maxRetries) {
-                const delay = baseDelay * Math.pow(2, attempt)
-                await new Promise(r => setTimeout(r, delay))
-            }
-        }
-    }
-    throw lastError
-}
-
-interface UploadStatus {
-    fileName: string
-    status: 'compressing' | 'uploading' | 'done' | 'failed'
-    error?: string
-}
-
 export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false }: PhotoUploaderProps) {
     const router = useRouter()
-    const [isUploading, setIsUploading] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [isDownloading, setIsDownloading] = useState(false)
     const [tab, setTab] = useState<'before' | 'during' | 'after' | 'special'>('before')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
-    const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
     // Back button handling
     useEffect(() => {
         if (selectedPhotoIndex !== null) {
-            // Modal opened: push state
             window.history.pushState({ modalOpen: true }, '', '')
 
             const handlePopState = () => {
-                // Back button pressed: close modal
                 setSelectedPhotoIndex(null)
             }
 
@@ -80,7 +48,6 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         }
     }, [selectedPhotoIndex])
 
-    // Manual close handler (e.g. clicking outside)
     const handleManualClose = (open: boolean) => {
         if (!open && selectedPhotoIndex !== null) {
             window.history.back()
@@ -89,105 +56,19 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
 
     const currentPhotos = existingPhotos.filter(p => p.type === tab)
 
-    const [uploadProgress, setUploadProgress] = useState<string>('')
-
-    async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (readOnly) return
         const files = event.target.files
         if (!files || files.length === 0) return
 
-        setIsUploading(true)
+        // 업로드 매니저에 위임 → 백그라운드 처리, 다른 화면 이동 가능
         const fileArray = Array.from(files)
-        let successCount = 0
-        let failCount = 0
+        uploadManager.addFiles(fileArray, siteId, tab)
+        toast.success(`${fileArray.length}장의 사진 업로드를 시작합니다.`, {
+            description: '다른 화면으로 이동해도 업로드가 계속됩니다.'
+        })
 
-        // 개별 파일 상태 초기화
-        const initialStatuses: UploadStatus[] = fileArray.map(f => ({
-            fileName: f.name,
-            status: 'compressing' as const,
-        }))
-        setUploadStatuses(initialStatuses)
-        setUploadProgress(`압축 중... (0/${fileArray.length})`)
-
-        try {
-            const { compressImage } = await import('@/lib/utils/image-compression')
-            const supabase = createClient()
-
-            // 1개씩 순차 처리: 압축 → 업로드 → DB 저장 (모바일 브라우저 동시 연결 제한 대응)
-            for (let i = 0; i < fileArray.length; i++) {
-                const file = fileArray[i]
-
-                try {
-                    // 압축
-                    setUploadStatuses(prev => prev.map((s, idx) =>
-                        idx === i ? { ...s, status: 'compressing' } : s
-                    ))
-                    setUploadProgress(`압축 중... (${i + 1}/${fileArray.length})`)
-
-                    const compressed = await compressImage(file)
-
-                    // 업로드
-                    setUploadStatuses(prev => prev.map((s, idx) =>
-                        idx === i ? { ...s, status: 'uploading' } : s
-                    ))
-                    setUploadProgress(`업로드 중... (${i + 1}/${fileArray.length})`)
-
-                    const fileName = `${siteId}/${tab}/${uuidv4()}-${compressed.name}`
-
-                    // 클라이언트에서 Supabase Storage에 직접 업로드 (재시도 포함)
-                    await withRetry(async () => {
-                        const { error: uploadError } = await supabase
-                            .storage
-                            .from('site-photos')
-                            .upload(fileName, compressed, {
-                                contentType: 'image/jpeg',
-                                upsert: true,
-                            })
-                        if (uploadError) throw uploadError
-                    })
-
-                    // Public URL 획득
-                    const { data: { publicUrl } } = supabase
-                        .storage
-                        .from('site-photos')
-                        .getPublicUrl(fileName)
-
-                    // DB에 레코드 삽입 (Server Action - 경량)
-                    const result = await insertPhotoRecord(siteId, publicUrl, tab)
-                    if (!result.success) throw new Error(result.error || 'DB 저장 실패')
-
-                    setUploadStatuses(prev => prev.map((s, idx) =>
-                        idx === i ? { ...s, status: 'done' } : s
-                    ))
-                    successCount++
-                } catch (error) {
-                    console.error(`Upload failed for file ${i}:`, error)
-                    setUploadStatuses(prev => prev.map((s, idx) =>
-                        idx === i
-                            ? { ...s, status: 'failed', error: (error as Error).message }
-                            : s
-                    ))
-                    failCount++
-                }
-            }
-
-            if (successCount > 0) {
-                toast.success(`${successCount}장의 사진이 업로드되었습니다.`)
-                router.refresh()
-            }
-            if (failCount > 0) {
-                toast.error(`${failCount}장의 사진 업로드에 실패했습니다.`)
-            }
-
-            if (fileInputRef.current) fileInputRef.current.value = ''
-        } catch (error) {
-            toast.error('업로드 중 오류 발생', { description: (error as Error).message })
-        } finally {
-            setIsUploading(false)
-            setUploadProgress('')
-            // 3초 후 상태 클리어
-            setTimeout(() => setUploadStatuses([]), 3000)
-        }
+        if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
     async function handleDelete(photo: any) {
@@ -298,36 +179,10 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 variant="outline"
                                 className="h-16 w-full flex items-center justify-center gap-2 border-dashed border-2"
                                 onClick={() => fileInputRef.current?.click()}
-                                disabled={isUploading}
                             >
-                                {isUploading ? (
-                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                                ) : (
-                                    <Upload className="h-5 w-5 text-primary" />
-                                )}
-                                <span className="font-medium">{isUploading ? (uploadProgress || '처리 중...') : '사진 추가하기 (여러 장 가능)'}</span>
+                                <Upload className="h-5 w-5 text-primary" />
+                                <span className="font-medium">사진 추가하기 (여러 장 가능)</span>
                             </Button>
-
-                            {/* 개별 파일 업로드 상태 표시 */}
-                            {uploadStatuses.length > 0 && (
-                                <div className="space-y-1 text-xs">
-                                    {uploadStatuses.map((s, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 px-2 py-1 rounded bg-slate-50">
-                                            {s.status === 'compressing' && <Loader2 className="h-3 w-3 animate-spin text-blue-500 shrink-0" />}
-                                            {s.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin text-orange-500 shrink-0" />}
-                                            {s.status === 'done' && <span className="text-green-500 shrink-0">✓</span>}
-                                            {s.status === 'failed' && <span className="text-red-500 shrink-0">✗</span>}
-                                            <span className={`truncate ${s.status === 'failed' ? 'text-red-600' : s.status === 'done' ? 'text-green-700' : 'text-slate-600'}`}>
-                                                {s.fileName}
-                                                {s.status === 'compressing' && ' — 압축 중'}
-                                                {s.status === 'uploading' && ' — 업로드 중'}
-                                                {s.status === 'done' && ' — 완료'}
-                                                {s.status === 'failed' && ` — 실패${s.error ? `: ${s.error}` : ''}`}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </>
                     )}
 
