@@ -59,38 +59,58 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
 
     const currentPhotos = existingPhotos.filter(p => p.type === tab)
 
+    const [uploadProgress, setUploadProgress] = useState<string>('')
+
     async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
         if (readOnly) return
         const files = event.target.files
         if (!files || files.length === 0) return
 
         setIsUploading(true)
+        setUploadProgress(`압축 중... (0/${files.length})`)
         let successCount = 0
         let failCount = 0
 
         try {
             const { compressImage } = await import('@/lib/utils/image-compression')
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i]
-                try {
-                    const compressedFile = await compressImage(file)
+            // 1단계: 모든 이미지를 먼저 압축 (3개씩 병렬)
+            const fileArray = Array.from(files)
+            const compressed: File[] = []
+            const batchSize = 3
 
-                    const formData = new FormData()
-                    formData.append('file', compressedFile)
-                    formData.append('siteId', siteId)
-                    formData.append('type', tab)
+            for (let i = 0; i < fileArray.length; i += batchSize) {
+                const batch = fileArray.slice(i, i + batchSize)
+                const results = await Promise.all(batch.map(f => compressImage(f)))
+                compressed.push(...results)
+                setUploadProgress(`압축 중... (${Math.min(i + batchSize, fileArray.length)}/${fileArray.length})`)
+            }
 
-                    const result = await uploadPhoto(formData)
+            // 2단계: 압축된 이미지를 병렬 업로드 (3개씩)
+            for (let i = 0; i < compressed.length; i += batchSize) {
+                const batch = compressed.slice(i, i + batchSize)
+                setUploadProgress(`업로드 중... (${i}/${compressed.length})`)
 
-                    if (!result.success) {
-                        throw new Error(result.error || '업로드 실패')
-                    }
-                    successCount++
-                } catch (error) {
-                    console.error(`File ${file.name} upload failed:`, error)
-                    failCount++
-                }
+                const results = await Promise.all(
+                    batch.map(async (file) => {
+                        try {
+                            const formData = new FormData()
+                            formData.append('file', file)
+                            formData.append('siteId', siteId)
+                            formData.append('type', tab)
+
+                            const result = await uploadPhoto(formData)
+                            if (!result.success) throw new Error(result.error || '업로드 실패')
+                            return true
+                        } catch (error) {
+                            console.error(`Upload failed:`, error)
+                            return false
+                        }
+                    })
+                )
+
+                successCount += results.filter(Boolean).length
+                failCount += results.filter(r => !r).length
             }
 
             if (successCount > 0) {
@@ -106,6 +126,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
             toast.error('업로드 중 오류 발생', { description: (error as Error).message })
         } finally {
             setIsUploading(false)
+            setUploadProgress('')
         }
     }
 
@@ -224,7 +245,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 ) : (
                                     <Upload className="h-5 w-5 text-primary" />
                                 )}
-                                <span className="font-medium">{isUploading ? '업로드 중...' : '사진 추가하기 (여러 장 가능)'}</span>
+                                <span className="font-medium">{isUploading ? (uploadProgress || '처리 중...') : '사진 추가하기 (여러 장 가능)'}</span>
                             </Button>
                         </>
                     )}
