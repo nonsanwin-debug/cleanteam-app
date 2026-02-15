@@ -112,6 +112,29 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         }
     }, [params])
 
+    // PWA 복귀 시 자동 갱신
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log('Site detail resumed, refreshing...')
+                // params를 통해 siteId를 다시 가져와서 갱신
+                params.then(p => {
+                    const supabase = createClient()
+                    const siteId = p.id
+                    // 간단히 전체 데이터 다시 fetch
+                    getSiteDetails(siteId).then(res => {
+                        if (res.success && res.data) setSite(res.data)
+                    })
+                    getSitePhotos(siteId).then(res => {
+                        if (res.success && res.data) setPhotos(res.data)
+                    })
+                })
+            }
+        }
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }, [params])
+
     const handleTriggerCopy = () => {
         if (checklistRef.current) {
             checklistRef.current.copyLink()

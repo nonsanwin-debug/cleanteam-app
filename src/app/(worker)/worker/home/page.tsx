@@ -101,12 +101,16 @@ export default function WorkerHomePage() {
         }
     }, [])
 
-    // Polling fallback
+    // PWA 복귀 시 자동 갱신 (백그라운드에서 돌아올 때 WebSocket 재연결 보장)
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            loadSites()
-        }, 5000)
-        return () => clearInterval(intervalId)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log('App resumed, refreshing data...')
+                loadSites()
+            }
+        }
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
     }, [])
 
     async function handleStartWork(siteId: string) {

@@ -105,6 +105,18 @@ export function ShareView({ siteId }: { siteId: string }) {
         }
     }, [siteId])
 
+    // PWA 복귀 시 자동 갱신
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                console.log('Share page resumed, refreshing data...')
+                fetchData()
+            }
+        }
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }, [])
+
     if (loading) return <div className="p-8 text-center bg-slate-50 min-h-screen">Loading...</div>
 
     if (error || !site) {
