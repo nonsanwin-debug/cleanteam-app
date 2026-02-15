@@ -60,15 +60,14 @@ export function useCachedData<T>(
     }, [key])
 
     useEffect(() => {
-        if (hasFreshCache) {
-            // 캐시가 신선하면 → 데이터 즉시 사용, 백그라운드 갱신 스킵
-            setData(cached!.data)
-            setLoading(false)
-        } else if (cached) {
-            // 캐시가 있지만 오래됨 → 즉시 보여주고 백그라운드 갱신
+        if (cached) {
+            // 캐시가 있으면 → 즉시 보여주고 백그라운드 갱신
             setData(cached.data)
             setLoading(false)
-            fetchData(false)
+            // fresh 여부와 관계없이 항상 백그라운드 갱신 (삭제 등 변경 즉시 반영)
+            if (!hasFreshCache) {
+                fetchData(false)
+            }
         } else {
             // 캐시 없음 → 로딩 표시하며 가져오기
             fetchData(true)
@@ -76,8 +75,10 @@ export function useCachedData<T>(
     }, [key])
 
     const refresh = useCallback(async () => {
-        await fetchData(false) // 로딩 없이 갱신
-    }, [fetchData])
+        // Realtime 이벤트 등으로 호출 시 캐시 무효화 후 즉시 갱신
+        cache.delete(key)
+        await fetchData(false)
+    }, [fetchData, key])
 
     const invalidate = useCallback(() => {
         cache.delete(key)
