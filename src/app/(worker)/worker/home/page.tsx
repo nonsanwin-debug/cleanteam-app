@@ -258,16 +258,34 @@ function SiteCard({
     currentUserId?: string | null
 }) {
     const isLeader = !!(currentUserId && site.worker_id === currentUserId)
+
+    // 오전/오후 판별
+    const getTimeLabel = () => {
+        if (!site.start_time) return null
+        const hourMatch = site.start_time.match(/(\d{1,2})/)
+        if (!hourMatch) return null
+        const hour = parseInt(hourMatch[1], 10)
+        if (hour < 12) return { label: '오전', color: 'bg-amber-500 text-white', time: site.start_time }
+        return { label: '오후', color: 'bg-indigo-500 text-white', time: site.start_time }
+    }
+    const timeLabel = getTimeLabel()
+
     return (
         <Card className={`border-l-4 ${site.status === 'in_progress' ? 'border-l-blue-500 shadow-md' : isCompleted ? 'border-l-green-500 opacity-80' : 'border-l-slate-300'}`}>
             <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                    <Badge variant={site.status === 'in_progress' ? 'default' : isCompleted ? 'secondary' : 'outline'}>
-                        {site.status === 'in_progress' ? '진행 중' : isCompleted ? '완료됨' : '대기 중'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant={site.status === 'in_progress' ? 'default' : isCompleted ? 'secondary' : 'outline'}>
+                            {site.status === 'in_progress' ? '진행 중' : isCompleted ? '완료됨' : '대기 중'}
+                        </Badge>
+                        {timeLabel && (
+                            <span className={`${timeLabel.color} text-xs font-bold px-2.5 py-1 rounded-full shadow-sm`}>
+                                {timeLabel.label} {timeLabel.time}
+                            </span>
+                        )}
+                    </div>
                     <span className="text-xs text-slate-400">
                         {site.cleaning_date || new Date(site.created_at).toLocaleDateString()}
-                        {site.start_time && ` ${site.start_time}`}
                     </span>
                 </div>
                 <CardTitle className="text-xl mt-2">{site.name}</CardTitle>
