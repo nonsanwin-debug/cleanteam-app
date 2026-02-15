@@ -103,7 +103,7 @@ export default function WorkerHomePage() {
     useEffect(() => {
         const intervalId = setInterval(() => {
             loadSites()
-        }, 30_000) // 30초마다 갱신
+        }, 10_000) // 10초마다 갱신 (Realtime fallback)
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
