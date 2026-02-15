@@ -56,9 +56,9 @@ export function ShareView({ siteId }: { siteId: string }) {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
 
-        // Realtime Photos Subscription
+        // Realtime: photos, sites, checklist_submissions 구독
         const channel = supabase
-            .channel(`public_photos_${siteId}`)
+            .channel(`share_realtime_${siteId}`)
             .on(
                 'postgres_changes',
                 {
@@ -69,7 +69,33 @@ export function ShareView({ siteId }: { siteId: string }) {
                 },
                 (payload) => {
                     console.log('Photo change detected:', payload)
-                    fetchData() // Re-fetch all photos to be safe
+                    fetchData()
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'sites',
+                    filter: `id=eq.${siteId}`
+                },
+                (payload) => {
+                    console.log('Site change detected:', payload)
+                    fetchData()
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'checklist_submissions',
+                    filter: `site_id=eq.${siteId}`
+                },
+                (payload) => {
+                    console.log('Checklist change detected:', payload)
+                    fetchData()
                 }
             )
             .subscribe()

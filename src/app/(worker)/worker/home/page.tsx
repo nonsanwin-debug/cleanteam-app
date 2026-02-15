@@ -61,7 +61,7 @@ export default function WorkerHomePage() {
 
         const supabase = createClient()
         const channel = supabase
-            .channel('worker_home_sites')
+            .channel('worker_home_realtime')
             .on(
                 'postgres_changes',
                 {
@@ -70,18 +70,28 @@ export default function WorkerHomePage() {
                     table: 'sites'
                 },
                 (payload) => {
-                    console.log('Realtime update:', payload)
+                    console.log('Sites realtime update:', payload)
 
                     // Check if a site was updated to 'completed' status
                     if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
-                        console.log('Site completed, redirecting to home...')
-                        // Redirect worker to home page
-                        window.location.href = 'https://cleanteam-app.vercel.app/worker/home'
+                        console.log('Site completed, reloading...')
+                        loadSites()
                         return
                     }
 
                     loadSites()
-                    router.refresh()
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'site_members'
+                },
+                (payload) => {
+                    console.log('Site members realtime update:', payload)
+                    loadSites()
                 }
             )
             .subscribe()

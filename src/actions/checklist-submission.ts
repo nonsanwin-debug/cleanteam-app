@@ -133,5 +133,11 @@ export async function saveChecklistProgress(
         return { success: false, error: error.message }
     }
 
+    // sites.updated_at 업데이트 → Realtime 구독자(고객 페이지 등)에게 변경 전파
+    await supabase
+        .from('sites')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', siteId)
+
     return { success: true }
 }
