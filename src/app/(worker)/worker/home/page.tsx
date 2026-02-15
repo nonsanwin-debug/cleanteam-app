@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { getAssignedSites, startWork } from '@/actions/worker'
+import { getAssignedSites, startWork, saveWorkerNotes } from '@/actions/worker'
 import { getMyASRequests } from '@/actions/as-manage'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle } from 'lucide-react'
+import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle, StickyNote } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -212,6 +212,7 @@ export default function WorkerHomePage() {
                                 onStartWork={handleStartWork}
                                 processingId={processingId}
                                 currentUserId={currentUserId}
+                                onNoteSaved={loadSites}
                             />
                         ))
                     )}
@@ -230,6 +231,7 @@ export default function WorkerHomePage() {
                                 site={site}
                                 isCompleted={true}
                                 currentUserId={currentUserId}
+                                onNoteSaved={loadSites}
                             />
                         ))
                     )}
@@ -244,13 +246,15 @@ function SiteCard({
     isCompleted = false,
     onStartWork,
     processingId,
-    currentUserId
+    currentUserId,
+    onNoteSaved
 }: {
     site: AssignedSite,
     isCompleted?: boolean,
     onStartWork?: (id: string) => void,
     processingId?: string | null,
-    currentUserId?: string | null
+    currentUserId?: string | null,
+    onNoteSaved?: () => void
 }) {
     const isLeader = !!(currentUserId && site.worker_id === currentUserId)
 
@@ -337,6 +341,9 @@ function SiteCard({
                     )}
                 </div>
 
+                {/* 현장 메모 (팀장 편집 / 팀원 읽기) */}
+                <MemoSection site={site} isLeader={isLeader} onSaved={onNoteSaved} />
+
                 {!isCompleted && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                         <a
@@ -392,5 +399,93 @@ function SiteCard({
                 )}
             </CardFooter>
         </Card>
+    )
+}
+
+// 메모 섹션 컴포넌트
+function MemoSection({ site, isLeader, onSaved }: { site: AssignedSite, isLeader: boolean, onSaved?: () => void }) {
+    const [editing, setEditing] = useState(false)
+    const [noteText, setNoteText] = useState(site.worker_notes || '')
+    const [saving, setSaving] = useState(false)
+
+    const handleSave = async () => {
+        setSaving(true)
+        try {
+            const result = await saveWorkerNotes(site.id, noteText)
+            if (result.success) {
+                toast.success('메모가 저장되었습니다.')
+                setEditing(false)
+                onSaved?.()
+            } else {
+                toast.error(result.error || '저장 실패')
+            }
+        } catch {
+            toast.error('메모 저장 중 오류가 발생했습니다.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // 팀원: 메모가 있을 때만 표시 (읽기 전용)
+    if (!isLeader) {
+        if (!site.worker_notes) return null
+        return (
+            <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                    <StickyNote className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-blue-600 text-xs font-bold">팀장 메모</span>
+                </div>
+                <p className="text-sm text-blue-800 whitespace-pre-wrap">{site.worker_notes}</p>
+            </div>
+        )
+    }
+
+    // 팀장: 편집 모드
+    if (editing) {
+        return (
+            <div className="mt-2 bg-blue-50 border border-blue-300 rounded-lg p-2.5 space-y-2">
+                <div className="flex items-center gap-1.5">
+                    <StickyNote className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-blue-600 text-xs font-bold">현장 메모</span>
+                </div>
+                <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="주차: B2, 열쇠 경비실, 비밀번호 1234# ..."
+                    className="w-full text-sm border border-blue-200 rounded-md p-2 min-h-[60px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    autoFocus
+                />
+                <div className="flex gap-2">
+                    <Button size="sm" className="h-7 text-xs" onClick={handleSave} disabled={saving}>
+                        {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : '저장'}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditing(false); setNoteText(site.worker_notes || '') }}>
+                        취소
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    // 팀장: 읽기 모드 (클릭하면 편집)
+    return (
+        <div
+            className={`mt-2 rounded-lg p-2.5 cursor-pointer transition-colors ${site.worker_notes
+                    ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
+                    : 'bg-slate-50 border border-dashed border-slate-300 hover:bg-slate-100'
+                }`}
+            onClick={() => setEditing(true)}
+        >
+            <div className="flex items-center gap-1.5">
+                <StickyNote className={`h-3.5 w-3.5 ${site.worker_notes ? 'text-blue-500' : 'text-slate-400'}`} />
+                <span className={`text-xs font-bold ${site.worker_notes ? 'text-blue-600' : 'text-slate-400'}`}>
+                    {site.worker_notes ? '현장 메모' : '메모 추가'}
+                </span>
+                <span className="text-slate-400 text-[10px]">탭하여 편집</span>
+            </div>
+            {site.worker_notes && (
+                <p className="text-sm text-blue-800 mt-1 whitespace-pre-wrap">{site.worker_notes}</p>
+            )}
+        </div>
     )
 }

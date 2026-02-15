@@ -25,6 +25,8 @@ export type AssignedSite = {
     additional_amount?: number
     additional_description?: string
     collection_type?: string
+    // 현장 메모 (팀장이 작성, 팀원에게 표시)
+    worker_notes?: string
 }
 
 

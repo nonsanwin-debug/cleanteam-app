@@ -19,7 +19,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         // 1. 팀장으로 배정된 현장 (기존)
         const { data: leaderSites, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
             .eq('worker_id', user.id)
             .order('created_at', { ascending: true })
 
@@ -40,7 +40,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                 const siteIds = memberData.map(m => m.site_id)
                 const { data: sites } = await supabase
                     .from('sites')
-                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
+                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
                     .in('id', siteIds)
                     .order('created_at', { ascending: true })
 
@@ -293,7 +293,7 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
             .eq('id', id)
             .single()
 
@@ -607,5 +607,61 @@ export async function uploadClaimPhoto(formData: FormData): Promise<ActionRespon
     } catch (error) {
         console.error('Claim photo upload error:', error)
         return { success: false, error: '청구 사진 업로드 실패' }
+    }
+}
+
+// 현장 메모 저장 (팀장 전용) + 팀원 푸시알림
+export async function saveWorkerNotes(siteId: string, notes: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자' }
+
+        // 현장 정보 조회 (이름 + 팀장 확인)
+        const { data: site } = await supabase
+            .from('sites')
+            .select('name, worker_id')
+            .eq('id', siteId)
+            .single()
+
+        if (!site) return { success: false, error: '현장을 찾을 수 없습니다.' }
+        if (site.worker_id !== user.id) return { success: false, error: '팀장만 메모를 작성할 수 있습니다.' }
+
+        // 메모 저장
+        const { error } = await supabase
+            .from('sites')
+            .update({ worker_notes: notes || null, updated_at: new Date().toISOString() })
+            .eq('id', siteId)
+
+        if (error) return { success: false, error: error.message }
+
+        // 배정된 팀원들에게 푸시알림
+        if (notes && notes.trim()) {
+            try {
+                const { data: members } = await supabase
+                    .from('site_members')
+                    .select('user_id')
+                    .eq('site_id', siteId)
+
+                if (members && members.length > 0) {
+                    const { sendPushToUser } = await import('@/actions/push')
+                    await Promise.allSettled(
+                        members.map(m => sendPushToUser(m.user_id, {
+                            title: `📝 현장 메모 - ${site.name}`,
+                            body: notes.length > 60 ? notes.slice(0, 60) + '…' : notes,
+                            url: `/worker/sites/${siteId}`,
+                            tag: `memo-${siteId}`
+                        }))
+                    )
+                }
+            } catch (pushError) {
+                console.error('Push notification error:', pushError)
+            }
+        }
+
+        return { success: true }
+    } catch (error) {
+        console.error('saveWorkerNotes error:', error)
+        return { success: false, error: '메모 저장 중 오류가 발생했습니다.' }
     }
 }
