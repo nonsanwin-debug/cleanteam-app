@@ -113,75 +113,62 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
             const { compressImage } = await import('@/lib/utils/image-compression')
             const supabase = createClient()
 
-            // 1단계: 모든 이미지를 먼저 압축 (3개씩 병렬)
-            const compressed: File[] = []
-            const batchSize = 3
+            // 1개씩 순차 처리: 압축 → 업로드 → DB 저장 (모바일 브라우저 동시 연결 제한 대응)
+            for (let i = 0; i < fileArray.length; i++) {
+                const file = fileArray[i]
 
-            for (let i = 0; i < fileArray.length; i += batchSize) {
-                const batch = fileArray.slice(i, i + batchSize)
-                const results = await Promise.all(batch.map(f => compressImage(f)))
-                compressed.push(...results)
+                try {
+                    // 압축
+                    setUploadStatuses(prev => prev.map((s, idx) =>
+                        idx === i ? { ...s, status: 'compressing' } : s
+                    ))
+                    setUploadProgress(`압축 중... (${i + 1}/${fileArray.length})`)
 
-                const doneCount = Math.min(i + batchSize, fileArray.length)
-                setUploadProgress(`압축 중... (${doneCount}/${fileArray.length})`)
+                    const compressed = await compressImage(file)
 
-                // 상태 업데이트: 압축 완료 → 업로드 대기
-                setUploadStatuses(prev => prev.map((s, idx) =>
-                    idx < doneCount ? { ...s, status: 'uploading' } : s
-                ))
-            }
+                    // 업로드
+                    setUploadStatuses(prev => prev.map((s, idx) =>
+                        idx === i ? { ...s, status: 'uploading' } : s
+                    ))
+                    setUploadProgress(`업로드 중... (${i + 1}/${fileArray.length})`)
 
-            // 2단계: 압축된 이미지를 클라이언트에서 직접 Supabase Storage 업로드 (3개씩)
-            for (let i = 0; i < compressed.length; i += batchSize) {
-                const batch = compressed.slice(i, i + batchSize)
-                setUploadProgress(`업로드 중... (${i}/${compressed.length})`)
+                    const fileName = `${siteId}/${tab}/${uuidv4()}-${compressed.name}`
 
-                const results = await Promise.all(
-                    batch.map(async (file, batchIdx) => {
-                        const globalIdx = i + batchIdx
-                        try {
-                            const fileName = `${siteId}/${tab}/${uuidv4()}-${file.name}`
-
-                            // 클라이언트에서 Supabase Storage에 직접 업로드 (재시도 포함)
-                            await withRetry(async () => {
-                                const { error: uploadError } = await supabase
-                                    .storage
-                                    .from('site-photos')
-                                    .upload(fileName, file, {
-                                        contentType: 'image/jpeg',
-                                        upsert: true,
-                                    })
-                                if (uploadError) throw uploadError
+                    // 클라이언트에서 Supabase Storage에 직접 업로드 (재시도 포함)
+                    await withRetry(async () => {
+                        const { error: uploadError } = await supabase
+                            .storage
+                            .from('site-photos')
+                            .upload(fileName, compressed, {
+                                contentType: 'image/jpeg',
+                                upsert: true,
                             })
-
-                            // Public URL 획득
-                            const { data: { publicUrl } } = supabase
-                                .storage
-                                .from('site-photos')
-                                .getPublicUrl(fileName)
-
-                            // DB에 레코드 삽입 (Server Action - 경량)
-                            const result = await insertPhotoRecord(siteId, publicUrl, tab)
-                            if (!result.success) throw new Error(result.error || 'DB 저장 실패')
-
-                            setUploadStatuses(prev => prev.map((s, idx) =>
-                                idx === globalIdx ? { ...s, status: 'done' } : s
-                            ))
-                            return true
-                        } catch (error) {
-                            console.error(`Upload failed for file ${globalIdx}:`, error)
-                            setUploadStatuses(prev => prev.map((s, idx) =>
-                                idx === globalIdx
-                                    ? { ...s, status: 'failed', error: (error as Error).message }
-                                    : s
-                            ))
-                            return false
-                        }
+                        if (uploadError) throw uploadError
                     })
-                )
 
-                successCount += results.filter(Boolean).length
-                failCount += results.filter(r => !r).length
+                    // Public URL 획득
+                    const { data: { publicUrl } } = supabase
+                        .storage
+                        .from('site-photos')
+                        .getPublicUrl(fileName)
+
+                    // DB에 레코드 삽입 (Server Action - 경량)
+                    const result = await insertPhotoRecord(siteId, publicUrl, tab)
+                    if (!result.success) throw new Error(result.error || 'DB 저장 실패')
+
+                    setUploadStatuses(prev => prev.map((s, idx) =>
+                        idx === i ? { ...s, status: 'done' } : s
+                    ))
+                    successCount++
+                } catch (error) {
+                    console.error(`Upload failed for file ${i}:`, error)
+                    setUploadStatuses(prev => prev.map((s, idx) =>
+                        idx === i
+                            ? { ...s, status: 'failed', error: (error as Error).message }
+                            : s
+                    ))
+                    failCount++
+                }
             }
 
             if (successCount > 0) {
