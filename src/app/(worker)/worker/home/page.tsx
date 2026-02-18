@@ -387,14 +387,21 @@ function SiteCard({
                         </Button>
                     </Link>
                 ) : site.status === 'scheduled' && isLeader ? (
-                    <Button
-                        className="w-full text-lg h-12"
-                        onClick={() => onStartWork && onStartWork(site.id)}
-                        disabled={!!processingId}
-                    >
-                        {processingId === site.id ? <Loader2 className="animate-spin" /> : <PlayCircle className="mr-2" />}
-                        작업 시작
-                    </Button>
+                    <div className="w-full space-y-2">
+                        <Button
+                            className="w-full text-lg h-12"
+                            onClick={() => onStartWork && onStartWork(site.id)}
+                            disabled={!!processingId}
+                        >
+                            {processingId === site.id ? <Loader2 className="animate-spin" /> : <PlayCircle className="mr-2" />}
+                            작업 시작
+                        </Button>
+                        <Link href={`/worker/sites/${site.id}`} className="w-full block">
+                            <Button className="w-full h-9 text-sm" variant="outline">
+                                상세 보기
+                            </Button>
+                        </Link>
+                    </div>
                 ) : site.status === 'scheduled' && !isLeader ? (
                     <Link href={`/worker/sites/${site.id}`} className="w-full">
                         <Button className="w-full text-lg h-12" variant="secondary">

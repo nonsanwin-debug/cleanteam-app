@@ -54,22 +54,36 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         const allSites = [...(leaderSites || []) as AssignedSite[], ...memberSites]
         const uniqueSites = Array.from(new Map(allSites.map(s => [s.id, s])).values())
 
-        // 각 현장의 배정 팀원 정보 가져오기
+        // 각 현장의 배정 팀원 정보 가져오기 (separate queries)
         if (uniqueSites.length > 0) {
             try {
                 const siteIds = uniqueSites.map(s => s.id)
                 const { data: allMembers } = await supabase
                     .from('site_members')
-                    .select('site_id, user_id, users!inner(name)')
+                    .select('site_id, user_id')
                     .in('site_id', siteIds)
 
                 if (allMembers && allMembers.length > 0) {
+                    // 유저 이름 일괄 조회
+                    const userIds = [...new Set(allMembers.map(m => m.user_id))]
+                    const { data: users } = await supabase
+                        .from('users')
+                        .select('id, name')
+                        .in('id', userIds)
+
+                    const userMap = new Map<string, string>()
+                    if (users) {
+                        for (const u of users) {
+                            userMap.set(u.id, u.name || '이름없음')
+                        }
+                    }
+
                     const membersBySite = new Map<string, { user_id: string; name: string }[]>()
                     for (const m of allMembers) {
                         const list = membersBySite.get(m.site_id) || []
                         list.push({
                             user_id: m.user_id,
-                            name: (m as any).users?.name || '이름없음'
+                            name: userMap.get(m.user_id) || '이름없음'
                         })
                         membersBySite.set(m.site_id, list)
                     }
