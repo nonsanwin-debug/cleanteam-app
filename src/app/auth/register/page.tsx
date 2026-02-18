@@ -33,6 +33,41 @@ export default function WorkerRegisterPage() {
         try {
             const supabase = createClient()
 
+            // 소속 코드 검증
+            const companyInput = formData.companyName.trim()
+            if (!companyInput.includes('#')) {
+                toast.error('소속 형식 오류', {
+                    description: '업체명#코드 형식으로 입력해주세요. (예: 클린프로#1234)'
+                })
+                setLoading(false)
+                return
+            }
+
+            const [inputName, inputCode] = companyInput.split('#')
+            if (!inputName || !inputCode) {
+                toast.error('소속 형식 오류', {
+                    description: '업체명과 코드를 모두 입력해주세요. (예: 클린프로#1234)'
+                })
+                setLoading(false)
+                return
+            }
+
+            // DB에서 업체 확인
+            const { data: company } = await supabase
+                .from('companies')
+                .select('id, name, code')
+                .eq('name', inputName.trim())
+                .eq('code', inputCode.trim())
+                .single()
+
+            if (!company) {
+                toast.error('없는 소속입니다', {
+                    description: '업체명과 코드를 다시 확인해주세요. 관리자에게 문의하세요.'
+                })
+                setLoading(false)
+                return
+            }
+
             // 1. Sign Up
             // Email is required for Supabase Auth, so we generate a placeholder email using loginId
             const normalizedLoginId = formData.loginId.trim().toLowerCase()
@@ -46,7 +81,7 @@ export default function WorkerRegisterPage() {
                         name: formData.name,
                         phone: formData.phone,
                         role: 'worker', // Explicitly Worker
-                        company_name: formData.companyName // Trigger will try to find this company
+                        company_name: companyInput // Trigger will try to find this company
                     }
                 }
             })

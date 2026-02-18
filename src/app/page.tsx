@@ -62,6 +62,34 @@ export default function Home() {
 
     try {
       if (isSignUp) {
+        // 소속 코드 검증
+        if (!companyName || !companyName.includes('#')) {
+          toast.error('소속 형식 오류', { description: '업체명#코드 형식으로 입력해주세요. (예: 클린프로#1234)' })
+          setIsLoading(false)
+          return
+        }
+
+        const [inputName, inputCode] = companyName.split('#')
+        if (!inputName || !inputCode) {
+          toast.error('소속 형식 오류', { description: '업체명과 코드를 모두 입력해주세요.' })
+          setIsLoading(false)
+          return
+        }
+
+        // DB에서 업체 확인
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('id, name, code')
+          .eq('name', inputName.trim())
+          .eq('code', inputCode.trim())
+          .single()
+
+        if (!companyData) {
+          toast.error('없는 소속입니다', { description: '업체명과 코드를 다시 확인해주세요. 관리자에게 문의하세요.' })
+          setIsLoading(false)
+          return
+        }
+
         // SIGN UP LOGIC
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -228,8 +256,9 @@ export default function Home() {
                       <Input id="name" name="name" placeholder="홍길동" required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="companyName">소속 업체명</Label>
-                      <Input id="companyName" name="companyName" placeholder="예: 더클린" required />
+                      <Label htmlFor="companyName">소속 (업체명#코드)</Label>
+                      <Input id="companyName" name="companyName" placeholder="예: 클린프로#1234" required />
+                      <p className="text-xs text-slate-500">* 관리자에게 확인한 업체명과 코드를 정확히 입력해주세요.</p>
                     </div>
                   </>
                 )}
