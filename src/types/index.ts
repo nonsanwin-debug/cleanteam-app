@@ -27,6 +27,8 @@ export type AssignedSite = {
     collection_type?: string
     // 현장 메모 (팀장이 작성, 팀원에게 표시)
     worker_notes?: string
+    // 배정된 팀원 목록
+    members?: { user_id: string; name: string }[]
 }
 
 

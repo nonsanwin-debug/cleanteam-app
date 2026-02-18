@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle, StickyNote } from 'lucide-react'
+import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle, StickyNote, Users } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -292,6 +292,17 @@ function SiteCard({
                     {site.customer_name && (
                         <p className="text-sm text-slate-600">고객: <span className="font-semibold text-slate-900">{site.customer_name}</span></p>
                     )}
+                    {isLeader && site.members && site.members.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <Users className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-xs text-slate-500">팀원:</span>
+                            {site.members.map((m, i) => (
+                                <span key={m.user_id} className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    {m.name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                     {isLeader && (
                         <div className="flex items-center justify-between flex-wrap gap-2">
                             {site.customer_phone ? (
@@ -471,8 +482,8 @@ function MemoSection({ site, isLeader, onSaved }: { site: AssignedSite, isLeader
     return (
         <div
             className={`mt-2 rounded-lg p-2.5 cursor-pointer transition-colors ${site.worker_notes
-                    ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
-                    : 'bg-slate-50 border border-dashed border-slate-300 hover:bg-slate-100'
+                ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
+                : 'bg-slate-50 border border-dashed border-slate-300 hover:bg-slate-100'
                 }`}
             onClick={() => setEditing(true)}
         >

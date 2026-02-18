@@ -53,6 +53,35 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         // 중복 제거 후 합산
         const allSites = [...(leaderSites || []) as AssignedSite[], ...memberSites]
         const uniqueSites = Array.from(new Map(allSites.map(s => [s.id, s])).values())
+
+        // 각 현장의 배정 팀원 정보 가져오기
+        if (uniqueSites.length > 0) {
+            try {
+                const siteIds = uniqueSites.map(s => s.id)
+                const { data: allMembers } = await supabase
+                    .from('site_members')
+                    .select('site_id, user_id, users!inner(name)')
+                    .in('site_id', siteIds)
+
+                if (allMembers && allMembers.length > 0) {
+                    const membersBySite = new Map<string, { user_id: string; name: string }[]>()
+                    for (const m of allMembers) {
+                        const list = membersBySite.get(m.site_id) || []
+                        list.push({
+                            user_id: m.user_id,
+                            name: (m as any).users?.name || '이름없음'
+                        })
+                        membersBySite.set(m.site_id, list)
+                    }
+                    for (const site of uniqueSites) {
+                        site.members = membersBySite.get(site.id) || []
+                    }
+                }
+            } catch (membersError) {
+                console.error('팀원 정보 조회 오류 (무시):', membersError)
+            }
+        }
+
         return uniqueSites
     } catch (error) {
         console.error('Unexpected error in getAssignedSites:', error)
