@@ -181,7 +181,13 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
         setAdjustLoading(true)
         try {
             const result = await adjustWorkerBalance(workerId, amount, adjustType, adjustReason.trim())
-            if (result.success) {
+            if (result.success && result.error) {
+                // 잔액은 변경됐지만 로그 저장 실패
+                alert(`[디버그] 정산기록 저장 실패:\n${result.error}`)
+                toast.success(`${actionText} 처리됨 (기록 저장 실패)`)
+                setAdjustOpen(null)
+                router.refresh()
+            } else if (result.success) {
                 toast.success(`${actionText} 처리되었습니다.`)
                 setAdjustOpen(null)
                 router.refresh()
