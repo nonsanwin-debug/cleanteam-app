@@ -162,7 +162,8 @@ export async function approvePayment(siteId: string, userId: string, amount: num
 
 export async function rejectClaim(siteId: string, reason: string): Promise<ActionResponse> {
     try {
-        const supabase = await createClient()
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
 
         const { error } = await supabase
             .from('sites')
@@ -172,10 +173,11 @@ export async function rejectClaim(siteId: string, reason: string): Promise<Actio
                 updated_at: new Date().toISOString()
             } as any)
             .eq('id', siteId)
+            .eq('company_id', companyId)
 
         if (error) {
             console.error('Reject claim error:', error)
-            return { success: false, error: '청구 반려 처리에 실패했습니다.' }
+            return { success: false, error: '청구 반려 처리에 실패했습니다: ' + error.message }
         }
 
         revalidatePath('/admin/users')
