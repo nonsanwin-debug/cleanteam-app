@@ -187,7 +187,8 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
                     .from('sites')
                     .update({
                         payment_status: 'requested',
-                        claimed_amount: commissionAmount
+                        claimed_amount: commissionAmount,
+                        claimed_by: user.id
                     })
                     .eq('id', siteId)
 
@@ -551,6 +552,8 @@ export async function getCompanySmsSettings(): Promise<ActionResponse<{ sms_enab
 export async function requestPayment(siteId: string, amount: number, details: any[] = [], photos: string[] = []): Promise<ActionResponse> {
     try {
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자' }
 
         const { error } = await supabase
             .from('sites')
@@ -558,7 +561,8 @@ export async function requestPayment(siteId: string, amount: number, details: an
                 claimed_amount: amount,
                 payment_status: 'requested',
                 claim_details: details,
-                claim_photos: photos
+                claim_photos: photos,
+                claimed_by: user.id
             })
             .eq('id', siteId)
 

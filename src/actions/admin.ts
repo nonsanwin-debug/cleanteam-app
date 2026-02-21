@@ -24,13 +24,13 @@ export async function getUsersWithClaims() {
     // Fetch pending claims for each user in the same company
     const { data: claims } = await supabase
         .from('sites')
-        .select('id, name, worker_id, claimed_amount, payment_status, created_at')
+        .select('id, name, worker_id, claimed_amount, payment_status, created_at, claimed_by')
         .eq('payment_status', 'requested')
         .eq('company_id', companyId)
 
-    // Attach claims to users
+    // Attach claims to users (claimed_by가 있으면 실제 청구자, 없으면 worker_id로 fallback)
     const usersWithClaims = users.map(user => {
-        const userClaims = claims?.filter(c => c.worker_id === user.id) || []
+        const userClaims = claims?.filter(c => (c.claimed_by || c.worker_id) === user.id) || []
         const totalClaimAmount = userClaims.reduce((sum, c) => sum + (c.claimed_amount || 0), 0)
         return {
             ...user,
