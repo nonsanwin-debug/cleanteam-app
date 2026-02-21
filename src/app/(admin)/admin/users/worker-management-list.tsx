@@ -468,7 +468,7 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                                     <span className="text-slate-600 truncate mr-2">{log.description}</span>
                                                     <div className="flex items-center gap-3 shrink-0">
                                                         <span className={`font-semibold ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
-                                                            {log.type === 'manual_deduct' ? '-' : '+'}{log.amount.toLocaleString()}원
+                                                            {log.type === 'manual_deduct' ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
                                                         </span>
                                                         <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
                                                     </div>

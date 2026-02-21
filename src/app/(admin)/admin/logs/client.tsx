@@ -119,7 +119,7 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
                                         const isDeduct = ['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type)
                                         return (
                                             <TableCell className={`text-right font-medium ${isDeduct ? 'text-red-600' : 'text-green-600'}`}>
-                                                {isDeduct ? '-' : '+'}{log.amount.toLocaleString()}원
+                                                {isDeduct ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
                                             </TableCell>
                                         )
                                     })()}
