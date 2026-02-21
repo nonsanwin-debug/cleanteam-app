@@ -42,6 +42,7 @@ interface Worker {
 interface CommissionLog {
     id: string
     user_id: string
+    type: string
     amount: number
     description: string
     reference_id: string
@@ -462,8 +463,8 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                                 <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
                                                     <span className="text-slate-600 truncate mr-2">{log.description}</span>
                                                     <div className="flex items-center gap-3 shrink-0">
-                                                        <span className={`font-semibold ${log.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                            {log.amount >= 0 ? '+' : ''}{log.amount.toLocaleString()}원
+                                                        <span className={`font-semibold ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
+                                                            {log.type === 'manual_deduct' ? '-' : '+'}{log.amount.toLocaleString()}원
                                                         </span>
                                                         <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
                                                     </div>

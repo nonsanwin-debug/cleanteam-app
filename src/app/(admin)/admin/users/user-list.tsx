@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { approvePayment } from '@/actions/admin'
-import { Loader2, DollarSign, User } from 'lucide-react'
+import { approvePayment, rejectClaim } from '@/actions/admin'
+import { Loader2, User, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -28,6 +28,7 @@ interface UserWithClaims {
 export function UserList({ users }: { users: UserWithClaims[] }) {
     const router = useRouter()
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [rejectingId, setRejectingId] = useState<string | null>(null)
 
     async function handleApprove(siteId: string, userId: string, amount: number) {
         if (!confirm(`${amount.toLocaleString()}원을 지급 승인하시겠습니까?`)) return
@@ -37,7 +38,6 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
             const result = await approvePayment(siteId, userId, amount)
             if (result.success) {
                 toast.success('지급 처리되었습니다.')
-                // Force full page reload to ensure UI updates
                 window.location.reload()
             } else {
                 toast.error(result.error)
@@ -46,6 +46,30 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
             toast.error('오류가 발생했습니다.')
         } finally {
             setProcessingId(null)
+        }
+    }
+
+    async function handleReject(siteId: string, siteName: string) {
+        const reason = prompt(`"${siteName}" 청구를 반려합니다.\n반려 사유를 입력하세요:`)
+        if (reason === null) return
+        if (!reason.trim()) {
+            toast.error('반려 사유를 입력해주세요.')
+            return
+        }
+
+        setRejectingId(siteId)
+        try {
+            const result = await rejectClaim(siteId, reason.trim())
+            if (result.success) {
+                toast.success('청구가 반려되었습니다.')
+                window.location.reload()
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setRejectingId(null)
         }
     }
 
@@ -82,27 +106,41 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
                                     <span className="text-orange-600">총 {user.totalPending.toLocaleString()}원</span>
                                 </h4>
 
-                                <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                                <div className="space-y-2 max-h-[200px] overflow-y-auto">
                                     {user.claims.length === 0 ? (
                                         <p className="text-xs text-slate-400 text-center py-4">대기 중인 청구 내역이 없습니다.</p>
                                     ) : (
                                         user.claims.map(claim => (
-                                            <div key={claim.id} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
-                                                <div className="min-w-0 flex-1 mr-2">
-                                                    <Link href={`/admin/sites/${claim.id}`} className="text-xs font-medium truncate hover:underline hover:text-blue-600 block">
-                                                        {claim.name}
-                                                    </Link>
-                                                    <p className="text-[10px] text-slate-400">{new Date(claim.created_at).toLocaleDateString()}</p>
+                                            <div key={claim.id} className="p-2 bg-slate-50 rounded border">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="min-w-0 flex-1 mr-2">
+                                                        <Link href={`/admin/sites/${claim.id}`} className="text-xs font-medium truncate hover:underline hover:text-blue-600 block">
+                                                            {claim.name}
+                                                        </Link>
+                                                        <p className="text-[10px] text-slate-400">{new Date(claim.created_at).toLocaleDateString()}</p>
+                                                    </div>
+                                                    <span className="text-sm font-bold">{claim.claimed_amount.toLocaleString()}원</span>
                                                 </div>
-                                                <div className="text-right flex items-center gap-2">
-                                                    <span className="text-sm font-bold w-16 text-right">{claim.claimed_amount.toLocaleString()}</span>
+                                                <div className="flex gap-1.5 mt-1.5">
                                                     <Button
                                                         size="sm"
-                                                        className="h-7 px-2"
+                                                        className="flex-1 h-7 text-xs"
                                                         onClick={() => handleApprove(claim.id, user.id, claim.claimed_amount)}
-                                                        disabled={!!processingId}
+                                                        disabled={!!processingId || !!rejectingId}
                                                     >
-                                                        {processingId === claim.id ? <Loader2 className="h-3 w-3 animate-spin" /> : '지급'}
+                                                        {processingId === claim.id ? <Loader2 className="h-3 w-3 animate-spin" /> : '지급 승인'}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="flex-1 h-7 text-xs border-red-300 text-red-600 hover:bg-red-50"
+                                                        onClick={() => handleReject(claim.id, claim.name)}
+                                                        disabled={!!processingId || !!rejectingId}
+                                                    >
+                                                        {rejectingId === claim.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <>
+                                                            <X className="h-3 w-3 mr-0.5" />
+                                                            반려
+                                                        </>}
                                                     </Button>
                                                 </div>
                                             </div>

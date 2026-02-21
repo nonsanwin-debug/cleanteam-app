@@ -160,6 +160,32 @@ export async function approvePayment(siteId: string, userId: string, amount: num
     }
 }
 
+export async function rejectClaim(siteId: string, reason: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                payment_status: 'rejected',
+                rejection_reason: reason,
+                updated_at: new Date().toISOString()
+            } as any)
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('Reject claim error:', error)
+            return { success: false, error: '청구 반려 처리에 실패했습니다.' }
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Reject claim unexpected error:', error)
+        return { success: false, error: `시스템 오류: ${error.message || '알 수 없는 오류'}` }
+    }
+}
+
 export async function processWithdrawal(requestId: string, action: 'paid' | 'rejected', rejectionReason?: string): Promise<ActionResponse> {
     try {
         const supabase = await createClient()
@@ -585,13 +611,14 @@ export async function adjustWorkerBalance(
                 user_id: workerId,
                 company_id: companyId,
                 type: logType,
-                amount: type === 'add' ? amount : -amount,
+                amount: amount,
                 balance_after: newBalance,
                 description: description
             })
 
         if (logError) {
             console.error('Wallet log insert error:', logError)
+            // 잔액은 이미 업데이트 됐으므로 로그 실패만 알림
         }
 
         revalidatePath('/admin/users')
