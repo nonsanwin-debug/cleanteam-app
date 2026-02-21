@@ -620,7 +620,7 @@ export async function adjustWorkerBalance(
 
         if (logError) {
             console.error('Wallet log insert error:', logError)
-            // 잔액은 이미 업데이트 됐으므로 로그 실패만 알림
+            return { success: true, error: `잔액은 변경되었으나 정산기록 저장 실패: ${logError.message}` }
         }
 
         revalidatePath('/admin/users')
