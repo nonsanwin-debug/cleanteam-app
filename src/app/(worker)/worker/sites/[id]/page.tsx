@@ -217,7 +217,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <div className="flex flex-col gap-2">
                             {isLeader && site.customer_phone ? (
                                 <a
-                                    href={`sms:${site.customer_phone}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
+                                    href={`sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
                                     className="w-full"
                                 >
                                     <Button
@@ -485,7 +485,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                                         .replace('{추가금}', additional.toLocaleString())
                                                         .replace('{합계}', total.toLocaleString())
                                                     const phone = site.customer_phone || site.manager_phone || ''
-                                                    const cleanPhone = phone.replace(/-/g, '')
+                                                    const cleanPhone = phone.split('/')[0].trim().replace(/-/g, '')
 
                                                     // 1. 클립보드에 복사
                                                     try {
