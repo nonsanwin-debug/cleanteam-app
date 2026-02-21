@@ -115,9 +115,14 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
                                     <TableCell className="font-medium">{log.user?.name}</TableCell>
                                     <TableCell>{getTypeBadge(log.type)}</TableCell>
                                     <TableCell className="text-sm">{log.description}</TableCell>
-                                    <TableCell className={`text-right font-medium ${log.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {log.amount > 0 ? '+' : ''}{log.amount.toLocaleString()}원
-                                    </TableCell>
+                                    {(() => {
+                                        const isDeduct = ['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type)
+                                        return (
+                                            <TableCell className={`text-right font-medium ${isDeduct ? 'text-red-600' : 'text-green-600'}`}>
+                                                {isDeduct ? '-' : '+'}{log.amount.toLocaleString()}원
+                                            </TableCell>
+                                        )
+                                    })()}
                                     <TableCell className="text-right font-semibold text-slate-700">
                                         {log.balance_after.toLocaleString()}원
                                     </TableCell>
