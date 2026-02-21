@@ -165,6 +165,19 @@ export async function rejectClaim(siteId: string, reason: string): Promise<Actio
         const { supabase, companyId } = await getAuthCompany()
         if (!companyId) return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
 
+        // 1. 현장 정보 조회 (worker_id, name, additional_amount)
+        const { data: site, error: siteError } = await supabase
+            .from('sites')
+            .select('name, additional_amount, worker_id, claimed_by')
+            .eq('id', siteId)
+            .eq('company_id', companyId)
+            .single()
+
+        if (siteError || !site) {
+            return { success: false, error: '현장 정보를 찾을 수 없습니다.' }
+        }
+
+        // 2. sites 테이블 업데이트
         const { error } = await supabase
             .from('sites')
             .update({
@@ -178,6 +191,26 @@ export async function rejectClaim(siteId: string, reason: string): Promise<Actio
         if (error) {
             console.error('Reject claim error:', error)
             return { success: false, error: '청구 반려 처리에 실패했습니다: ' + error.message }
+        }
+
+        // 3. wallet_logs에 반려 기록 추가
+        const workerId = site.claimed_by || site.worker_id
+        if (workerId) {
+            const { error: logError } = await supabase
+                .from('wallet_logs')
+                .insert({
+                    user_id: workerId,
+                    company_id: companyId,
+                    type: 'manual_deduct',
+                    amount: site.additional_amount || 0,
+                    balance_after: 0,
+                    description: `비용청구 반려: ${site.name || '현장'} (사유: ${reason})`,
+                    reference_id: siteId
+                })
+
+            if (logError) {
+                console.error('Reject wallet log error:', logError)
+            }
         }
 
         revalidatePath('/admin/users')
