@@ -190,7 +190,7 @@ interface CreateOrderData {
     region: string
     work_date: string
     area_size: string
-    collection_type: 'team_leader' | 'company'
+    collection_type: 'site' | 'company'
     notes?: string
     address?: string
     customer_phone?: string

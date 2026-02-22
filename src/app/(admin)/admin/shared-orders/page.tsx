@@ -40,7 +40,7 @@ export default function SharedOrdersPage() {
     const [region, setRegion] = useState('')
     const [workDate, setWorkDate] = useState('')
     const [areaSize, setAreaSize] = useState('')
-    const [collectionType, setCollectionType] = useState<'team_leader' | 'company' | ''>('')
+    const [collectionType, setCollectionType] = useState<'site' | 'company' | ''>('')
     const [notes, setNotes] = useState('')
     const [address, setAddress] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
@@ -215,10 +215,10 @@ export default function SharedOrdersPage() {
                                 <div className="flex gap-3 mt-2">
                                     <button
                                         type="button"
-                                        onClick={() => setCollectionType('team_leader')}
-                                        className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${collectionType === 'team_leader'
-                                                ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                        onClick={() => setCollectionType('site')}
+                                        className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${collectionType === 'site'
+                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
                                             }`}
                                     >
                                         💰 팀장 직접 수금
@@ -227,8 +227,8 @@ export default function SharedOrdersPage() {
                                         type="button"
                                         onClick={() => setCollectionType('company')}
                                         className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${collectionType === 'company'
-                                                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                                                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                            ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
                                             }`}
                                     >
                                         🏢 업체 수금

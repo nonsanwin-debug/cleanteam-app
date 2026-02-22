@@ -29,7 +29,7 @@ type ParsedData = {
     area_size: string
     special_notes: string
     balance_amount: number
-    collection_type: 'site' | 'company'
+    collection_type: 'site' | 'company' | ''
 }
 
 interface OrderParserDialogProps {
@@ -63,13 +63,17 @@ export function OrderParserDialog({ workers }: OrderParserDialogProps) {
 
     const handleRegister = async () => {
         if (!parsed) return
+        if (!parsed.collection_type) {
+            setError('수금 방식을 선택해주세요.')
+            return
+        }
         setRegistering(true)
         setError('')
 
         const result = await createSite({
             name: parsed.name,
             address: parsed.address,
-            worker_id: selectedWorker || null,
+            worker_id: (selectedWorker && selectedWorker !== 'none') ? selectedWorker : null,
             customer_name: parsed.customer_name,
             customer_phone: parsed.customer_phone,
             residential_type: parsed.residential_type,
@@ -270,6 +274,33 @@ export function OrderParserDialog({ workers }: OrderParserDialogProps) {
                                 onChange={(e) => updateField('special_notes', e.target.value)}
                                 className="mt-1 min-h-[80px] text-sm"
                             />
+                        </div>
+
+                        {/* 수금 방식 선택 */}
+                        <div className="border-t pt-4">
+                            <Label className="text-sm font-semibold">수금 방식 *</Label>
+                            <div className="flex gap-3 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => updateField('collection_type', 'site')}
+                                    className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${parsed.collection_type === 'site'
+                                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                        }`}
+                                >
+                                    💰 팀장 직접 수금
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => updateField('collection_type', 'company')}
+                                    className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${parsed.collection_type === 'company'
+                                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                                        }`}
+                                >
+                                    🏢 업체 수금
+                                </button>
+                            </div>
                         </div>
 
                         {/* 팀장 선택 */}
