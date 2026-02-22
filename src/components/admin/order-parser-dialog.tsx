@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -37,6 +38,7 @@ interface OrderParserDialogProps {
 }
 
 export function OrderParserDialog({ workers }: OrderParserDialogProps) {
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [orderText, setOrderText] = useState('')
     const [parsing, setParsing] = useState(false)
@@ -91,6 +93,7 @@ export function OrderParserDialog({ workers }: OrderParserDialogProps) {
             setTimeout(() => {
                 setOpen(false)
                 resetState()
+                router.refresh() // 다이얼로그 닫힌 후 페이지 새로고침
             }, 1500)
         } else {
             setError(result.error || '등록에 실패했습니다.')

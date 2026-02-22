@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -99,6 +100,7 @@ export function SiteDialog({
 }: SiteDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
 
     // Custom Date Picker State
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
@@ -194,6 +196,7 @@ export function SiteDialog({
                 toast.success('현장이 등록되었습니다.')
             }
             setOpen(false)
+            router.refresh()
             if (mode === 'create') {
                 form.reset()
                 // Reset custom states

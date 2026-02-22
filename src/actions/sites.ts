@@ -213,7 +213,7 @@ export async function createSite(formData: CreateSiteDTO) {
             }
         }
 
-        revalidatePath('/admin/sites')
+        // revalidation은 클라이언트에서 처리 (AI 오더 다이얼로그 등 UX 보호)
         return { success: true }
     } catch (e: any) {
         console.error('Unexpected error in createSite:', e)
