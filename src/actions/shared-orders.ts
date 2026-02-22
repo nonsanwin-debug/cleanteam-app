@@ -54,10 +54,11 @@ export async function searchCompanyByCode(input: string) {
 
 /** 업체 공유 활성화 (등록) */
 export async function enableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
-    const { supabase, companyId } = await getAuthCompany()
+    const { companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
 
-    const { error } = await supabase
+    const adminSupabase = createAdminClient()
+    const { error } = await adminSupabase
         .from('companies')
         .update({ sharing_enabled: true })
         .eq('id', targetCompanyId)
@@ -73,10 +74,11 @@ export async function enableCompanySharing(targetCompanyId: string): Promise<Act
 
 /** 업체 공유 비활성화 (제거) */
 export async function disableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
-    const { supabase, companyId } = await getAuthCompany()
+    const { companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
 
-    const { error } = await supabase
+    const adminSupabase = createAdminClient()
+    const { error } = await adminSupabase
         .from('companies')
         .update({ sharing_enabled: false })
         .eq('id', targetCompanyId)
