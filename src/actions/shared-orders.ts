@@ -11,18 +11,19 @@ import { sendPushToAdmins } from '@/actions/push'
 // 업체 관리
 // ============================================
 
-/** 업체 코드로 회사 검색 (코드 4자리로 검색, 복수 결과 지원) */
+/** 업체 코드로 회사 검색 (이름#코드: 이름+코드 필터, #코드 또는 코드: 코드만 검색) */
 export async function searchCompanyByCode(input: string) {
     const { companyId } = await getAuthCompany()
     if (!companyId) return { found: false, error: '인증 실패', companies: [] }
 
-    // Admin 클라이언트 사용 (RLS 우회 - 다른 업체 조회 허용)
     const adminSupabase = createAdminClient()
 
-    // 입력에서 # 기준으로 코드 추출
+    // 입력 파싱: 이름#코드 또는 코드만
     let searchCode = input.trim()
+    let searchName = ''
     const hashIndex = input.lastIndexOf('#')
     if (hashIndex !== -1) {
+        searchName = input.substring(0, hashIndex).trim()
         searchCode = input.substring(hashIndex + 1).trim()
     }
 
@@ -44,8 +45,18 @@ export async function searchCompanyByCode(input: string) {
         return { found: false, error: '존재하지 않는 업체입니다.', companies: [] }
     }
 
+    // 이름이 입력된 경우 이름도 필터링 (공백 제거 후 비교)
+    let filtered = data
+    if (searchName) {
+        const normalizedInput = searchName.replace(/\s/g, '').toLowerCase()
+        filtered = data.filter(c => c.name?.replace(/\s/g, '').toLowerCase() === normalizedInput)
+        if (filtered.length === 0) {
+            return { found: false, error: `코드 ${searchCode}에 해당하는 "${searchName}" 업체가 없습니다.`, companies: [] }
+        }
+    }
+
     // 자사 업체 제외
-    const filtered = data.filter(c => c.id !== companyId)
+    filtered = filtered.filter(c => c.id !== companyId)
     if (filtered.length === 0) {
         return { found: false, error: '자사 업체는 등록할 수 없습니다.', companies: [] }
     }
