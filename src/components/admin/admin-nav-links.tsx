@@ -12,16 +12,16 @@ interface AdminNavLinksProps {
 }
 
 const NAV_ITEMS = [
-    { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드' },
-    { href: '/admin/sites', icon: MapPin, label: '현장 관리' },
-    { href: '/admin/shared-orders', icon: Share2, label: '오더 공유' },
-    { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리' },
-    { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true },
-    { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리' },
-    { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true },
-    { href: '/admin/partners', icon: Building2, label: '업체 관리' },
-    { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', special: true },
-    { href: '/admin/settings', icon: Settings, label: '설정' },
+    { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
+    { href: '/admin/sites', icon: MapPin, label: '현장 관리', iconColor: 'text-rose-500' },
+    { href: '/admin/shared-orders', icon: Share2, label: '오더 공유', iconColor: 'text-emerald-500' },
+    { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리', iconColor: 'text-amber-500' },
+    { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true, iconColor: 'text-cyan-500' },
+    { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리', iconColor: 'text-orange-500' },
+    { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true, iconColor: 'text-violet-500' },
+    { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
+    { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
+    { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
 ]
 
 export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
@@ -45,18 +45,16 @@ export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
                         <Button
                             variant={isActive ? 'default' : 'ghost'}
                             className={cn(
-                                'w-full justify-start',
+                                'w-full justify-start border-l-4',
                                 isActive
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                                    : item.special
-                                        ? 'text-slate-600 hover:text-primary hover:bg-indigo-50 border-l-4 border-transparent hover:border-indigo-600'
-                                        : 'text-slate-600 hover:text-primary hover:bg-slate-50',
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm border-blue-700'
+                                    : 'text-slate-600 hover:text-primary hover:bg-indigo-50 border-transparent hover:border-indigo-600',
                             )}
                         >
                             <Icon className={cn(
                                 'mr-2 h-4 w-4',
                                 item.iconRotate && 'rotate-180',
-                                item.special && !isActive && 'text-indigo-600',
+                                !isActive && item.iconColor,
                             )} />
                             {item.label}
                             {item.showBadge && pendingCount > 0 && (
