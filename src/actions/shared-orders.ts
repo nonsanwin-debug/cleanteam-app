@@ -190,7 +190,7 @@ interface CreateOrderData {
     region: string
     work_date: string
     area_size: string
-    collection_type: 'site' | 'company'
+    collection_type?: 'site' | 'company'
     notes?: string
     address?: string
     customer_phone?: string
@@ -210,7 +210,7 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             region: data.region,
             work_date: data.work_date,
             area_size: data.area_size,
-            collection_type: data.collection_type,
+            collection_type: data.collection_type || null,
             notes: data.notes || null,
             address: data.address || null,
             customer_phone: data.customer_phone || null,

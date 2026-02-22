@@ -40,7 +40,6 @@ export default function SharedOrdersPage() {
     const [region, setRegion] = useState('')
     const [workDate, setWorkDate] = useState('')
     const [areaSize, setAreaSize] = useState('')
-    const [collectionType, setCollectionType] = useState<'site' | 'company' | ''>('')
     const [notes, setNotes] = useState('')
     const [address, setAddress] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
@@ -79,13 +78,9 @@ export default function SharedOrdersPage() {
             toast.error('작업 지역, 날짜, 평수는 필수 입력입니다.')
             return
         }
-        if (!collectionType) {
-            toast.error('수금 방식을 선택해주세요.')
-            return
-        }
         setSubmitting(true)
         const result = await createSharedOrder({
-            region, work_date: workDate, area_size: areaSize, collection_type: collectionType,
+            region, work_date: workDate, area_size: areaSize,
             notes, address, customer_phone: customerPhone, customer_name: customerName
         })
         if (result.success) {
@@ -100,7 +95,7 @@ export default function SharedOrdersPage() {
     }
 
     function resetForm() {
-        setRegion(''); setWorkDate(''); setAreaSize(''); setCollectionType('')
+        setRegion(''); setWorkDate(''); setAreaSize('')
         setNotes(''); setAddress(''); setCustomerPhone(''); setCustomerName('')
     }
 
@@ -209,31 +204,6 @@ export default function SharedOrdersPage() {
                             <div>
                                 <label className="text-sm font-medium">평수 *</label>
                                 <Input value={areaSize} onChange={e => setAreaSize(e.target.value)} placeholder="예: 32평" />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium">수금 방식 *</label>
-                                <div className="flex gap-3 mt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setCollectionType('site')}
-                                        className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${collectionType === 'site'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
-                                            }`}
-                                    >
-                                        💰 팀장 직접 수금
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setCollectionType('company')}
-                                        className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-semibold transition-all ${collectionType === 'company'
-                                            ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
-                                            }`}
-                                    >
-                                        🏢 업체 수금
-                                    </button>
-                                </div>
                             </div>
                             <div>
                                 <label className="text-sm font-medium">특이사항</label>
