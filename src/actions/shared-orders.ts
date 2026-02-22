@@ -243,30 +243,30 @@ export async function getMySharedOrders() {
     return data || []
 }
 
-/** 수신 오더 목록 (open 상태, 파트너가 등록한 업체의 오더만) */
+/** 수신 오더 목록 (나를 파트너로 등록한 업체의 open 오더) */
 export async function getIncomingOrders() {
     const { companyId } = await getAuthCompany()
     if (!companyId) return []
 
     const adminSupabase = createAdminClient()
 
-    // 내가 등록한 파트너 중 sharing_active인 업체 ID 가져오기
+    // 나를 파트너로 등록하고 sharing_active인 업체 ID 가져오기
     const { data: activePartners } = await adminSupabase
         .from('company_partners')
-        .select('partner_company_id')
-        .eq('company_id', companyId)
+        .select('company_id')
+        .eq('partner_company_id', companyId)
         .eq('sharing_active', true)
 
     if (!activePartners || activePartners.length === 0) return []
 
-    const partnerIds = activePartners.map(p => p.partner_company_id)
+    const senderIds = activePartners.map(p => p.company_id)
 
-    // 해당 파트너 업체들의 open 오더 조회
+    // 해당 업체들의 open 오더 조회
     const { data, error } = await adminSupabase
         .from('shared_orders')
         .select('*, sender_company:company_id(name, code)')
         .eq('status', 'open')
-        .in('company_id', partnerIds)
+        .in('company_id', senderIds)
         .order('created_at', { ascending: false })
 
     if (error) {
