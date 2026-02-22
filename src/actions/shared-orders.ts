@@ -190,6 +190,7 @@ interface CreateOrderData {
     region: string
     work_date: string
     area_size: string
+    collection_type: 'team_leader' | 'company'
     notes?: string
     address?: string
     customer_phone?: string
@@ -209,6 +210,7 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             region: data.region,
             work_date: data.work_date,
             area_size: data.area_size,
+            collection_type: data.collection_type,
             notes: data.notes || null,
             address: data.address || null,
             customer_phone: data.customer_phone || null,
@@ -508,7 +510,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
                     : `[오더 공유: ${senderCompany?.name || '타업체'}]`,
                 status: 'scheduled',
                 payment_status: 'none',
-                collection_type: 'company'
+                collection_type: order.collection_type || 'company'
             })
             .select('id')
             .single()
