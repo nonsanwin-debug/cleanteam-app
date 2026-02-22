@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getAuthCompany } from '@/lib/supabase/auth-context'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { ActionResponse } from '@/types'
 import { sendPushToAdmins } from '@/actions/push'
@@ -12,8 +13,11 @@ import { sendPushToAdmins } from '@/actions/push'
 
 /** 업체 코드로 회사 검색 (업체이름#코드 또는 #코드) */
 export async function searchCompanyByCode(input: string) {
-    const { supabase, companyId } = await getAuthCompany()
+    const { companyId } = await getAuthCompany()
     if (!companyId) return { found: false, error: '인증 실패' }
+
+    // Admin 클라이언트 사용 (RLS 우회 - 다른 업체 조회 허용)
+    const adminSupabase = createAdminClient()
 
     // 입력에서 # 기준으로 코드 추출
     let searchCode = input.trim()
@@ -26,7 +30,7 @@ export async function searchCompanyByCode(input: string) {
     searchCode = searchCode.replace(/[^0-9]/g, '')
     if (searchCode.length !== 4) return { found: false, error: '4자리 코드를 입력하세요. (예: 클린체크#0000)' }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
         .from('companies')
         .select('id, name, sharing_enabled, code')
         .eq('code', searchCode)
@@ -88,10 +92,11 @@ export async function disableCompanySharing(targetCompanyId: string): Promise<Ac
 
 /** 공유 활성화된 업체 목록 (자사 제외) */
 export async function getSharingPartners() {
-    const { supabase, companyId } = await getAuthCompany()
+    const { companyId } = await getAuthCompany()
     if (!companyId) return []
 
-    const { data, error } = await supabase
+    const adminSupabase = createAdminClient()
+    const { data, error } = await adminSupabase
         .from('companies')
         .select('id, name, sharing_enabled, code')
         .eq('sharing_enabled', true)
