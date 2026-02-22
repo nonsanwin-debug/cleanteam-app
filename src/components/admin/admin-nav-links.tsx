@@ -19,7 +19,7 @@ const NAV_ITEMS = [
     { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true },
     { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리' },
     { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true },
-    { href: '/admin/partners', icon: Building2, label: '업체 권한 관리' },
+    { href: '/admin/partners', icon: Building2, label: '업체 관리' },
     { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', special: true },
     { href: '/admin/settings', icon: Settings, label: '설정' },
 ]

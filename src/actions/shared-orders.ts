@@ -7,43 +7,110 @@ import { ActionResponse } from '@/types'
 import { sendPushToAdmins } from '@/actions/push'
 
 // ============================================
-// 업체 권한 관리
+// 업체 관리
 // ============================================
 
-/** 전체 업체 목록 (공유 상태 포함) */
-export async function getAllCompanies() {
+/** 업체 코드로 회사 검색 (업체#XXXX → UUID 앞 4자리 매칭) */
+export async function searchCompanyByCode(code: string) {
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { found: false, error: '인증 실패' }
+
+    // 코드에서 숫자/영문만 추출 (업체#abcd → abcd)
+    const cleanCode = code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    if (cleanCode.length < 4) return { found: false, error: '4자리 이상의 코드를 입력하세요.' }
+
+    const { data, error } = await supabase
+        .from('companies')
+        .select('id, name, sharing_enabled')
+        .ilike('id', `${cleanCode}%`)
+
+    if (error) {
+        console.error('searchCompanyByCode error:', error)
+        return { found: false, error: error.message }
+    }
+
+    if (!data || data.length === 0) {
+        return { found: false, error: '존재하지 않는 업체입니다.' }
+    }
+
+    const company = data[0]
+    if (company.id === companyId) {
+        return { found: false, error: '자사 업체는 등록할 수 없습니다.' }
+    }
+
+    return { found: true, company }
+}
+
+/** 업체 공유 활성화 (등록) */
+export async function enableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    const { error } = await supabase
+        .from('companies')
+        .update({ sharing_enabled: true })
+        .eq('id', targetCompanyId)
+
+    if (error) {
+        console.error('enableCompanySharing error:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/partners')
+    return { success: true }
+}
+
+/** 업체 공유 비활성화 (제거) */
+export async function disableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    const { error } = await supabase
+        .from('companies')
+        .update({ sharing_enabled: false })
+        .eq('id', targetCompanyId)
+
+    if (error) {
+        console.error('disableCompanySharing error:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/partners')
+    return { success: true }
+}
+
+/** 공유 활성화된 업체 목록 (자사 제외) */
+export async function getSharingPartners() {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return []
 
     const { data, error } = await supabase
         .from('companies')
         .select('id, name, sharing_enabled')
+        .eq('sharing_enabled', true)
+        .neq('id', companyId)
         .order('name')
 
     if (error) {
-        console.error('getAllCompanies error:', error)
+        console.error('getSharingPartners error:', error)
         return []
     }
     return data || []
 }
 
-/** 업체 공유 활성화/비활성화 토글 */
-export async function toggleCompanySharing(targetCompanyId: string, enabled: boolean): Promise<ActionResponse> {
+/** 내 업체 코드 조회 */
+export async function getMyCompanyCode() {
     const { supabase, companyId } = await getAuthCompany()
-    if (!companyId) return { success: false, error: '인증 실패' }
+    if (!companyId) return null
 
-    const { error } = await supabase
+    const { data } = await supabase
         .from('companies')
-        .update({ sharing_enabled: enabled })
-        .eq('id', targetCompanyId)
+        .select('id, name')
+        .eq('id', companyId)
+        .single()
 
-    if (error) {
-        console.error('toggleCompanySharing error:', error)
-        return { success: false, error: error.message }
-    }
-
-    revalidatePath('/admin/partners')
-    return { success: true }
+    if (!data) return null
+    return { code: data.id.substring(0, 4).toLowerCase(), name: data.name, id: data.id }
 }
 
 // ============================================

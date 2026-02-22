@@ -2,47 +2,102 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Building2, Loader2, Share2 } from 'lucide-react'
+import { Building2, Loader2, Search, Plus, Trash2, Copy, CheckCircle2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { getAllCompanies, toggleCompanySharing } from '@/actions/shared-orders'
+import {
+    searchCompanyByCode,
+    enableCompanySharing,
+    disableCompanySharing,
+    getSharingPartners,
+    getMyCompanyCode
+} from '@/actions/shared-orders'
 
 export default function PartnersPage() {
-    const [companies, setCompanies] = useState<any[]>([])
+    const [partners, setPartners] = useState<any[]>([])
+    const [myCode, setMyCode] = useState<{ code: string; name: string; id: string } | null>(null)
     const [loading, setLoading] = useState(true)
-    const [togglingId, setTogglingId] = useState<string | null>(null)
+
+    // 검색 상태
+    const [searchCode, setSearchCode] = useState('')
+    const [searching, setSearching] = useState(false)
+    const [searchResult, setSearchResult] = useState<any>(null)
+    const [searchError, setSearchError] = useState('')
+    const [adding, setAdding] = useState(false)
 
     useEffect(() => {
-        loadCompanies()
+        loadData()
     }, [])
 
-    async function loadCompanies() {
-        const data = await getAllCompanies()
-        setCompanies(data)
+    async function loadData() {
+        const [partnerList, codeInfo] = await Promise.all([
+            getSharingPartners(),
+            getMyCompanyCode()
+        ])
+        setPartners(partnerList)
+        setMyCode(codeInfo)
         setLoading(false)
     }
 
-    async function handleToggle(companyId: string, enabled: boolean) {
-        setTogglingId(companyId)
-        const result = await toggleCompanySharing(companyId, enabled)
+    async function handleSearch() {
+        if (!searchCode.trim()) {
+            toast.error('업체 코드를 입력하세요.')
+            return
+        }
+        setSearching(true)
+        setSearchResult(null)
+        setSearchError('')
+
+        const result = await searchCompanyByCode(searchCode.trim())
+        if (result.found && result.company) {
+            setSearchResult(result.company)
+            setSearchError('')
+        } else {
+            setSearchResult(null)
+            setSearchError(result.error || '존재하지 않는 업체입니다.')
+        }
+        setSearching(false)
+    }
+
+    async function handleAdd(companyId: string) {
+        setAdding(true)
+        const result = await enableCompanySharing(companyId)
         if (result.success) {
-            setCompanies(prev =>
-                prev.map(c => c.id === companyId ? { ...c, sharing_enabled: enabled } : c)
-            )
-            toast.success(enabled ? '공유 활성화됨' : '공유 비활성화됨')
+            toast.success('업체가 등록되었습니다.')
+            setSearchResult(null)
+            setSearchCode('')
+            loadData()
         } else {
             toast.error(result.error)
         }
-        setTogglingId(null)
+        setAdding(false)
+    }
+
+    async function handleRemove(companyId: string) {
+        if (!confirm('이 업체를 목록에서 제거하시겠습니까?')) return
+        const result = await disableCompanySharing(companyId)
+        if (result.success) {
+            toast.success('업체가 제거되었습니다.')
+            loadData()
+        } else {
+            toast.error(result.error)
+        }
+    }
+
+    function copyMyCode() {
+        if (myCode) {
+            navigator.clipboard.writeText(`업체#${myCode.code}`)
+            toast.success('내 업체 코드가 복사되었습니다.')
+        }
     }
 
     if (loading) {
         return (
             <div className="space-y-6">
                 <h2 className="text-2xl font-bold tracking-tight flex items-center">
-                    <Building2 className="mr-2" />
-                    업체 권한 관리
+                    <Building2 className="mr-2" /> 업체 관리
                 </h2>
                 <div className="flex items-center justify-center p-10">
                     <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
@@ -55,29 +110,109 @@ export default function PartnersPage() {
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight flex items-center">
-                    <Building2 className="mr-2" />
-                    업체 권한 관리
+                    <Building2 className="mr-2" /> 업체 관리
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                    오더 공유 시스템에 참여할 업체를 설정합니다.
+                    오더 공유에 참여할 업체를 등록합니다.
                 </p>
             </div>
 
+            {/* 내 업체 코드 */}
+            {myCode && (
+                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-xs text-blue-600 font-medium mb-1">내 업체 코드</p>
+                                <p className="text-2xl font-bold text-blue-800 tracking-wider">
+                                    업체#{myCode.code}
+                                </p>
+                                <p className="text-sm text-blue-600 mt-0.5">{myCode.name}</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100" onClick={copyMyCode}>
+                                <Copy className="h-4 w-4 mr-1" /> 복사
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* 업체 검색 */}
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center">
-                        <Share2 className="h-5 w-5 mr-2" />
-                        업체 목록
+                        <Search className="h-5 w-5 mr-2" />
+                        업체 등록
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">업체#</span>
+                            <Input
+                                value={searchCode}
+                                onChange={e => { setSearchCode(e.target.value); setSearchError(''); setSearchResult(null) }}
+                                placeholder="0000"
+                                className="pl-14"
+                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                            />
+                        </div>
+                        <Button onClick={handleSearch} disabled={searching} className="px-6">
+                            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                        </Button>
+                    </div>
+
+                    {/* 검색 에러 */}
+                    {searchError && (
+                        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+                            <p className="text-sm text-red-700 font-medium">{searchError}</p>
+                        </div>
+                    )}
+
+                    {/* 검색 결과 */}
+                    {searchResult && (
+                        <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                                    {(searchResult.name || '?')[0]}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-slate-800">{searchResult.name}</p>
+                                    <p className="text-xs text-slate-500">업체#{searchResult.id.substring(0, 4)}</p>
+                                </div>
+                            </div>
+                            {searchResult.sharing_enabled ? (
+                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">이미 등록됨</Badge>
+                            ) : (
+                                <Button size="sm" onClick={() => handleAdd(searchResult.id)} disabled={adding}>
+                                    {adding ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                                    등록
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* 등록된 업체 목록 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                        <CheckCircle2 className="h-5 w-5 mr-2 text-green-600" />
+                        등록된 업체 ({partners.length})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {companies.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">
-                            등록된 업체가 없습니다.
-                        </p>
+                    {partners.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                            <Building2 className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                            <p>등록된 업체가 없습니다.</p>
+                            <p className="text-xs mt-1">위에서 업체 코드로 검색하여 등록하세요.</p>
+                        </div>
                     ) : (
                         <div className="divide-y">
-                            {companies.map((company) => (
+                            {partners.map((company) => (
                                 <div key={company.id} className="flex items-center justify-between py-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
@@ -85,21 +220,17 @@ export default function PartnersPage() {
                                         </div>
                                         <div>
                                             <p className="font-semibold text-slate-800">{company.name}</p>
-                                            <p className="text-xs text-slate-400">ID: {company.id.slice(0, 8)}...</p>
+                                            <p className="text-xs text-slate-400">업체#{company.id.substring(0, 4)}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        {company.sharing_enabled ? (
-                                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">공유 활성</Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="text-slate-400">비활성</Badge>
-                                        )}
-                                        <Switch
-                                            checked={company.sharing_enabled || false}
-                                            onCheckedChange={(checked) => handleToggle(company.id, checked)}
-                                            disabled={togglingId === company.id}
-                                        />
-                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleRemove(company.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             ))}
                         </div>
