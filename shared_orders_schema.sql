@@ -1,17 +1,9 @@
 -- =============================================
--- 오더 공유 시스템 DB 스키마
+-- 오더 공유 시스템 DB 스키마 (재실행 가능)
 -- =============================================
 
--- 1. companies 테이블에 sharing_enabled, company_code 컬럼 추가
+-- 1. companies 테이블에 sharing_enabled 컬럼 추가 (code 컬럼은 이미 존재)
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS sharing_enabled boolean DEFAULT false;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS company_code varchar(4);
-
--- 기존 업체에 랜덤 4자리 코드 할당
-UPDATE companies SET company_code = LPAD(FLOOR(RANDOM() * 10000)::text, 4, '0') WHERE company_code IS NULL;
-
--- company_code에 UNIQUE 제약 추가
-ALTER TABLE companies ALTER COLUMN company_code SET NOT NULL;
-ALTER TABLE companies ADD CONSTRAINT companies_code_unique UNIQUE (company_code);
 
 -- 2. shared_orders 테이블 생성
 CREATE TABLE IF NOT EXISTS shared_orders (
@@ -46,8 +38,12 @@ CREATE TABLE IF NOT EXISTS shared_order_notifications (
 ALTER TABLE shared_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shared_order_notifications ENABLE ROW LEVEL SECURITY;
 
--- 5. shared_orders RLS 정책
--- 자기 업체 오더는 모두 볼 수 있음
+-- 5. shared_orders RLS 정책 (기존 정책 삭제 후 재생성)
+DROP POLICY IF EXISTS "shared_orders_own_company" ON shared_orders;
+DROP POLICY IF EXISTS "shared_orders_view_open" ON shared_orders;
+DROP POLICY IF EXISTS "shared_orders_insert" ON shared_orders;
+DROP POLICY IF EXISTS "shared_orders_update" ON shared_orders;
+
 CREATE POLICY "shared_orders_own_company" ON shared_orders
     FOR ALL TO authenticated
     USING (
@@ -55,7 +51,6 @@ CREATE POLICY "shared_orders_own_company" ON shared_orders
         OR accepted_by IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
--- 공유 활성화된 업체는 open 상태 오더를 볼 수 있음
 CREATE POLICY "shared_orders_view_open" ON shared_orders
     FOR SELECT TO authenticated
     USING (
@@ -65,20 +60,21 @@ CREATE POLICY "shared_orders_view_open" ON shared_orders
         )
     );
 
--- insert 정책
 CREATE POLICY "shared_orders_insert" ON shared_orders
     FOR INSERT TO authenticated
     WITH CHECK (
         company_id IN (SELECT company_id FROM users WHERE id = auth.uid())
     );
 
--- update 정책 (자기 오더 수정 + 수락)
 CREATE POLICY "shared_orders_update" ON shared_orders
     FOR UPDATE TO authenticated
     USING (true)
     WITH CHECK (true);
 
--- 6. shared_order_notifications RLS 정책
+-- 6. shared_order_notifications RLS 정책 (기존 정책 삭제 후 재생성)
+DROP POLICY IF EXISTS "notifications_own_company" ON shared_order_notifications;
+DROP POLICY IF EXISTS "notifications_insert" ON shared_order_notifications;
+
 CREATE POLICY "notifications_own_company" ON shared_order_notifications
     FOR ALL TO authenticated
     USING (

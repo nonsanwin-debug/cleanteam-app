@@ -27,8 +27,8 @@ export async function searchCompanyByCode(input: string) {
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, sharing_enabled, company_code')
-        .eq('company_code', inputCode)
+        .select('id, name, sharing_enabled, code')
+        .eq('code', inputCode)
 
     if (error) {
         console.error('searchCompanyByCode error:', error)
@@ -97,7 +97,7 @@ export async function getSharingPartners() {
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, sharing_enabled, company_code')
+        .select('id, name, sharing_enabled, code')
         .eq('sharing_enabled', true)
         .neq('id', companyId)
         .order('name')
@@ -116,12 +116,12 @@ export async function getMyCompanyCode() {
 
     const { data } = await supabase
         .from('companies')
-        .select('id, name, company_code')
+        .select('id, name, code')
         .eq('id', companyId)
         .single()
 
     if (!data) return null
-    return { code: data.company_code || '????', name: data.name, id: data.id }
+    return { code: data.code || '????', name: data.name, id: data.id }
 }
 
 // ============================================

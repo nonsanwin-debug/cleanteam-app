@@ -176,7 +176,7 @@ export default function PartnersPage() {
                                 </div>
                                 <div>
                                     <p className="font-semibold text-slate-800">{searchResult.name}</p>
-                                    <p className="text-xs text-slate-500">{searchResult.name}#{searchResult.company_code}</p>
+                                    <p className="text-xs text-slate-500">{searchResult.name}#{searchResult.code}</p>
                                 </div>
                             </div>
                             {searchResult.sharing_enabled ? (
@@ -217,7 +217,7 @@ export default function PartnersPage() {
                                         </div>
                                         <div>
                                             <p className="font-semibold text-slate-800">{company.name}</p>
-                                            <p className="text-xs text-slate-400">{company.name}#{company.company_code}</p>
+                                            <p className="text-xs text-slate-400">{company.name}#{company.code}</p>
                                         </div>
                                     </div>
                                     <Button
