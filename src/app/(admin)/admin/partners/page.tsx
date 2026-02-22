@@ -20,12 +20,12 @@ export default function PartnersPage() {
     const [myCode, setMyCode] = useState<{ code: string; name: string; id: string } | null>(null)
     const [loading, setLoading] = useState(true)
 
-    // 추가 상태
+    // 검색/추가 상태
     const [addInput, setAddInput] = useState('')
     const [searching, setSearching] = useState(false)
-    const [searchResult, setSearchResult] = useState<any>(null)
+    const [searchResults, setSearchResults] = useState<any[]>([])
     const [searchError, setSearchError] = useState('')
-    const [adding, setAdding] = useState(false)
+    const [addingId, setAddingId] = useState<string | null>(null)
 
     useEffect(() => {
         loadData()
@@ -47,32 +47,32 @@ export default function PartnersPage() {
             return
         }
         setSearching(true)
-        setSearchResult(null)
+        setSearchResults([])
         setSearchError('')
 
         const result = await searchCompanyByCode(addInput.trim())
-        if (result.found && result.company) {
-            setSearchResult(result.company)
+        if (result.found && result.companies.length > 0) {
+            setSearchResults(result.companies)
             setSearchError('')
         } else {
-            setSearchResult(null)
+            setSearchResults([])
             setSearchError(result.error || '존재하지 않는 업체입니다.')
         }
         setSearching(false)
     }
 
     async function handleAdd(companyId: string) {
-        setAdding(true)
+        setAddingId(companyId)
         const result = await enableCompanySharing(companyId)
         if (result.success) {
             toast.success('업체가 추가되었습니다.')
-            setSearchResult(null)
+            setSearchResults([])
             setAddInput('')
             loadData()
         } else {
             toast.error(result.error)
         }
-        setAdding(false)
+        setAddingId(null)
     }
 
     async function handleRemove(companyId: string) {
@@ -148,7 +148,7 @@ export default function PartnersPage() {
                     <div className="flex gap-2">
                         <Input
                             value={addInput}
-                            onChange={e => { setAddInput(e.target.value); setSearchError(''); setSearchResult(null) }}
+                            onChange={e => { setAddInput(e.target.value); setSearchError(''); setSearchResults([]) }}
                             placeholder="예: 클린체크#0000"
                             className="flex-1"
                             onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -167,26 +167,35 @@ export default function PartnersPage() {
                         </div>
                     )}
 
-                    {/* 검색 결과 */}
-                    {searchResult && (
-                        <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                                    {(searchResult.name || '?')[0]}
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-slate-800">{searchResult.name}</p>
-                                    <p className="text-xs text-slate-500">{searchResult.name}#{searchResult.code}</p>
-                                </div>
-                            </div>
-                            {searchResult.sharing_enabled ? (
-                                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">이미 등록됨</Badge>
-                            ) : (
-                                <Button size="sm" onClick={() => handleAdd(searchResult.id)} disabled={adding}>
-                                    {adding ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <UserPlus className="w-4 h-4 mr-1" />}
-                                    추가
-                                </Button>
+                    {/* 검색 결과 (복수 지원) */}
+                    {searchResults.length > 0 && (
+                        <div className="space-y-2">
+                            {searchResults.length > 1 && (
+                                <p className="text-xs text-amber-600 font-medium">
+                                    동일 코드의 업체가 {searchResults.length}개 검색되었습니다. 추가할 업체를 선택하세요.
+                                </p>
                             )}
+                            {searchResults.map((company) => (
+                                <div key={company.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                                            {(company.name || '?')[0]}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-slate-800">{company.name}</p>
+                                            <p className="text-xs text-slate-500">{company.name}#{company.code}</p>
+                                        </div>
+                                    </div>
+                                    {company.sharing_enabled ? (
+                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">이미 등록됨</Badge>
+                                    ) : (
+                                        <Button size="sm" onClick={() => handleAdd(company.id)} disabled={addingId === company.id}>
+                                            {addingId === company.id ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <UserPlus className="w-4 h-4 mr-1" />}
+                                            추가
+                                        </Button>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </CardContent>

@@ -11,10 +11,10 @@ import { sendPushToAdmins } from '@/actions/push'
 // 업체 관리
 // ============================================
 
-/** 업체 코드로 회사 검색 (업체이름#코드 또는 #코드) */
+/** 업체 코드로 회사 검색 (코드 4자리로 검색, 복수 결과 지원) */
 export async function searchCompanyByCode(input: string) {
     const { companyId } = await getAuthCompany()
-    if (!companyId) return { found: false, error: '인증 실패' }
+    if (!companyId) return { found: false, error: '인증 실패', companies: [] }
 
     // Admin 클라이언트 사용 (RLS 우회 - 다른 업체 조회 허용)
     const adminSupabase = createAdminClient()
@@ -28,7 +28,7 @@ export async function searchCompanyByCode(input: string) {
 
     // 숫자만 추출
     searchCode = searchCode.replace(/[^0-9]/g, '')
-    if (searchCode.length !== 4) return { found: false, error: '4자리 코드를 입력하세요. (예: 클린체크#0000)' }
+    if (searchCode.length !== 4) return { found: false, error: '4자리 코드를 입력하세요. (예: 클린체크#0000)', companies: [] }
 
     const { data, error } = await adminSupabase
         .from('companies')
@@ -37,19 +37,20 @@ export async function searchCompanyByCode(input: string) {
 
     if (error) {
         console.error('searchCompanyByCode error:', error)
-        return { found: false, error: error.message }
+        return { found: false, error: error.message, companies: [] }
     }
 
     if (!data || data.length === 0) {
-        return { found: false, error: '존재하지 않는 업체입니다.' }
+        return { found: false, error: '존재하지 않는 업체입니다.', companies: [] }
     }
 
-    const company = data[0]
-    if (company.id === companyId) {
-        return { found: false, error: '자사 업체는 등록할 수 없습니다.' }
+    // 자사 업체 제외
+    const filtered = data.filter(c => c.id !== companyId)
+    if (filtered.length === 0) {
+        return { found: false, error: '자사 업체는 등록할 수 없습니다.', companies: [] }
     }
 
-    return { found: true, company }
+    return { found: true, companies: filtered }
 }
 
 /** 업체 공유 활성화 (등록) */
