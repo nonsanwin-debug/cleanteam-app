@@ -10,19 +10,25 @@ import { sendPushToAdmins } from '@/actions/push'
 // 업체 관리
 // ============================================
 
-/** 업체 코드로 회사 검색 (업체#XXXX → UUID 앞 4자리 매칭) */
-export async function searchCompanyByCode(code: string) {
+/** 업체 코드로 회사 검색 (회사이름#0000 형식) */
+export async function searchCompanyByCode(input: string) {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return { found: false, error: '인증 실패' }
 
-    // 코드에서 숫자/영문만 추출 (업체#abcd → abcd)
-    const cleanCode = code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-    if (cleanCode.length < 4) return { found: false, error: '4자리 이상의 코드를 입력하세요.' }
+    // 입력에서 # 기준으로 분리
+    const hashIndex = input.lastIndexOf('#')
+    if (hashIndex === -1) return { found: false, error: '형식: 업체이름#코드 (예: 더클린#6382)' }
+
+    const inputName = input.substring(0, hashIndex).trim()
+    const inputCode = input.substring(hashIndex + 1).trim()
+
+    if (!inputName || !inputCode) return { found: false, error: '업체이름#코드 형식으로 입력하세요.' }
+    if (inputCode.length !== 4) return { found: false, error: '코드는 4자리 숫자입니다.' }
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, sharing_enabled')
-        .ilike('id', `${cleanCode}%`)
+        .select('id, name, sharing_enabled, company_code')
+        .eq('company_code', inputCode)
 
     if (error) {
         console.error('searchCompanyByCode error:', error)
@@ -33,7 +39,12 @@ export async function searchCompanyByCode(code: string) {
         return { found: false, error: '존재하지 않는 업체입니다.' }
     }
 
-    const company = data[0]
+    // 이름도 일치하는지 확인 (공백 제거 후 비교)
+    const company = data.find(c => c.name?.replace(/\s/g, '') === inputName.replace(/\s/g, ''))
+    if (!company) {
+        return { found: false, error: '존재하지 않는 업체입니다.' }
+    }
+
     if (company.id === companyId) {
         return { found: false, error: '자사 업체는 등록할 수 없습니다.' }
     }
@@ -86,7 +97,7 @@ export async function getSharingPartners() {
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, sharing_enabled')
+        .select('id, name, sharing_enabled, company_code')
         .eq('sharing_enabled', true)
         .neq('id', companyId)
         .order('name')
@@ -105,12 +116,12 @@ export async function getMyCompanyCode() {
 
     const { data } = await supabase
         .from('companies')
-        .select('id, name')
+        .select('id, name, company_code')
         .eq('id', companyId)
         .single()
 
     if (!data) return null
-    return { code: data.id.substring(0, 4).toLowerCase(), name: data.name, id: data.id }
+    return { code: data.company_code || '????', name: data.name, id: data.id }
 }
 
 // ============================================

@@ -2,8 +2,16 @@
 -- 오더 공유 시스템 DB 스키마
 -- =============================================
 
--- 1. companies 테이블에 sharing_enabled 컬럼 추가
+-- 1. companies 테이블에 sharing_enabled, company_code 컬럼 추가
 ALTER TABLE companies ADD COLUMN IF NOT EXISTS sharing_enabled boolean DEFAULT false;
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS company_code varchar(4);
+
+-- 기존 업체에 랜덤 4자리 코드 할당
+UPDATE companies SET company_code = LPAD(FLOOR(RANDOM() * 10000)::text, 4, '0') WHERE company_code IS NULL;
+
+-- company_code에 UNIQUE 제약 추가
+ALTER TABLE companies ALTER COLUMN company_code SET NOT NULL;
+ALTER TABLE companies ADD CONSTRAINT companies_code_unique UNIQUE (company_code);
 
 -- 2. shared_orders 테이블 생성
 CREATE TABLE IF NOT EXISTS shared_orders (
