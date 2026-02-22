@@ -64,19 +64,22 @@ export async function searchCompanyByCode(input: string) {
     return { found: true, companies: filtered }
 }
 
-/** 업체 공유 활성화 (등록) */
-export async function enableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
+/** 파트너 업체 추가 */
+export async function addPartner(partnerCompanyId: string): Promise<ActionResponse> {
     const { companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
 
     const adminSupabase = createAdminClient()
     const { error } = await adminSupabase
-        .from('companies')
-        .update({ sharing_enabled: true })
-        .eq('id', targetCompanyId)
+        .from('company_partners')
+        .upsert({
+            company_id: companyId,
+            partner_company_id: partnerCompanyId,
+            sharing_active: true
+        }, { onConflict: 'company_id,partner_company_id' })
 
     if (error) {
-        console.error('enableCompanySharing error:', error)
+        console.error('addPartner error:', error)
         return { success: false, error: error.message }
     }
 
@@ -84,19 +87,20 @@ export async function enableCompanySharing(targetCompanyId: string): Promise<Act
     return { success: true }
 }
 
-/** 업체 공유 비활성화 (제거) */
-export async function disableCompanySharing(targetCompanyId: string): Promise<ActionResponse> {
+/** 파트너 업체 삭제 */
+export async function removePartner(partnerCompanyId: string): Promise<ActionResponse> {
     const { companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
 
     const adminSupabase = createAdminClient()
     const { error } = await adminSupabase
-        .from('companies')
-        .update({ sharing_enabled: false })
-        .eq('id', targetCompanyId)
+        .from('company_partners')
+        .delete()
+        .eq('company_id', companyId)
+        .eq('partner_company_id', partnerCompanyId)
 
     if (error) {
-        console.error('disableCompanySharing error:', error)
+        console.error('removePartner error:', error)
         return { success: false, error: error.message }
     }
 
@@ -104,24 +108,63 @@ export async function disableCompanySharing(targetCompanyId: string): Promise<Ac
     return { success: true }
 }
 
-/** 공유 활성화된 업체 목록 (자사 제외) */
-export async function getSharingPartners() {
+/** 파트너 공유 ON/OFF 토글 */
+export async function togglePartnerSharing(partnerCompanyId: string, active: boolean): Promise<ActionResponse> {
+    const { companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    const adminSupabase = createAdminClient()
+    const { error } = await adminSupabase
+        .from('company_partners')
+        .update({ sharing_active: active })
+        .eq('company_id', companyId)
+        .eq('partner_company_id', partnerCompanyId)
+
+    if (error) {
+        console.error('togglePartnerSharing error:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/partners')
+    return { success: true }
+}
+
+/** 내 파트너 목록 조회 (companies 정보 포함) */
+export async function getMyPartners() {
     const { companyId } = await getAuthCompany()
     if (!companyId) return []
 
     const adminSupabase = createAdminClient()
     const { data, error } = await adminSupabase
-        .from('companies')
-        .select('id, name, sharing_enabled, code')
-        .eq('sharing_enabled', true)
-        .neq('id', companyId)
-        .order('name')
+        .from('company_partners')
+        .select('id, sharing_active, partner_company_id, created_at')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false })
 
     if (error) {
-        console.error('getSharingPartners error:', error)
+        console.error('getMyPartners error:', error)
         return []
     }
-    return data || []
+    if (!data || data.length === 0) return []
+
+    // 파트너 회사 정보 조회
+    const partnerIds = data.map(p => p.partner_company_id)
+    const { data: companies } = await adminSupabase
+        .from('companies')
+        .select('id, name, code')
+        .in('id', partnerIds)
+
+    // 합치기
+    return data.map(p => {
+        const company = companies?.find(c => c.id === p.partner_company_id)
+        return {
+            id: p.id,
+            partner_company_id: p.partner_company_id,
+            sharing_active: p.sharing_active,
+            name: company?.name || '알 수 없음',
+            code: company?.code || '????'
+        }
+    })
 }
 
 /** 내 업체 코드 조회 */
