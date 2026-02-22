@@ -149,7 +149,7 @@ export default function PartnersPage() {
                         <Input
                             value={addInput}
                             onChange={e => { setAddInput(e.target.value); setSearchError(''); setSearchResult(null) }}
-                            placeholder="예: 더클린#6382"
+                            placeholder="예: 클린체크#0000"
                             className="flex-1"
                             onKeyDown={e => e.key === 'Enter' && handleSearch()}
                         />

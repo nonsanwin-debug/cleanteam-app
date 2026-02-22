@@ -10,25 +10,26 @@ import { sendPushToAdmins } from '@/actions/push'
 // 업체 관리
 // ============================================
 
-/** 업체 코드로 회사 검색 (회사이름#0000 형식) */
+/** 업체 코드로 회사 검색 (업체이름#코드 또는 #코드) */
 export async function searchCompanyByCode(input: string) {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return { found: false, error: '인증 실패' }
 
-    // 입력에서 # 기준으로 분리
+    // 입력에서 # 기준으로 코드 추출
+    let searchCode = input.trim()
     const hashIndex = input.lastIndexOf('#')
-    if (hashIndex === -1) return { found: false, error: '형식: 업체이름#코드 (예: 더클린#6382)' }
+    if (hashIndex !== -1) {
+        searchCode = input.substring(hashIndex + 1).trim()
+    }
 
-    const inputName = input.substring(0, hashIndex).trim()
-    const inputCode = input.substring(hashIndex + 1).trim()
-
-    if (!inputName || !inputCode) return { found: false, error: '업체이름#코드 형식으로 입력하세요.' }
-    if (inputCode.length !== 4) return { found: false, error: '코드는 4자리 숫자입니다.' }
+    // 숫자만 추출
+    searchCode = searchCode.replace(/[^0-9]/g, '')
+    if (searchCode.length !== 4) return { found: false, error: '4자리 코드를 입력하세요. (예: 클린체크#0000)' }
 
     const { data, error } = await supabase
         .from('companies')
         .select('id, name, sharing_enabled, code')
-        .eq('code', inputCode)
+        .eq('code', searchCode)
 
     if (error) {
         console.error('searchCompanyByCode error:', error)
@@ -39,12 +40,7 @@ export async function searchCompanyByCode(input: string) {
         return { found: false, error: '존재하지 않는 업체입니다.' }
     }
 
-    // 이름도 일치하는지 확인 (공백 제거 후 비교)
-    const company = data.find(c => c.name?.replace(/\s/g, '') === inputName.replace(/\s/g, ''))
-    if (!company) {
-        return { found: false, error: '존재하지 않는 업체입니다.' }
-    }
-
+    const company = data[0]
     if (company.id === companyId) {
         return { found: false, error: '자사 업체는 등록할 수 없습니다.' }
     }
