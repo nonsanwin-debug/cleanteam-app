@@ -448,6 +448,55 @@ export async function cancelSharedOrder(orderId: string): Promise<ActionResponse
     return { success: true }
 }
 
+/** 오더 삭제 (발신자 또는 수신자) */
+export async function deleteSharedOrder(orderId: string): Promise<ActionResponse> {
+    const { companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    const adminSupabase = createAdminClient()
+
+    // 오더 정보 조회
+    const { data: order } = await adminSupabase
+        .from('shared_orders')
+        .select('company_id')
+        .eq('id', orderId)
+        .single()
+
+    if (!order) {
+        return { success: false, error: '오더를 찾을 수 없습니다.' }
+    }
+
+    // 발신자(자기 오더)인지, 수신자(파트너로 등록된 업체)인지 확인
+    const isSender = order.company_id === companyId
+
+    if (!isSender) {
+        // 수신자인지 확인 (나를 파트너로 등록한 업체의 오더인지)
+        const { data: partnerCheck } = await adminSupabase
+            .from('company_partners')
+            .select('id')
+            .eq('company_id', order.company_id)
+            .eq('partner_company_id', companyId)
+            .eq('sharing_active', true)
+            .maybeSingle()
+
+        if (!partnerCheck) {
+            return { success: false, error: '삭제 권한이 없습니다.' }
+        }
+    }
+
+    const { error } = await adminSupabase
+        .from('shared_orders')
+        .delete()
+        .eq('id', orderId)
+
+    if (error) {
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/shared-orders')
+    return { success: true }
+}
+
 /** 알림 목록 조회 */
 export async function getOrderNotifications() {
     const { supabase, companyId } = await getAuthCompany()

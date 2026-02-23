@@ -16,7 +16,7 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog'
-import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, Clock, AlertCircle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
     createSharedOrder,
@@ -25,6 +25,7 @@ import {
     acceptOrder,
     updateOrderDetails,
     cancelSharedOrder,
+    deleteSharedOrder,
     getOrderNotifications
 } from '@/actions/shared-orders'
 
@@ -117,6 +118,17 @@ export default function SharedOrdersPage() {
         const result = await cancelSharedOrder(orderId)
         if (result.success) {
             toast.success('오더가 취소되었습니다.')
+            loadData()
+        } else {
+            toast.error(result.error)
+        }
+    }
+
+    async function handleDelete(orderId: string) {
+        if (!confirm('이 오더를 삭제하시겠습니까? 되돌릴 수 없습니다.')) return
+        const result = await deleteSharedOrder(orderId)
+        if (result.success) {
+            toast.success('오더가 삭제되었습니다.')
             loadData()
         } else {
             toast.error(result.error)
@@ -304,6 +316,10 @@ export default function SharedOrdersPage() {
                                                 취소
                                             </Button>
                                         )}
+                                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDelete(order.id)}>
+                                            <Trash2 className="h-4 w-4 mr-1" />
+                                            삭제
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -351,18 +367,27 @@ export default function SharedOrdersPage() {
                                         <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
                                     )}
 
-                                    <Button
-                                        className="w-full bg-blue-600 hover:bg-blue-700"
-                                        onClick={() => handleAccept(order.id)}
-                                        disabled={acceptingId === order.id}
-                                    >
-                                        {acceptingId === order.id ? (
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        ) : (
-                                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                                        )}
-                                        오더 수락
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            onClick={() => handleAccept(order.id)}
+                                            disabled={acceptingId === order.id}
+                                        >
+                                            {acceptingId === order.id ? (
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            ) : (
+                                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                            )}
+                                            오더 수락
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="text-red-600 border-red-200 hover:bg-red-50"
+                                            onClick={() => handleDelete(order.id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         ))
