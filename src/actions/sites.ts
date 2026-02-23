@@ -225,6 +225,14 @@ export async function deleteSite(id: string) {
     const supabase = await createClient()
 
     try {
+        // shared_orders에서 이 현장을 참조하는 FK 해제
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const adminSupabase = createAdminClient()
+        await adminSupabase
+            .from('shared_orders')
+            .update({ transferred_site_id: null })
+            .eq('transferred_site_id', id)
+
         const { error, count } = await supabase
             .from('sites')
             .delete({ count: 'exact' })
