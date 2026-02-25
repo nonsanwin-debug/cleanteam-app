@@ -5,11 +5,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission, adjustWorkerBalance } from '@/actions/admin'
+import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission, adjustWorkerBalance, deleteWorker } from '@/actions/admin'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus, Trash2 } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -64,6 +64,7 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
     const [adjustAmount, setAdjustAmount] = useState('')
     const [adjustReason, setAdjustReason] = useState('')
     const [adjustLoading, setAdjustLoading] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
 
     const togglePassword = (id: string) => {
         setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
@@ -196,6 +197,25 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
             toast.error('오류가 발생했습니다.')
         } finally {
             setAdjustLoading(false)
+        }
+    }
+
+    async function handleDelete(workerId: string, workerName: string) {
+        if (!confirm(`정말 "${workerName}" 팀원을 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n- 해당 팀원의 계정이 완전히 삭제됩니다.\n- 배정된 현장의 담당자가 해제됩니다.`)) return
+
+        setDeleteLoading(workerId)
+        try {
+            const result = await deleteWorker(workerId)
+            if (result.success) {
+                toast.success(`"${workerName}" 팀원이 삭제되었습니다.`)
+                router.refresh()
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('삭제 중 오류가 발생했습니다.')
+        } finally {
+            setDeleteLoading(null)
         }
     }
 
@@ -524,6 +544,24 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                 )}
                             </Button>
                         )}
+
+                        {/* 삭제 버튼 */}
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full mt-2 text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => handleDelete(worker.id, worker.name)}
+                            disabled={!!deleteLoading}
+                        >
+                            {deleteLoading === worker.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <>
+                                    <Trash2 className="w-4 h-4 mr-1" />
+                                    삭제
+                                </>
+                            )}
+                        </Button>
                     </CardContent>
                 </Card>
             ))}

@@ -664,6 +664,70 @@ export async function adjustWorkerBalance(
     }
 }
 
+/** 팀원 삭제 (auth + profile) */
+export async function deleteWorker(workerId: string): Promise<ActionResponse> {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
+
+        // 같은 업체 소속인지 확인
+        const { data: worker } = await supabase
+            .from('users')
+            .select('id, name, company_id, role')
+            .eq('id', workerId)
+            .single()
+
+        if (!worker) return { success: false, error: '팀원을 찾을 수 없습니다.' }
+        if (worker.company_id !== companyId) return { success: false, error: '같은 업체의 팀원만 삭제할 수 있습니다.' }
+        if (worker.role !== 'worker') return { success: false, error: '팀원만 삭제할 수 있습니다.' }
+
+        const adminClient = createAdminClient()
+
+        // 1. 배정된 현장의 worker_id를 null로 변경
+        await adminClient
+            .from('sites')
+            .update({ worker_id: null })
+            .eq('worker_id', workerId)
+
+        // 2. site_members에서 제거
+        await adminClient
+            .from('site_members')
+            .delete()
+            .eq('user_id', workerId)
+
+        // 3. worker_hidden_sites에서 제거
+        await adminClient
+            .from('worker_hidden_sites')
+            .delete()
+            .eq('user_id', workerId)
+
+        // 4. wallet_logs 삭제
+        await adminClient
+            .from('wallet_logs')
+            .delete()
+            .eq('user_id', workerId)
+
+        // 5. 프로필 삭제
+        await adminClient
+            .from('users')
+            .delete()
+            .eq('id', workerId)
+
+        // 6. Auth 사용자 삭제
+        const { error: authError } = await adminClient.auth.admin.deleteUser(workerId)
+        if (authError) {
+            console.error('Auth user delete error:', authError)
+            // 프로필은 이미 삭제되었으므로 경고만
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error) {
+        console.error('deleteWorker error:', error)
+        return { success: false, error: '팀원 삭제 중 오류가 발생했습니다.' }
+    }
+}
+
 // ============================================
 // Company Settings Functions
 // ============================================

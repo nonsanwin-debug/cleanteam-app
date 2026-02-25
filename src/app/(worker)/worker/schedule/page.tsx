@@ -154,7 +154,7 @@ export default function WorkerSchedulePage() {
                                         {daySites.length > 0 && <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">{daySites.length}건</span>}
                                     </div>
 
-                                    <div className="flex flex-col gap-1 mt-1 overflow-y-auto max-h-[120px] scrollbar-hide">
+                                    <div className="flex flex-col gap-1 mt-1">
                                         {daySites.map(site => (
                                             <div
                                                 key={site.id}
