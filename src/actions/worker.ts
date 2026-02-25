@@ -52,7 +52,22 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
 
         // 중복 제거 후 합산
         const allSites = [...(leaderSites || []) as AssignedSite[], ...memberSites]
-        const uniqueSites = Array.from(new Map(allSites.map(s => [s.id, s])).values())
+        let uniqueSites = Array.from(new Map(allSites.map(s => [s.id, s])).values())
+
+        // 워커가 숨긴 현장 필터링
+        try {
+            const { data: hiddenSites } = await supabase
+                .from('worker_hidden_sites')
+                .select('site_id')
+                .eq('user_id', user.id)
+
+            if (hiddenSites && hiddenSites.length > 0) {
+                const hiddenIds = new Set(hiddenSites.map(h => h.site_id))
+                uniqueSites = uniqueSites.filter(s => !hiddenIds.has(s.id))
+            }
+        } catch {
+            // worker_hidden_sites 테이블이 없을 수 있음
+        }
 
         // 각 현장의 배정 팀원 정보 가져오기 (separate queries)
         if (uniqueSites.length > 0) {
@@ -710,5 +725,42 @@ export async function saveWorkerNotes(siteId: string, notes: string): Promise<Ac
     } catch (error) {
         console.error('saveWorkerNotes error:', error)
         return { success: false, error: '메모 저장 중 오류가 발생했습니다.' }
+    }
+}
+
+/** 완료된 현장을 워커 화면에서 숨기기 (관리자 페이지에는 영향 없음) */
+export async function hideCompletedSite(siteId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 완료된 현장인지 확인
+        const { data: site } = await supabase
+            .from('sites')
+            .select('status')
+            .eq('id', siteId)
+            .single()
+
+        if (!site) return { success: false, error: '현장을 찾을 수 없습니다.' }
+        if (site.status !== 'completed') return { success: false, error: '완료된 작업만 삭제할 수 있습니다.' }
+
+        const { error } = await supabase
+            .from('worker_hidden_sites')
+            .upsert({
+                user_id: user.id,
+                site_id: siteId
+            }, { onConflict: 'user_id,site_id' })
+
+        if (error) {
+            console.error('hideCompletedSite error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath('/worker/home')
+        return { success: true }
+    } catch (error) {
+        console.error('hideCompletedSite error:', error)
+        return { success: false, error: '작업 삭제 중 오류가 발생했습니다.' }
     }
 }

@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { getAssignedSites, startWork, saveWorkerNotes } from '@/actions/worker'
+import { getAssignedSites, startWork, saveWorkerNotes, hideCompletedSite } from '@/actions/worker'
 import { getMyASRequests } from '@/actions/as-manage'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle, StickyNote, Users } from 'lucide-react'
+import { MapPin, PlayCircle, CheckCircle2, Clock, RefreshCcw, Phone, AlertTriangle, StickyNote, Users, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -232,6 +232,15 @@ export default function WorkerHomePage() {
                                 isCompleted={true}
                                 currentUserId={currentUserId}
                                 onNoteSaved={loadSites}
+                                onHide={async (siteId: string) => {
+                                    const result = await hideCompletedSite(siteId)
+                                    if (result.success) {
+                                        toast.success('작업이 삭제되었습니다.')
+                                        loadSites()
+                                    } else {
+                                        toast.error(result.error || '삭제에 실패했습니다.')
+                                    }
+                                }}
                             />
                         ))
                     )}
@@ -247,14 +256,16 @@ function SiteCard({
     onStartWork,
     processingId,
     currentUserId,
-    onNoteSaved
+    onNoteSaved,
+    onHide
 }: {
     site: AssignedSite,
     isCompleted?: boolean,
     onStartWork?: (id: string) => void,
     processingId?: string | null,
     currentUserId?: string | null,
-    onNoteSaved?: () => void
+    onNoteSaved?: () => void,
+    onHide?: (siteId: string) => void
 }) {
     const isLeader = !!(currentUserId && site.worker_id === currentUserId)
 
@@ -380,12 +391,28 @@ function SiteCard({
             </CardContent>
             <CardFooter className="pt-2">
                 {isCompleted ? (
-                    <Link href={`/worker/sites/${site.id}`} className="w-full">
-                        <Button className="w-full text-lg h-12" variant="outline">
-                            <CheckCircle2 className="mr-2 h-5 w-5 text-green-600" />
-                            완료된 작업 보기
-                        </Button>
-                    </Link>
+                    <div className="w-full space-y-2">
+                        <Link href={`/worker/sites/${site.id}`} className="w-full">
+                            <Button className="w-full text-lg h-12" variant="outline">
+                                <CheckCircle2 className="mr-2 h-5 w-5 text-green-600" />
+                                완료된 작업 보기
+                            </Button>
+                        </Link>
+                        {onHide && (
+                            <Button
+                                variant="outline"
+                                className="w-full h-10 text-red-500 border-red-200 hover:bg-red-50"
+                                onClick={() => {
+                                    if (confirm('이 작업을 목록에서 삭제하시겠습니까?')) {
+                                        onHide(site.id)
+                                    }
+                                }}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                삭제
+                            </Button>
+                        )}
+                    </div>
                 ) : site.status === 'scheduled' && isLeader ? (
                     <div className="w-full space-y-2">
                         <Button
