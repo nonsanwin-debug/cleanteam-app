@@ -166,6 +166,7 @@ export default function SharedOrdersPage() {
             case 'accepted': return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">수락됨 (정보대기)</Badge>
             case 'transferred': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">이관완료</Badge>
             case 'cancelled': return <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100">취소됨</Badge>
+            case 'deleted_by_receiver': return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">수신업체 삭제</Badge>
             default: return <Badge variant="outline">{status}</Badge>
         }
     }

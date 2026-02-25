@@ -458,7 +458,7 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     // 오더 정보 조회
     const { data: order } = await adminSupabase
         .from('shared_orders')
-        .select('company_id')
+        .select('company_id, accepted_by, status')
         .eq('id', orderId)
         .single()
 
@@ -484,13 +484,49 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
         }
     }
 
-    const { error } = await adminSupabase
-        .from('shared_orders')
-        .delete()
-        .eq('id', orderId)
+    if (isSender) {
+        // 발신자는 완전 삭제
+        const { error } = await adminSupabase
+            .from('shared_orders')
+            .delete()
+            .eq('id', orderId)
 
-    if (error) {
-        return { success: false, error: error.message }
+        if (error) {
+            return { success: false, error: error.message }
+        }
+    } else {
+        // 수신자가 삭제 → 상태 변경 + 발신 업체에 알림
+        const { error } = await adminSupabase
+            .from('shared_orders')
+            .update({ status: 'deleted_by_receiver', accepted_by: companyId })
+            .eq('id', orderId)
+
+        if (error) {
+            return { success: false, error: error.message }
+        }
+
+        // 수신 업체명 조회
+        const { data: myCompany } = await adminSupabase
+            .from('companies')
+            .select('name')
+            .eq('id', companyId)
+            .single()
+        const companyName = myCompany?.name || '수신 업체'
+
+        // 발신 업체에 푸시 알림
+        await sendPushToAdmins(order.company_id, {
+            title: '공유 오더 삭제됨',
+            body: `${companyName}에서 공유 오더를 삭제하였습니다.`,
+            url: '/admin/shared-orders',
+            tag: `order-deleted-${orderId}`
+        })
+
+        // 알림 기록 저장
+        await adminSupabase.from('shared_order_notifications').insert({
+            order_id: orderId,
+            company_id: order.company_id,
+            message: `${companyName}에서 공유 오더를 삭제하였습니다.`
+        })
     }
 
     revalidatePath('/admin/shared-orders')
