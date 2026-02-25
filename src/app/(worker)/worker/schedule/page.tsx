@@ -74,7 +74,7 @@ export default function WorkerSchedulePage() {
 
 
     return (
-        <div className="space-y-4 h-full flex flex-col relative">
+        <div className="space-y-4">
             <div className="flex items-center justify-between pointer-events-none">
                 {/* pointer-events-none to prevent accidental clicks while loading, though inputs are standard */}
             </div>
@@ -97,8 +97,8 @@ export default function WorkerSchedulePage() {
                 </div>
             </div>
 
-            <Card className="flex-1 overflow-hidden flex flex-col min-h-[500px]">
-                <CardContent className="p-0 flex flex-col h-full">
+            <Card>
+                <CardContent className="p-0">
                     {/* Weekday Headers */}
                     <div className="grid grid-cols-7 border-b bg-slate-50">
                         {weekDays.map((day, i) => (
@@ -113,7 +113,7 @@ export default function WorkerSchedulePage() {
                     </div>
 
                     {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 flex-1 auto-rows-fr bg-slate-200 gap-px border-b">
+                    <div className="grid grid-cols-7 auto-rows-fr bg-slate-200 gap-px border-b" style={{ minHeight: '480px' }}>
                         {calendarDays.map((day) => {
                             const dateKey = format(day, 'yyyy-MM-dd')
                             const holidayName = HOLIDAYS[dateKey]
