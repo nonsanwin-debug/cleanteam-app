@@ -91,6 +91,7 @@ export async function getWorkers() {
             .from('users')
             .select('id, name, display_color, worker_type')
             .eq('role', 'worker')
+            .neq('status', 'deleted')
             .order('name')
 
         if (error) {
@@ -105,6 +106,7 @@ export async function getWorkers() {
         .select('id, name, current_money, display_color, worker_type')
         .eq('role', 'worker')
         .eq('company_id', companyId)
+        .neq('status', 'deleted')
         .order('name')
 
     if (error) {

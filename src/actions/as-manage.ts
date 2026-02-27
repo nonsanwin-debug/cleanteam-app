@@ -199,6 +199,7 @@ export async function getASStats() {
         .select('id, name')
         .eq('role', 'worker')
         .eq('company_id', companyId)
+        .neq('status', 'deleted')
 
     if (!workers) return []
 

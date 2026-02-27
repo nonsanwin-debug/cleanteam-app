@@ -14,6 +14,7 @@ export async function getUsersWithClaims() {
         .select('id, name, phone, email, worker_type, current_money, account_info, status, created_at, display_color, commission_rate')
         .eq('role', 'worker')
         .eq('company_id', companyId)
+        .neq('status', 'deleted')
         .order('name')
 
     if (error) {
@@ -306,6 +307,7 @@ export async function getAllWorkers() {
         .select('id, name, phone, email, worker_type, current_money, account_info, initial_password, status, created_at, display_color, commission_rate')
         .eq('role', 'worker')
         .eq('company_id', companyId)
+        .neq('status', 'deleted')
         .order('name')
 
     if (error) {
@@ -664,7 +666,7 @@ export async function adjustWorkerBalance(
     }
 }
 
-/** 팀원 삭제 (auth + profile) */
+/** 팀원 삭제 (Soft Delete - 작업 내역 보존) */
 export async function deleteWorker(workerId: string): Promise<ActionResponse> {
     try {
         const { supabase, companyId } = await getAuthCompany()
@@ -683,11 +685,19 @@ export async function deleteWorker(workerId: string): Promise<ActionResponse> {
 
         const adminClient = createAdminClient()
 
-        // 1. 배정된 현장의 worker_id를 null로 변경
+        // 0. 진행 중이거나 예정된 현장만 추가금 청구자(claimed_by)를 null로 변경
+        await adminClient
+            .from('sites')
+            .update({ claimed_by: null })
+            .eq('claimed_by', workerId)
+            .in('status', ['scheduled', 'in_progress'])
+
+        // 1. 배정된 현장 중 진행/예정인 것만 담당자(worker_id)를 null로 변경
         await adminClient
             .from('sites')
             .update({ worker_id: null })
             .eq('worker_id', workerId)
+            .in('status', ['scheduled', 'in_progress'])
 
         // 2. site_members에서 제거
         await adminClient
@@ -701,23 +711,28 @@ export async function deleteWorker(workerId: string): Promise<ActionResponse> {
             .delete()
             .eq('user_id', workerId)
 
-        // 4. wallet_logs 삭제
-        await adminClient
-            .from('wallet_logs')
-            .delete()
-            .eq('user_id', workerId)
-
-        // 5. 프로필 삭제
-        await adminClient
+        // 4. 삭제 처리 (status 업데이트)
+        const { error: profileError } = await adminClient
             .from('users')
-            .delete()
+            .update({ status: 'deleted' })
             .eq('id', workerId)
 
-        // 6. Auth 사용자 삭제
-        const { error: authError } = await adminClient.auth.admin.deleteUser(workerId)
+        if (profileError) {
+            console.error('Profile update error:', profileError)
+            return { success: false, error: '프로필 상태 업데이트 중 오류가 발생했습니다.' }
+        }
+
+        // 5. Auth 사용자 접근 완전 차단 (이메일/비번 무작위 변경, 로그인 불가)
+        const deletedEmail = `deleted_${workerId}_${Date.now()}@cleanteam.temp`;
+        const randomPassword = crypto.randomUUID();
+        const { error: authError } = await adminClient.auth.admin.updateUserById(workerId, {
+            email: deletedEmail,
+            password: randomPassword,
+            user_metadata: { status: 'deleted' }
+        })
+
         if (authError) {
-            console.error('Auth user delete error:', authError)
-            // 프로필은 이미 삭제되었으므로 경고만
+            console.error('Auth user update error:', authError)
         }
 
         revalidatePath('/admin/users')
