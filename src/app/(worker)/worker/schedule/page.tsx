@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { getAssignedSites } from '@/actions/worker'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, List, MapPin, Clock, CalendarDays, CheckCircle2, AlertCircle } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useCachedData } from '@/lib/data-cache'
+import Link from 'next/link'
 
 import { HOLIDAYS } from '@/lib/holidays'
 
@@ -26,10 +27,14 @@ type AssignedSite = {
     claimed_amount?: number
 }
 
+type ViewMode = 'calendar' | 'list'
+
 export default function WorkerSchedulePage() {
+    const [viewMode, setViewMode] = useState<ViewMode>('calendar')
     const [currentDate, setCurrentDate] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState(new Date())
+
     const [selectedSite, setSelectedSite] = useState<AssignedSite | null>(null)
-    const [claimAmount, setClaimAmount] = useState('')
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
 
     // 같은 캐시 키 'worker-sites'를 공유 → 홈에서 이미 로드한 데이터 즉시 사용!
@@ -66,157 +71,235 @@ export default function WorkerSchedulePage() {
 
     const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 
-    if (loading) {
-        return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>
-    }
-
     const allSites = sites || []
 
+    // 날짜별로 작업 그룹화하기 (Selected Date용)
+    const selectedDateSites = useMemo(() => {
+        return allSites.filter(site => {
+            const siteDateStr = site.cleaning_date || site.created_at
+            return isSameDay(new Date(siteDateStr), selectedDate)
+        })
+    }, [allSites, selectedDate])
+
+    // 전체 다가오는 일정 목록 (List View용)
+    const upcomingSites = useMemo(() => {
+        return [...allSites].sort((a, b) => {
+            const dateA = new Date(a.cleaning_date || a.created_at).getTime()
+            const dateB = new Date(b.cleaning_date || b.created_at).getTime()
+            return dateA - dateB
+        })
+    }, [allSites])
+
+
+    if (loading) {
+        return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+    }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between pointer-events-none">
-                {/* pointer-events-none to prevent accidental clicks while loading, though inputs are standard */}
-            </div>
-
+        <div className="space-y-4 pb-20">
+            {/* Header Area */}
             <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold flex items-center">
-                    <CalendarIcon className="mr-2" />
+                    <CalendarIcon className="mr-2 h-5 w-5" />
                     일정 관리
                 </h2>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={prevMonth}>
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="font-semibold text-lg w-24 text-center">
-                        {format(currentDate, 'yyyy.MM', { locale: ko })}
-                    </span>
-                    <Button variant="outline" size="icon" onClick={nextMonth}>
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+
+                {/* View Toggle */}
+                <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <button
+                        onClick={() => setViewMode('calendar')}
+                        className={cn(
+                            "px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center",
+                            viewMode === 'calendar' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        <CalendarIcon className="w-4 h-4 mr-1.5" />
+                        달력
+                    </button>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={cn(
+                            "px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center",
+                            viewMode === 'list' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        <List className="w-4 h-4 mr-1.5" />
+                        목록
+                    </button>
                 </div>
             </div>
 
-            <Card>
-                <CardContent className="p-0">
-                    {/* Weekday Headers */}
-                    <div className="grid grid-cols-7 border-b bg-slate-50">
-                        {weekDays.map((day, i) => (
-                            <div key={day} className={cn(
-                                "py-2 text-center text-sm font-medium text-slate-500",
-                                i === 0 && "text-red-500",
-                                i === 6 && "text-blue-500"
-                            )}>
-                                {day}
-                            </div>
-                        ))}
+            {viewMode === 'calendar' ? (
+                <>
+                    {/* Calendar View Area */}
+                    <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm border border-slate-100 mb-4">
+                        <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 text-slate-500 hover:text-slate-900">
+                            <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <span className="font-bold text-lg text-slate-800 tracking-tight">
+                            {format(currentDate, 'yyyy년 M월', { locale: ko })}
+                        </span>
+                        <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 text-slate-500 hover:text-slate-900">
+                            <ChevronRight className="h-5 w-5" />
+                        </Button>
                     </div>
 
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 auto-rows-fr bg-slate-200 gap-px border-b" style={{ minHeight: '480px' }}>
-                        {calendarDays.map((day) => {
-                            const dateKey = format(day, 'yyyy-MM-dd')
-                            const holidayName = HOLIDAYS[dateKey]
-                            const isHoliday = !!holidayName
-                            const isSunday = day.getDay() === 0
-                            const isSaturday = day.getDay() === 6
-
-                            // Filter sites for this day
-                            const daySites = allSites.filter(site => {
-                                const siteDateStr = site.cleaning_date || site.created_at
-                                return isSameDay(new Date(siteDateStr), day)
-                            })
-
-                            return (
-                                <div
-                                    key={day.toString()}
-                                    className={cn(
-                                        "bg-white p-1 min-h-[80px] sm:min-h-[100px] flex flex-col gap-1 relative overflow-hidden transition-colors hover:bg-slate-50",
-                                        !isSameMonth(day, monthStart) && "bg-slate-50/50 text-slate-400"
-                                    )}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex flex-col items-center">
-                                            <span className={cn(
-                                                "text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                                                isToday(day) && "bg-slate-900 text-white",
-                                                !isToday(day) && (isSunday || isHoliday) && "text-red-500",
-                                                !isToday(day) && !isHoliday && isSaturday && "text-blue-500"
-                                            )}>
-                                                {format(day, 'd')}
-                                            </span>
-                                            {holidayName && (
-                                                <span className="text-[10px] text-red-500 font-medium truncate max-w-[40px] leading-tight text-center mt-0.5">
-                                                    {holidayName}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {daySites.length > 0 && <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">{daySites.length}건</span>}
+                    <Card className="border-none shadow-md overflow-hidden rounded-xl bg-white">
+                        <CardContent className="p-0">
+                            {/* Weekday Headers */}
+                            <div className="grid grid-cols-7 border-b bg-slate-50/80">
+                                {weekDays.map((day, i) => (
+                                    <div key={day} className={cn(
+                                        "py-2.5 text-center text-[13px] font-bold text-slate-600",
+                                        i === 0 && "text-red-500",
+                                        i === 6 && "text-blue-500"
+                                    )}>
+                                        {day}
                                     </div>
+                                ))}
+                            </div>
 
-                                    <div className="flex flex-col gap-1 mt-1">
-                                        {daySites.map(site => (
-                                            <div
-                                                key={site.id}
-                                                className={cn(
-                                                    "text-[10px] p-1 rounded border shadow-sm group",
-                                                    site.status === 'completed' ? "bg-slate-100 border-slate-200 text-slate-500" :
-                                                        site.status === 'in_progress' ? "bg-blue-50 border-blue-200 text-blue-700 font-medium" :
-                                                            "bg-white border-green-200 text-green-700"
-                                                )}
-                                            >
-                                                <div className="font-semibold truncate leading-tight">{site.name}</div>
-                                                {site.start_time && <div className="text-[9px] opacity-80 mt-0.5">{site.start_time}</div>}
+                            {/* Calendar Grid */}
+                            <div className="grid grid-cols-7 auto-rows-fr bg-slate-100 gap-[1px]">
+                                {calendarDays.map((day) => {
+                                    const dateKey = format(day, 'yyyy-MM-dd')
+                                    const holidayName = HOLIDAYS[dateKey]
+                                    const isHoliday = !!holidayName
+                                    const isSunday = day.getDay() === 0
+                                    const isSaturday = day.getDay() === 6
+                                    const isSelected = isSameDay(day, selectedDate)
 
-                                                {site.status === 'completed' && (
-                                                    <div className="mt-1">
-                                                        {site.payment_status === 'paid' ? (
-                                                            <div className="text-[9px] text-green-600 font-bold bg-green-50 px-1 rounded inline-block">
-                                                                지급완료
-                                                            </div>
-                                                        ) : site.payment_status === 'requested' ? (
-                                                            <div className="space-y-0.5">
-                                                                <div className="text-[9px] text-orange-600 font-bold bg-orange-50 px-1 rounded inline-block">
-                                                                    청구완료
-                                                                </div>
-                                                                {site.claimed_amount && (
-                                                                    <div className="text-[9px] text-slate-600 font-medium">
-                                                                        {site.claimed_amount.toLocaleString()}원
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                className="w-full bg-slate-800 text-white text-[9px] py-0.5 rounded hover:bg-slate-700 transition-colors cursor-pointer touch-manipulation"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    setSelectedSite(site)
-                                                                    setClaimAmount('')
-                                                                    setIsClaimModalOpen(true)
-                                                                }}
-                                                                onTouchEnd={(e) => {
-                                                                    // iOS sometimes needs this if onClick fails in certain contexts
-                                                                    // But prevent double firing if onClick works
-                                                                    e.stopPropagation()
-                                                                }}
-                                                            >
-                                                                포인트 요청
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                    // Filter sites for this day
+                                    const daySites = allSites.filter(site => {
+                                        const siteDateStr = site.cleaning_date || site.created_at
+                                        return isSameDay(new Date(siteDateStr), day)
+                                    })
+
+                                    return (
+                                        <div
+                                            key={day.toString()}
+                                            onClick={() => setSelectedDate(day)}
+                                            className={cn(
+                                                "bg-white p-1 pb-2 min-h-[70px] flex flex-col items-center relative transition-colors cursor-pointer group",
+                                                !isSameMonth(day, monthStart) && "bg-slate-50/50 opacity-50",
+                                                isSelected && "bg-blue-50/50 ring-inset ring-2 ring-primary rounded"
+                                            )}
+                                        >
+                                            <div className="flex flex-col items-center w-full mt-1">
+                                                <span className={cn(
+                                                    "text-[15px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-all",
+                                                    isToday(day) && "bg-slate-900 text-white shadow-sm",
+                                                    !isToday(day) && (isSunday || isHoliday) && "text-red-500",
+                                                    !isToday(day) && !isHoliday && isSaturday && "text-blue-500",
+                                                    isSelected && !isToday(day) && "bg-blue-100 text-blue-700 font-bold"
+                                                )}>
+                                                    {format(day, 'd')}
+                                                </span>
+                                                {holidayName && (
+                                                    <span className="text-[9px] text-red-500 font-medium truncate w-[90%] text-center mt-0.5 opacity-80">
+                                                        {holidayName}
+                                                    </span>
                                                 )}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )
-                        })}
+
+                                            {/* Dot Indicators */}
+                                            {daySites.length > 0 && (
+                                                <div className="flex gap-1 mt-auto pb-1 pt-2 justify-center flex-wrap px-1">
+                                                    {daySites.slice(0, 3).map((site, idx) => (
+                                                        <span
+                                                            key={site.id}
+                                                            className={cn(
+                                                                "w-2 h-2 rounded-full",
+                                                                site.status === 'completed' ? "bg-slate-300" :
+                                                                    site.status === 'in_progress' ? "bg-amber-400" : "bg-emerald-500"
+                                                            )}
+                                                        />
+                                                    ))}
+                                                    {daySites.length > 3 && (
+                                                        <span className="w-2 h-2 rounded-full bg-slate-200 border border-slate-300" />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Selected Date Details Area */}
+                    <div className="mt-6 animation-fade-in">
+                        <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                                {format(selectedDate, 'M월 d일 (EEEE)', { locale: ko })}
+                            </span>
+                            의 일정
+                        </h3>
+
+                        {selectedDateSites.length === 0 ? (
+                            <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400">
+                                <CalendarDays className="w-10 h-10 mb-3 opacity-30" />
+                                <p className="text-sm font-medium">선택하신 날짜에 배정된 일정이 없습니다.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {selectedDateSites.map(site => (
+                                    <JobCard
+                                        key={site.id}
+                                        site={site}
+                                        onRequestPoints={() => {
+                                            setSelectedSite(site)
+                                            setIsClaimModalOpen(true)
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </CardContent>
-            </Card>
+                </>
+            ) : (
+                /* List View Area */
+                <div className="space-y-4 pt-2">
+                    {upcomingSites.length === 0 ? (
+                        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-10 flex flex-col items-center justify-center text-slate-400">
+                            <CheckCircle2 className="w-12 h-12 mb-3 opacity-30 text-emerald-500" />
+                            <p className="text-sm font-medium">배정된 일정이 없습니다.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {upcomingSites.map((site, index) => {
+                                // Add month/date headers dynamically for list view
+                                const currentSiteDate = new Date(site.cleaning_date || site.created_at)
+                                const prevSiteDate = index > 0 ? new Date(upcomingSites[index - 1].cleaning_date || upcomingSites[index - 1].created_at) : null
 
+                                const showDateHeader = !prevSiteDate || !isSameDay(currentSiteDate, prevSiteDate)
 
+                                return (
+                                    <div key={site.id} className="space-y-2">
+                                        {showDateHeader && (
+                                            <div className="sticky top-14 z-10 bg-[#f8fafc]/90 backdrop-blur-sm py-2">
+                                                <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                                    <div className="w-1 h-3.5 bg-primary rounded-full" />
+                                                    {format(currentSiteDate, 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
+                                                </h3>
+                                            </div>
+                                        )}
+                                        <JobCard
+                                            site={site}
+                                            onRequestPoints={() => {
+                                                setSelectedSite(site)
+                                                setIsClaimModalOpen(true)
+                                            }}
+                                        />
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Point Claim Modal */}
             {isClaimModalOpen && (
                 <ClaimModal
                     site={selectedSite!}
@@ -229,6 +312,80 @@ export default function WorkerSchedulePage() {
                 />
             )}
         </div>
+    )
+}
+
+// Reusable Job Card Component for Details and List View
+function JobCard({ site, onRequestPoints }: { site: AssignedSite, onRequestPoints: () => void }) {
+    return (
+        <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className={cn(
+                "h-1.5 w-full",
+                site.status === 'completed' ? "bg-slate-300" :
+                    site.status === 'in_progress' ? "bg-amber-400" : "bg-emerald-500"
+            )} />
+            <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                    <Badge variant={site.status === 'in_progress' ? 'default' : site.status === 'completed' ? 'secondary' : 'outline'} className="mb-1">
+                        {site.status === 'completed' ? '완료됨' : site.status === 'in_progress' ? '진행 중' : '대기 중'}
+                    </Badge>
+                    {site.start_time && (
+                        <div className="flex items-center text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded-md">
+                            <Clock className="w-3.5 h-3.5 mr-1" />
+                            {site.start_time}
+                        </div>
+                    )}
+                </div>
+
+                <h4 className="font-bold text-[17px] text-slate-800 mb-2">{site.name}</h4>
+
+                <div className="flex items-start text-sm text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <MapPin className="w-4 h-4 mr-1.5 mt-0.5 shrink-0 text-slate-400" />
+                    <span className="leading-tight line-clamp-2">{site.address}</span>
+                </div>
+
+                <div className="flex items-center justify-between mt-2 pt-3 border-t border-slate-100">
+                    {site.status === 'completed' ? (
+                        <div className="flex-1 w-full">
+                            {site.payment_status === 'paid' ? (
+                                <div className="text-sm text-emerald-600 font-bold bg-emerald-50 py-2 rounded-lg text-center w-full flex items-center justify-center gap-1.5 border border-emerald-100">
+                                    <CheckCircle2 className="w-4 h-4" /> 포인트 지급 완료
+                                </div>
+                            ) : site.payment_status === 'requested' ? (
+                                <div className="flex items-center justify-between w-full bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
+                                    <span className="text-sm font-bold text-amber-600 flex items-center gap-1.5">
+                                        <AlertCircle className="w-4 h-4" /> 포인트 청구됨
+                                    </span>
+                                    {site.claimed_amount && (
+                                        <span className="text-sm text-slate-700 font-bold">
+                                            {site.claimed_amount.toLocaleString()}포인트
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex gap-2 w-full">
+                                    <Button
+                                        onClick={onRequestPoints}
+                                        className="w-full bg-slate-800 hover:bg-slate-700 font-bold"
+                                    >
+                                        포인트 요청하기
+                                    </Button>
+                                    <Link href={`/worker/sites/${site.id}`} className="shrink-0">
+                                        <Button variant="outline" className="px-3">현장</Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link href={`/worker/sites/${site.id}`} className="w-full">
+                            <Button variant="secondary" className="w-full font-bold">
+                                상세 보기
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     )
 }
 
@@ -310,67 +467,74 @@ function ClaimModal({ site, isOpen, onClose, onSuccess }: { site: AssignedSite, 
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-                <CardContent className="p-6 space-y-4">
-                    <h3 className="text-lg font-bold">포인트 요청</h3>
-                    <p className="text-sm text-slate-500">
-                        <span className="font-semibold">{site.name}</span><br />
-                        상세 청구 내역을 입력해주세요.
-                    </p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl">
+                <CardContent className="p-6 space-y-5">
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800">포인트 요청</h3>
+                        <p className="text-sm text-slate-500 mt-1">
+                            <span className="font-semibold text-slate-700">{site.name}</span> 작업의<br />
+                            상세 청구 내역을 입력해주세요.
+                        </p>
+                    </div>
 
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium">청구 항목</label>
-                            <Button variant="ghost" size="sm" onClick={handleAddItem} className="h-6 text-xs">
+                    <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-bold text-slate-700">청구 항목</label>
+                            <Button variant="outline" size="sm" onClick={handleAddItem} className="h-7 text-xs bg-white">
                                 + 항목 추가
                             </Button>
                         </div>
 
                         {items.map((item, idx) => (
-                            <div key={idx} className="flex gap-2">
+                            <div key={idx} className="flex gap-2 items-center">
                                 <input
-                                    className="flex-1 h-9 rounded-md border border-input px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                    placeholder="항목명 (예: 식대, 자재비)"
+                                    className="flex-1 h-10 rounded-lg border-slate-200 border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                                    placeholder="항목명 (예: 식대, 주차비)"
                                     value={item.name}
                                     onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
                                 />
                                 <input
                                     type="number"
-                                    className="w-24 h-9 rounded-md border border-input px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                    className="w-24 h-10 rounded-lg border-slate-200 border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-right"
                                     placeholder="금액"
                                     value={item.amount}
                                     onChange={(e) => handleItemChange(idx, 'amount', e.target.value)}
                                 />
                                 {items.length > 1 && (
-                                    <button onClick={() => handleRemoveItem(idx)} className="text-red-500 p-2">✕</button>
+                                    <button onClick={() => handleRemoveItem(idx)} className="text-red-400 hover:text-red-600 p-2 transition-colors">
+                                        ✕
+                                    </button>
                                 )}
                             </div>
                         ))}
 
-                        <div className="flex justify-end text-sm font-bold text-slate-900 border-t pt-2">
-                            합계: {totalAmount.toLocaleString()}원
+                        <div className="flex justify-end text-base font-bold text-primary border-t border-slate-200 pt-3 mt-2">
+                            합계: {totalAmount.toLocaleString()}포인트
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">영수증/증빙 사진</label>
+                        <label className="text-sm font-bold text-slate-700">영수증/증빙 사진</label>
                         <div className="flex flex-wrap gap-2">
                             {photos.map((url, idx) => (
-                                <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                                <div key={idx} className="relative w-20 h-20 rounded-lg border border-slate-200 overflow-hidden shadow-sm group">
                                     <img src={url} alt="receipt" className="w-full h-full object-cover" />
-                                    <button
-                                        onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
-                                        className="absolute top-0 right-0 bg-black/50 text-white w-4 h-4 flex items-center justify-center text-[10px]"
-                                    >✕</button>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button
+                                            onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
+                                            className="bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                        >✕</button>
+                                    </div>
                                 </div>
                             ))}
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-16 h-16 rounded border border-dashed flex items-center justify-center text-slate-400 hover:bg-slate-50"
+                                className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-slate-400 transition-colors"
                                 disabled={uploading}
                             >
-                                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : '+'}
+                                {uploading ? <Loader2 className="w-5 h-5 animate-spin mb-1 text-primary" /> : <div className="text-2xl mb-1">+</div>}
+                                <span className="text-[10px] font-medium">{uploading ? '업로드중' : '사진 추가'}</span>
                             </button>
                             <input
                                 type="file"
@@ -383,12 +547,12 @@ function ClaimModal({ site, isOpen, onClose, onSuccess }: { site: AssignedSite, 
                         </div>
                     </div>
 
-                    <div className="flex gap-2 pt-2">
-                        <Button variant="outline" className="flex-1" onClick={onClose}>
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                        <Button variant="outline" className="flex-1 h-12 text-base font-semibold" onClick={onClose}>
                             취소
                         </Button>
-                        <Button className="flex-1" onClick={handleSubmit} disabled={submitting || uploading}>
-                            {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        <Button className="flex-1 h-12 text-base font-bold shadow-md" onClick={handleSubmit} disabled={submitting || uploading}>
+                            {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                             청구하기
                         </Button>
                     </div>
