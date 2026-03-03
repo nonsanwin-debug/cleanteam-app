@@ -40,38 +40,34 @@ export function ActivityLogs({ logs }: { logs: any[] }) {
     }
 
     return (
-        <div className="space-y-3">
-            {logs.map((log) => (
-                <Card key={log.id} className="overflow-hidden border-slate-200">
-                    <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="text-[11px] text-slate-400">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="divide-y divide-slate-100">
+                {logs.map((log) => (
+                    <div key={log.id} className="p-4 hover:bg-slate-50 transition-colors">
+                        <div className="flex justify-between items-start mb-1">
+                            <div className="text-xs text-slate-400 font-medium tracking-wide">
                                 {format(new Date(log.created_at), 'yyyy.MM.dd HH:mm', { locale: ko })}
                             </div>
-                            {getTypeBadge(log.type)}
                         </div>
 
-                        <div className="font-medium text-sm text-slate-800 mb-3">
+                        <div className="font-semibold text-sm text-slate-800 mb-2 leading-snug">
                             {log.description}
                         </div>
 
-                        <div className="flex justify-between items-end border-t pt-3 border-slate-50">
-                            <div>
-                                <span className="text-[10px] text-slate-400 block mb-0.5">변동 금액</span>
-                                <span className={`text-sm font-bold ${['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type) ? 'text-red-600' : 'text-green-600'}`}>
-                                    {['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type) ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}포인트
+                        <div className="flex justify-between items-center mt-2">
+                            <div className="flex items-center gap-2">
+                                {getTypeBadge(log.type)}
+                                <span className={`text-sm font-bold ${['manual_deduct', 'penalty', 'withdrawal_request'].includes(log.type) ? 'text-red-500' : 'text-green-600'}`}>
+                                    {['manual_deduct', 'penalty', 'withdrawal_request'].includes(log.type) ? '' : '+'}{log.amount.toLocaleString()} P
                                 </span>
                             </div>
-                            <div className="text-right">
-                                <span className="text-[10px] text-slate-400 block mb-0.5">잔액</span>
-                                <span className="text-sm font-bold text-slate-700">
-                                    {log.balance_after.toLocaleString()}포인트
-                                </span>
+                            <div className="text-right text-xs text-slate-500 font-medium">
+                                잔액: <span className="text-slate-700 font-bold">{log.balance_after.toLocaleString()} P</span>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-            ))}
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

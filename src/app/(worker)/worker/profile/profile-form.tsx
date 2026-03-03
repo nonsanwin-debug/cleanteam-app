@@ -59,14 +59,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     <User className="w-8 h-8 text-slate-500" />
                 </div>
                 <CardTitle className="text-center">{user?.name || '사용자'}</CardTitle>
-                <div className="text-center mt-2">
-                    <div className="inline-block bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-bold border border-green-200">
+                <div className="flex items-center justify-center gap-2 mt-3">
+                    <div className="bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-bold border border-green-200">
                         {(user?.current_money || 0).toLocaleString()} P
                     </div>
                     <Button
                         size="sm"
                         variant="default"
-                        className="mt-2 h-7 text-xs"
+                        className="h-8 text-xs bg-slate-800 hover:bg-slate-700 font-bold"
                         onClick={() => setIsWithdrawModalOpen(true)}
                     >
                         포인트 전환 요청
