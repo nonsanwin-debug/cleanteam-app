@@ -17,13 +17,13 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Clean System',
+  title: 'NEXUS',
   description: '청소 현장 관리 시스템',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Clean System',
+    title: 'NEXUS',
   },
   icons: {
     icon: '/icons/icon-192.png',

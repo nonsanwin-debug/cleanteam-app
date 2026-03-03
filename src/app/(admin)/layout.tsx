@@ -65,7 +65,7 @@ export default async function AdminLayout({
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
-                    <h1 className="text-xl font-bold text-slate-800">Clean Admin</h1>
+                    <h1 className="text-xl font-bold text-slate-800">NEXUS Admin</h1>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-primary">{displayName}님 반갑습니다</p>
                     </div>

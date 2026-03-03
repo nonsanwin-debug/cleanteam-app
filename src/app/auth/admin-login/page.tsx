@@ -142,7 +142,7 @@ export default function AdminLoginPage() {
                         <ShieldAlert className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
-                        <CardTitle className="text-2xl font-bold text-slate-800">관리자 시스템</CardTitle>
+                        <CardTitle className="text-2xl font-bold text-slate-800">NEXUS 관리자</CardTitle>
                         <CardDescription>
                             접근 권한이 있는 관리자만 로그인할 수 있습니다.
                         </CardDescription>

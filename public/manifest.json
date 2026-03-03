@@ -1,6 +1,6 @@
 {
-    "name": "Clean System",
-    "short_name": "CleanTeam",
+    "name": "NEXUS",
+    "short_name": "NEXUS",
     "description": "청소 현장 관리 시스템",
     "start_url": "/",
     "display": "standalone",

@@ -203,10 +203,10 @@ export default function Home() {
         <div className="flex-1 space-y-6 pt-8">
           <div className="space-y-2">
             <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900">
-              청소 현장 관리 시스템
+              NEXUS
             </h1>
             <p className="text-xl text-slate-500">
-              현장 작업 표준화 및 스마트 검수 솔루션
+              청소 현장 관리 시스템 & 스마트 검수 솔루션
             </p>
           </div>
 
