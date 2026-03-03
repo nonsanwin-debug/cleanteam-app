@@ -462,15 +462,17 @@ function JobCard({ site, currentUserId, onNoteSaved, onRequestPoints }: { site: 
                                 )}
                             </div>
                         ) : (
-                            <div className="flex gap-2 w-full">
+                            <div className="flex flex-col gap-2 w-full">
                                 <Button
                                     onClick={onRequestPoints}
-                                    className="w-full bg-slate-800 hover:bg-slate-700 font-bold"
+                                    className="w-full bg-slate-800 hover:bg-slate-700 text-base font-bold h-11"
                                 >
                                     포인트 요청하기
                                 </Button>
-                                <Link href={`/worker/sites/${site.id}`} className="shrink-0">
-                                    <Button variant="outline" className="px-3">현장보기</Button>
+                                <Link href={`/worker/sites/${site.id}`} className="w-full">
+                                    <Button variant="outline" className="w-full h-11 font-medium text-slate-600 border-slate-300">
+                                        현장 기록 보기
+                                    </Button>
                                 </Link>
                             </div>
                         )}
