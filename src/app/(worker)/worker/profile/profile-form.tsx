@@ -59,7 +59,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     <User className="w-8 h-8 text-slate-500" />
                 </div>
                 <CardTitle className="text-center">{user?.name || '사용자'}</CardTitle>
-                <div className="flex items-center justify-center gap-2 mt-3">
+                <div className="flex flex-col items-center justify-center gap-2 mt-3">
                     <div className="bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-bold border border-green-200">
                         {(user?.current_money || 0).toLocaleString()} P
                     </div>
