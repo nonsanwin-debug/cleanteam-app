@@ -94,7 +94,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                 <div className="font-medium">{site.residential_type || '-'}</div>
                             </div>
                             <div>
-                                <span className="text-muted-foreground block mb-1">비용 청구 상태</span>
+                                <span className="text-muted-foreground block mb-1">포인트 요청 상태</span>
                                 <div className="font-medium">
                                     {site.payment_status === 'paid' ? (
                                         <span className="text-green-600 font-bold">지급 완료</span>
@@ -106,7 +106,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                 </div>
                             </div>
                             <div>
-                                <span className="text-muted-foreground block mb-1">청구 금액</span>
+                                <span className="text-muted-foreground block mb-1">요청 포인트</span>
                                 <div className="font-medium">
                                     {site.claimed_amount ? `${site.claimed_amount.toLocaleString()}원` : '-'}
                                 </div>
@@ -215,7 +215,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
             {(site.payment_status === 'requested' || site.payment_status === 'paid') && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">청구 내역 상세</CardTitle>
+                        <CardTitle className="text-lg">포인트 요청 내역 상세</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">

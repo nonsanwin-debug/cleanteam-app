@@ -176,8 +176,8 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
             return
         }
 
-        const actionText = adjustType === 'add' ? '지급' : '차감'
-        if (!confirm(`${amount.toLocaleString()}원을 ${actionText}하시겠습니까?\n사유: ${adjustReason}`)) return
+        const actionText = adjustType === 'add' ? '포인트 지급' : '포인트 차감'
+        if (!confirm(`${amount.toLocaleString()}포인트를 ${actionText}하시겠습니까?\n사유: ${adjustReason}`)) return
 
         setAdjustLoading(true)
         try {
@@ -399,7 +399,7 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                 onClick={() => openAdjustForm(worker.id, 'add')}
                             >
                                 <Plus className="w-3.5 h-3.5 mr-1" />
-                                지급
+                                포인트 지급
                             </Button>
                             <Button
                                 size="sm"
@@ -408,7 +408,7 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                 onClick={() => openAdjustForm(worker.id, 'deduct')}
                             >
                                 <Minus className="w-3.5 h-3.5 mr-1" />
-                                차감
+                                포인트 차감
                             </Button>
                         </div>
 
@@ -416,7 +416,7 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                         {adjustOpen === worker.id && (
                             <div className={`mb-3 p-3 rounded-lg border-2 ${adjustType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                 <h4 className={`text-sm font-bold mb-2 ${adjustType === 'add' ? 'text-green-700' : 'text-red-700'}`}>
-                                    {adjustType === 'add' ? '💰 금액 지급' : '📉 금액 차감'}
+                                    {adjustType === 'add' ? '💰 포인트 지급' : '📉 포인트 차감'}
                                 </h4>
                                 <div className="space-y-2">
                                     <Input

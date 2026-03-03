@@ -70,7 +70,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                         className="mt-2 h-7 text-xs"
                         onClick={() => setIsWithdrawModalOpen(true)}
                     >
-                        출금하기
+                        포인트 전환 요청
                     </Button>
                 </div>
             </CardHeader>
@@ -185,7 +185,7 @@ function WithdrawModal({ isOpen, onClose, user, onSuccess }: { isOpen: boolean, 
             return
         }
         if (amt > (user.current_money || 0)) {
-            alert('출금 가능 금액을 초과했습니다.')
+            alert('전환 가능 포인트를 초과했습니다.')
             return
         }
 
@@ -199,7 +199,7 @@ function WithdrawModal({ isOpen, onClose, user, onSuccess }: { isOpen: boolean, 
             })
 
             if (result.success) {
-                alert('출금 요청이 완료되었습니다.')
+                alert('포인트 전환 요청이 완료되었습니다.')
                 onSuccess()
             } else {
                 alert(result.error)
@@ -217,10 +217,10 @@ function WithdrawModal({ isOpen, onClose, user, onSuccess }: { isOpen: boolean, 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <Card className="w-full max-w-sm">
                 <CardContent className="p-6 space-y-4">
-                    <h3 className="text-lg font-bold">출금 요청</h3>
+                    <h3 className="text-lg font-bold">포인트 전환 요청</h3>
                     <div className="bg-slate-50 p-3 rounded text-sm text-slate-600">
                         <div className="flex justify-between">
-                            <span>출금 가능 금액</span>
+                            <span>전환 가능 포인트</span>
                             <span className="font-bold text-slate-900">{(user.current_money || 0).toLocaleString()}원</span>
                         </div>
                         <div className="flex justify-between mt-1">

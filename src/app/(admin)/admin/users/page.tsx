@@ -28,7 +28,7 @@ export default async function UsersPage() {
                 <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
                     <TabsTrigger value="claims">지급 대기 (청구)</TabsTrigger>
                     <TabsTrigger value="withdrawals" className="relative">
-                        출금 요청
+                        포인트 전환 요청
                         {pendingCount > 0 && (
                             <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                                 {pendingCount}

@@ -31,13 +31,13 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
     const [rejectingId, setRejectingId] = useState<string | null>(null)
 
     async function handleApprove(siteId: string, userId: string, amount: number) {
-        if (!confirm(`${amount.toLocaleString()}원을 지급 승인하시겠습니까?`)) return
+        if (!confirm(`${amount.toLocaleString()} 포인트를 지급 승인하시겠습니까?`)) return
 
         setProcessingId(siteId)
         try {
             const result = await approvePayment(siteId, userId, amount)
             if (result.success) {
-                toast.success('지급 처리되었습니다.')
+                toast.success('포인트 지급 처리되었습니다.')
                 window.location.reload()
             } else {
                 toast.error(result.error)
@@ -50,7 +50,7 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
     }
 
     async function handleReject(siteId: string, siteName: string) {
-        const reason = prompt(`"${siteName}" 청구를 반려합니다.\n반려 사유를 입력하세요:`)
+        const reason = prompt(`"${siteName}" 포인트 요청을 반려합니다.\n반려 사유를 입력하세요:`)
         if (reason === null) return
         if (!reason.trim()) {
             toast.error('반려 사유를 입력해주세요.')
@@ -61,7 +61,7 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
         try {
             const result = await rejectClaim(siteId, reason.trim())
             if (result.success) {
-                toast.success('청구가 반려되었습니다.')
+                toast.success('포인트 요청이 반려되었습니다.')
                 window.location.reload()
             } else {
                 toast.error(result.error)
@@ -102,13 +102,13 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
 
                             <div className="border-t pt-3">
                                 <h4 className="text-sm font-semibold flex items-center justify-between mb-2">
-                                    청구 내역 (지급 대기)
+                                    포인트 요청 내역 (지급 대기)
                                     <span className="text-orange-600">총 {user.totalPending.toLocaleString()}원</span>
                                 </h4>
 
                                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
                                     {user.claims.length === 0 ? (
-                                        <p className="text-xs text-slate-400 text-center py-4">대기 중인 청구 내역이 없습니다.</p>
+                                        <p className="text-xs text-slate-400 text-center py-4">대기 중인 포인트 요청 내역이 없습니다.</p>
                                     ) : (
                                         user.claims.map(claim => (
                                             <div key={claim.id} className="p-2 bg-slate-50 rounded border">
@@ -128,7 +128,7 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
                                                         onClick={() => handleApprove(claim.id, user.id, claim.claimed_amount)}
                                                         disabled={!!processingId || !!rejectingId}
                                                     >
-                                                        {processingId === claim.id ? <Loader2 className="h-3 w-3 animate-spin" /> : '지급 승인'}
+                                                        {processingId === claim.id ? <Loader2 className="h-3 w-3 animate-spin" /> : '포인트 지급 승인'}
                                                     </Button>
                                                     <Button
                                                         size="sm"

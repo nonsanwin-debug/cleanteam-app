@@ -40,7 +40,7 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
         try {
             const result = await processWithdrawal(requestId, action, reason)
             if (result.success) {
-                toast.success(action === 'paid' ? '지급 처리되었습니다.' : '반려 처리되었습니다.')
+                toast.success(action === 'paid' ? '포인트 지급 처리되었습니다.' : '반려 처리되었습니다.')
                 // Force full page reload to ensure UI updates
                 window.location.reload()
             } else {
@@ -57,7 +57,7 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
         return (
             <Card>
                 <CardContent className="p-8 text-center text-slate-500">
-                    접수된 출금 요청이 없습니다.
+                    접수된 포인트 전환 요청이 없습니다.
                 </CardContent>
             </Card>
         )
@@ -81,7 +81,7 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
                                 <span className="text-sm text-slate-500">{new Date(req.created_at).toLocaleDateString()}</span>
                             </div>
                             <div className="text-sm text-slate-600 space-y-1">
-                                <div>요청금액: <span className="font-bold text-slate-900">{req.amount.toLocaleString()}원</span></div>
+                                <div>요청 포인트: <span className="font-bold text-slate-900">{req.amount.toLocaleString()}원</span></div>
                                 <div>계좌정보: {JSON.stringify(req.bank_info)}</div>
                                 <div>연락처: {req.users?.phone || '-'}</div>
                             </div>
@@ -106,7 +106,7 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
                                     disabled={!!processingId}
                                 >
                                     {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-                                    지급 완료
+                                    포인트 지급 완료
                                 </Button>
                             </div>
                         )}

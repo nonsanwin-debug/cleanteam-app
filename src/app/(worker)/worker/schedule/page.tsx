@@ -201,7 +201,7 @@ export default function WorkerSchedulePage() {
                                                                     e.stopPropagation()
                                                                 }}
                                                             >
-                                                                비용청구
+                                                                포인트 요청
                                                             </button>
                                                         )}
                                                     </div>
@@ -297,7 +297,7 @@ function ClaimModal({ site, isOpen, onClose, onSuccess }: { site: AssignedSite, 
             const result = await requestPayment(site.id, totalAmount, validItems, photos)
 
             if (result.success) {
-                alert('비용 청구가 완료되었습니다.')
+                alert('포인트 요청이 완료되었습니다.')
                 onSuccess()
             } else {
                 alert(result.error)
@@ -313,7 +313,7 @@ function ClaimModal({ site, isOpen, onClose, onSuccess }: { site: AssignedSite, 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
                 <CardContent className="p-6 space-y-4">
-                    <h3 className="text-lg font-bold">비용 청구</h3>
+                    <h3 className="text-lg font-bold">포인트 요청</h3>
                     <p className="text-sm text-slate-500">
                         <span className="font-semibold">{site.name}</span><br />
                         상세 청구 내역을 입력해주세요.
