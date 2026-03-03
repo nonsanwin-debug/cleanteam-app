@@ -151,101 +151,62 @@ export default function WorkerHomePage() {
                 </Button>
             </div>
 
-            <Tabs defaultValue="active" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="active">
-                        내 작업 ({activeSites.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="completed">
-                        완료된 작업 ({completedSites.length})
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="active" className="space-y-4">
-                    {/* AS 내역 */}
-                    {(asRequests || []).length > 0 && (
-                        <div className="space-y-3 mb-4">
-                            <h3 className="text-base font-bold flex items-center gap-2">
-                                <AlertTriangle className="h-5 w-5 text-red-500" />
-                                AS 내역
-                                <Badge variant="destructive" className="text-xs">{(asRequests || []).length}건</Badge>
-                            </h3>
-                            {(asRequests || []).map(req => {
-                                const statusMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
-                                    pending: { label: '접수/대기', variant: 'destructive' },
-                                    monitoring: { label: '모니터링', variant: 'secondary' },
-                                    resolved: { label: '처리완료', variant: 'outline' },
-                                }
-                                const st = statusMap[req.status] || { label: req.status, variant: 'outline' as const }
-                                return (
-                                    <Link key={req.id} href={`/worker/as/${req.id}`}>
-                                        <Card className="border-l-4 border-l-red-400 hover:shadow-md transition-shadow cursor-pointer mb-2">
-                                            <CardContent className="p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="font-semibold text-sm">{(req as any).site?.name || req.site_name}</span>
-                                                    <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
-                                                </div>
-                                                <p className="text-xs text-slate-500 line-clamp-1">{req.description}</p>
-                                                <div className="flex justify-between items-center mt-2">
-                                                    <span className="text-[10px] text-slate-400">{req.occurred_at}</span>
-                                                    {(req.penalty_amount ?? 0) > 0 && (
-                                                        <span className="text-xs text-red-600 font-bold">-{(req.penalty_amount ?? 0).toLocaleString()}원</span>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                )
-                            })}
-                        </div>
-                    )}
-                    {activeSites.length === 0 ? (
-                        <div className="text-center py-12 text-slate-400 bg-white rounded-lg border border-dashed">
-                            <Clock className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                            <p>현재 할당된 작업이 없습니다.</p>
-                        </div>
-                    ) : (
-                        activeSites.map((site) => (
-                            <SiteCard
-                                key={site.id}
-                                site={site}
-                                onStartWork={handleStartWork}
-                                processingId={processingId}
-                                currentUserId={currentUserId}
-                                onNoteSaved={loadSites}
-                            />
-                        ))
-                    )}
-                </TabsContent>
-
-                <TabsContent value="completed" className="space-y-4">
-                    {completedSites.length === 0 ? (
-                        <div className="text-center py-12 text-slate-400 bg-white rounded-lg border border-dashed">
-                            <CheckCircle2 className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                            <p>아직 완료된 작업이 없습니다.</p>
-                        </div>
-                    ) : (
-                        completedSites.map((site) => (
-                            <SiteCard
-                                key={site.id}
-                                site={site}
-                                isCompleted={true}
-                                currentUserId={currentUserId}
-                                onNoteSaved={loadSites}
-                                onHide={async (siteId: string) => {
-                                    const result = await hideCompletedSite(siteId)
-                                    if (result.success) {
-                                        toast.success('작업이 삭제되었습니다.')
-                                        loadSites()
-                                    } else {
-                                        toast.error(result.error || '삭제에 실패했습니다.')
-                                    }
-                                }}
-                            />
-                        ))
-                    )}
-                </TabsContent>
-            </Tabs>
+            <div className="space-y-4">
+                {/* AS 내역 */}
+                {(asRequests || []).length > 0 && (
+                    <div className="space-y-3 mb-4">
+                        <h3 className="text-base font-bold flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            AS 내역
+                            <Badge variant="destructive" className="text-xs">{(asRequests || []).length}건</Badge>
+                        </h3>
+                        {(asRequests || []).map(req => {
+                            const statusMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
+                                pending: { label: '접수/대기', variant: 'destructive' },
+                                monitoring: { label: '모니터링', variant: 'secondary' },
+                                resolved: { label: '처리완료', variant: 'outline' },
+                            }
+                            const st = statusMap[req.status] || { label: req.status, variant: 'outline' as const }
+                            return (
+                                <Link key={req.id} href={`/worker/as/${req.id}`}>
+                                    <Card className="border-l-4 border-l-red-400 hover:shadow-md transition-shadow cursor-pointer mb-2">
+                                        <CardContent className="p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="font-semibold text-sm">{(req as any).site?.name || req.site_name}</span>
+                                                <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
+                                            </div>
+                                            <p className="text-xs text-slate-500 line-clamp-1">{req.description}</p>
+                                            <div className="flex justify-between items-center mt-2">
+                                                <span className="text-[10px] text-slate-400">{req.occurred_at}</span>
+                                                {(req.penalty_amount ?? 0) > 0 && (
+                                                    <span className="text-xs text-red-600 font-bold">-{(req.penalty_amount ?? 0).toLocaleString()}원</span>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            )
+                        })}
+                    </div>
+                )}
+                {activeSites.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 bg-white rounded-lg border border-dashed">
+                        <Clock className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                        <p>현재 할당된 작업이 없습니다.</p>
+                    </div>
+                ) : (
+                    activeSites.map((site) => (
+                        <SiteCard
+                            key={site.id}
+                            site={site}
+                            onStartWork={handleStartWork}
+                            processingId={processingId}
+                            currentUserId={currentUserId}
+                            onNoteSaved={loadSites}
+                        />
+                    ))
+                )}
+            </div>
         </div>
     )
 }

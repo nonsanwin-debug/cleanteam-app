@@ -29,6 +29,9 @@ export type AssignedSite = {
     worker_notes?: string
     // 배정된 팀원 목록
     members?: { user_id: string; name: string }[]
+    // Payment Claim Fields
+    payment_status?: 'requested' | 'paid'
+    claimed_amount?: number
 }
 
 

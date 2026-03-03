@@ -1,31 +1,21 @@
 'use client'
 
 import { useEffect, useState, useRef, useMemo } from 'react'
-import { getAssignedSites } from '@/actions/worker'
-import { Card, CardContent } from '@/components/ui/card'
+import { getAssignedSites, saveWorkerNotes } from '@/actions/worker'
+import { createClient } from '@/lib/supabase/client'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, List, MapPin, Clock, CalendarDays, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2, List, MapPin, Clock, CalendarDays, CheckCircle2, AlertCircle, Phone, Users, StickyNote } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useCachedData } from '@/lib/data-cache'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import { HOLIDAYS } from '@/lib/holidays'
-
-// Type definition
-type AssignedSite = {
-    id: string
-    name: string
-    address: string
-    status: 'scheduled' | 'in_progress' | 'completed'
-    created_at: string
-    cleaning_date?: string
-    start_time?: string
-    payment_status?: 'requested' | 'paid'
-    claimed_amount?: number
-}
+import { AssignedSite } from '@/types'
 
 type ViewMode = 'calendar' | 'list'
 
@@ -36,6 +26,7 @@ export default function WorkerSchedulePage() {
 
     const [selectedSite, setSelectedSite] = useState<AssignedSite | null>(null)
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false)
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
     // 같은 캐시 키 'worker-sites'를 공유 → 홈에서 이미 로드한 데이터 즉시 사용!
     const { data: sites, loading, refresh: loadData } = useCachedData<AssignedSite[]>(
@@ -43,6 +34,14 @@ export default function WorkerSchedulePage() {
         getAssignedSites,
         { staleTime: 15_000 }
     )
+
+    // Current UserId Load
+    useEffect(() => {
+        const supabaseClient = createClient()
+        supabaseClient.auth.getUser().then(({ data: { user } }) => {
+            if (user) setCurrentUserId(user.id)
+        })
+    }, [])
 
     // PWA 복귀 시 자동 갱신
     useEffect(() => {
@@ -205,13 +204,13 @@ export default function WorkerSchedulePage() {
                                             {/* Dot Indicators */}
                                             {daySites.length > 0 && (
                                                 <div className="flex gap-1 mt-auto pb-1 pt-2 justify-center flex-wrap px-1">
-                                                    {daySites.slice(0, 3).map((site, idx) => (
+                                                    {daySites.slice(0, 3).map((site) => (
                                                         <span
                                                             key={site.id}
                                                             className={cn(
                                                                 "w-2 h-2 rounded-full",
-                                                                site.status === 'completed' ? "bg-slate-300" :
-                                                                    site.status === 'in_progress' ? "bg-amber-400" : "bg-emerald-500"
+                                                                site.status === 'completed' ? "bg-emerald-500" :
+                                                                    site.status === 'in_progress' ? "bg-orange-500" : "bg-red-500"
                                                             )}
                                                         />
                                                     ))}
@@ -247,6 +246,8 @@ export default function WorkerSchedulePage() {
                                     <JobCard
                                         key={site.id}
                                         site={site}
+                                        currentUserId={currentUserId}
+                                        onNoteSaved={loadData}
                                         onRequestPoints={() => {
                                             setSelectedSite(site)
                                             setIsClaimModalOpen(true)
@@ -286,6 +287,8 @@ export default function WorkerSchedulePage() {
                                         )}
                                         <JobCard
                                             site={site}
+                                            currentUserId={currentUserId}
+                                            onNoteSaved={loadData}
                                             onRequestPoints={() => {
                                                 setSelectedSite(site)
                                                 setIsClaimModalOpen(true)
@@ -315,77 +318,260 @@ export default function WorkerSchedulePage() {
     )
 }
 
-// Reusable Job Card Component for Details and List View
-function JobCard({ site, onRequestPoints }: { site: AssignedSite, onRequestPoints: () => void }) {
+// Reusable Job Card Component for Details and List View (Modeled after home SiteCard)
+function JobCard({ site, currentUserId, onNoteSaved, onRequestPoints }: { site: AssignedSite, currentUserId: string | null, onNoteSaved: () => void, onRequestPoints: () => void }) {
+    const isLeader = !!(currentUserId && site.worker_id === currentUserId)
+
+    // 오전/오후 판별
+    const getTimeLabel = () => {
+        if (!site.start_time) return null
+        const hourMatch = site.start_time.match(/(\d{1,2})/)
+        if (!hourMatch) return null
+        const hour = parseInt(hourMatch[1], 10)
+        if (hour < 12) return { label: '오전', color: 'bg-amber-500 text-white', time: site.start_time }
+        return { label: '오후', color: 'bg-indigo-500 text-white', time: site.start_time }
+    }
+    const timeLabel = getTimeLabel()
+
     return (
-        <Card className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-            <div className={cn(
-                "h-1.5 w-full",
-                site.status === 'completed' ? "bg-slate-300" :
-                    site.status === 'in_progress' ? "bg-amber-400" : "bg-emerald-500"
-            )} />
-            <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                    <Badge variant={site.status === 'in_progress' ? 'default' : site.status === 'completed' ? 'secondary' : 'outline'} className="mb-1">
-                        {site.status === 'completed' ? '완료됨' : site.status === 'in_progress' ? '진행 중' : '대기 중'}
-                    </Badge>
-                    {site.start_time && (
-                        <div className="flex items-center text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded-md">
-                            <Clock className="w-3.5 h-3.5 mr-1" />
-                            {site.start_time}
+        <Card className={cn(
+            "border-l-4 shadow-sm hover:shadow-md transition-shadow",
+            site.status === 'in_progress' ? 'border-l-orange-500' : site.status === 'completed' ? 'border-l-emerald-500 opacity-80' : 'border-l-red-500'
+        )}>
+            <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                        <Badge variant={site.status === 'in_progress' ? 'default' : site.status === 'completed' ? 'secondary' : 'outline'}>
+                            {site.status === 'in_progress' ? '진행 중' : site.status === 'completed' ? '완료됨' : '대기 중'}
+                        </Badge>
+                        {timeLabel && (
+                            <span className={`${timeLabel.color} text-xs font-bold px-2.5 py-1 rounded-full shadow-sm`}>
+                                {timeLabel.label} {timeLabel.time}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <CardTitle className="text-xl mt-2">{site.name}</CardTitle>
+                <div className="mt-2 space-y-1">
+                    {site.customer_name && (
+                        <p className="text-sm text-slate-600">고객: <span className="font-semibold text-slate-900">{site.customer_name}</span></p>
+                    )}
+                    {isLeader && site.members && site.members.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <Users className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-xs text-slate-500">팀원:</span>
+                            {site.members.map((m) => (
+                                <span key={m.user_id} className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    {m.name}
+                                </span>
+                            ))}
                         </div>
                     )}
-                </div>
-
-                <h4 className="font-bold text-[17px] text-slate-800 mb-2">{site.name}</h4>
-
-                <div className="flex items-start text-sm text-slate-500 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <MapPin className="w-4 h-4 mr-1.5 mt-0.5 shrink-0 text-slate-400" />
-                    <span className="leading-tight line-clamp-2">{site.address}</span>
-                </div>
-
-                <div className="flex items-center justify-between mt-2 pt-3 border-t border-slate-100">
-                    {site.status === 'completed' ? (
-                        <div className="flex-1 w-full">
-                            {site.payment_status === 'paid' ? (
-                                <div className="text-sm text-emerald-600 font-bold bg-emerald-50 py-2 rounded-lg text-center w-full flex items-center justify-center gap-1.5 border border-emerald-100">
-                                    <CheckCircle2 className="w-4 h-4" /> 포인트 지급 완료
-                                </div>
-                            ) : site.payment_status === 'requested' ? (
-                                <div className="flex items-center justify-between w-full bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
-                                    <span className="text-sm font-bold text-amber-600 flex items-center gap-1.5">
-                                        <AlertCircle className="w-4 h-4" /> 포인트 청구됨
-                                    </span>
-                                    {site.claimed_amount && (
-                                        <span className="text-sm text-slate-700 font-bold">
-                                            {site.claimed_amount.toLocaleString()}포인트
-                                        </span>
-                                    )}
-                                </div>
+                    {isLeader && (
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            {site.customer_phone ? (
+                                site.customer_phone.split('/').map((phone, idx) => {
+                                    const trimmed = phone.trim()
+                                    return (
+                                        <a key={idx} href={`tel:${trimmed}`} className="flex items-center text-blue-600 font-bold text-base bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 mt-1">
+                                            <Phone className="h-4 w-4 mr-2" />
+                                            <span>{trimmed}</span>
+                                            <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded">전화하기</span>
+                                        </a>
+                                    )
+                                })
                             ) : (
-                                <div className="flex gap-2 w-full">
-                                    <Button
-                                        onClick={onRequestPoints}
-                                        className="w-full bg-slate-800 hover:bg-slate-700 font-bold"
-                                    >
-                                        포인트 요청하기
-                                    </Button>
-                                    <Link href={`/worker/sites/${site.id}`} className="shrink-0">
-                                        <Button variant="outline" className="px-3">현장</Button>
-                                    </Link>
-                                </div>
+                                <span className="text-slate-400 text-xs italic bg-slate-100 px-2 py-1 rounded mt-1">연락처 미등록</span>
                             )}
                         </div>
-                    ) : (
-                        <Link href={`/worker/sites/${site.id}`} className="w-full">
-                            <Button variant="secondary" className="w-full font-bold">
-                                상세 보기
-                            </Button>
-                        </Link>
                     )}
                 </div>
+            </CardHeader>
+            <CardContent className="pb-2 text-sm text-slate-600 space-y-3">
+                <div className="flex items-start">
+                    <MapPin className="h-4 w-4 mr-2 text-slate-400 mt-0.5 shrink-0" />
+                    <span className="break-keep">{site.address}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded">
+                    <div>
+                        <span className="text-slate-400 block">평수</span>
+                        <span>{site.area_size || '-'}</span>
+                    </div>
+                    <div>
+                        <span className="text-slate-400 block">구조</span>
+                        <span>{site.structure_type || '-'}</span>
+                    </div>
+                    {site.special_notes && (
+                        <div className="col-span-2 mt-1">
+                            <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-2.5 animate-pulse">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="text-red-500 text-xs font-bold tracking-wider animate-bounce" style={{ animationDuration: '2s' }}>⚠️ 특이사항</span>
+                                </div>
+                                <span className="text-red-600 font-bold text-sm block" style={{
+                                    textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
+                                }}>{site.special_notes}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* 현장 메모 (팀장 편집 / 팀원 읽기) */}
+                <MemoSection site={site} isLeader={isLeader} onSaved={onNoteSaved} />
+
+                {site.status !== 'completed' && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        <a
+                            href={`https://m.map.kakao.com/actions/searchView?q=${encodeURIComponent(site.address)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full"
+                        >
+                            <Button size="sm" variant="outline" className="w-full h-9 text-xs border-yellow-400 bg-yellow-50 hover:bg-yellow-100 text-slate-900">
+                                카카오내비
+                            </Button>
+                        </a>
+                        <a
+                            href={`tmap://search?name=${encodeURIComponent(site.address)}`}
+                            className="w-full"
+                        >
+                            <Button size="sm" variant="outline" className="w-full h-9 text-xs border-green-500 bg-green-50 hover:bg-green-100 text-slate-900">
+                                티맵
+                            </Button>
+                        </a>
+                    </div>
+                )}
             </CardContent>
+
+            <CardFooter className="pt-2">
+                {site.status === 'completed' ? (
+                    <div className="flex-1 w-full space-y-2">
+                        {site.payment_status === 'paid' ? (
+                            <div className="text-sm text-emerald-600 font-bold bg-emerald-50 py-2 rounded-lg text-center w-full flex items-center justify-center gap-1.5 border border-emerald-100">
+                                <CheckCircle2 className="w-4 h-4" /> 포인트 지급 완료
+                            </div>
+                        ) : site.payment_status === 'requested' ? (
+                            <div className="flex items-center justify-between w-full bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
+                                <span className="text-sm font-bold text-amber-600 flex items-center gap-1.5">
+                                    <AlertCircle className="w-4 h-4" /> 포인트 청구됨
+                                </span>
+                                {site.claimed_amount && (
+                                    <span className="text-sm text-slate-700 font-bold">
+                                        {site.claimed_amount.toLocaleString()}포인트
+                                    </span>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex gap-2 w-full">
+                                <Button
+                                    onClick={onRequestPoints}
+                                    className="w-full bg-slate-800 hover:bg-slate-700 font-bold"
+                                >
+                                    포인트 요청하기
+                                </Button>
+                                <Link href={`/worker/sites/${site.id}`} className="shrink-0">
+                                    <Button variant="outline" className="px-3">현장보기</Button>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <Link href={`/worker/sites/${site.id}`} className="w-full">
+                        <Button variant="secondary" className="w-full font-bold">
+                            현장 상세 및 작업 시작
+                        </Button>
+                    </Link>
+                )}
+            </CardFooter>
         </Card>
+    )
+}
+
+// 메모 섹션 컴포넌트
+function MemoSection({ site, isLeader, onSaved }: { site: AssignedSite, isLeader: boolean, onSaved?: () => void }) {
+    const [editing, setEditing] = useState(false)
+    const [noteText, setNoteText] = useState(site.worker_notes || '')
+    const [saving, setSaving] = useState(false)
+
+    const handleSave = async () => {
+        setSaving(true)
+        try {
+            const result = await saveWorkerNotes(site.id, noteText)
+            if (result.success) {
+                toast.success('메모가 저장되었습니다.')
+                setEditing(false)
+                onSaved?.()
+            } else {
+                toast.error(result.error || '저장 실패')
+            }
+        } catch {
+            toast.error('메모 저장 중 오류가 발생했습니다.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // 팀원: 메모가 있을 때만 표시 (읽기 전용)
+    if (!isLeader) {
+        if (!site.worker_notes) return null
+        return (
+            <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                    <StickyNote className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-blue-600 text-xs font-bold">팀장 메모</span>
+                </div>
+                <p className="text-sm text-blue-800 whitespace-pre-wrap">{site.worker_notes}</p>
+            </div>
+        )
+    }
+
+    // 팀장: 편집 모드
+    if (editing) {
+        return (
+            <div className="mt-2 bg-blue-50 border border-blue-300 rounded-lg p-2.5 space-y-2">
+                <div className="flex items-center gap-1.5">
+                    <StickyNote className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-blue-600 text-xs font-bold">현장 메모</span>
+                </div>
+                <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="주차: B2, 열쇠 경비실, 비밀번호 1234# ..."
+                    className="w-full text-sm border border-blue-200 rounded-md p-2 min-h-[60px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    autoFocus
+                />
+                <div className="flex gap-2">
+                    <Button size="sm" className="h-7 text-xs" onClick={handleSave} disabled={saving}>
+                        {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : '저장'}
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditing(false); setNoteText(site.worker_notes || '') }}>
+                        취소
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    // 팀장: 읽기 모드 (클릭하면 편집)
+    return (
+        <div
+            className={`mt-2 rounded-lg p-2.5 cursor-pointer transition-colors ${site.worker_notes
+                ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
+                : 'bg-slate-50 border border-dashed border-slate-300 hover:bg-slate-100'
+                }`}
+            onClick={() => setEditing(true)}
+        >
+            <div className="flex items-center gap-1.5">
+                <StickyNote className={`h-3.5 w-3.5 ${site.worker_notes ? 'text-blue-500' : 'text-slate-400'}`} />
+                <span className={`text-xs font-bold ${site.worker_notes ? 'text-blue-600' : 'text-slate-400'}`}>
+                    {site.worker_notes ? '현장 메모' : '메모 추가'}
+                </span>
+                <span className="text-slate-400 text-[10px]">탭하여 편집</span>
+            </div>
+            {site.worker_notes && (
+                <p className="text-sm text-blue-800 mt-1 whitespace-pre-wrap">{site.worker_notes}</p>
+            )}
+        </div>
     )
 }
 
@@ -467,7 +653,7 @@ function ClaimModal({ site, isOpen, onClose, onSuccess }: { site: AssignedSite, 
     }
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl">
                 <CardContent className="p-6 space-y-5">
                     <div>
