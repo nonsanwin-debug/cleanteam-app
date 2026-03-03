@@ -59,13 +59,13 @@ export function ActivityLogs({ logs }: { logs: any[] }) {
                             <div>
                                 <span className="text-[10px] text-slate-400 block mb-0.5">변동 금액</span>
                                 <span className={`text-sm font-bold ${['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type) ? 'text-red-600' : 'text-green-600'}`}>
-                                    {['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type) ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
+                                    {['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type) ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}포인트
                                 </span>
                             </div>
                             <div className="text-right">
                                 <span className="text-[10px] text-slate-400 block mb-0.5">잔액</span>
                                 <span className="text-sm font-bold text-slate-700">
-                                    {log.balance_after.toLocaleString()}원
+                                    {log.balance_after.toLocaleString()}포인트
                                 </span>
                             </div>
                         </div>

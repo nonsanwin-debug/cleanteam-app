@@ -61,9 +61,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <CardTitle className="text-center">{user?.name || '사용자'}</CardTitle>
                 <div className="text-center mt-2">
                     <div className="inline-block bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-bold border border-green-200">
-                        ₩ {(user?.current_money || 0).toLocaleString()}
+                        {(user?.current_money || 0).toLocaleString()} P
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">지급받은 총 금액</p>
                     <Button
                         size="sm"
                         variant="default"
@@ -221,7 +220,7 @@ function WithdrawModal({ isOpen, onClose, user, onSuccess }: { isOpen: boolean, 
                     <div className="bg-slate-50 p-3 rounded text-sm text-slate-600">
                         <div className="flex justify-between">
                             <span>전환 가능 포인트</span>
-                            <span className="font-bold text-slate-900">{(user.current_money || 0).toLocaleString()}원</span>
+                            <span className="font-bold text-slate-900">{(user.current_money || 0).toLocaleString()} P</span>
                         </div>
                         <div className="flex justify-between mt-1">
                             <span>계좌 정보</span>
