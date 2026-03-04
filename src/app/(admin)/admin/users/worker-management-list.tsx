@@ -9,7 +9,7 @@ import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommiss
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus, Trash2 } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus, Trash2, Search } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -65,6 +65,12 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
     const [adjustReason, setAdjustReason] = useState('')
     const [adjustLoading, setAdjustLoading] = useState(false)
     const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    const filteredWorkers = workers.filter(worker =>
+        worker.name.includes(searchTerm) ||
+        worker.phone.includes(searchTerm)
+    )
 
     const togglePassword = (id: string) => {
         setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }))
@@ -220,352 +226,372 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workers.map(worker => (
-                <Card key={worker.id}>
-                    <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-10 h-10 border rounded-full flex items-center justify-center"
-                                    style={{
-                                        backgroundColor: worker.display_color ? `${worker.display_color}15` : undefined,
-                                        borderColor: worker.display_color || undefined,
-                                    }}
-                                >
-                                    <User className="w-5 h-5" style={{ color: worker.display_color || '#94a3b8' }} />
+        <div className="space-y-4">
+            {/* 검색 폼 */}
+            <div className="flex items-center gap-2 max-w-sm">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="이름 또는 전화번호로 검색..."
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredWorkers.map(worker => (
+                    <Card key={worker.id}>
+                        <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-10 h-10 border rounded-full flex items-center justify-center"
+                                        style={{
+                                            backgroundColor: worker.display_color ? `${worker.display_color}15` : undefined,
+                                            borderColor: worker.display_color || undefined,
+                                        }}
+                                    >
+                                        <User className="w-5 h-5" style={{ color: worker.display_color || '#94a3b8' }} />
+                                    </div>
+                                    <div>
+                                        <h3
+                                            className="font-bold text-lg"
+                                            style={{ color: worker.display_color || undefined }}
+                                        >
+                                            {worker.name}
+                                        </h3>
+                                        <p className="text-sm text-slate-500">{worker.phone}</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                    <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
+                                        {worker.worker_type === 'leader' ? '팀장' : '팀원'}
+                                    </Badge>
+                                    {worker.status === 'pending' && (
+                                        <Badge variant="destructive" className="text-[10px] py-0">승인대기</Badge>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Color Picker */}
+                            <div className="mb-3">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setColorPickerOpen(colorPickerOpen === worker.id ? null : worker.id)}
+                                        className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors px-2 py-1 rounded border border-dashed border-slate-200 hover:border-slate-400"
+                                    >
+                                        {worker.display_color ? (
+                                            <span
+                                                className="w-3.5 h-3.5 rounded-full border border-white shadow-sm"
+                                                style={{ backgroundColor: worker.display_color }}
+                                            />
+                                        ) : (
+                                            <Palette className="w-3.5 h-3.5" />
+                                        )}
+                                        <span>{worker.display_color ? '색상 변경' : '색상 설정'}</span>
+                                    </button>
+                                    {worker.display_color && (
+                                        <button
+                                            onClick={() => handleColorChange(worker.id, null)}
+                                            className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                                            title="색상 초기화"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                                {colorPickerOpen === worker.id && (
+                                    <div className="mt-2 p-2 bg-slate-50 rounded-lg border flex flex-wrap gap-2">
+                                        {COLOR_PRESETS.map(color => (
+                                            <button
+                                                key={color.value}
+                                                onClick={() => handleColorChange(worker.id, color.value)}
+                                                disabled={colorLoading === worker.id}
+                                                className="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
+                                                style={{
+                                                    backgroundColor: color.value,
+                                                    borderColor: worker.display_color === color.value ? '#1e293b' : 'white',
+                                                }}
+                                                title={color.name}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-2 text-sm mb-4">
+                                <div>
+                                    <span className="text-slate-500">잔액: </span>
+                                    <span className="font-semibold text-green-600">
+                                        ₩ {worker.current_money?.toLocaleString() || 0}
+                                    </span>
+                                </div>
+                                {/* Commission Rate */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-500">추가금 퍼센티지: </span>
+                                    {commissionEditing === worker.id ? (
+                                        <div className="flex items-center gap-1">
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                value={commissionValue}
+                                                onChange={(e) => setCommissionValue(e.target.value)}
+                                                className="w-16 h-7 text-sm text-center"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleCommissionSave(worker.id)
+                                                    if (e.key === 'Escape') setCommissionEditing(null)
+                                                }}
+                                                autoFocus
+                                            />
+                                            <span className="text-sm text-slate-500">%</span>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-7 w-7"
+                                                onClick={() => handleCommissionSave(worker.id)}
+                                                disabled={commissionLoading === worker.id}
+                                            >
+                                                {commissionLoading === worker.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <Check className="w-3.5 h-3.5 text-green-600" />
+                                                )}
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="h-7 w-7"
+                                                onClick={() => setCommissionEditing(null)}
+                                            >
+                                                <X className="w-3.5 h-3.5 text-slate-400" />
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => startCommissionEdit(worker)}
+                                            className="font-semibold text-blue-600 hover:underline cursor-pointer"
+                                        >
+                                            {worker.commission_rate ?? 100}%
+                                        </button>
+                                    )}
                                 </div>
                                 <div>
-                                    <h3
-                                        className="font-bold text-lg"
-                                        style={{ color: worker.display_color || undefined }}
-                                    >
-                                        {worker.name}
-                                    </h3>
-                                    <p className="text-sm text-slate-500">{worker.phone}</p>
+                                    <span className="text-slate-500">계좌: </span>
+                                    <span>{worker.account_info || '미등록'}</span>
                                 </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
-                                    {worker.worker_type === 'leader' ? '팀장' : '팀원'}
-                                </Badge>
-                                {worker.status === 'pending' && (
-                                    <Badge variant="destructive" className="text-[10px] py-0">승인대기</Badge>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Color Picker */}
-                        <div className="mb-3">
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setColorPickerOpen(colorPickerOpen === worker.id ? null : worker.id)}
-                                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors px-2 py-1 rounded border border-dashed border-slate-200 hover:border-slate-400"
-                                >
-                                    {worker.display_color ? (
-                                        <span
-                                            className="w-3.5 h-3.5 rounded-full border border-white shadow-sm"
-                                            style={{ backgroundColor: worker.display_color }}
-                                        />
-                                    ) : (
-                                        <Palette className="w-3.5 h-3.5" />
-                                    )}
-                                    <span>{worker.display_color ? '색상 변경' : '색상 설정'}</span>
-                                </button>
-                                {worker.display_color && (
-                                    <button
-                                        onClick={() => handleColorChange(worker.id, null)}
-                                        className="text-xs text-slate-400 hover:text-red-500 transition-colors"
-                                        title="색상 초기화"
-                                    >
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                )}
-                            </div>
-                            {colorPickerOpen === worker.id && (
-                                <div className="mt-2 p-2 bg-slate-50 rounded-lg border flex flex-wrap gap-2">
-                                    {COLOR_PRESETS.map(color => (
-                                        <button
-                                            key={color.value}
-                                            onClick={() => handleColorChange(worker.id, color.value)}
-                                            disabled={colorLoading === worker.id}
-                                            className="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                                            style={{
-                                                backgroundColor: color.value,
-                                                borderColor: worker.display_color === color.value ? '#1e293b' : 'white',
-                                            }}
-                                            title={color.name}
-                                        />
-                                    ))}
+                                <div>
+                                    <span className="text-slate-500">가입일: </span>
+                                    <span>{new Date(worker.created_at).toLocaleDateString()}</span>
                                 </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-2 text-sm mb-4">
-                            <div>
-                                <span className="text-slate-500">잔액: </span>
-                                <span className="font-semibold text-green-600">
-                                    ₩ {worker.current_money?.toLocaleString() || 0}
-                                </span>
-                            </div>
-                            {/* Commission Rate */}
-                            <div className="flex items-center gap-2">
-                                <span className="text-slate-500">추가금 퍼센티지: </span>
-                                {commissionEditing === worker.id ? (
-                                    <div className="flex items-center gap-1">
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            max={100}
-                                            value={commissionValue}
-                                            onChange={(e) => setCommissionValue(e.target.value)}
-                                            className="w-16 h-7 text-sm text-center"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleCommissionSave(worker.id)
-                                                if (e.key === 'Escape') setCommissionEditing(null)
-                                            }}
-                                            autoFocus
-                                        />
-                                        <span className="text-sm text-slate-500">%</span>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-7 w-7"
-                                            onClick={() => handleCommissionSave(worker.id)}
-                                            disabled={commissionLoading === worker.id}
-                                        >
-                                            {commissionLoading === worker.id ? (
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            ) : (
-                                                <Check className="w-3.5 h-3.5 text-green-600" />
-                                            )}
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-7 w-7"
-                                            onClick={() => setCommissionEditing(null)}
-                                        >
-                                            <X className="w-3.5 h-3.5 text-slate-400" />
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => startCommissionEdit(worker)}
-                                        className="font-semibold text-blue-600 hover:underline cursor-pointer"
-                                    >
-                                        {worker.commission_rate ?? 100}%
-                                    </button>
-                                )}
-                            </div>
-                            <div>
-                                <span className="text-slate-500">계좌: </span>
-                                <span>{worker.account_info || '미등록'}</span>
-                            </div>
-                            <div>
-                                <span className="text-slate-500">가입일: </span>
-                                <span>{new Date(worker.created_at).toLocaleDateString()}</span>
-                            </div>
-                            {worker.initial_password && (
-                                <div className="flex items-center justify-between p-2 bg-slate-50 border rounded mt-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-slate-500 text-xs font-medium">관리용 비밀번호:</span>
-                                        <span className="font-mono text-sm tracking-widest font-bold text-slate-700">
-                                            {showPasswords[worker.id] ? worker.initial_password : '••••••'}
-                                        </span>
-                                    </div>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-6 w-6"
-                                        onClick={() => togglePassword(worker.id)}
-                                    >
-                                        {showPasswords[worker.id] ? (
-                                            <EyeOff className="w-3.5 h-3.5 text-slate-400" />
-                                        ) : (
-                                            <Eye className="w-3.5 h-3.5 text-slate-400" />
-                                        )}
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Payment/Deduction Buttons */}
-                        <div className="flex gap-2 mb-3">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
-                                onClick={() => openAdjustForm(worker.id, 'add')}
-                            >
-                                <Plus className="w-3.5 h-3.5 mr-1" />
-                                포인트 지급
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
-                                onClick={() => openAdjustForm(worker.id, 'deduct')}
-                            >
-                                <Minus className="w-3.5 h-3.5 mr-1" />
-                                포인트 차감
-                            </Button>
-                        </div>
-
-                        {/* Adjust Form */}
-                        {adjustOpen === worker.id && (
-                            <div className={`mb-3 p-3 rounded-lg border-2 ${adjustType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                <h4 className={`text-sm font-bold mb-2 ${adjustType === 'add' ? 'text-green-700' : 'text-red-700'}`}>
-                                    {adjustType === 'add' ? '💰 포인트 지급' : '📉 포인트 차감'}
-                                </h4>
-                                <div className="space-y-2">
-                                    <Input
-                                        type="number"
-                                        placeholder="금액 입력"
-                                        value={adjustAmount}
-                                        onChange={(e) => setAdjustAmount(e.target.value)}
-                                        className="bg-white"
-                                    />
-                                    <Textarea
-                                        placeholder="사유 입력 (필수)"
-                                        value={adjustReason}
-                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAdjustReason(e.target.value)}
-                                        rows={2}
-                                        className="bg-white text-sm"
-                                    />
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="sm"
-                                            className={`flex-1 ${adjustType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                                            onClick={() => handleAdjustSubmit(worker.id)}
-                                            disabled={adjustLoading}
-                                        >
-                                            {adjustLoading ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                adjustType === 'add' ? '지급 확인' : '차감 확인'
-                                            )}
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setAdjustOpen(null)}
-                                            disabled={adjustLoading}
-                                        >
-                                            취소
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Commission & Adjustment History */}
-                        {(() => {
-                            const workerLogs = commissionLogs.filter(log => log.user_id === worker.id)
-                            if (workerLogs.length === 0) return null
-                            return (
-                                <div className="mb-4">
-                                    <button
-                                        onClick={() => setHistoryOpen(historyOpen === worker.id ? null : worker.id)}
-                                        className="flex items-center justify-between w-full text-sm px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                                    >
+                                {worker.initial_password && (
+                                    <div className="flex items-center justify-between p-2 bg-slate-50 border rounded mt-2">
                                         <div className="flex items-center gap-2">
-                                            <Receipt className="w-4 h-4 text-blue-600" />
-                                            <span className="text-blue-700 font-medium">
-                                                정산 기록 ({workerLogs.length}건)
+                                            <span className="text-slate-500 text-xs font-medium">관리용 비밀번호:</span>
+                                            <span className="font-mono text-sm tracking-widest font-bold text-slate-700">
+                                                {showPasswords[worker.id] ? worker.initial_password : '••••••'}
                                             </span>
                                         </div>
-                                        {historyOpen === worker.id ? (
-                                            <ChevronUp className="w-4 h-4 text-blue-500" />
-                                        ) : (
-                                            <ChevronDown className="w-4 h-4 text-blue-500" />
-                                        )}
-                                    </button>
-                                    {historyOpen === worker.id && (
-                                        <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
-                                            {workerLogs.map(log => (
-                                                <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
-                                                    <span className="text-slate-600 truncate mr-2">{log.description}</span>
-                                                    <div className="flex items-center gap-3 shrink-0">
-                                                        <span className={`font-semibold ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
-                                                            {log.type === 'manual_deduct' ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
-                                                        </span>
-                                                        <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-6 w-6"
+                                            onClick={() => togglePassword(worker.id)}
+                                        >
+                                            {showPasswords[worker.id] ? (
+                                                <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                                            ) : (
+                                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Payment/Deduction Buttons */}
+                            <div className="flex gap-2 mb-3">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
+                                    onClick={() => openAdjustForm(worker.id, 'add')}
+                                >
+                                    <Plus className="w-3.5 h-3.5 mr-1" />
+                                    포인트 지급
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
+                                    onClick={() => openAdjustForm(worker.id, 'deduct')}
+                                >
+                                    <Minus className="w-3.5 h-3.5 mr-1" />
+                                    포인트 차감
+                                </Button>
+                            </div>
+
+                            {/* Adjust Form */}
+                            {adjustOpen === worker.id && (
+                                <div className={`mb-3 p-3 rounded-lg border-2 ${adjustType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                    <h4 className={`text-sm font-bold mb-2 ${adjustType === 'add' ? 'text-green-700' : 'text-red-700'}`}>
+                                        {adjustType === 'add' ? '💰 포인트 지급' : '📉 포인트 차감'}
+                                    </h4>
+                                    <div className="space-y-2">
+                                        <Input
+                                            type="number"
+                                            placeholder="금액 입력"
+                                            value={adjustAmount}
+                                            onChange={(e) => setAdjustAmount(e.target.value)}
+                                            className="bg-white"
+                                        />
+                                        <Textarea
+                                            placeholder="사유 입력 (필수)"
+                                            value={adjustReason}
+                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAdjustReason(e.target.value)}
+                                            rows={2}
+                                            className="bg-white text-sm"
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                className={`flex-1 ${adjustType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                                onClick={() => handleAdjustSubmit(worker.id)}
+                                                disabled={adjustLoading}
+                                            >
+                                                {adjustLoading ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    adjustType === 'add' ? '지급 확인' : '차감 확인'
+                                                )}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setAdjustOpen(null)}
+                                                disabled={adjustLoading}
+                                            >
+                                                취소
+                                            </Button>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                            )
-                        })()}
-
-                        {worker.status === 'pending' ? (
-                            <Button
-                                size="sm"
-                                variant="default"
-                                className="w-full bg-green-600 hover:bg-green-700"
-                                onClick={() => handleApprove(worker.id)}
-                                disabled={!!processingId}
-                            >
-                                {processingId === worker.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        <UserCheck className="w-4 h-4 mr-1" />
-                                        가입 승인
-                                    </>
-                                )}
-                            </Button>
-                        ) : (
-                            <Button
-                                size="sm"
-                                variant={worker.worker_type === 'leader' ? 'outline' : 'default'}
-                                className="w-full"
-                                onClick={() => handleRoleChange(worker.id, worker.worker_type)}
-                                disabled={!!processingId}
-                            >
-                                {processingId === worker.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        {worker.worker_type === 'leader' ? (
-                                            <>
-                                                <ArrowDown className="w-4 h-4 mr-1" />
-                                                팀원으로 강등
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ArrowUp className="w-4 h-4 mr-1" />
-                                                팀장으로 승격
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </Button>
-                        )}
-
-                        {/* 삭제 버튼 */}
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full mt-2 text-red-500 border-red-200 hover:bg-red-50"
-                            onClick={() => handleDelete(worker.id, worker.name)}
-                            disabled={!!deleteLoading}
-                        >
-                            {deleteLoading === worker.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <>
-                                    <Trash2 className="w-4 h-4 mr-1" />
-                                    삭제
-                                </>
                             )}
-                        </Button>
-                    </CardContent>
-                </Card>
-            ))}
+
+                            {/* Commission & Adjustment History */}
+                            {(() => {
+                                const workerLogs = commissionLogs.filter(log => log.user_id === worker.id)
+                                if (workerLogs.length === 0) return null
+                                return (
+                                    <div className="mb-4">
+                                        <button
+                                            onClick={() => setHistoryOpen(historyOpen === worker.id ? null : worker.id)}
+                                            className="flex items-center justify-between w-full text-sm px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Receipt className="w-4 h-4 text-blue-600" />
+                                                <span className="text-blue-700 font-medium">
+                                                    정산 기록 ({workerLogs.length}건)
+                                                </span>
+                                            </div>
+                                            {historyOpen === worker.id ? (
+                                                <ChevronUp className="w-4 h-4 text-blue-500" />
+                                            ) : (
+                                                <ChevronDown className="w-4 h-4 text-blue-500" />
+                                            )}
+                                        </button>
+                                        {historyOpen === worker.id && (
+                                            <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+                                                {workerLogs.map(log => (
+                                                    <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
+                                                        <span className="text-slate-600 truncate mr-2">{log.description}</span>
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            <span className={`font-semibold ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
+                                                                {log.type === 'manual_deduct' ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
+                                                            </span>
+                                                            <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })()}
+
+                            {worker.status === 'pending' ? (
+                                <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="w-full bg-green-600 hover:bg-green-700"
+                                    onClick={() => handleApprove(worker.id)}
+                                    disabled={!!processingId}
+                                >
+                                    {processingId === worker.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <UserCheck className="w-4 h-4 mr-1" />
+                                            가입 승인
+                                        </>
+                                    )}
+                                </Button>
+                            ) : (
+                                <Button
+                                    size="sm"
+                                    variant={worker.worker_type === 'leader' ? 'outline' : 'default'}
+                                    className="w-full"
+                                    onClick={() => handleRoleChange(worker.id, worker.worker_type)}
+                                    disabled={!!processingId}
+                                >
+                                    {processingId === worker.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            {worker.worker_type === 'leader' ? (
+                                                <>
+                                                    <ArrowDown className="w-4 h-4 mr-1" />
+                                                    팀원으로 강등
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ArrowUp className="w-4 h-4 mr-1" />
+                                                    팀장으로 승격
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+
+                            {/* 삭제 버튼 */}
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full mt-2 text-red-500 border-red-200 hover:bg-red-50"
+                                onClick={() => handleDelete(worker.id, worker.name)}
+                                disabled={!!deleteLoading}
+                            >
+                                {deleteLoading === worker.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4 mr-1" />
+                                        삭제
+                                    </>
+                                )}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+            {filteredWorkers.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground border rounded-lg bg-slate-50">
+                    검색 결과가 없습니다.
+                </div>
+            )}
         </div>
     )
 }
-
