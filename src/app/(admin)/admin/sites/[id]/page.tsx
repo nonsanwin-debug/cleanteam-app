@@ -259,12 +259,12 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                     <Card>
                         <CardContent className="pt-6">
                             <Tabs defaultValue="all" className="w-full">
-                                <TabsList className="mb-4">
-                                    <TabsTrigger value="all">전체 ({photos.length})</TabsTrigger>
-                                    <TabsTrigger value="before">작업 전 ({photosByType.before.length})</TabsTrigger>
-                                    <TabsTrigger value="during">작업 중 ({photosByType.during.length})</TabsTrigger>
-                                    <TabsTrigger value="after">작업 후 ({photosByType.after.length})</TabsTrigger>
-                                    <TabsTrigger value="special">특이사항 ({photosByType.special.length})</TabsTrigger>
+                                <TabsList className="mb-4 flex w-full overflow-x-auto justify-start touch-pan-x [&::-webkit-scrollbar]:hidden">
+                                    <TabsTrigger value="all" className="shrink-0">전체 ({photos.length})</TabsTrigger>
+                                    <TabsTrigger value="before" className="shrink-0">작업 전 ({photosByType.before.length})</TabsTrigger>
+                                    <TabsTrigger value="during" className="shrink-0">작업 중 ({photosByType.during.length})</TabsTrigger>
+                                    <TabsTrigger value="after" className="shrink-0">작업 후 ({photosByType.after.length})</TabsTrigger>
+                                    <TabsTrigger value="special" className="shrink-0">특이사항 ({photosByType.special.length})</TabsTrigger>
                                 </TabsList>
 
                                 {['all', 'before', 'during', 'after', 'special'].map((tab) => (
