@@ -227,6 +227,57 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
     return { success: true }
 }
 
+/** 오더 수정 */
+export async function updateSharedOrder(orderId: string, data: CreateOrderData): Promise<ActionResponse> {
+    const { supabase, user, companyId } = await getAuthCompany()
+    if (!companyId || !user) return { success: false, error: '인증 실패' }
+
+    // 기존 오더 정보 확인
+    const { data: order } = await supabase
+        .from('shared_orders')
+        .select('company_id, status')
+        .eq('id', orderId)
+        .single()
+
+    if (!order) return { success: false, error: '오더를 찾을 수 없습니다.' }
+    if (order.company_id !== companyId) return { success: false, error: '수정 권한이 없습니다.' }
+
+    // 수정 권한: open이거나 deleted_by_receiver인 경우 가능
+    if (order.status !== 'open' && order.status !== 'deleted_by_receiver') {
+        return { success: false, error: '이 오더는 현재 상태에서 수정할 수 없습니다.' }
+    }
+
+    const updateData: any = {
+        region: data.region,
+        work_date: data.work_date || null,
+        area_size: data.area_size || null,
+        collection_type: data.collection_type || null,
+        notes: data.notes || null,
+        address: data.address || null,
+        customer_phone: data.customer_phone || null,
+        customer_name: data.customer_name || null,
+    }
+
+    // 만약 수신자가 삭제했던 오더라면, 다시 open 상태로 되돌리고 accepted_by 초기화
+    if (order.status === 'deleted_by_receiver') {
+        updateData.status = 'open'
+        updateData.accepted_by = null
+    }
+
+    const { error } = await supabase
+        .from('shared_orders')
+        .update(updateData)
+        .eq('id', orderId)
+
+    if (error) {
+        console.error('updateSharedOrder error:', error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/shared-orders')
+    return { success: true }
+}
+
 /** 내가 등록한 오더 목록 */
 export async function getMySharedOrders() {
     const { supabase, companyId } = await getAuthCompany()

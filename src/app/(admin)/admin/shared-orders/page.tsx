@@ -30,7 +30,8 @@ import {
     updateOrderDetails,
     cancelSharedOrder,
     deleteSharedOrder,
-    getOrderNotifications
+    getOrderNotifications,
+    updateSharedOrder
 } from '@/actions/shared-orders'
 
 export default function SharedOrdersPage() {
@@ -58,6 +59,14 @@ export default function SharedOrdersPage() {
     const [detailPhone, setDetailPhone] = useState('')
     const [detailName, setDetailName] = useState('')
     const [detailSubmitting, setDetailSubmitting] = useState(false)
+
+    // 수정 다이얼로그
+    const [editOpen, setEditOpen] = useState(false)
+    const [editOrderId, setEditOrderId] = useState('')
+    const [editBasicInfo, setEditBasicInfo] = useState('')
+    const [editNotes, setEditNotes] = useState('')
+    const [editDate, setEditDate] = useState('')
+    const [editSubmitting, setEditSubmitting] = useState(false)
 
     const [acceptingId, setAcceptingId] = useState<string | null>(null)
 
@@ -128,6 +137,39 @@ export default function SharedOrdersPage() {
     function resetForm() {
         setBasicInfo('')
         setNotes('')
+    }
+
+    function openEditDialog(order: any) {
+        setEditOrderId(order.id)
+        setEditBasicInfo(order.region || '')
+        setEditNotes(order.notes || '')
+        setEditDate(order.work_date || '')
+        setEditOpen(true)
+    }
+
+    async function handleUpdate() {
+        if (!editBasicInfo.trim()) {
+            toast.error('기본 정보(지역/평수/잔금)를 입력해주세요.')
+            return
+        }
+        setEditSubmitting(true)
+        const result = await updateSharedOrder(editOrderId, {
+            region: editBasicInfo,
+            work_date: editDate || null,
+            area_size: '',
+            notes: editNotes,
+            address: '',
+            customer_phone: '',
+            customer_name: ''
+        })
+        if (result.success) {
+            toast.success('오더가 수정되었습니다.')
+            setEditOpen(false)
+            loadData()
+        } else {
+            toast.error(result.error)
+        }
+        setEditSubmitting(false)
     }
 
     async function handleAccept(orderId: string) {
@@ -253,6 +295,32 @@ export default function SharedOrdersPage() {
                             <Button onClick={handleCreate} disabled={submitting}>
                                 {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                                 등록
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 수정 다이얼로그 */}
+                <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>오더 수정</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
+                                <Input value={editBasicInfo} onChange={e => setEditBasicInfo(e.target.value)} className="mt-1" />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">특이사항</label>
+                                <Textarea value={editNotes} onChange={e => setEditNotes(e.target.value)} rows={4} className="mt-1" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild><Button variant="outline">취소</Button></DialogClose>
+                            <Button onClick={handleUpdate} disabled={editSubmitting}>
+                                {editSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                                수정 저장
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -420,6 +488,11 @@ export default function SharedOrdersPage() {
                                                 상세 정보 입력
                                             </Button>
                                         )}
+                                        {(order.status === 'open' || order.status === 'deleted_by_receiver') && (
+                                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => openEditDialog(order)}>
+                                                수정
+                                            </Button>
+                                        )}
                                         {order.status === 'open' && (
                                             <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={() => handleCancel(order.id)}>
                                                 취소
@@ -542,6 +615,6 @@ export default function SharedOrdersPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
