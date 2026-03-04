@@ -38,13 +38,8 @@ export default function SharedOrdersPage() {
 
     // 등록 폼 상태
     const [createOpen, setCreateOpen] = useState(false)
-    const [region, setRegion] = useState('')
-    const [workDate, setWorkDate] = useState('')
-    const [areaSize, setAreaSize] = useState('')
+    const [basicInfo, setBasicInfo] = useState('') // 지역/평수/잔금 통합
     const [notes, setNotes] = useState('')
-    const [address, setAddress] = useState('')
-    const [customerPhone, setCustomerPhone] = useState('')
-    const [customerName, setCustomerName] = useState('')
     const [submitting, setSubmitting] = useState(false)
 
     // 상세정보 입력 다이얼로그
@@ -75,14 +70,19 @@ export default function SharedOrdersPage() {
     }
 
     async function handleCreate() {
-        if (!region || !workDate || !areaSize) {
-            toast.error('작업 지역, 날짜, 평수는 필수 입력입니다.')
+        if (!basicInfo.trim()) {
+            toast.error('기본 정보(지역/평수/잔금)를 입력해주세요.')
             return
         }
         setSubmitting(true)
         const result = await createSharedOrder({
-            region, work_date: workDate, area_size: areaSize,
-            notes, address, customer_phone: customerPhone, customer_name: customerName
+            region: basicInfo,
+            work_date: '',
+            area_size: '',
+            notes,
+            address: '',
+            customer_phone: '',
+            customer_name: ''
         })
         if (result.success) {
             toast.success('오더가 등록되었습니다.')
@@ -96,8 +96,8 @@ export default function SharedOrdersPage() {
     }
 
     function resetForm() {
-        setRegion(''); setWorkDate(''); setAreaSize('')
-        setNotes(''); setAddress(''); setCustomerPhone(''); setCustomerName('')
+        setBasicInfo('')
+        setNotes('')
     }
 
     async function handleAccept(orderId: string) {
@@ -207,37 +207,12 @@ export default function SharedOrdersPage() {
                         </DialogHeader>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium">작업 지역 *</label>
-                                <Input value={region} onChange={e => setRegion(e.target.value)} placeholder="예: 서울 강남구" />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium">작업 날짜 *</label>
-                                <Input type="date" value={workDate} onChange={e => setWorkDate(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium">평수 *</label>
-                                <Input value={areaSize} onChange={e => setAreaSize(e.target.value)} placeholder="예: 32평" />
+                                <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
+                                <Input value={basicInfo} onChange={e => setBasicInfo(e.target.value)} placeholder="예: 천안아산 32평 15만원" className="mt-1" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">특이사항</label>
-                                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="특이사항 입력" rows={3} />
-                            </div>
-                            <div className="border-t pt-4">
-                                <p className="text-xs text-slate-500 mb-3">📌 아래 정보는 선택입니다. 나중에 입력해도 됩니다.</p>
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-sm font-medium">주소</label>
-                                        <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="상세 주소" />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium">고객 연락처</label>
-                                        <Input value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="010-0000-0000" />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium">고객명</label>
-                                        <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="고객명" />
-                                    </div>
-                                </div>
+                                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="예: 오후 2시 작업 가능, 스팀 청소 추가" rows={4} className="mt-1" />
                             </div>
                         </div>
                         <DialogFooter>
@@ -278,19 +253,25 @@ export default function SharedOrdersPage() {
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-blue-500" />
-                                                <span className="font-bold text-lg">{order.region}</span>
+                                                <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
+                                                <span className="font-bold text-lg leading-tight">{order.region}</span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-slate-500">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5" />
-                                                    {order.work_date}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Ruler className="h-3.5 w-3.5" />
-                                                    {order.area_size}
-                                                </span>
-                                            </div>
+                                            {(order.work_date || order.area_size) && (
+                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
+                                                    {order.work_date && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="h-3.5 w-3.5" />
+                                                            {order.work_date}
+                                                        </span>
+                                                    )}
+                                                    {order.area_size && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Ruler className="h-3.5 w-3.5" />
+                                                            {order.area_size}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         {getStatusBadge(order.status)}
                                     </div>
@@ -345,19 +326,25 @@ export default function SharedOrdersPage() {
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-blue-500" />
-                                                <span className="font-bold text-lg">{order.region}</span>
+                                                <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
+                                                <span className="font-bold text-lg leading-tight">{order.region}</span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-slate-500">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3.5 w-3.5" />
-                                                    {order.work_date}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Ruler className="h-3.5 w-3.5" />
-                                                    {order.area_size}
-                                                </span>
-                                            </div>
+                                            {(order.work_date || order.area_size) && (
+                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
+                                                    {order.work_date && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="h-3.5 w-3.5" />
+                                                            {order.work_date}
+                                                        </span>
+                                                    )}
+                                                    {order.area_size && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Ruler className="h-3.5 w-3.5" />
+                                                            {order.area_size}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100">
                                             {order.sender_company?.name || '타업체'}
