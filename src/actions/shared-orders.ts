@@ -188,8 +188,8 @@ export async function getMyCompanyCode() {
 
 interface CreateOrderData {
     region: string
-    work_date: string
-    area_size: string
+    work_date?: string | null
+    area_size?: string | null
     collection_type?: 'site' | 'company'
     notes?: string
     address?: string
@@ -208,8 +208,8 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             company_id: companyId,
             created_by: user.id,
             region: data.region,
-            work_date: data.work_date,
-            area_size: data.area_size,
+            work_date: data.work_date || null,
+            area_size: data.area_size || null,
             collection_type: data.collection_type || null,
             notes: data.notes || null,
             address: data.address || null,
@@ -588,8 +588,8 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
                 address: order.address,
                 customer_name: order.customer_name || null,
                 customer_phone: order.customer_phone || null,
-                cleaning_date: order.work_date,
-                area_size: order.area_size,
+                cleaning_date: order.work_date || null,
+                area_size: order.area_size || null,
                 special_notes: order.notes
                     ? `[오더 공유: ${senderCompany?.name || '타업체'}] ${order.notes}`
                     : `[오더 공유: ${senderCompany?.name || '타업체'}]`,
