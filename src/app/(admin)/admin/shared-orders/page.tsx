@@ -16,7 +16,11 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog'
-import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, Clock, AlertCircle, Trash2 } from 'lucide-react'
+import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
+import { HOLIDAYS } from '@/lib/holidays'
 import { toast } from 'sonner'
 import {
     createSharedOrder,
@@ -34,6 +38,11 @@ export default function SharedOrdersPage() {
     const [myOrders, setMyOrders] = useState<any[]>([])
     const [incomingOrders, setIncomingOrders] = useState<any[]>([])
     const [notifications, setNotifications] = useState<any[]>([])
+    // 캘린더 및 필터 상태
+    const [currentDate, setCurrentDate] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+
+    // 로딩 상태
     const [loading, setLoading] = useState(true)
 
     // 등록 폼 상태
@@ -56,6 +65,27 @@ export default function SharedOrdersPage() {
         loadData()
     }, [])
 
+    // 캘린더 생성 로직
+    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
+    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
+
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(monthStart)
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 })
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 })
+
+    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate })
+    const weekDays = ['일', '월', '화', '수', '목', '금', '토']
+
+    // 필터링 적용된 오더 목록
+    const filteredMyOrders = selectedDate
+        ? myOrders.filter(order => order.work_date === format(selectedDate, 'yyyy-MM-dd'))
+        : myOrders
+
+    const filteredIncomingOrders = selectedDate
+        ? incomingOrders.filter(order => order.work_date === format(selectedDate, 'yyyy-MM-dd'))
+        : incomingOrders
+
     async function loadData() {
         setLoading(true)
         const [my, incoming, notifs] = await Promise.all([
@@ -77,7 +107,7 @@ export default function SharedOrdersPage() {
         setSubmitting(true)
         const result = await createSharedOrder({
             region: basicInfo,
-            work_date: '',
+            work_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
             area_size: '',
             notes,
             address: '',
@@ -198,12 +228,15 @@ export default function SharedOrdersPage() {
                 <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                     <DialogTrigger asChild>
                         <Button className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="h-4 w-4 mr-2" /> 오더 등록
+                            <Plus className="h-4 w-4 mr-2" />
+                            {selectedDate ? `${format(selectedDate, 'M/d')} ` : ''}오더 등록
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                         <DialogHeader>
-                            <DialogTitle>오더 등록</DialogTitle>
+                            <DialogTitle>
+                                {selectedDate ? format(selectedDate, 'M월 d일 ') : ''}오더 등록
+                            </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div>
@@ -226,19 +259,113 @@ export default function SharedOrdersPage() {
                 </Dialog>
             </div>
 
+            {/* 캘린더 영역 */}
+            <Card className="border shadow-sm overflow-hidden bg-white">
+                <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b space-y-0">
+                    <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 text-slate-500">
+                        <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <span className="font-bold text-lg text-slate-800 tracking-tight">
+                        {format(currentDate, 'yyyy년 M월', { locale: ko })}
+                    </span>
+                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 text-slate-500">
+                        <ChevronRight className="h-5 w-5" />
+                    </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="grid grid-cols-7 border-b bg-slate-50/80">
+                        {weekDays.map((day, i) => (
+                            <div key={day} className={cn(
+                                "py-2 text-center text-xs font-bold text-slate-600",
+                                i === 0 && "text-red-500",
+                                i === 6 && "text-blue-500"
+                            )}>
+                                {day}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-7 auto-rows-fr bg-slate-100 gap-[1px]">
+                        {calendarDays.map((day) => {
+                            const dateKey = format(day, 'yyyy-MM-dd')
+                            const holidayName = HOLIDAYS[dateKey]
+                            const isHoliday = !!holidayName
+                            const isSunday = day.getDay() === 0
+                            const isSaturday = day.getDay() === 6
+                            const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
+
+                            // 달력 표기용 점 계산
+                            const dayMyOrders = myOrders.filter(o => o.work_date === dateKey)
+                            const dayIncomingOrders = incomingOrders.filter(o => o.work_date === dateKey)
+
+                            // 클릭 핸들러: 이미 선택된 날짜를 누르면 리셋, 아니면 선택
+                            const handleDateClick = () => {
+                                if (selectedDate && isSameDay(selectedDate, day)) setSelectedDate(null)
+                                else setSelectedDate(day)
+                            }
+
+                            return (
+                                <div
+                                    key={day.toString()}
+                                    onClick={handleDateClick}
+                                    className={cn(
+                                        "bg-white p-1 pb-2 min-h-[50px] sm:min-h-[70px] flex flex-col items-center relative transition-colors cursor-pointer group",
+                                        !isSameMonth(day, monthStart) && "bg-slate-50/50 opacity-50",
+                                        isSelected && "bg-blue-50/50 ring-inset ring-2 ring-blue-500 rounded"
+                                    )}
+                                >
+                                    <div className="flex flex-col items-center w-full mt-1">
+                                        <span className={cn(
+                                            "text-sm font-semibold w-6 h-6 flex items-center justify-center rounded-full transition-all",
+                                            isToday(day) && "bg-slate-900 text-white shadow-sm",
+                                            !isToday(day) && (isSunday || isHoliday) && "text-red-500",
+                                            !isToday(day) && !isHoliday && isSaturday && "text-blue-500",
+                                            isSelected && !isToday(day) && "bg-blue-100 text-blue-700 font-bold"
+                                        )}>
+                                            {format(day, 'd')}
+                                        </span>
+                                        {holidayName && (
+                                            <span className="text-[8px] text-red-500 font-medium truncate w-full text-center mt-0.5 px-0.5">
+                                                {holidayName}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-1 mt-auto pb-0.5 pt-1 justify-center flex-wrap px-1">
+                                        {dayMyOrders.length > 0 && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />}
+                                        {dayIncomingOrders.length > 0 && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-400" />}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* 필터 안내 배너 */}
+            {selectedDate && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between text-blue-800 text-sm">
+                    <div className="flex items-center gap-2 font-medium">
+                        <CalendarDays className="h-4 w-4" />
+                        {format(selectedDate, 'yyyy년 M월 d일')} 오더만 표시 중
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedDate(null)} className="h-7 px-2 text-blue-700 hover:bg-blue-100">
+                        전체 보기
+                    </Button>
+                </div>
+            )}
+
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="outgoing" className="flex items-center gap-2">
-                        <Send className="h-4 w-4" /> 오더 등록 ({myOrders.length})
+                        <Send className="h-4 w-4" /> 내 오더 ({filteredMyOrders.length})
                     </TabsTrigger>
                     <TabsTrigger value="incoming" className="flex items-center gap-2">
-                        <Inbox className="h-4 w-4" /> 오더 수신함 ({incomingOrders.length})
+                        <Inbox className="h-4 w-4" /> 수신함 ({filteredIncomingOrders.length})
                     </TabsTrigger>
                 </TabsList>
 
                 {/* 오더 등록 탭 */}
                 <TabsContent value="outgoing" className="mt-4 space-y-4">
-                    {myOrders.length === 0 ? (
+                    {filteredMyOrders.length === 0 ? (
                         <Card>
                             <CardContent className="py-10 text-center text-muted-foreground">
                                 <Send className="h-10 w-10 mx-auto mb-3 opacity-20" />
@@ -247,7 +374,7 @@ export default function SharedOrdersPage() {
                             </CardContent>
                         </Card>
                     ) : (
-                        myOrders.map(order => (
+                        filteredMyOrders.map(order => (
                             <Card key={order.id} className="overflow-hidden">
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between mb-3">
@@ -311,17 +438,17 @@ export default function SharedOrdersPage() {
 
                 {/* 오더 수신함 탭 */}
                 <TabsContent value="incoming" className="mt-4 space-y-4">
-                    {incomingOrders.length === 0 ? (
+                    {filteredIncomingOrders.length === 0 ? (
                         <Card>
                             <CardContent className="py-10 text-center text-muted-foreground">
                                 <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                <p>수신된 오더가 없습니다.</p>
+                                <p>{selectedDate ? '선택한 날짜에 ' : ''}수신된 오더가 없습니다.</p>
                                 <p className="text-xs mt-1">공유 활성화된 업체의 오더가 여기에 표시됩니다.</p>
                             </CardContent>
                         </Card>
                     ) : (
-                        incomingOrders.map(order => (
-                            <Card key={order.id} className="overflow-hidden border-l-4 border-l-blue-500">
+                        filteredIncomingOrders.map(order => (
+                            <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="space-y-1">
