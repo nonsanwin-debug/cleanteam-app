@@ -396,10 +396,14 @@ export default function SharedOrdersPage() {
                                                 {holidayName}
                                             </span>
                                         )}
-                                    </div>
-                                    <div className="flex gap-1 mt-auto pb-0.5 pt-1 justify-center flex-wrap px-1">
-                                        {dayMyOrders.length > 0 && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />}
-                                        {dayIncomingOrders.length > 0 && <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-400" />}
+                                        <div className="flex gap-1 mt-auto pb-0.5 pt-1 justify-center items-center w-full">
+                                            <span className={cn(
+                                                "text-[10px] sm:text-xs font-medium",
+                                                (dayMyOrders.length + dayIncomingOrders.length) > 0 ? "text-blue-600 font-bold" : "text-slate-400"
+                                            )}>
+                                                ( {dayMyOrders.length + dayIncomingOrders.length} )
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             )
