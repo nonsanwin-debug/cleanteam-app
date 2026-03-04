@@ -209,12 +209,12 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             created_by: user.id,
             region: data.region,
             work_date: data.work_date || null,
-            area_size: data.area_size || null,
+            area_size: data.area_size || '',
             collection_type: data.collection_type || null,
-            notes: data.notes || null,
-            address: data.address || null,
-            customer_phone: data.customer_phone || null,
-            customer_name: data.customer_name || null,
+            notes: data.notes || '',
+            address: data.address || '',
+            customer_phone: data.customer_phone || '',
+            customer_name: data.customer_name || '',
             status: 'open'
         })
 
@@ -250,12 +250,12 @@ export async function updateSharedOrder(orderId: string, data: CreateOrderData):
     const updateData: any = {
         region: data.region,
         work_date: data.work_date || null,
-        area_size: data.area_size || null,
+        area_size: data.area_size || '',
         collection_type: data.collection_type || null,
-        notes: data.notes || null,
-        address: data.address || null,
-        customer_phone: data.customer_phone || null,
-        customer_name: data.customer_name || null,
+        notes: data.notes || '',
+        address: data.address || '',
+        customer_phone: data.customer_phone || '',
+        customer_name: data.customer_name || '',
     }
 
     // 만약 수신자가 삭제했던 오더라면, 다시 open 상태로 되돌리고 accepted_by 초기화
