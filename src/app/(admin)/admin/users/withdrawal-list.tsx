@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { processWithdrawal } from '@/actions/admin'
-import { Loader2, Check, X, AlertCircle } from 'lucide-react'
+import { Loader2, Check, X, AlertCircle, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 
 interface WithdrawalRequest {
     id: string
@@ -25,6 +26,12 @@ interface WithdrawalRequest {
 export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) {
     const router = useRouter()
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    const filteredRequests = requests.filter(req =>
+        (req.users?.name?.includes(searchTerm)) ||
+        (req.users?.phone?.includes(searchTerm))
+    )
 
     async function handleProcess(requestId: string, action: 'paid' | 'rejected') {
         let reason = ''
@@ -65,7 +72,29 @@ export function WithdrawalList({ requests }: { requests: WithdrawalRequest[] }) 
 
     return (
         <div className="space-y-4">
-            {requests.map(req => (
+            {/* 검색 폼 */}
+            <div className="flex items-center gap-2 max-w-sm mb-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="이름 또는 전화번호로 검색..."
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {filteredRequests.length === 0 && (
+                <Card>
+                    <CardContent className="p-8 text-center text-slate-500">
+                        검색 결과가 없습니다.
+                    </CardContent>
+                </Card>
+            )}
+
+            {filteredRequests.map(req => (
                 <Card key={req.id}>
                     <CardContent className="p-4 flex flex-col sm:flex-row justify-between gap-4">
                         <div>
