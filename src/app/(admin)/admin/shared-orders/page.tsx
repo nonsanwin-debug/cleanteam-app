@@ -31,7 +31,8 @@ import {
     cancelSharedOrder,
     deleteSharedOrder,
     getOrderNotifications,
-    updateSharedOrder
+    updateSharedOrder,
+    confirmOrderAssignee
 } from '@/actions/shared-orders'
 
 export default function SharedOrdersPage() {
@@ -69,6 +70,7 @@ export default function SharedOrdersPage() {
     const [editSubmitting, setEditSubmitting] = useState(false)
 
     const [acceptingId, setAcceptingId] = useState<string | null>(null)
+    const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
     useEffect(() => {
         loadData()
@@ -173,16 +175,29 @@ export default function SharedOrdersPage() {
     }
 
     async function handleAccept(orderId: string) {
-        if (!confirm('이 오더를 수락하시겠습니까?')) return
+        if (!confirm('이 오더에 대한 상세정보를 요청하시겠습니까?')) return
         setAcceptingId(orderId)
         const result = await acceptOrder(orderId)
         if (result.success) {
-            toast.success('오더를 수락했습니다.')
+            toast.success('상세정보를 요청했습니다.')
             loadData()
         } else {
             toast.error(result.error)
         }
         setAcceptingId(null)
+    }
+
+    async function handleConfirm(orderId: string, companyId: string) {
+        if (!confirm('해당 업체를 최종 확정하시겠습니까? 확정 시 오더가 배정됩니다.')) return
+        setConfirmingId(companyId)
+        const result = await confirmOrderAssignee(orderId, companyId)
+        if (result.success) {
+            toast.success('업체를 확정했습니다.')
+            loadData()
+        } else {
+            toast.error(result.error)
+        }
+        setConfirmingId(null)
     }
 
     async function handleCancel(orderId: string) {
@@ -481,8 +496,32 @@ export default function SharedOrdersPage() {
 
                                     {order.accepted_company?.name && (
                                         <p className="text-sm font-medium text-emerald-700 bg-emerald-50 p-2 rounded mb-3">
-                                            ✅ 수락 업체: {order.accepted_company.name}
+                                            ✅ 배정 배정: {order.accepted_company.name}
                                         </p>
+                                    )}
+
+                                    {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
+                                        <div className="mb-4 bg-orange-50 p-3 rounded-lg border border-orange-100">
+                                            <p className="text-sm font-semibold text-orange-800 mb-2">
+                                                요청 업체 ({order.applicants.length}곳)
+                                            </p>
+                                            <div className="space-y-2">
+                                                {order.applicants.map((app: any) => (
+                                                    <div key={app.id} className="flex items-center justify-between text-sm bg-white p-2 rounded shadow-sm border border-slate-100">
+                                                        <span>{app.name}</span>
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-7 text-xs bg-orange-500 hover:bg-orange-600 outline-none"
+                                                            onClick={() => handleConfirm(order.id, app.id)}
+                                                            disabled={confirmingId === app.id}
+                                                        >
+                                                            {confirmingId === app.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                                            확정
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
 
                                     <div className="flex gap-2">
@@ -561,16 +600,16 @@ export default function SharedOrdersPage() {
 
                                     <div className="flex gap-2">
                                         <Button
-                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            className={cn("flex-1", order.is_applied ? "bg-slate-400 hover:bg-slate-400" : "bg-blue-600 hover:bg-blue-700")}
                                             onClick={() => handleAccept(order.id)}
-                                            disabled={acceptingId === order.id}
+                                            disabled={acceptingId === order.id || order.is_applied}
                                         >
                                             {acceptingId === order.id ? (
                                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                             ) : (
                                                 <CheckCircle2 className="w-4 h-4 mr-2" />
                                             )}
-                                            오더 수락
+                                            {order.is_applied ? '상세정보 요청중' : '상세정보 요청'}
                                         </Button>
                                         <Button
                                             variant="outline"

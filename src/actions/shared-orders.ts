@@ -283,7 +283,9 @@ export async function getMySharedOrders() {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return []
 
-    const { data, error } = await supabase
+    const adminSupabase = createAdminClient()
+
+    const { data: orders, error } = await supabase
         .from('shared_orders')
         .select('*, accepted_company:accepted_by(name)')
         .eq('company_id', companyId)
@@ -293,7 +295,33 @@ export async function getMySharedOrders() {
         console.error('getMySharedOrders error:', error)
         return []
     }
-    return data || []
+    if (!orders || orders.length === 0) return []
+
+    // 오픈 상태인 오더들에 대한 지원자 목록 조회
+    const openOrderIds = orders.filter((o: any) => o.status === 'open').map((o: any) => o.id)
+    let applicantsGrouped: Record<string, any[]> = {}
+
+    if (openOrderIds.length > 0) {
+        const { data: applicants } = await adminSupabase
+            .from('shared_order_applicants')
+            .select('order_id, company:company_id(id, name)')
+            .in('order_id', openOrderIds)
+
+        if (applicants) {
+            applicants.forEach(app => {
+                if (!applicantsGrouped[app.order_id]) {
+                    applicantsGrouped[app.order_id] = []
+                }
+                const companyData = Array.isArray(app.company) ? app.company[0] : app.company
+                applicantsGrouped[app.order_id].push(companyData)
+            })
+        }
+    }
+
+    return orders.map((order: any) => ({
+        ...order,
+        applicants: applicantsGrouped[order.id] || []
+    }))
 }
 
 /** 수신 오더 목록 (나를 파트너로 등록한 업체의 open 오더) */
@@ -335,16 +363,31 @@ export async function getIncomingOrders() {
         query = query.not('id', 'in', `(${hiddenOrderIds.join(',')})`)
     }
 
-    const { data, error } = await query
+    const { data: orders, error } = await query
 
     if (error) {
         console.error('getIncomingOrders error:', error)
         return []
     }
-    return data || []
+    if (!orders || orders.length === 0) return []
+
+    // 내가 지원한(상세정보 요청한) 오더인지 확인
+    const orderIds = orders.map((o: any) => o.id)
+    const { data: myApplications } = await adminSupabase
+        .from('shared_order_applicants')
+        .select('order_id')
+        .eq('company_id', companyId)
+        .in('order_id', orderIds)
+
+    const appliedOrderIds = new Set(myApplications?.map((a: any) => a.order_id) || [])
+
+    return orders.map((order: any) => ({
+        ...order,
+        is_applied: appliedOrderIds.has(order.id)
+    }))
 }
 
-/** 오더 수락 */
+/** 오더 수락 (상세정보 요청/지원) */
 export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
@@ -358,25 +401,23 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         .single()
 
     if (fetchError || !order) {
-        return { success: false, error: '오더를 찾을 수 없거나 이미 수락되었습니다.' }
+        return { success: false, error: '오더를 찾을 수 없거나 마감되었습니다.' }
     }
 
-    // 2. 수락 처리
-    const hasDetails = order.address && order.customer_phone
-    const newStatus = hasDetails ? 'transferred' : 'accepted'
-
-    const { error: updateError } = await supabase
-        .from('shared_orders')
-        .update({
-            accepted_by: companyId,
-            accepted_at: new Date().toISOString(),
-            status: newStatus
+    // 2. 지원 기록 추가 (shared_order_applicants)
+    const { error: insertError } = await supabase
+        .from('shared_order_applicants')
+        .insert({
+            order_id: orderId,
+            company_id: companyId
         })
-        .eq('id', orderId)
 
-    if (updateError) {
-        console.error('acceptOrder error:', updateError)
-        return { success: false, error: updateError.message }
+    if (insertError) {
+        if (insertError.code === '23505') {
+            return { success: false, error: '이미 수락(요청)한 오더입니다.' }
+        }
+        console.error('acceptOrder error:', insertError)
+        return { success: false, error: insertError.message }
     }
 
     // 3. 업체명 조회
@@ -387,35 +428,82 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         .single()
     const companyName = myCompany?.name || '업체'
 
-    // 4. 상세정보 있으면 현장 자동 이관
-    if (hasDetails) {
-        await transferToSite(order, companyId, supabase)
-
-        // 발신 업체에 알림
-        await sendPushToAdmins(order.company_id, {
-            title: '오더 수락 완료',
-            body: `${companyName}에서 오더를 수락하였습니다.`,
-            url: '/admin/shared-orders',
-            tag: `order-accepted-${orderId}`
-        })
-    } else {
-        // 상세 정보 없음 → 발신 업체에 정보 입력 요청
-        await sendPushToAdmins(order.company_id, {
-            title: '오더 수락 - 상세정보 필요',
-            body: `${companyName}에서 오더를 수락하였습니다. 상세 정보(주소/연락처)를 입력해주세요.`,
-            url: '/admin/shared-orders',
-            tag: `order-info-needed-${orderId}`
-        })
-    }
+    // 발신 업체에 알림
+    await sendPushToAdmins(order.company_id, {
+        title: '오더 승인 요청',
+        body: `${companyName}에서 오더 수락(상세정보)을 요청하였습니다.`,
+        url: '/admin/shared-orders',
+        tag: `order-applied-${orderId}`
+    })
 
     // 알림 기록 저장
     await supabase.from('shared_order_notifications').insert({
         order_id: orderId,
         company_id: order.company_id,
-        message: hasDetails
-            ? `${companyName}에서 오더를 수락하였습니다.`
-            : `${companyName}에서 오더를 수락하였습니다. 상세 정보(주소/연락처)를 입력해주세요.`
+        message: `${companyName}에서 오더 수락(상세정보)을 요청하였습니다.`
     })
+
+    revalidatePath('/admin/shared-orders')
+    return { success: true }
+}
+
+/** 지원 업체 중 하나를 최종 확정 */
+export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: string): Promise<ActionResponse> {
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    // 1. 내 오더인지 확인
+    const { data: order, error: fetchError } = await supabase
+        .from('shared_orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('company_id', companyId)
+        .eq('status', 'open')
+        .single()
+
+    if (fetchError || !order) {
+        return { success: false, error: '오더를 찾을 수 없거나 이미 마감되었습니다.' }
+    }
+
+    // 2. 수락 처리
+    const hasDetails = order.address && order.customer_phone
+    const newStatus = hasDetails ? 'transferred' : 'accepted'
+
+    const { error: updateError } = await supabase
+        .from('shared_orders')
+        .update({
+            accepted_by: assigneeCompanyId,
+            accepted_at: new Date().toISOString(),
+            status: newStatus
+        })
+        .eq('id', orderId)
+
+    if (updateError) {
+        console.error('confirmOrderAssignee error:', updateError)
+        return { success: false, error: updateError.message }
+    }
+
+    // 3. 업체 관리에 상세정보 이관
+    if (hasDetails) {
+        const orderToTransfer = { ...order, accepted_by: assigneeCompanyId, status: newStatus }
+        await transferToSite(orderToTransfer, assigneeCompanyId, supabase)
+
+        const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
+        await sendPushToAdmins(assigneeCompanyId, {
+            title: '공유 오더 확정',
+            body: `${myCompany?.name || '업체'}에서 귀하의 오더 요청을 확정하였습니다. 현장 관리로 이관되었습니다.`,
+            url: '/admin/sites',
+            tag: `order-confirmed-${orderId}`
+        })
+    } else {
+        const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
+        await sendPushToAdmins(assigneeCompanyId, {
+            title: '공유 오더 확정',
+            body: `${myCompany?.name || '업체'}에서 귀하의 오더 요청을 확정하였습니다. 상세 정보 입력 대기 중입니다.`,
+            url: '/admin/shared-orders',
+            tag: `order-confirmed-waiting-${orderId}`
+        })
+    }
 
     revalidatePath('/admin/shared-orders')
     return { success: true }
