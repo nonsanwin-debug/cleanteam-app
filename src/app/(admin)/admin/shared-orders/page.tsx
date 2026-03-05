@@ -118,7 +118,7 @@ export default function SharedOrdersPage() {
         setSubmitting(true)
         const result = await createSharedOrder({
             region: basicInfo,
-            work_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
+            work_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
             area_size: '',
             notes,
             address: '',
@@ -295,6 +295,11 @@ export default function SharedOrdersPage() {
                                 {selectedDate ? format(selectedDate, 'M월 d일 ') : ''}오더 등록
                             </DialogTitle>
                         </DialogHeader>
+                        {!selectedDate && (
+                            <div className="bg-orange-50 text-orange-800 text-sm p-3 rounded-lg border border-orange-100 mb-2">
+                                💡 날짜를 지정하지 않고 등록 시 오늘 날짜로 자동 등록됩니다.
+                            </div>
+                        )}
                         <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
