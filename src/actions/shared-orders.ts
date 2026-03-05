@@ -287,7 +287,7 @@ export async function getMySharedOrders() {
 
     const { data: orders, error } = await supabase
         .from('shared_orders')
-        .select('*, accepted_company:accepted_by(name)')
+        .select('*, accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 

@@ -495,9 +495,17 @@ export default function SharedOrdersPage() {
                                     )}
 
                                     {order.accepted_company?.name && (
-                                        <p className="text-sm font-medium text-emerald-700 bg-emerald-50 p-2 rounded mb-3">
-                                            ✅ 배정 배정: {order.accepted_company.name}
-                                        </p>
+                                        <div className="mb-4 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                                            <p className="text-sm font-bold text-emerald-800 flex items-center gap-1.5 mb-1">
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                최종 배정 업체: {order.accepted_company.name}
+                                            </p>
+                                            {order.accepted_company.code && (
+                                                <p className="text-xs text-emerald-600 pl-5">
+                                                    (업체코드: {order.accepted_company.code})
+                                                </p>
+                                            )}
+                                        </div>
                                     )}
 
                                     {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
