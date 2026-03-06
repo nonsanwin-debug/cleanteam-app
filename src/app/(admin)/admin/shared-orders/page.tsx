@@ -16,7 +16,7 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog'
-import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
+import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Activity } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -508,6 +508,28 @@ export default function SharedOrdersPage() {
                                             {order.accepted_company.code && (
                                                 <p className="text-xs text-emerald-600 pl-5">
                                                     (업체코드: {order.accepted_company.code})
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {order.transferred_site && (
+                                        <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                            <p className="text-sm font-bold text-blue-800 flex items-center gap-1.5 mb-1">
+                                                <Activity className="w-4 h-4" />
+                                                현장 진행 상황: {
+                                                    order.transferred_site.status === 'scheduled' ? '예정' :
+                                                        order.transferred_site.status === 'in_progress' ? '진행 중' :
+                                                            order.transferred_site.status === 'completed' ? '완료' :
+                                                                order.transferred_site.status === 'cancelled' ? '취소됨' : '알 수 없음'
+                                                }
+                                            </p>
+                                            {(order.transferred_site.status === 'completed' || order.transferred_site.payment_status === 'paid' || order.transferred_site.payment_status === 'requested') && (
+                                                <p className="text-xs text-blue-600 pl-5">
+                                                    결제 상태: {
+                                                        order.transferred_site.payment_status === 'paid' ? '지급 완료' :
+                                                            order.transferred_site.payment_status === 'requested' ? '정산 요청됨' : '미청구'
+                                                    }
                                                 </p>
                                             )}
                                         </div>
