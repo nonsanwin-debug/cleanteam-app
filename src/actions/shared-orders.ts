@@ -489,7 +489,14 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
 
     // 3. 업체 관리에 상세정보 이관
     if (hasDetails) {
-        const orderToTransfer = { ...order, accepted_by: assigneeCompanyId, status: newStatus }
+        const parsedDetails = order.parsed_details || {}
+        const orderToTransfer = {
+            ...order,
+            ...parsedDetails,
+            site_name: parsedDetails.name,
+            accepted_by: assigneeCompanyId,
+            status: newStatus
+        }
         await transferToSite(orderToTransfer, assigneeCompanyId, supabase)
 
         const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
@@ -615,7 +622,8 @@ export async function updateOrderDetailsWithAI(
             customer_name: parsedData.customer_name || null,
             work_date: parsedData.cleaning_date || order.work_date,
             area_size: parsedData.area_size || order.area_size,
-            notes: parsedData.special_notes || order.notes
+            notes: parsedData.special_notes || order.notes,
+            parsed_details: parsedData // AI 파싱 원본 데이터 저장 (재이관 시 데이터 유실 방지)
         })
         .eq('id', orderId)
 

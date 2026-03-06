@@ -238,10 +238,14 @@ export async function deleteSite(id: string) {
 
         if (linkedOrders && linkedOrders.length > 0) {
             // 이관받은 오더를 삭제한 경우, 발신자에게 알림을 보내고 상태를 변경
+            const { data: { user } } = await supabase.auth.getUser()
+            const { data: userProfile } = await supabase.from('users').select('company_id').eq('id', user?.id).single()
+            const myCompanyId = userProfile?.company_id
+
             const { data: myCompany } = await adminSupabase
                 .from('companies')
                 .select('name')
-                .eq('id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
+                .eq('id', myCompanyId)
                 .single()
 
             for (const order of linkedOrders) {
@@ -256,11 +260,13 @@ export async function deleteSite(id: string) {
                     .eq('id', order.id)
 
                 // 지원자(수신 업체)의 상태를 '반려됨'으로 변경
-                await adminSupabase
-                    .from('shared_order_applicants')
-                    .update({ status: 'rejected_by_receiver', updated_at: new Date().toISOString() })
-                    .eq('order_id', order.id)
-                    .eq('company_id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
+                if (myCompanyId) {
+                    await adminSupabase
+                        .from('shared_order_applicants')
+                        .update({ status: 'rejected_by_receiver', updated_at: new Date().toISOString() })
+                        .eq('order_id', order.id)
+                        .eq('company_id', myCompanyId)
+                }
 
                 // 발신 업체에게 푸시 알림
                 try {
