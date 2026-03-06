@@ -582,6 +582,85 @@ export async function updateOrderDetails(
     return { success: true }
 }
 
+/** AI 오더 분석 결과를 이용한 오더 상세정보 업데이트 */
+export async function updateOrderDetailsWithAI(
+    orderId: string,
+    parsedData: any
+): Promise<ActionResponse> {
+    const { supabase, companyId } = await getAuthCompany()
+    if (!companyId) return { success: false, error: '인증 실패' }
+
+    // 1. 오더 정보 조회 (내 오더인지 확인)
+    const { data: order, error: fetchError } = await supabase
+        .from('shared_orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('company_id', companyId)
+        .single()
+
+    if (fetchError || !order) {
+        return { success: false, error: '오더를 찾을 수 없습니다.' }
+    }
+
+    // 2. shared_orders의 기본 정보 업데이트 (address, phone 등 기존 호환성 유지)
+    const { error: updateError } = await supabase
+        .from('shared_orders')
+        .update({
+            address: parsedData.address,
+            customer_phone: parsedData.customer_phone,
+            customer_name: parsedData.customer_name || null,
+            work_date: parsedData.cleaning_date || order.work_date,
+            area_size: parsedData.area_size || order.area_size,
+            notes: parsedData.special_notes || order.notes
+        })
+        .eq('id', orderId)
+
+    if (updateError) {
+        return { success: false, error: updateError.message }
+    }
+
+    // 3. 수락 상태이면 자동 이관
+    if (order.status === 'accepted' && order.accepted_by) {
+        // AI 파싱된 모든 데이터를 transferToSite에 전달하기 위해 합침
+        const updatedOrder = {
+            ...order,
+            ...parsedData,
+            site_name: parsedData.name // AI parser returns 'name' for the site name
+        }
+        await transferToSite(updatedOrder, order.accepted_by, supabase)
+
+        // 상태를 transferred로 변경
+        await supabase
+            .from('shared_orders')
+            .update({ status: 'transferred' })
+            .eq('id', orderId)
+
+        // 수신 업체에 알림
+        const { data: senderCompany } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', companyId)
+            .single()
+
+        await sendPushToAdmins(order.accepted_by, {
+            title: '오더 이관 완료',
+            body: `${senderCompany?.name || '업체'}에서 상세 정보를 입력하여 현장 관리로 이관되었습니다.`,
+            url: '/admin/sites',
+            tag: `order-transferred-${orderId}`
+        })
+
+        // 알림 기록
+        await supabase.from('shared_order_notifications').insert({
+            order_id: orderId,
+            company_id: order.accepted_by,
+            message: `상세 정보가 입력되어 현장 관리로 자동 이관되었습니다.`
+        })
+    }
+
+    revalidatePath('/admin/shared-orders')
+    return { success: true }
+}
+
 /** 오더 취소 */
 export async function cancelSharedOrder(orderId: string): Promise<ActionResponse> {
     const { supabase, companyId } = await getAuthCompany()
@@ -703,6 +782,9 @@ export async function markNotificationsRead(): Promise<ActionResponse> {
 
 async function transferToSite(order: any, receivingCompanyId: string, supabase: any) {
     try {
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const adminSupabase = createAdminClient()
+
         // 발신 업체명 조회
         const { data: senderCompany } = await supabase
             .from('companies')
@@ -710,18 +792,22 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
             .eq('id', order.company_id)
             .single()
 
-        const { data: site, error } = await supabase
+        const { data: site, error } = await adminSupabase
             .from('sites')
             .insert({
                 company_id: receivingCompanyId,
-                name: order.customer_name || `${order.region} 현장`,
+                name: order.site_name || order.customer_name || `${order.region} 현장`,
                 address: order.address,
                 customer_name: order.customer_name || null,
                 customer_phone: order.customer_phone || null,
-                cleaning_date: order.work_date || null,
+                cleaning_date: order.cleaning_date || order.work_date || null,
+                start_time: order.start_time || null,
+                residential_type: order.residential_type || null,
+                structure_type: order.structure_type || null,
                 area_size: order.area_size || null,
-                special_notes: order.notes
-                    ? `[오더 공유: ${senderCompany?.name || '타업체'}] ${order.notes}`
+                balance_amount: order.balance_amount || 0,
+                special_notes: order.special_notes || order.notes
+                    ? `[오더 공유: ${senderCompany?.name || '타업체'}] ${order.special_notes || order.notes}`
                     : `[오더 공유: ${senderCompany?.name || '타업체'}]`,
                 status: 'scheduled',
                 payment_status: 'none',
@@ -737,7 +823,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
 
         // shared_orders에 이관된 site_id 기록
         if (site) {
-            await supabase
+            await adminSupabase
                 .from('shared_orders')
                 .update({ transferred_site_id: site.id })
                 .eq('id', order.id)

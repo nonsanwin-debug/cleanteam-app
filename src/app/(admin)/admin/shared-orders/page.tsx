@@ -27,13 +27,13 @@ import {
     getMySharedOrders,
     getIncomingOrders,
     acceptOrder,
-    updateOrderDetails,
     cancelSharedOrder,
     deleteSharedOrder,
     getOrderNotifications,
     updateSharedOrder,
     confirmOrderAssignee
 } from '@/actions/shared-orders'
+import { SharedOrderParserDialog } from '@/components/admin/shared-order-parser-dialog'
 
 export default function SharedOrdersPage() {
     const [activeTab, setActiveTab] = useState('outgoing')
@@ -56,10 +56,6 @@ export default function SharedOrdersPage() {
     // 상세정보 입력 다이얼로그
     const [detailOpen, setDetailOpen] = useState(false)
     const [detailOrderId, setDetailOrderId] = useState('')
-    const [detailAddress, setDetailAddress] = useState('')
-    const [detailPhone, setDetailPhone] = useState('')
-    const [detailName, setDetailName] = useState('')
-    const [detailSubmitting, setDetailSubmitting] = useState(false)
 
     // 수정 다이얼로그
     const [editOpen, setEditOpen] = useState(false)
@@ -224,27 +220,7 @@ export default function SharedOrdersPage() {
 
     function openDetailDialog(order: any) {
         setDetailOrderId(order.id)
-        setDetailAddress(order.address || '')
-        setDetailPhone(order.customer_phone || '')
-        setDetailName(order.customer_name || '')
         setDetailOpen(true)
-    }
-
-    async function handleDetailSubmit() {
-        if (!detailAddress || !detailPhone) {
-            toast.error('주소와 연락처를 입력해주세요.')
-            return
-        }
-        setDetailSubmitting(true)
-        const result = await updateOrderDetails(detailOrderId, detailAddress, detailPhone, detailName)
-        if (result.success) {
-            toast.success('상세 정보가 입력되어 현장 관리로 이관되었습니다.')
-            setDetailOpen(false)
-            loadData()
-        } else {
-            toast.error(result.error)
-        }
-        setDetailSubmitting(false)
     }
 
     function getStatusBadge(status: string) {
@@ -661,38 +637,17 @@ export default function SharedOrdersPage() {
                 </TabsContent>
             </Tabs>
 
-            {/* 상세 정보 입력 Dialog */}
-            <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>상세 정보 입력</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-sm text-slate-500">
-                        수락 업체에서 상세 정보를 요청했습니다. 주소와 연락처를 입력하면 현장 관리로 자동 이관됩니다.
-                    </p>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium">주소 *</label>
-                            <Input value={detailAddress} onChange={e => setDetailAddress(e.target.value)} placeholder="상세 주소" />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">고객 연락처 *</label>
-                            <Input value={detailPhone} onChange={e => setDetailPhone(e.target.value)} placeholder="010-0000-0000" />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">고객명</label>
-                            <Input value={detailName} onChange={e => setDetailName(e.target.value)} placeholder="고객명" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="outline">취소</Button></DialogClose>
-                        <Button onClick={handleDetailSubmit} disabled={detailSubmitting}>
-                            {detailSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                            입력 완료 및 이관
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* 상세 정보 입력 (AI) Dialog */}
+            <SharedOrderParserDialog
+                orderId={detailOrderId}
+                open={detailOpen}
+                onOpenChange={(open) => {
+                    setDetailOpen(open)
+                    if (!open) {
+                        loadData() // Fetch latest status after closing
+                    }
+                }}
+            />
         </div >
     )
 }
