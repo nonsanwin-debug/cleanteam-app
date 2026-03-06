@@ -229,7 +229,6 @@ export default function SharedOrdersPage() {
             case 'accepted': return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">수락됨 (정보대기)</Badge>
             case 'transferred': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">이관완료</Badge>
             case 'cancelled': return <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100">취소됨</Badge>
-            case 'deleted_by_receiver': return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">수신업체 삭제</Badge>
             default: return <Badge variant="outline">{status}</Badge>
         }
     }
@@ -542,7 +541,7 @@ export default function SharedOrdersPage() {
                                                 상세 정보 입력
                                             </Button>
                                         )}
-                                        {(order.status === 'open' || order.status === 'deleted_by_receiver') && (
+                                        {order.status === 'open' && (
                                             <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => openEditDialog(order)}>
                                                 수정
                                             </Button>

@@ -227,13 +227,48 @@ export async function deleteSite(id: string) {
     const supabase = await createClient()
 
     try {
-        // shared_orders에서 이 현장을 참조하는 FK 해제
+        // shared_orders에서 이 현장을 참조하는지 확인 (상태 변경용)
         const { createAdminClient } = await import('@/lib/supabase/admin')
         const adminSupabase = createAdminClient()
-        await adminSupabase
+
+        const { data: linkedOrders } = await adminSupabase
             .from('shared_orders')
-            .update({ transferred_site_id: null })
+            .select('id, company_id, region')
             .eq('transferred_site_id', id)
+
+        if (linkedOrders && linkedOrders.length > 0) {
+            // 이관받은 오더를 삭제한 경우, 발신자에게 알림을 보내고 상태를 변경
+            const { data: myCompany } = await adminSupabase
+                .from('companies')
+                .select('name')
+                .eq('id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
+                .single()
+
+            for (const order of linkedOrders) {
+                // 발신 업체의 오더 상태를 다시 'open'으로 변경하여 재배정 가능하게 만듦
+                await adminSupabase
+                    .from('shared_orders')
+                    .update({
+                        status: 'open',
+                        accepted_by: null,
+                        transferred_site_id: null
+                    })
+                    .eq('id', order.id)
+
+                // 발신 업체에게 푸시 알림
+                try {
+                    const { sendPushToAdmins } = await import('@/actions/push')
+                    await sendPushToAdmins(order.company_id, {
+                        title: '이관된 현장 삭제 알림',
+                        body: `[${order.region}] 현장이 배정받은 업체(${myCompany?.name || '타업체'})에 의해 삭제되었습니다.`,
+                        url: '/admin/shared-orders',
+                        tag: `site-deleted-${order.id}`
+                    })
+                } catch (pushErr) {
+                    console.error('Failed to notify original sender:', pushErr)
+                }
+            }
+        }
 
         const { error, count } = await supabase
             .from('sites')
