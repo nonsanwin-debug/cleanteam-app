@@ -255,6 +255,13 @@ export async function deleteSite(id: string) {
                     })
                     .eq('id', order.id)
 
+                // 지원자(수신 업체)의 상태를 '반려됨'으로 변경
+                await adminSupabase
+                    .from('shared_order_applicants')
+                    .update({ status: 'rejected_by_receiver', updated_at: new Date().toISOString() })
+                    .eq('order_id', order.id)
+                    .eq('company_id', (await supabase.auth.getUser()).data.user?.user_metadata?.company_id)
+
                 // 발신 업체에게 푸시 알림
                 try {
                     const { sendPushToAdmins } = await import('@/actions/push')

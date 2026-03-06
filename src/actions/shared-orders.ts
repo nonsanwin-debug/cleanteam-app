@@ -304,7 +304,7 @@ export async function getMySharedOrders() {
     if (openOrderIds.length > 0) {
         const { data: applicants } = await adminSupabase
             .from('shared_order_applicants')
-            .select('order_id, company:company_id(id, name)')
+            .select('order_id, status, updated_at, company:company_id(id, name)')
             .in('order_id', openOrderIds)
 
         if (applicants) {
@@ -313,7 +313,11 @@ export async function getMySharedOrders() {
                     applicantsGrouped[app.order_id] = []
                 }
                 const companyData = Array.isArray(app.company) ? app.company[0] : app.company
-                applicantsGrouped[app.order_id].push(companyData)
+                applicantsGrouped[app.order_id].push({
+                    ...companyData,
+                    status: app.status,
+                    updated_at: app.updated_at
+                })
             })
         }
     }

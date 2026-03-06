@@ -517,11 +517,18 @@ export default function SharedOrdersPage() {
                                             </p>
                                             <div className="space-y-2">
                                                 {order.applicants.map((app: any) => (
-                                                    <div key={app.id} className="flex items-center justify-between text-sm bg-white p-2 rounded shadow-sm border border-slate-100">
-                                                        <span>{app.name}</span>
+                                                    <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm bg-white p-2.5 rounded shadow-sm border border-slate-100">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-slate-800">{app.name}</span>
+                                                            {app.status === 'rejected_by_receiver' && app.updated_at && (
+                                                                <span className="text-xs text-red-500 font-medium mt-0.5">
+                                                                    {format(new Date(app.updated_at), 'M월 d일 HH:mm', { locale: ko })} 이관된 현장 삭제(반려)함
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <Button
                                                             size="sm"
-                                                            className="h-7 text-xs bg-orange-500 hover:bg-orange-600 outline-none"
+                                                            className="h-8 text-xs bg-orange-500 hover:bg-orange-600 outline-none w-full sm:w-auto mt-1 sm:mt-0"
                                                             onClick={() => handleConfirm(order.id, app.id)}
                                                             disabled={confirmingId === app.id}
                                                         >
