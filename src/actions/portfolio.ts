@@ -177,14 +177,21 @@ export async function getAdminPortfolio() {
         const siteIds = sites.map(s => s.id)
         const { data: photos } = await supabase
             .from('photos')
-            .select('site_id, url')
+            .select('site_id, url, type')
             .in('site_id', siteIds)
 
         const sitesWithThumbs = sites.map(site => {
-            const sitePhotos = photos?.filter(p => p.site_id === site.id).slice(0, 3) || []
+            const sitePhotos = photos?.filter(p => p.site_id === site.id) || []
+            const beforePhotos = sitePhotos.filter(p => p.type === 'before')
+            const afterPhotos = sitePhotos.filter(p => p.type === 'after')
             return {
                 ...site,
-                thumbnails: sitePhotos.map(p => p.url)
+                thumbnails: {
+                    before: beforePhotos.slice(0, 2).map(p => p.url),
+                    after: afterPhotos.slice(0, 2).map(p => p.url),
+                    beforeCount: beforePhotos.length,
+                    afterCount: afterPhotos.length
+                }
             }
         })
 

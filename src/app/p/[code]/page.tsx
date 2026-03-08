@@ -91,10 +91,10 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                             {/* Site Header */}
                             <div className="mb-4">
                                 <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                    <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-lg text-sm">
+                                    <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-lg text-sm flex-shrink-0">
                                         {format(new Date(site.completed_at), 'd일')}
                                     </span>
-                                    {site.name}
+                                    <span className="truncate">{site.address}</span>
                                 </h2>
                             </div>
 

@@ -14,7 +14,12 @@ type PortfolioSite = {
     address: string
     completed_at: string
     hidden_from_promotion: boolean
-    thumbnails?: string[]
+    thumbnails?: {
+        before: string[]
+        after: string[]
+        beforeCount: number
+        afterCount: number
+    }
 }
 
 export default function AdminPromotionPage() {
@@ -106,18 +111,35 @@ export default function AdminPromotionPage() {
                                         </p>
 
                                         {/* Thumbnails */}
-                                        {site.thumbnails && site.thumbnails.length > 0 && (
-                                            <div className="flex gap-2 mt-2">
-                                                {site.thumbnails.map((url, i) => (
-                                                    <div key={i} className={`w-12 h-12 rounded bg-slate-100 overflow-hidden border border-slate-200 ${site.hidden_from_promotion ? 'opacity-50 grayscale' : ''}`}>
-                                                        <img src={url} alt="thumbnail" className="w-full h-full object-cover" />
+                                        {site.thumbnails && (
+                                            <div className="flex flex-col gap-2 mt-3">
+                                                <div className="flex bg-slate-50 p-2 rounded-lg border border-slate-100 items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`text-xs text-center font-bold px-2 py-1 rounded w-14 ${site.thumbnails.beforeCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'}`}>
+                                                            전 ({site.thumbnails.beforeCount})
+                                                        </span>
+                                                        <div className="flex gap-1.5">
+                                                            {site.thumbnails.before.map((url, i) => (
+                                                                <div key={`before-${i}`} className={`w-9 h-9 rounded bg-slate-200 overflow-hidden border border-slate-300 ${site.hidden_from_promotion ? 'opacity-50 grayscale' : ''}`}>
+                                                                    <img src={url} alt="before" className="w-full h-full object-cover" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                ))}
-                                                {site.thumbnails.length === 3 && (
-                                                    <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-500 border border-slate-200">
-                                                        + 더보기
+                                                    <div className="w-px h-8 bg-slate-200 mx-2 hidden sm:block"></div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`text-xs text-center font-bold px-2 py-1 rounded w-14 ${site.thumbnails.afterCount > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>
+                                                            후 ({site.thumbnails.afterCount})
+                                                        </span>
+                                                        <div className="flex gap-1.5">
+                                                            {site.thumbnails.after.map((url, i) => (
+                                                                <div key={`after-${i}`} className={`w-9 h-9 rounded bg-slate-200 overflow-hidden border border-slate-300 ${site.hidden_from_promotion ? 'opacity-50 grayscale' : ''}`}>
+                                                                    <img src={url} alt="after" className="w-full h-full object-cover" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
