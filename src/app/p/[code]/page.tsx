@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import { getPublicPortfolio, PublicSite } from '@/actions/portfolio'
 import { format } from 'date-fns'
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
     params: { code: string }
 }
