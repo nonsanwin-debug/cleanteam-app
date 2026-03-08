@@ -30,6 +30,8 @@ export default function SettingsPage() {
     const [smsAccountNumber, setSmsAccountNumber] = useState('')
     const [smsMessageTemplate, setSmsMessageTemplate] = useState(DEFAULT_TEMPLATE)
     const [companyCollectionMessage, setCompanyCollectionMessage] = useState('')
+    const [promotionEnabled, setPromotionEnabled] = useState(false)
+    const [companyCode, setCompanyCode] = useState('')
     const [saving, setSaving] = useState(false)
     const [loading, setLoading] = useState(true)
 
@@ -42,6 +44,8 @@ export default function SettingsPage() {
                 setSmsAccountNumber(settings.sms_account_number || '')
                 setSmsMessageTemplate(settings.sms_message_template || DEFAULT_TEMPLATE)
                 setCompanyCollectionMessage(settings.company_collection_message || '')
+                setPromotionEnabled(settings.promotion_page_enabled || false)
+                setCompanyCode(settings.code || '')
             }
             setLoading(false)
         }
@@ -51,7 +55,7 @@ export default function SettingsPage() {
     async function handleSave() {
         setSaving(true)
         try {
-            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate, companyCollectionMessage)
+            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate, companyCollectionMessage, promotionEnabled)
             if (result.success) {
                 toast.success('설정이 저장되었습니다.')
             } else {
@@ -202,6 +206,69 @@ export default function SettingsPage() {
                     )}
 
                     <Button onClick={handleSave} disabled={saving} className="w-full">
+                        {saving ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                        )}
+                        저장
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <Card className="border-blue-200">
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="text-lg text-blue-700">🌐 홍보 페이지 (포트폴리오)</CardTitle>
+                            <p className="text-sm text-slate-500 mt-1">
+                                고객에게 작업 후 완료된 현장의 전/후 사진을 보여줄 수 있는 전용 웹페이지를 제공합니다.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${promotionEnabled ? 'text-blue-600' : 'text-slate-400'}`}>
+                                {promotionEnabled ? '활성' : '비활성'}
+                            </span>
+                            <Switch
+                                checked={promotionEnabled}
+                                onCheckedChange={setPromotionEnabled}
+                            />
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {promotionEnabled ? (
+                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 space-y-3">
+                            <p className="text-sm text-blue-800 font-medium">홍보 페이지 주소</p>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    readOnly
+                                    value={`https://cleanteam-nexus.vercel.app/p/${companyCode}`}
+                                    className="bg-white text-blue-900 font-medium text-sm"
+                                />
+                                <Button
+                                    variant="outline"
+                                    className="bg-white hover:bg-slate-50 border-blue-200 text-blue-700 whitespace-nowrap"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`https://cleanteam-nexus.vercel.app/p/${companyCode}`)
+                                        toast.success('주소가 복사되었습니다.')
+                                    }}
+                                >
+                                    주소 복사
+                                </Button>
+                            </div>
+                            <p className="text-xs text-blue-600">
+                                관리자 메뉴의 <strong>[홍보 관리]</strong>에서 노출시킬 현장을 관리할 수 있습니다.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="bg-slate-50 border border-dashed rounded-lg p-6 text-center text-slate-500">
+                            <p className="text-sm">홍보 페이지 기능이 비활성화되어 있습니다.</p>
+                            <p className="text-xs mt-1">활성화하면 별도의 가입 없이 열람 가능한 고객 전용 포트폴리오 사이트가 생성됩니다.</p>
+                        </div>
+                    )}
+
+                    <Button onClick={handleSave} disabled={saving} className="w-full bg-blue-600 hover:bg-blue-700">
                         {saving ? (
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         ) : (

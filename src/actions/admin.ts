@@ -753,7 +753,7 @@ export async function getCompanySettings() {
 
     const { data, error } = await supabase
         .from('companies')
-        .select('id, name, code, sms_enabled, sms_bank_name, sms_account_number, sms_message_template, company_collection_message')
+        .select('id, name, code, sms_enabled, sms_bank_name, sms_account_number, sms_message_template, company_collection_message, promotion_page_enabled')
         .eq('id', companyId)
         .single()
 
@@ -770,7 +770,8 @@ export async function updateCompanySettings(
     smsBankName: string,
     smsAccountNumber: string,
     smsMessageTemplate: string,
-    companyCollectionMessage?: string
+    companyCollectionMessage?: string,
+    promotionPageEnabled?: boolean
 ): Promise<ActionResponse> {
     try {
         const { supabase, companyId } = await getAuthCompany()
@@ -783,7 +784,8 @@ export async function updateCompanySettings(
                 sms_bank_name: smsBankName,
                 sms_account_number: smsAccountNumber,
                 sms_message_template: smsMessageTemplate,
-                company_collection_message: companyCollectionMessage || null
+                company_collection_message: companyCollectionMessage || null,
+                promotion_page_enabled: promotionPageEnabled || false
             })
             .eq('id', companyId)
 

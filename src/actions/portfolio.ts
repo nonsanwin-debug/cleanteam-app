@@ -1,0 +1,177 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { getAuthCompany } from '@/lib/supabase/auth-context'
+import { revalidatePath } from 'next/cache'
+
+export interface PublicSite {
+    id: string;
+    name: string;
+    address: string;
+    completed_at: string;
+    photos_before: string[];
+    photos_after: string[];
+}
+
+export interface PublicPortfolioResponse {
+    success: boolean;
+    companyName?: string;
+    sites?: PublicSite[];
+    error?: string;
+}
+
+/**
+ * Public Server Action: Fetch portfolio data for a specific company code
+ * Does not require authentication.
+ */
+export async function getPublicPortfolio(companyCode: string): Promise<PublicPortfolioResponse> {
+    try {
+        const supabase = await createClient()
+
+        // 1. Fetch company by code
+        const { data: company, error: companyError } = await supabase
+            .from('companies')
+            .select('id, name, promotion_page_enabled')
+            .eq('code', companyCode)
+            .single()
+
+        if (companyError || !company) {
+            return { success: false, error: '업체를 찾을 수 없습니다.' }
+        }
+
+        if (!company.promotion_page_enabled) {
+            return { success: false, error: '해당 업체의 홍보 페이지가 비활성화되어 있습니다.' }
+        }
+
+        // 2. Fetch completed sites from the last 30 days that are not hidden
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+        const { data: sites, error: sitesError } = await supabase
+            .from('sites')
+            .select('id, name, address, completed_at')
+            .eq('company_id', company.id)
+            .eq('status', 'completed')
+            .eq('hidden_from_promotion', false)
+            .gte('completed_at', thirtyDaysAgo.toISOString())
+            .order('completed_at', { ascending: false })
+
+        if (sitesError) {
+            console.error('Error fetching sites for portfolio:', sitesError)
+            return { success: false, error: '데이터를 불러오는 중 오류가 발생했습니다.' }
+        }
+
+        if (!sites || sites.length === 0) {
+            return { success: true, companyName: company.name, sites: [] }
+        }
+
+        // 3. Fetch photos for these sites
+        const siteIds = sites.map(s => s.id)
+        const { data: photos, error: photosError } = await supabase
+            .from('photos')
+            .select('site_id, url, type')
+            .in('site_id', siteIds)
+            .in('type', ['before', 'after'])
+
+        if (photosError) {
+            console.error('Error fetching photos for portfolio:', photosError)
+            return { success: false, error: '사진을 불러오는 중 오류가 발생했습니다.' }
+        }
+
+        // 4. Assemble payload (limit to 4 before, 4 after)
+        const publicSites: PublicSite[] = sites.map(site => {
+            const sitePhotos = photos?.filter(p => p.site_id === site.id) || []
+
+            // Get up to 4 'before' and 4 'after' photos
+            const photosBefore = sitePhotos
+                .filter(p => p.type === 'before')
+                .slice(0, 4)
+                .map(p => p.url)
+
+            const photosAfter = sitePhotos
+                .filter(p => p.type === 'after')
+                .slice(0, 4)
+                .map(p => p.url)
+
+            return {
+                id: site.id,
+                name: site.name,
+                address: site.address,
+                completed_at: site.completed_at,
+                photos_before: photosBefore,
+                photos_after: photosAfter
+            }
+        })
+
+        // Filter out sites that have no photos to show
+        const validSites = publicSites.filter(site => site.photos_before.length > 0 || site.photos_after.length > 0)
+
+        return {
+            success: true,
+            companyName: company.name,
+            sites: validSites
+        }
+
+    } catch (error) {
+        console.error('getPublicPortfolio unexpected error:', error)
+        return { success: false, error: '서버 오류가 발생했습니다.' }
+    }
+}
+
+/**
+ * Admin Server Action: Toggle visibility of a site on the public portfolio
+ */
+export async function toggleSitePromotionVisibility(siteId: string, isHidden: boolean) {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '인증 권한이 없습니다.' }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({ hidden_from_promotion: isHidden })
+            .eq('id', siteId)
+            .eq('company_id', companyId)
+
+        if (error) {
+            console.error('toggleSitePromotionVisibility error:', error)
+            return { success: false, error: '눈가림 처리에 실패했습니다.' }
+        }
+
+        revalidatePath('/admin/promotion')
+        return { success: true }
+    } catch (error) {
+        console.error('toggleSitePromotionVisibility unexpected error:', error)
+        return { success: false, error: '서버 오류가 발생했습니다.' }
+    }
+}
+
+/**
+ * Admin Server Action: Fetch all completed sites in the last 30 days to manage portfolio visibility
+ */
+export async function getAdminPortfolio() {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return []
+
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+        const { data: sites, error } = await supabase
+            .from('sites')
+            .select('id, name, address, completed_at, hidden_from_promotion')
+            .eq('company_id', companyId)
+            .eq('status', 'completed')
+            .gte('completed_at', thirtyDaysAgo.toISOString())
+            .order('completed_at', { ascending: false })
+
+        if (error) {
+            console.error('getAdminPortfolio error:', error)
+            return []
+        }
+
+        return sites || []
+    } catch (error) {
+        console.error('getAdminPortfolio unexpected error:', error)
+        return []
+    }
+}
