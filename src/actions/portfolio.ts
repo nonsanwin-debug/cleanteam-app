@@ -172,7 +172,23 @@ export async function getAdminPortfolio() {
             return []
         }
 
-        return sites || []
+        if (!sites || sites.length === 0) return []
+
+        const siteIds = sites.map(s => s.id)
+        const { data: photos } = await supabase
+            .from('photos')
+            .select('site_id, url')
+            .in('site_id', siteIds)
+
+        const sitesWithThumbs = sites.map(site => {
+            const sitePhotos = photos?.filter(p => p.site_id === site.id).slice(0, 3) || []
+            return {
+                ...site,
+                thumbnails: sitePhotos.map(p => p.url)
+            }
+        })
+
+        return sitesWithThumbs
     } catch (error) {
         console.error('getAdminPortfolio unexpected error:', error)
         return []

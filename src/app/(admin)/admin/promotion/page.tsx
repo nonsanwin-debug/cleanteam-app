@@ -14,6 +14,7 @@ type PortfolioSite = {
     address: string
     completed_at: string
     hidden_from_promotion: boolean
+    thumbnails?: string[]
 }
 
 export default function AdminPromotionPage() {
@@ -82,8 +83,8 @@ export default function AdminPromotionPage() {
                                 <div
                                     key={site.id}
                                     className={`flex items-center justify-between p-4 rounded-lg border ${site.hidden_from_promotion
-                                            ? 'bg-slate-50 border-slate-200 opacity-75'
-                                            : 'bg-white border-blue-100 shadow-sm'
+                                        ? 'bg-slate-50 border-slate-200 opacity-75'
+                                        : 'bg-white border-blue-100 shadow-sm'
                                         }`}
                                 >
                                     <div className="flex flex-col gap-1">
@@ -103,8 +104,24 @@ export default function AdminPromotionPage() {
                                         <p className="text-sm text-slate-500 truncate max-w-[200px] md:max-w-none">
                                             {site.address}
                                         </p>
+
+                                        {/* Thumbnails */}
+                                        {site.thumbnails && site.thumbnails.length > 0 && (
+                                            <div className="flex gap-2 mt-2">
+                                                {site.thumbnails.map((url, i) => (
+                                                    <div key={i} className={`w-12 h-12 rounded bg-slate-100 overflow-hidden border border-slate-200 ${site.hidden_from_promotion ? 'opacity-50 grayscale' : ''}`}>
+                                                        <img src={url} alt="thumbnail" className="w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                                {site.thumbnails.length === 3 && (
+                                                    <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-500 border border-slate-200">
+                                                        + 더보기
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div>
+                                    <div className="flex-shrink-0 ml-4">
                                         <Button
                                             variant={site.hidden_from_promotion ? "outline" : "destructive"}
                                             size="sm"
