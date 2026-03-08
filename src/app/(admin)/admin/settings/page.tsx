@@ -31,6 +31,7 @@ export default function SettingsPage() {
     const [smsMessageTemplate, setSmsMessageTemplate] = useState(DEFAULT_TEMPLATE)
     const [companyCollectionMessage, setCompanyCollectionMessage] = useState('')
     const [promotionEnabled, setPromotionEnabled] = useState(false)
+    const [promotionContactNumber, setPromotionContactNumber] = useState('')
     const [companyCode, setCompanyCode] = useState('')
     const [baseUrl, setBaseUrl] = useState('')
     const [saving, setSaving] = useState(false)
@@ -47,6 +48,7 @@ export default function SettingsPage() {
                 setSmsMessageTemplate(settings.sms_message_template || DEFAULT_TEMPLATE)
                 setCompanyCollectionMessage(settings.company_collection_message || '')
                 setPromotionEnabled(settings.promotion_page_enabled || false)
+                setPromotionContactNumber(settings.promotion_contact_number || '')
                 setCompanyCode(settings.code || '')
             }
             setLoading(false)
@@ -57,7 +59,7 @@ export default function SettingsPage() {
     async function handleSave() {
         setSaving(true)
         try {
-            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate, companyCollectionMessage, promotionEnabled)
+            const result = await updateCompanySettings(smsEnabled, smsBankName, smsAccountNumber, smsMessageTemplate, companyCollectionMessage, promotionEnabled, promotionContactNumber)
             if (result.success) {
                 toast.success('설정이 저장되었습니다.')
             } else {
@@ -259,6 +261,20 @@ export default function SettingsPage() {
                                     주소 복사
                                 </Button>
                             </div>
+
+                            <div className="pt-2">
+                                <label className="text-sm font-medium text-blue-900 block mb-1.5">대표 연락처 (고객 문의용)</label>
+                                <Input
+                                    value={promotionContactNumber}
+                                    onChange={(e) => setPromotionContactNumber(e.target.value)}
+                                    placeholder="예: 010-1234-5678"
+                                    className="border-blue-200 focus-visible:ring-blue-500"
+                                />
+                                <p className="text-xs text-blue-600 mt-1.5 opacity-80">
+                                    등록 시 홍보 페이지에 고객이 바로 문자를 보낼 수 있는 기능이 활성화됩니다.
+                                </p>
+                            </div>
+
                             <p className="text-xs text-blue-600">
                                 관리자 메뉴의 <strong>[홍보 관리]</strong>에서 노출시킬 현장을 관리할 수 있습니다.
                             </p>

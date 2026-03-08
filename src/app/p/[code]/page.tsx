@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { getPublicPortfolio, PublicSite } from '@/actions/portfolio'
 import { format } from 'date-fns'
+import { MessageSquare, Phone } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -81,10 +82,29 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
 
             {/* Notice Banner */}
             <div className="max-w-md mx-auto px-4 pt-4">
-                <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 leading-relaxed shadow-sm">
-                    <p className="font-medium">
+                <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-4 shadow-sm">
+                    <p className="text-sm text-blue-800 leading-relaxed font-medium mb-3">
                         청소 중에는 전화를 못 받을 수 있으니, 문자로 <span className="font-bold text-blue-900">[지역 / 아파트명 / 평수 / 날짜]</span>를 남겨주시면 확인 후 바로 연락드리겠습니다.
                     </p>
+
+                    {response.promotionContactNumber && (
+                        <div className="flex gap-2">
+                            <a
+                                href={`sms:${response.promotionContactNumber.replace(/[^0-9]/g, '')}`}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                문자 보내기
+                            </a>
+                            <a
+                                href={`tel:${response.promotionContactNumber.replace(/[^0-9]/g, '')}`}
+                                className="flex-1 bg-white hover:bg-slate-50 text-blue-700 border border-blue-200 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <Phone className="w-4 h-4" />
+                                전화 걸기
+                            </a>
+                        </div>
+                    )}
                 </div>
             </div>
 

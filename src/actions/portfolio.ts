@@ -17,6 +17,7 @@ export interface PublicSite {
 export interface PublicPortfolioResponse {
     success: boolean;
     companyName?: string;
+    promotionContactNumber?: string;
     sites?: PublicSite[];
     error?: string;
 }
@@ -34,7 +35,7 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
         // 1. Fetch company by code
         const { data: company, error: companyError } = await adminSupabase
             .from('companies')
-            .select('id, name, promotion_page_enabled')
+            .select('id, name, promotion_page_enabled, promotion_contact_number')
             .eq('code', companyCode)
             .single()
 
@@ -112,6 +113,7 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
         return {
             success: true,
             companyName: company.name,
+            promotionContactNumber: company.promotion_contact_number,
             sites: validSites
         }
 
