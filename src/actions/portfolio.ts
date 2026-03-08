@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthCompany } from '@/lib/supabase/auth-context'
 import { revalidatePath } from 'next/cache'
 
@@ -26,10 +27,11 @@ export interface PublicPortfolioResponse {
  */
 export async function getPublicPortfolio(companyCode: string): Promise<PublicPortfolioResponse> {
     try {
-        const supabase = await createClient()
+        // Use admin client to bypass RLS for public read-only access
+        const adminSupabase = createAdminClient()
 
         // 1. Fetch company by code
-        const { data: company, error: companyError } = await supabase
+        const { data: company, error: companyError } = await adminSupabase
             .from('companies')
             .select('id, name, promotion_page_enabled')
             .eq('code', companyCode)
@@ -47,7 +49,7 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
         const thirtyDaysAgo = new Date()
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-        const { data: sites, error: sitesError } = await supabase
+        const { data: sites, error: sitesError } = await adminSupabase
             .from('sites')
             .select('id, name, address, completed_at')
             .eq('company_id', company.id)
@@ -67,7 +69,7 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
 
         // 3. Fetch photos for these sites
         const siteIds = sites.map(s => s.id)
-        const { data: photos, error: photosError } = await supabase
+        const { data: photos, error: photosError } = await adminSupabase
             .from('photos')
             .select('site_id, url, type')
             .in('site_id', siteIds)
