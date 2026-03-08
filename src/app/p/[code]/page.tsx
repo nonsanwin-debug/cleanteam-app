@@ -10,7 +10,8 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-    const portfolio = await getPublicPortfolio(params.code)
+    const resolvedParams = await params
+    const portfolio = await getPublicPortfolio(resolvedParams.code)
 
     if (!portfolio.success || !portfolio.companyName) {
         return { title: '포트폴리오' }
@@ -46,7 +47,8 @@ function PhotoGrid({ photos, title }: { photos: string[], title: string }) {
 }
 
 export default async function PublicPortfolioPage({ params }: PageProps) {
-    const response = await getPublicPortfolio(params.code)
+    const resolvedParams = await params
+    const response = await getPublicPortfolio(resolvedParams.code)
 
     if (!response.success) {
         return (
