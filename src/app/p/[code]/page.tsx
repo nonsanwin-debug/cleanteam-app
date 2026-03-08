@@ -79,6 +79,15 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                 </div>
             </header>
 
+            {/* Notice Banner */}
+            <div className="max-w-md mx-auto px-4 pt-4">
+                <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 leading-relaxed shadow-sm">
+                    <p className="font-medium">
+                        청소 중에는 전화를 못 받을 수 있으니, 문자로 <span className="font-bold text-blue-900">[지역 / 아파트명 / 평수 / 날짜]</span>를 남겨주시면 확인 후 바로 연락드리겠습니다.
+                    </p>
+                </div>
+            </div>
+
             {/* Content */}
             <main className="max-w-md mx-auto p-4 space-y-6">
                 {sites.length === 0 ? (
