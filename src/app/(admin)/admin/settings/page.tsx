@@ -32,10 +32,12 @@ export default function SettingsPage() {
     const [companyCollectionMessage, setCompanyCollectionMessage] = useState('')
     const [promotionEnabled, setPromotionEnabled] = useState(false)
     const [companyCode, setCompanyCode] = useState('')
+    const [baseUrl, setBaseUrl] = useState('')
     const [saving, setSaving] = useState(false)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        setBaseUrl(typeof window !== 'undefined' ? window.location.origin : '')
         async function loadSettings() {
             const settings = await getCompanySettings()
             if (settings) {
@@ -243,14 +245,14 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                                 <Input
                                     readOnly
-                                    value={`https://cleanteam-nexus.vercel.app/p/${companyCode}`}
+                                    value={`${baseUrl}/p/${companyCode}`}
                                     className="bg-white text-blue-900 font-medium text-sm"
                                 />
                                 <Button
                                     variant="outline"
                                     className="bg-white hover:bg-slate-50 border-blue-200 text-blue-700 whitespace-nowrap"
                                     onClick={() => {
-                                        navigator.clipboard.writeText(`https://cleanteam-nexus.vercel.app/p/${companyCode}`)
+                                        navigator.clipboard.writeText(`${baseUrl}/p/${companyCode}`)
                                         toast.success('주소가 복사되었습니다.')
                                     }}
                                 >
