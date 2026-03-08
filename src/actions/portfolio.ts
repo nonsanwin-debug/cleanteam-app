@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAuthCompany } from '@/lib/supabase/auth-context'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 
 export interface PublicSite {
     id: string;
@@ -26,6 +26,7 @@ export interface PublicPortfolioResponse {
  * Does not require authentication.
  */
 export async function getPublicPortfolio(companyCode: string): Promise<PublicPortfolioResponse> {
+    noStore();
     try {
         // Use admin client to bypass RLS for public read-only access
         const adminSupabase = createAdminClient()

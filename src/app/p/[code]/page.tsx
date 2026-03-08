@@ -3,6 +3,7 @@ import { getPublicPortfolio, PublicSite } from '@/actions/portfolio'
 import { format } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface PageProps {
     params: { code: string }
