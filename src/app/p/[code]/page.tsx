@@ -73,22 +73,21 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                         <svg viewBox="0 0 24 24" fill="none" className="w-[20px] h-[20px]" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="header-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" stopColor="#6366F1" />
-                                    <stop offset="50%" stopColor="#0EA5E9" />
-                                    <stop offset="100%" stopColor="#2DD4BF" />
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
                                 </linearGradient>
                                 <linearGradient id="header-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#2DD4BF" />
+                                    <stop offset="0%" stopColor="#22D3EE" />
                                     <stop offset="100%" stopColor="#10B981" />
                                 </linearGradient>
                                 <linearGradient id="header-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" stopColor="#059669" />
+                                    <stop offset="0%" stopColor="#10B981" />
                                     <stop offset="100%" stopColor="#BEF264" />
                                 </linearGradient>
                             </defs>
-                            <path d="M6 20V4" stroke="url(#header-grad-1)" strokeWidth="5.5" strokeLinecap="round" />
-                            <path d="M6 4L18 20" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
-                            <path d="M18 20V4" stroke="url(#header-grad-3)" strokeWidth="5.5" strokeLinecap="round" />
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
                         </svg>
                         <span className="font-black text-[#0F172A] tracking-tighter text-[18px] ml-0.5 mt-0.5 cursor-default">NEXUS</span>
                         <span className="text-slate-400 font-medium mx-0.5 text-sm mt-0.5 cursor-default">x</span>
@@ -167,22 +166,21 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                     <svg viewBox="0 0 24 24" fill="none" className="w-[18px] h-[18px]" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="nx-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
-                                <stop offset="0%" stopColor="#6366F1" />
-                                <stop offset="50%" stopColor="#0EA5E9" />
-                                <stop offset="100%" stopColor="#2DD4BF" />
+                                <stop offset="0%" stopColor="#4F46E5" />
+                                <stop offset="100%" stopColor="#22D3EE" />
                             </linearGradient>
                             <linearGradient id="nx-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#2DD4BF" />
+                                <stop offset="0%" stopColor="#22D3EE" />
                                 <stop offset="100%" stopColor="#10B981" />
                             </linearGradient>
                             <linearGradient id="nx-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
-                                <stop offset="0%" stopColor="#059669" />
+                                <stop offset="0%" stopColor="#10B981" />
                                 <stop offset="100%" stopColor="#BEF264" />
                             </linearGradient>
                         </defs>
-                        <path d="M6 20V4" stroke="url(#nx-grad-1)" strokeWidth="5.5" strokeLinecap="round" />
-                        <path d="M6 4L18 20" stroke="url(#nx-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
-                        <path d="M18 20V4" stroke="url(#nx-grad-3)" strokeWidth="5.5" strokeLinecap="round" />
+                        <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#nx-grad-1)" />
+                        <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#nx-grad-3)" />
+                        <path d="M5.25 4.75L18.75 19.25" stroke="url(#nx-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
                     </svg>
                     <span className="font-black text-[#0F172A] tracking-tighter text-[16px] ml-0.5 mt-0.5">NEXUS</span>
                 </div>
