@@ -68,15 +68,37 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
             <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm px-4 py-4">
-                <div className="max-w-md mx-auto flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-black text-slate-900 leading-tight">
+                <div className="max-w-md mx-auto flex flex-col items-center justify-center text-center gap-1">
+                    <div className="flex items-center gap-1.5 justify-center">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[20px] h-[20px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="header-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#6366F1" />
+                                    <stop offset="50%" stopColor="#0EA5E9" />
+                                    <stop offset="100%" stopColor="#2DD4BF" />
+                                </linearGradient>
+                                <linearGradient id="header-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#2DD4BF" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="header-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#059669" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M6 20V4" stroke="url(#header-grad-1)" strokeWidth="5.5" strokeLinecap="round" />
+                            <path d="M6 4L18 20" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                            <path d="M18 20V4" stroke="url(#header-grad-3)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                        <span className="font-black text-[#0F172A] tracking-tighter text-[18px] ml-0.5 mt-0.5 cursor-default">NEXUS</span>
+                        <span className="text-slate-400 font-medium mx-0.5 text-sm mt-0.5 cursor-default">x</span>
+                        <span className="text-lg font-black text-slate-800 leading-tight max-w-[150px] sm:max-w-[200px] truncate mt-0.5">
                             {response.companyName}
-                        </h1>
-                        <p className="text-xs text-blue-600 font-semibold tracking-wide">
-                            최근 30일 포트폴리오
-                        </p>
+                        </span>
                     </div>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                        최근 30일 작업 포트폴리오
+                    </p>
                 </div>
             </header>
 
