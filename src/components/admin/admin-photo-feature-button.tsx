@@ -37,8 +37,8 @@ export function AdminPhotoFeatureButton({ photoId, isFeatured, currentFeaturedCo
         <button
             onClick={handleToggle}
             disabled={isToggling}
-            className={`absolute top-2 left-2 z-20 p-1.5 rounded-full shadow-sm transition-colors ${isFeatured ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white/70 hover:bg-black/60'
-                } ${isToggling ? 'opacity-50 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'} ${isFeatured ? '!opacity-100' : ''}`}
+            className={`absolute top-2 right-10 z-20 p-1.5 rounded-full shadow-md transition-colors ${isFeatured ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white/90 hover:bg-black/60'
+                } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
             title={isFeatured ? "포트폴리오 대표 사진 해제" : "포트폴리오 대표 사진으로 설정 (최대 4장)"}
         >
             {isToggling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className={`h-4 w-4 ${isFeatured ? 'fill-current text-white outline-none' : ''}`} />}
