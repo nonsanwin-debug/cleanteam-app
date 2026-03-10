@@ -1,10 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, TouchEvent } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export function PhotoGrid({ photos, title }: { photos: string[], title: string }) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50
+
+    const onTouchStart = (e: TouchEvent) => {
+        setTouchEnd(null) // Reset touch end
+        setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX)
+    }
+
+    const onTouchEndEvent = () => {
+        if (!touchStart || !touchEnd) return
+        const distance = touchStart - touchEnd
+        const isLeftSwipe = distance > minSwipeDistance
+        const isRightSwipe = distance < -minSwipeDistance
+
+        if (isLeftSwipe) {
+            // Swipe Left -> Next Photo
+            setSelectedIndex((prev) => (prev !== null && prev < photos.length - 1 ? prev + 1 : prev))
+        } else if (isRightSwipe) {
+            // Swipe Right -> Prev Photo
+            setSelectedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : prev))
+        }
+    }
 
     if (!photos || photos.length === 0) return null
 
@@ -65,7 +94,13 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
                     </div>
 
                     {/* Image Viewer */}
-                    <div className="flex-1 relative flex items-center justify-center p-4" onClick={() => setSelectedIndex(null)}>
+                    <div
+                        className="flex-1 relative flex items-center justify-center p-4"
+                        onClick={() => setSelectedIndex(null)}
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEndEvent}
+                    >
                         {selectedIndex > 0 && (
                             <button
                                 onClick={handlePrev}
