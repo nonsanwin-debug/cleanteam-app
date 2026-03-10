@@ -330,9 +330,7 @@ function SiteCard({
                 {!isCompleted && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                         <a
-                            href={`https://m.map.kakao.com/actions/searchView?q=${encodeURIComponent(site.address)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href={`kakaonavi://search?q=${encodeURIComponent(site.address)}`}
                             className="w-full"
                         >
                             <Button size="sm" variant="outline" className="w-full h-9 text-xs border-yellow-400 bg-yellow-50 hover:bg-yellow-100 text-slate-900">
