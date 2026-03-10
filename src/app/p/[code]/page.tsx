@@ -24,28 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 }
 
-function PhotoGrid({ photos, title }: { photos: string[], title: string }) {
-    if (!photos || photos.length === 0) return null
-    return (
-        <div className="mt-4">
-            <h4 className="text-sm font-bold text-slate-700 mb-2 border-l-2 border-blue-500 pl-2">
-                {title}
-            </h4>
-            <div className={`grid gap-2 ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                {photos.map((url, i) => (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 shadow-sm border border-slate-200">
-                        <img
-                            src={url}
-                            alt={`${title} 사진 ${i + 1}`}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                        />
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
+import { PhotoGrid } from '@/components/portfolio/photo-grid'
 
 export default async function PublicPortfolioPage({ params }: PageProps) {
     const resolvedParams = await params
