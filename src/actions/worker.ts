@@ -21,6 +21,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
             .from('sites')
             .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
             .eq('worker_id', user.id)
+            .order('start_time', { ascending: true, nullsFirst: false })
             .order('created_at', { ascending: true })
 
         if (error) {
@@ -42,6 +43,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                     .from('sites')
                     .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
                     .in('id', siteIds)
+                    .order('start_time', { ascending: true, nullsFirst: false })
                     .order('created_at', { ascending: true })
 
                 memberSites = (sites || []) as AssignedSite[]
@@ -110,6 +112,27 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                 console.error('팀원 정보 조회 오류 (무시):', membersError)
             }
         }
+
+        // Final javascript-level sort to guarantee strict chronological order based on "HH:MM" start time
+        uniqueSites.sort((a, b) => {
+            const parseTime = (timeStr?: string) => {
+                if (!timeStr) return 9999; // push unknown times to the end
+                // Extremely basic parser: Extract the first number (e.g. "08:00", "오전 8시" -> 8)
+                const match = timeStr.match(/(\d{1,2})/);
+                if (!match) return 9999;
+                let hour = parseInt(match[1], 10);
+                if (timeStr.includes('오후') && hour < 12) hour += 12;
+                return hour;
+            };
+
+            const timeA = parseTime(a.start_time);
+            const timeB = parseTime(b.start_time);
+
+            if (timeA === timeB) {
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            }
+            return timeA - timeB;
+        });
 
         return uniqueSites
     } catch (error) {
