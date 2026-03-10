@@ -256,6 +256,16 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
                             </Button>
 
+                            {/* Close Button (Top Left) */}
+                            <Button
+                                variant="secondary"
+                                className="absolute top-4 left-4 z-50 rounded-full shadow-lg bg-white/90 hover:bg-white text-slate-800 flex items-center gap-1.5 px-3"
+                                onClick={(e) => { e.stopPropagation(); setSelectedPhotoIndex(null); }}
+                            >
+                                <X className="h-4 w-4" />
+                                <span className="text-sm font-bold">닫기</span>
+                            </Button>
+
                             {/* Action Buttons (Top Right) */}
                             <div className="absolute top-4 right-4 z-50 flex gap-2">
                                 <Button
