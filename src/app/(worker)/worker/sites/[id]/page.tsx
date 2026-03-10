@@ -167,23 +167,6 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         }
     }
 
-    const handleKakaoNavi = () => {
-        if (!site) return;
-        const query = encodeURIComponent(site.address)
-        const appUrl = `kakaonavi://search?q=${query}`
-        const webUrl = `https://m.map.kakao.com/actions/searchView?q=${query}`
-
-        // Try app first
-        window.location.href = appUrl
-
-        // Give it 1.5 seconds, if the app didn't open (and the page is still active or visible), fallback to web
-        setTimeout(() => {
-            if (document.visibilityState === 'visible') {
-                window.open(webUrl, '_blank')
-            }
-        }, 1500)
-    }
-
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
@@ -255,15 +238,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 </Button>
                             ) : null}
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                    onClick={handleKakaoNavi}
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full h-9 text-xs border-yellow-400 bg-yellow-50 hover:bg-yellow-100 text-slate-900"
-                                >
-                                    카카오내비
-                                </Button>
+                            <div className="mt-2">
                                 <a
                                     href={`tmap://search?name=${encodeURIComponent(site.address)}`}
                                     className="w-full"
