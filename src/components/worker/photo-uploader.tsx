@@ -8,10 +8,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { Camera, Upload, Loader2, Image as ImageIcon, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download } from 'lucide-react'
+import { Camera, Upload, Loader2, Image as ImageIcon, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { togglePhotoFeatured } from '@/actions/admin'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import { uploadManager } from '@/lib/upload-manager'
@@ -21,9 +22,10 @@ interface PhotoUploaderProps {
     existingPhotos: any[]
     readOnly?: boolean
     canDelete?: boolean
+    showFeatureToggle?: boolean
 }
 
-export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false }: PhotoUploaderProps) {
+export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false, showFeatureToggle = false }: PhotoUploaderProps) {
     const router = useRouter()
     const [isDeleting, setIsDeleting] = useState(false)
     const [isDownloading, setIsDownloading] = useState(false)
@@ -96,6 +98,30 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         })
 
         if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+
+    async function handleToggleFeature(photo: any) {
+        if (!showFeatureToggle) return
+
+        // If trying to feature, check limit (max 4 per tab)
+        if (!photo.is_featured) {
+            const featuredCount = currentPhotos.filter(p => p.is_featured).length
+            if (featuredCount >= 4) {
+                toast.error('대표 사진은 각 탭별로 최대 4장까지만 설정할 수 있습니다.')
+                return
+            }
+        }
+
+        try {
+            // Optimistic UI update could be added here, but for simplicity we rely on router.refresh
+            const result = await togglePhotoFeatured(photo.id, !photo.is_featured)
+            if (!result.success) throw new Error(result.error)
+
+            toast.success(photo.is_featured ? '대표 사진에서 해제되었습니다.' : '대표 사진으로 설정되었습니다.')
+            router.refresh()
+        } catch (error: any) {
+            toast.error('설정 실패', { description: error.message })
+        }
     }
 
     async function handleDelete(photo: any) {
@@ -226,6 +252,15 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                     className="relative aspect-square rounded-lg overflow-hidden border bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity group"
                                     onClick={() => setSelectedPhotoIndex(index)}
                                 >
+                                    {showFeatureToggle && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleToggleFeature(photo); }}
+                                            className={`absolute top-2 left-2 z-20 p-1.5 rounded-full shadow-sm transition-colors ${photo.is_featured ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white/70 hover:bg-black/60'}`}
+                                            title={photo.is_featured ? "포트폴리오 대표 사진 해제" : "포트폴리오 대표 사진으로 설정 (최대 4장)"}
+                                        >
+                                            <Star className={`w-4 h-4 ${photo.is_featured ? 'fill-current text-white outline-none' : ''}`} />
+                                        </button>
+                                    )}
                                     {/* Debugging: Use standard img tag to bypass Next.js Image Optimization */}
                                     <img
                                         src={photo.url}

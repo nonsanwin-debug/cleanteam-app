@@ -583,7 +583,7 @@ export async function getSiteAdminDetails(id: string) {
 
     const photosQuery = supabase
         .from('photos')
-        .select('id, site_id, url, type, created_at')
+        .select('id, site_id, url, type, created_at, is_featured')
         .eq('site_id', id)
         .order('created_at')
 

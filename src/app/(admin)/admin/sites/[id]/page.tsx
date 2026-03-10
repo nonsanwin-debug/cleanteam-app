@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { AdminForceCompleteButton } from "@/components/admin/admin-force-complete-button"
 import { SettlementEditForm } from "@/components/admin/settlement-edit-form"
 import { AdminPhotoDeleteButton } from "@/components/admin/admin-photo-delete-button"
+import { AdminPhotoFeatureButton } from "@/components/admin/admin-photo-feature-button"
 
 export default async function AdminSiteDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -267,32 +268,42 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                     <TabsTrigger value="special" className="shrink-0">특이사항 ({photosByType.special.length})</TabsTrigger>
                                 </TabsList>
 
-                                {['all', 'before', 'during', 'after', 'special'].map((tab) => (
-                                    <TabsContent key={tab} value={tab}>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                            {(tab === 'all' ? photos : photosByType[tab as keyof typeof photosByType])
-                                                .map((photo: any) => (
-                                                    <div key={photo.id} className="relative aspect-square rounded-md overflow-hidden border bg-slate-100 group">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={photo.url}
-                                                            alt={photo.type}
-                                                            className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                                                        />
-                                                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded uppercase">
-                                                            {photo.type}
+                                {['all', 'before', 'during', 'after', 'special'].map((tab) => {
+                                    const currentTabPhotos = tab === 'all' ? photos : photosByType[tab as keyof typeof photosByType]
+                                    const currentFeaturedCount = currentTabPhotos.filter((p: any) => p.is_featured).length
+
+                                    return (
+                                        <TabsContent key={tab} value={tab}>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                                {currentTabPhotos
+                                                    .map((photo: any) => (
+                                                        <div key={photo.id} className="relative aspect-square rounded-md overflow-hidden border bg-slate-100 group">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={photo.url}
+                                                                alt={photo.type}
+                                                                className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                                                            />
+                                                            <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded uppercase flex items-center gap-1 z-30">
+                                                                {photo.type}
+                                                            </div>
+                                                            <AdminPhotoFeatureButton
+                                                                photoId={photo.id}
+                                                                isFeatured={!!photo.is_featured}
+                                                                currentFeaturedCount={currentFeaturedCount}
+                                                            />
+                                                            <AdminPhotoDeleteButton photoId={photo.id} photoUrl={photo.url} siteId={site.id} />
                                                         </div>
-                                                        <AdminPhotoDeleteButton photoId={photo.id} photoUrl={photo.url} siteId={site.id} />
+                                                    ))}
+                                                {currentTabPhotos.length === 0 && (
+                                                    <div className="col-span-full py-10 text-center text-muted-foreground">
+                                                        등록된 사진이 없습니다.
                                                     </div>
-                                                ))}
-                                            {(tab === 'all' ? photos : photosByType[tab as keyof typeof photosByType]).length === 0 && (
-                                                <div className="col-span-full py-10 text-center text-muted-foreground">
-                                                    등록된 사진이 없습니다.
-                                                </div>
-                                            )}
-                                        </div>
-                                    </TabsContent>
-                                ))}
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                    )
+                                })}
                             </Tabs>
                         </CardContent>
                     </Card>

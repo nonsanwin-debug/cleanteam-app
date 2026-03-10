@@ -73,7 +73,7 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
         const siteIds = sites.map(s => s.id)
         const { data: photos, error: photosError } = await adminSupabase
             .from('photos')
-            .select('site_id, url, type')
+            .select('site_id, url, type, is_featured')
             .in('site_id', siteIds)
             .in('type', ['before', 'after'])
 
@@ -82,20 +82,24 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
             return { success: false, error: '사진을 불러오는 중 오류가 발생했습니다.' }
         }
 
+        // Helper to pick up to 4 featured photos, fallback to first 4
+        const getDisplayPhotos = (photoList: any[]) => {
+            const featured = photoList.filter(p => p.is_featured)
+            if (featured.length > 0) {
+                return featured.slice(0, 4).map(p => p.url)
+            }
+            return photoList.slice(0, 4).map(p => p.url)
+        }
+
         // 4. Assemble payload (limit to 4 before, 4 after)
         const publicSites: PublicSite[] = sites.map(site => {
             const sitePhotos = photos?.filter(p => p.site_id === site.id) || []
 
-            // Get up to 4 'before' and 4 'after' photos
-            const photosBefore = sitePhotos
-                .filter(p => p.type === 'before')
-                .slice(0, 4)
-                .map(p => p.url)
+            const beforeList = sitePhotos.filter(p => p.type === 'before')
+            const afterList = sitePhotos.filter(p => p.type === 'after')
 
-            const photosAfter = sitePhotos
-                .filter(p => p.type === 'after')
-                .slice(0, 4)
-                .map(p => p.url)
+            const photosBefore = getDisplayPhotos(beforeList)
+            const photosAfter = getDisplayPhotos(afterList)
 
             return {
                 id: site.id,

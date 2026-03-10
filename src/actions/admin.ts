@@ -803,3 +803,32 @@ export async function updateCompanySettings(
         return { success: false, error: '설정 저장 중 오류가 발생했습니다.' }
     }
 }
+
+export async function togglePhotoFeatured(photoId: string, isFeatured: boolean) {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) throw new Error('Unauthorized')
+
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || user.user_metadata?.role !== 'admin') {
+            throw new Error('Unauthorized: Admin only')
+        }
+
+        const { error } = await supabase
+            .from('photos')
+            .update({ is_featured: isFeatured })
+            .eq('id', photoId)
+
+        if (error) {
+            console.error('Error toggling photo featured status:', error)
+            return { success: false, error: '대표 사진 설정 실패: ' + error.message }
+        }
+
+        revalidatePath('/admin/sites', 'layout')
+        revalidatePath('/admin/promotion')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Unexpected error in togglePhotoFeatured:', error)
+        return { success: false, error: error.message || '설정 저장 중 오류가 발생했습니다.' }
+    }
+}
