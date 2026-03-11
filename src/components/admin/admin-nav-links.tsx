@@ -23,6 +23,7 @@ const NAV_ITEMS = [
     { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
     { href: '/admin/promotion', icon: Camera, label: '홍보 관리', iconColor: 'text-sky-500' },
     { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
+    { href: '/admin/memos', icon: CheckSquare, label: '관리자 메모', iconColor: 'text-yellow-500' },
 ]
 
 export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
