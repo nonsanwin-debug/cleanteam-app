@@ -129,6 +129,20 @@ export default async function AdminDashboard() {
                                                 <div className="text-xs text-slate-400 mt-1 truncate">
                                                     {site.address}
                                                 </div>
+                                                {(site.special_notes || site.worker_notes) && (
+                                                    <div className="mt-2 space-y-1">
+                                                        {site.special_notes && (
+                                                            <div className="text-[11px] bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100 line-clamp-1">
+                                                                <span className="font-bold mr-1">특이사항:</span>{site.special_notes}
+                                                            </div>
+                                                        )}
+                                                        {site.worker_notes && (
+                                                            <div className="text-[11px] bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 line-clamp-1">
+                                                                <span className="font-bold mr-1">팀장메모:</span>{site.worker_notes}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="w-full sm:w-auto text-right sm:text-right pt-2 sm:pt-0 border-t sm:border-0 border-slate-50 flex flex-row sm:flex-col justify-between sm:justify-end items-center sm:items-end">

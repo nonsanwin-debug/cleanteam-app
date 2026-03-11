@@ -21,6 +21,7 @@ export type Site = {
     cleaning_date?: string
     start_time?: string
     special_notes?: string // 특이사항
+    worker_notes?: string // 현장 메모 (팀장 작성)
     worker_name?: string // Denormalized for public access
     worker_phone?: string // New field for call button
     worker?: {

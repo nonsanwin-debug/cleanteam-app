@@ -85,7 +85,7 @@ export default function WorkerSchedulePage() {
         return [...allSites].sort((a, b) => {
             const dateA = new Date(a.cleaning_date || a.created_at).getTime()
             const dateB = new Date(b.cleaning_date || b.created_at).getTime()
-            return dateA - dateB
+            return dateB - dateA // 최신순으로 정렬 (내림차순)
         })
     }, [allSites])
 

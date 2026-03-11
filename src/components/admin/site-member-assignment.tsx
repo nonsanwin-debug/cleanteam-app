@@ -31,6 +31,8 @@ type Site = {
     cleaning_date?: string
     start_time?: string
     worker?: { name: string | null; display_color?: string | null } | null
+    worker_notes?: string | null
+    special_notes?: string | null
 }
 
 interface Props {
@@ -332,6 +334,24 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     </span>
                                                 )
                                             })}
+                                        </div>
+                                    )}
+
+                                    {/* 메모 영역 */}
+                                    {(site.special_notes || site.worker_notes) && (
+                                        <div className="pt-2 space-y-1.5 opacity-90">
+                                            {site.special_notes && (
+                                                <div className="text-xs bg-red-50 text-red-700 p-2 rounded border border-red-100 flex items-start">
+                                                    <span className="font-bold mr-1.5 shrink-0">특이사항:</span>
+                                                    <span className="whitespace-pre-wrap">{site.special_notes}</span>
+                                                </div>
+                                            )}
+                                            {site.worker_notes && (
+                                                <div className="text-xs bg-blue-50 text-blue-700 p-2 rounded border border-blue-100 flex items-start">
+                                                    <span className="font-bold mr-1.5 shrink-0">팀장메모:</span>
+                                                    <span className="whitespace-pre-wrap">{site.worker_notes}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 

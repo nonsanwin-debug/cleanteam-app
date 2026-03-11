@@ -114,9 +114,15 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                             </div>
                         </div>
                         {site.special_notes && (
-                            <div className="bg-yellow-50 p-3 rounded-md text-sm border border-yellow-100">
+                            <div className="bg-yellow-50 p-3 rounded-md text-sm border border-yellow-100 mt-4">
                                 <span className="font-semibold text-yellow-800 block mb-1">특이사항</span>
-                                <span className="text-yellow-700">{site.special_notes}</span>
+                                <span className="text-yellow-700 whitespace-pre-wrap">{site.special_notes}</span>
+                            </div>
+                        )}
+                        {site.worker_notes && (
+                            <div className="bg-blue-50 p-3 rounded-md text-sm border border-blue-100 mt-4">
+                                <span className="font-semibold text-blue-800 block mb-1">팀장 메모</span>
+                                <span className="text-blue-700 whitespace-pre-wrap">{site.worker_notes}</span>
                             </div>
                         )}
                     </CardContent>
