@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { AdminMemo, saveAdminMemo, deleteAdminMemo } from '@/actions/admin-memos'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,11 +38,9 @@ export function AdminMemoCalendar({ initialDate, memos }: AdminMemoCalendarProps
 
     // Sync selected memo content into editor when selected date changes
     // Only in useEffect so it updates when clicking a different day
-    import('react').then((React) => {
-        React.useEffect(() => {
-            setEditContent(selectedMemo?.content || '')
-        }, [selectedDateStr, selectedMemo?.content])
-    })
+    useEffect(() => {
+        setEditContent(selectedMemo?.content || '')
+    }, [selectedDateStr, selectedMemo?.content])
 
 
     const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1))
