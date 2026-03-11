@@ -489,13 +489,23 @@ export async function forceCompleteSite(id: string) {
     const supabase = await createClient()
 
     try {
+        // Fetch current started_at to see if we need to mock it for duration calculation
+        const { data: site } = await supabase.from('sites').select('started_at').eq('id', id).single()
+
+        const now = new Date().toISOString()
+        const updateData: any = {
+            status: 'completed',
+            completed_at: now,
+            updated_at: now
+        }
+
+        if (!site?.started_at) {
+            updateData.started_at = now
+        }
+
         const { error } = await supabase
             .from('sites')
-            .update({
-                status: 'completed',
-                completed_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', id)
 
         if (error) throw error
@@ -661,7 +671,7 @@ export async function getTodayActivitySites() {
         `)
         .eq('company_id', companyId)
         .or('status.eq.in_progress,status.eq.completed')
-        .order('started_at', { ascending: false })
+        .order('started_at', { ascending: false, nullsFirst: false })
         .limit(20)
 
     if (error) {
