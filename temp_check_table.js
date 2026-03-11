@@ -20,21 +20,11 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function run() {
-    try {
-        const sql = fs.readFileSync('fix_admin_memos_rls.sql', 'utf8');
-        console.log('Executing SQL...');
-        
-        // Try the exec_sql RPC
-        const { error } = await supabase.rpc('exec_sql', { sql });
-        
-        if (error) {
-            console.log('exec_sql failed, error was:', error);
-            // Don't fallback to exec, just exit since exec_sql is the only one
-        } else {
-            console.log('Successfully applied via exec_sql');
-        }
-    } catch (err) {
-        console.error('Error applying sql:', err);
+    const { data, error } = await supabase.from('admin_memos').select('*').limit(1);
+    console.log('--- admin_memos check ---');
+    console.log('Result:', data);
+    if (error) {
+        console.error('Error:', error);
     }
 }
 

@@ -20,22 +20,16 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function run() {
-    try {
-        const sql = fs.readFileSync('fix_admin_memos_rls.sql', 'utf8');
-        console.log('Executing SQL...');
-        
-        // Try the exec_sql RPC
-        const { error } = await supabase.rpc('exec_sql', { sql });
-        
-        if (error) {
-            console.log('exec_sql failed, error was:', error);
-            // Don't fallback to exec, just exit since exec_sql is the only one
-        } else {
-            console.log('Successfully applied via exec_sql');
-        }
-    } catch (err) {
-        console.error('Error applying sql:', err);
-    }
+    // 1. Check company "더클린" code
+    const { data: companies, error: cErr } = await supabase
+        .from('companies')
+        .select('*');
+    
+    console.log('--- Companies ---');
+    console.log(companies?.map(c => `${c.name}#${c.code}`).join(', '));
+
+    // For policies, I will write a simple sql query and use the temp_apply_schema method
+    // to run it if necessary, but first let's just see if "더클린" #6382 exists.
 }
 
 run();

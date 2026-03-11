@@ -76,19 +76,16 @@ export default function Home() {
           return
         }
 
-        // DB에서 업체 확인
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('id, name, code')
-          .eq('name', inputName.trim())
-          .eq('code', inputCode.trim())
-          .single()
+        // DB에서 업체 확인 (서버 액션 사용 - RLS 우회)
+        const { verifyCompany } = await import('@/actions/auth-actions')
+        const companyRes = await verifyCompany(inputName, inputCode)
 
-        if (!companyData) {
-          toast.error('없는 소속입니다', { description: '업체명과 코드를 다시 확인해주세요. 관리자에게 문의하세요.' })
+        if (!companyRes.success) {
+          toast.error('없는 소속입니다', { description: companyRes.error })
           setIsLoading(false)
           return
         }
+
 
         // SIGN UP LOGIC
         const { data, error } = await supabase.auth.signUp({
