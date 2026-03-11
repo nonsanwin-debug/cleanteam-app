@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cleanteam-v2'
+const CACHE_NAME = 'cleanteam-v3'
 
 const PRECACHE_URLS = [
     '/',
@@ -27,15 +27,35 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
-    // Network-first strategy for API calls and dynamic content
+    // API calls and non-GET requests are ignore
     if (event.request.url.includes('/api/') || event.request.method !== 'GET') {
         return
     }
 
+    // DO NOT intercept Next.js Data requests (RSC), prefetches, or internal _next files
+    // The naive cache can break App Router soft-navigation
+    if (
+        event.request.headers.get('RSC') === '1' ||
+        event.request.headers.get('Next-Router-Prefetch') === '1' ||
+        event.request.url.includes('/_next/')
+    ) {
+        return
+    }
+
+    // ALWAYS network-first for HTML navigations to avoid serving old cached pages or RSC payloads by mistake
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.match(event.request) // fallback to cache only if completely offline
+            })
+        )
+        return
+    }
+
+    // Standard stale-while-revalidate or network-first for assets like images, fonts
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Cache successful responses
                 if (response.ok) {
                     const responseClone = response.clone()
                     caches.open(CACHE_NAME).then((cache) => {
@@ -45,7 +65,6 @@ self.addEventListener('fetch', (event) => {
                 return response
             })
             .catch(() => {
-                // Fallback to cache if offline
                 return caches.match(event.request)
             })
     )
