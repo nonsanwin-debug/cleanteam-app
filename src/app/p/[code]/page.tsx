@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { getPublicPortfolio, PublicSite } from '@/actions/portfolio'
 import { format } from 'date-fns'
-import { MessageSquare, Phone } from 'lucide-react'
+import { MessageSquare, Phone, Calendar } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -44,9 +44,15 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
     const sites = response.sites || []
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-slate-50 pb-20 relative overflow-hidden">
+            {/* Background Blobs */}
+            <div className="absolute top-0 left-0 w-full h-[500px] overflow-hidden -z-0 pointer-events-none">
+                <div className="absolute -top-[100px] -left-[100px] w-[300px] h-[300px] rounded-full bg-blue-300/30 blur-[60px] animate-pulse"></div>
+                <div className="absolute top-[50px] -right-[100px] w-[350px] h-[350px] rounded-full bg-indigo-300/20 blur-[80px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+            </div>
+
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm px-4 py-4">
+            <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm px-4 py-4">
                 <div className="max-w-md mx-auto flex flex-col items-center justify-center text-center gap-1">
                     <div className="flex items-center gap-1.5 justify-center">
                         <svg viewBox="0 0 24 24" fill="none" className="w-[20px] h-[20px]" xmlns="http://www.w3.org/2000/svg">
@@ -81,24 +87,24 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             </header>
 
             {/* Notice Banner */}
-            <div className="max-w-md mx-auto px-4 pt-4">
-                <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-4 shadow-sm">
-                    <p className="text-sm text-blue-800 leading-relaxed font-medium mb-3">
-                        청소 중에는 전화를 못 받을 수 있으니, 문자로 <span className="font-bold text-blue-900">[지역 / 아파트명 / 평수 / 날짜]</span>를 남겨주시면 확인 후 바로 연락드리겠습니다.
+            <div className="max-w-md mx-auto px-4 pt-4 relative z-10">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50/80 border border-blue-100/50 rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p className="text-sm text-blue-900 leading-relaxed font-medium mb-4">
+                        청소 중에는 전화를 못 받을 수 있으니, 문자로 <span className="font-bold bg-blue-100 text-blue-900 px-1 py-0.5 rounded mx-0.5 break-keep">[지역 / 아파트명 / 평수 / 날짜]</span>를 남겨주시면 확인 후 바로 연락드리겠습니다.
                     </p>
 
                     {response.promotionContactNumber && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-2.5">
                             <a
                                 href={`sms:${response.promotionContactNumber.replace(/[^0-9]/g, '')}`}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5 shadow-sm hover:shadow-blue-200 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300"
                             >
-                                <MessageSquare className="w-4 h-4" />
+                                <MessageSquare className="w-4 h-4 animate-bounce" style={{ animationDuration: '2s' }} />
                                 문자 보내기
                             </a>
                             <a
                                 href={`tel:${response.promotionContactNumber.replace(/[^0-9]/g, '')}`}
-                                className="flex-1 bg-white hover:bg-slate-50 text-blue-700 border border-blue-200 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="flex-1 bg-white hover:bg-slate-50 hover:-translate-y-0.5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-blue-100 text-blue-700 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300"
                             >
                                 <Phone className="w-4 h-4" />
                                 전화 걸기
@@ -109,21 +115,24 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             </div>
 
             {/* Content */}
-            <main className="max-w-md mx-auto p-4 space-y-6">
+            <main className="max-w-md mx-auto p-4 space-y-6 relative z-10 mt-2">
                 {sites.length === 0 ? (
-                    <div className="text-center py-20">
+                    <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-sm">
                         <p className="text-slate-500 font-medium">최근 등록된 현장 사진이 없습니다.</p>
                     </div>
                 ) : (
                     sites.map((site) => (
-                        <article key={site.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                        <article key={site.id} className="bg-white rounded-2xl p-5 shadow-md hover:shadow-xl hover:-translate-y-1 border border-slate-100 transition-all duration-300 group">
                             {/* Site Header */}
-                            <div className="mb-4">
-                                <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                    <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-lg text-sm flex-shrink-0">
-                                        {format(new Date(site.completed_at), 'd일')}
+                            <div className="mb-5 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-bold border border-blue-100/50 shadow-sm">
+                                        <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                        {format(new Date(site.completed_at), 'M월 d일')} 작업
                                     </span>
-                                    <span className="truncate">{site.address}</span>
+                                </div>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight leading-snug group-hover:text-blue-600 transition-colors">
+                                    {site.address}
                                 </h2>
                             </div>
 

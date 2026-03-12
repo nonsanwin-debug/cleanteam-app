@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, TouchEvent } from 'react'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Sparkles, Camera } from 'lucide-react'
 
 export function PhotoGrid({ photos, title }: { photos: string[], title: string }) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -50,7 +50,12 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
     return (
         <>
             <div className="mt-4">
-                <h4 className="text-sm font-bold text-slate-700 mb-2 border-l-2 border-blue-500 pl-2">
+                <h4 className="flex items-center gap-1.5 text-sm font-bold text-slate-800 mb-3 border-l-2 border-blue-500 pl-2">
+                    {title.includes('후') ? (
+                        <Sparkles className="w-4 h-4 text-blue-500" />
+                    ) : (
+                        <Camera className="w-4 h-4 text-slate-400" />
+                    )}
                     {title}
                 </h4>
                 <div className={`grid gap-2 ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
