@@ -150,12 +150,30 @@ export function AdminSiteMap() {
             })
         }
 
+        const places = new window.kakao.maps.services.Places()
+        const searchPlaces = (keyword: string) => {
+            return new Promise<any>((resolve) => {
+                places.keywordSearch(keyword, (result: any, status: any) => {
+                    if (status === window.kakao.maps.services.Status.OK) {
+                        resolve(result[0])
+                    } else {
+                        resolve(null)
+                    }
+                })
+            })
+        }
+
         // Process sequentially to bypass Kakao API rate limits
         for (const site of rawSites) {
             let result = await searchAddress(site.address)
             let isFallback = false
             
-            // Если 주소를 못 찾았을 경우, 동/면/읍 단위로 추출해서 다시 검색해보기
+            // 1. 주소 검색 실패 시 키워드(장소) 검색으로 시도 (e.g. 아파트 명칭)
+            if (!result) {
+                result = await searchPlaces(site.address)
+            }
+
+            // 2. 장소 검색도 실패했을 경우, 동/면/읍 단위로 추출해서 다시 검색해보기
             if (!result) {
                 // Address pattern matching to find combinations of (시/도) (구/군) (동/면/읍)
                 // e.g. "대전 서구 둔산동 123" -> matches "대전 서구 둔산동" or just "둔산동"
@@ -237,15 +255,25 @@ export function AdminSiteMap() {
 
             const position = new window.kakao.maps.LatLng(site.lat, site.lng)
             
-            // 파란색 기본 마커
+            const timeObj = formatKoreanTime(site.startTime);
+            const isPM = timeObj?.isPM;
+            let markerColor = "#3b82f6"; // blue (AM / default)
+            if (isPM) markerColor = "#ef4444"; // red (PM)
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${markerColor}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`;
+            const imageSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+            const imageSize = new window.kakao.maps.Size(32, 32);
+            const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize, { offset: new window.kakao.maps.Point(16, 32) });
+
+            // SVG 기반 커스텀 핀 색상 적용
             const marker = new window.kakao.maps.Marker({
                 map: map,
                 position: position,
-                title: site.name
+                title: site.name,
+                image: markerImage
             })
             
             // 인포윈도우 (Hover 시에만 노출되도록 내용 구성)
-            const timeObj = formatKoreanTime(site.startTime);
             const timeHtml = timeObj ? `<span class="${timeObj.colorClass} font-extrabold">${timeObj.text}</span>` : null;
 
             const infoText = [
