@@ -311,47 +311,57 @@ export function AdminSiteMap() {
         e.preventDefault()
         if (!searchQuery || !geocoder || !map) return
 
+        const placeSearchResult = (lat: number, lng: number) => {
+            const position = new window.kakao.maps.LatLng(lat, lng)
+
+            // 기존 검색 마커 제거
+            if (searchMarker) {
+                searchMarker.setMap(null)
+            }
+
+            // 빨간색 마커 생성 (검색 위치)
+            const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
+            const imageSize = new window.kakao.maps.Size(24, 35)
+            const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize)
+            
+            const newSearchMarker = new window.kakao.maps.Marker({
+                map: map,
+                position: position,
+                image: markerImage,
+                title: "검색 위치"
+            })
+
+            setSearchMarker(newSearchMarker)
+            setSearchLocation({lat, lng})
+
+            // 지도 포커스 이동 (검색된 곳과 핀들이 모두 보이게)
+            const bounds = new window.kakao.maps.LatLngBounds()
+            bounds.extend(position)
+            sites.forEach(s => {
+                if (s.lat !== undefined && s.lng !== undefined) {
+                    bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng))
+                }
+            })
+            map.setBounds(bounds)
+
+            // 선 그리기 및 거리 계산
+            calculateDistances(sites.filter(s => s.lat !== undefined && s.lng !== undefined), {lat, lng})
+        }
+
+        // 1차: 주소 검색
         geocoder.addressSearch(searchQuery, (result: any, status: any) => {
             if (status === window.kakao.maps.services.Status.OK) {
-                const lat = Number(result[0].y)
-                const lng = Number(result[0].x)
-                const position = new window.kakao.maps.LatLng(lat, lng)
-
-                // 기존 검색 마커 제거
-                if (searchMarker) {
-                    searchMarker.setMap(null)
-                }
-
-                // 빨간색 마커 생성 (검색 위치)
-                const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
-                const imageSize = new window.kakao.maps.Size(24, 35)
-                const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize)
-                
-                const newSearchMarker = new window.kakao.maps.Marker({
-                    map: map,
-                    position: position,
-                    image: markerImage,
-                    title: "검색 위치"
-                })
-
-                setSearchMarker(newSearchMarker)
-                setSearchLocation({lat, lng})
-
-                // 지도 포커스 이동 (검색된 곳과 핀들이 모두 보이게)
-                const bounds = new window.kakao.maps.LatLngBounds()
-                bounds.extend(position)
-                sites.forEach(s => {
-                    if (s.lat !== undefined && s.lng !== undefined) {
-                        bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng))
+                placeSearchResult(Number(result[0].y), Number(result[0].x))
+            } else {
+                // 2차: 장소/키워드 검색 (아파트명, 건물명 등)
+                const places = new window.kakao.maps.services.Places()
+                places.keywordSearch(searchQuery, (placeResult: any, placeStatus: any) => {
+                    if (placeStatus === window.kakao.maps.services.Status.OK) {
+                        placeSearchResult(Number(placeResult[0].y), Number(placeResult[0].x))
+                    } else {
+                        alert('주소를 찾을 수 없습니다. 정확한 도로명/지번 또는 장소명을 입력해주세요.')
                     }
                 })
-                map.setBounds(bounds)
-
-                // 선 그리기 및 거리 계산
-                calculateDistances(sites.filter(s => s.lat !== undefined && s.lng !== undefined), {lat, lng})
-
-            } else {
-                alert('주소를 찾을 수 없습니다. 정확한 도로명/지번을 입력해주세요.')
             }
         })
     }
