@@ -260,10 +260,10 @@ export function AdminSiteMap() {
             let markerColor = "#3b82f6"; // blue (AM / default)
             if (isPM) markerColor = "#ef4444"; // red (PM)
 
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${markerColor}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="${markerColor}" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`;
             const imageSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-            const imageSize = new window.kakao.maps.Size(32, 32);
-            const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize, { offset: new window.kakao.maps.Point(16, 32) });
+            const imageSize = new window.kakao.maps.Size(48, 48);
+            const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize, { offset: new window.kakao.maps.Point(24, 48) });
 
             // SVG 기반 커스텀 핀 색상 적용
             const marker = new window.kakao.maps.Marker({

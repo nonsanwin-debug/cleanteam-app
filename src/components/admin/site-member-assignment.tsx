@@ -294,7 +294,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     해피콜
                                                 </div>
                                             ) : (
-                                                <div className="flex flex-col items-end gap-1.5">
+                                                <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
                                                     <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
                                                         해피콜 대기
                                                     </div>
@@ -302,12 +302,12 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                         <Button 
                                                             variant="outline" 
                                                             size="sm" 
-                                                            className="h-6 text-[10px] px-2 py-0"
+                                                            className="h-6 text-[10px] px-2 py-0 pointer-events-auto"
                                                             onClick={(e) => handleRequestHappyCall(e, site.id, site.worker_id!)}
                                                             disabled={isPending}
                                                         >
                                                             <BellRing className="w-3 h-3 mr-1" />
-                                                            요청
+                                                            해피콜 요청
                                                         </Button>
                                                     )}
                                                 </div>
