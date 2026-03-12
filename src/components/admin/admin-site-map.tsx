@@ -40,6 +40,10 @@ export function AdminSiteMap() {
     const [searchLocation, setSearchLocation] = useState<{lat: number, lng: number} | null>(null)
     const [polylines, setPolylines] = useState<any[]>([])
 
+    // Site ID → Marker 매핑 (카드 호버 시 바운스 애니메이션용)
+    const markerMapRef = useRef<Map<string, any>>(new Map())
+    const bounceOverlayRef = useRef<any>(null)
+
     // 1. 카카오맵 로드 대기 및 초기화
     useEffect(() => {
         const initMap = () => {
@@ -249,6 +253,7 @@ export function AdminSiteMap() {
         
         const newMarkers: any[] = []
         const newInfos: any[] = []
+        markerMapRef.current.clear()
 
         siteList.forEach(site => {
             if (site.lat === undefined || site.lng === undefined) return;
@@ -300,6 +305,7 @@ export function AdminSiteMap() {
 
             newMarkers.push(marker)
             newInfos.push(customOverlay) // keep reference to clean up on unmount
+            markerMapRef.current.set(site.id, marker)
         })
 
         setMarkers(newMarkers)
@@ -554,6 +560,40 @@ export function AdminSiteMap() {
                                 <ul className="space-y-2">
                                     {sites.map((site) => (
                                         <li key={site.id} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col hover:border-blue-300 transition-colors cursor-pointer"
+                                            onMouseEnter={() => {
+                                                if (!map || site.lat === undefined || site.lng === undefined) return
+                                                // 기존 바운스 제거
+                                                if (bounceOverlayRef.current) {
+                                                    bounceOverlayRef.current.setMap(null)
+                                                }
+                                                const pos = new window.kakao.maps.LatLng(site.lat, site.lng)
+                                                const overlay = new window.kakao.maps.CustomOverlay({
+                                                    position: pos,
+                                                    content: `<div style="width:20px;height:20px;background:#3b82f6;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(59,130,246,0.5);animation:bounce-pin 0.5s ease infinite alternate;"></div>
+                                                    <style>@keyframes bounce-pin{0%{transform:translateY(0)}100%{transform:translateY(-18px)}}</style>`,
+                                                    yAnchor: 1.2,
+                                                    zIndex: 100
+                                                })
+                                                overlay.setMap(map)
+                                                bounceOverlayRef.current = overlay
+
+                                                // 해당 마커 인포윈도우도 표시
+                                                const marker = markerMapRef.current.get(site.id)
+                                                if (marker) {
+                                                    window.kakao.maps.event.trigger(marker, 'mouseover')
+                                                }
+                                            }}
+                                            onMouseLeave={() => {
+                                                if (bounceOverlayRef.current) {
+                                                    bounceOverlayRef.current.setMap(null)
+                                                    bounceOverlayRef.current = null
+                                                }
+                                                // 인포윈도우 숨기기
+                                                const marker = markerMapRef.current.get(site.id)
+                                                if (marker) {
+                                                    window.kakao.maps.event.trigger(marker, 'mouseout')
+                                                }
+                                            }}
                                             onClick={() => {
                                                 if (map && site.lat !== undefined && site.lng !== undefined) {
                                                     const lat = site.lat
