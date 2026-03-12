@@ -365,6 +365,15 @@ export function AdminSiteMap() {
                 const origin = { lat: centerCoords.lat, lng: centerCoords.lng }
                 const destination = { lat: site.lat, lng: site.lng }
                 
+                // 목적지와 출발지가 동일하다면 카카오 API 호출 건너뛰기
+                if (Math.abs(origin.lat - destination.lat) < 0.00001 && Math.abs(origin.lng - destination.lng) < 0.00001) {
+                    return {
+                        ...site,
+                        distance: 0,
+                        duration: 0
+                    }
+                }
+
                 const routeData = await getKakaoDrivingRoute(origin, destination)
                 
                 if (routeData) {
@@ -507,7 +516,40 @@ export function AdminSiteMap() {
                                         <li key={site.id} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col hover:border-blue-300 transition-colors cursor-pointer"
                                             onClick={() => {
                                                 if (map && site.lat !== undefined && site.lng !== undefined) {
-                                                    map.panTo(new window.kakao.maps.LatLng(site.lat, site.lng))
+                                                    const lat = site.lat
+                                                    const lng = site.lng
+                                                    const position = new window.kakao.maps.LatLng(lat, lng)
+
+                                                    setSearchQuery(site.name)
+                                                    
+                                                    if (searchMarker) {
+                                                        searchMarker.setMap(null)
+                                                    }
+
+                                                    const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"
+                                                    const imageSize = new window.kakao.maps.Size(24, 35)
+                                                    const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize)
+                                                    
+                                                    const newSearchMarker = new window.kakao.maps.Marker({
+                                                        map: map,
+                                                        position: position,
+                                                        image: markerImage,
+                                                        title: "출발 기준 현장"
+                                                    })
+
+                                                    setSearchMarker(newSearchMarker)
+                                                    setSearchLocation({lat, lng})
+
+                                                    const bounds = new window.kakao.maps.LatLngBounds()
+                                                    bounds.extend(position)
+                                                    sites.forEach(s => {
+                                                        if (s.lat !== undefined && s.lng !== undefined) {
+                                                            bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng))
+                                                        }
+                                                    })
+                                                    map.setBounds(bounds)
+
+                                                    calculateDistances(sites, {lat, lng})
                                                 }
                                             }}
                                         >
@@ -532,7 +574,14 @@ export function AdminSiteMap() {
                                                     )}
                                                 </div>
                                             )}
-                                            {site.duration !== undefined ? (
+                                            {site.duration === 0 && site.distance === 0 ? (
+                                                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                                                    <span className="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3" />
+                                                        출발 기준 현장
+                                                    </span>
+                                                </div>
+                                            ) : site.duration !== undefined ? (
                                                 <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
                                                     <span className="text-[10px] font-medium text-blue-500 flex items-center gap-1">
                                                         <Navigation className="w-3 h-3" />
