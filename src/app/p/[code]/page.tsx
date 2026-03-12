@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { getPublicPortfolio, PublicSite } from '@/actions/portfolio'
 import { format } from 'date-fns'
-import { MessageSquare, Phone, Calendar } from 'lucide-react'
+import { MessageSquare, Phone, Calendar, Leaf, Award, ShieldCheck, Sparkles } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -141,6 +141,52 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
 
                             {/* After Photos */}
                             <PhotoGrid photos={site.photos_after} title="작업 후" />
+
+                            {/* Trust Badges */}
+                            <div className="mt-6 border-t border-slate-100 pt-5">
+                                <h4 className="text-xs font-bold text-slate-400 mb-3 text-center">NEXUS x {response.companyName} 프리미엄 케어</h4>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    <div className="flex items-center gap-2 bg-emerald-50/80 border border-emerald-100/80 p-2.5 rounded-xl transition-transform hover:scale-105">
+                                        <div className="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg flex-shrink-0">
+                                            <Leaf className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[11px] font-bold text-emerald-800 leading-tight">친환경 세제<br/>사용</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-blue-50/80 border border-blue-100/80 p-2.5 rounded-xl transition-transform hover:scale-105">
+                                        <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg flex-shrink-0">
+                                            <Award className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[11px] font-bold text-blue-800 leading-tight">전문가 직접<br/>시공</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-indigo-50/80 border border-indigo-100/80 p-2.5 rounded-xl transition-transform hover:scale-105">
+                                        <div className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg flex-shrink-0">
+                                            <ShieldCheck className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] font-bold text-indigo-800 leading-tight">안심보증 서비스</span>
+                                            {(() => {
+                                                const completedDate = new Date(site.completed_at);
+                                                const guaranteeEndDate = new Date(completedDate);
+                                                guaranteeEndDate.setDate(guaranteeEndDate.getDate() + 7);
+                                                guaranteeEndDate.setHours(23, 59, 59, 999);
+                                                const remainingDays = Math.ceil((guaranteeEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                                return remainingDays > 0 ? (
+                                                    <span className="text-[10px] font-black text-indigo-600 mt-0.5 tracking-tight">남은기간 {remainingDays}일</span>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-slate-400 mt-0.5">보증 만료</span>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-purple-50/80 border border-purple-100/80 p-2.5 rounded-xl transition-transform hover:scale-105">
+                                        <div className="bg-purple-100 text-purple-600 p-1.5 rounded-lg flex-shrink-0">
+                                            <Sparkles className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[11px] font-bold text-purple-800 leading-tight">고온 스팀<br/>살균</span>
+                                    </div>
+                                </div>
+                            </div>
+
 
                         </article>
                     ))
