@@ -85,9 +85,7 @@ export function AdminSiteMap() {
                 .from('sites')
                 .select(`
                     id, name, address, created_at, cleaning_date, start_time,
-                    site_workers: site_workers (
-                        users: worker_id (name, role)
-                    )
+                    worker:users!worker_id (name)
                 `)
                 .or(`cleaning_date.gte.${startOfDay.toISOString()},and(cleaning_date.is.null,created_at.gte.${startOfDay.toISOString()})`)
 
@@ -132,11 +130,10 @@ export function AdminSiteMap() {
                     const position = new window.kakao.maps.LatLng(result[0].y, result[0].x)
                     bounds.extend(position)
                     
-                    // Extract worker name (getting the first one or finding the leader if possible)
+                    // Extract worker name
                     let wName = ''
-                    if (site.site_workers && site.site_workers.length > 0) {
-                        const firstWorker = site.site_workers[0]?.users
-                        wName = firstWorker ? firstWorker.name : ''
+                    if (site.worker) {
+                        wName = site.worker.name || ''
                     }
 
                     newSites.push({
