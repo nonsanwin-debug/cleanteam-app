@@ -20,6 +20,7 @@ interface SiteLocation {
     duration?: number // minutes
     workerName?: string
     startTime?: string
+    isFallback?: boolean // indicates the coordinate is a fallback (e.g. Dong/Myeon)
 }
 
 export function AdminSiteMap() {
@@ -137,7 +138,21 @@ export function AdminSiteMap() {
 
         // Process sequentially to bypass Kakao API rate limits
         for (const site of rawSites) {
-            const result = await searchAddress(site.address)
+            let result = await searchAddress(site.address)
+            let isFallback = false
+            
+            // Если 주소를 못 찾았을 경우, 동/면/읍 단위로 추출해서 다시 검색해보기
+            if (!result) {
+                // Address pattern matching to find combinations of (시/도) (구/군) (동/면/읍)
+                // e.g. "대전 서구 둔산동 123" -> matches "대전 서구 둔산동" or just "둔산동"
+                const dongMatch = site.address.match(/([가-힣]+(시|도)\s+)?([가-힣]+(구|군)\s+)?([가-힣]+(동|면|읍))/);
+                if (dongMatch && dongMatch[0]) {
+                    result = await searchAddress(dongMatch[0])
+                    if (result) {
+                        isFallback = true
+                    }
+                }
+            }
             
             // Extract worker name
             let wName = ''
@@ -156,7 +171,8 @@ export function AdminSiteMap() {
                     lat: Number(result.y),
                     lng: Number(result.x),
                     workerName: wName,
-                    startTime: site.start_time
+                    startTime: site.start_time,
+                    isFallback: isFallback
                 })
             } else {
                 // Keep the site in the list even if geocoding fails, so it doesn't disappear
@@ -459,10 +475,12 @@ export function AdminSiteMap() {
                                                 }
                                             }}
                                         >
-                                            <div className="font-semibold text-slate-800 flex items-center gap-2">
+                                            <div className="font-semibold text-slate-800 flex flex-wrap items-center gap-2">
                                                 {site.name}
-                                                {(site.lat === undefined || site.lng === undefined) && (
-                                                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">지도 좌표 확인 불가</span>
+                                                {(site.lat === undefined || site.lng === undefined) ? (
+                                                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold shrink-0">지도 좌표 확인 불가</span>
+                                                ) : site.isFallback && (
+                                                    <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold shrink-0">동/면 기준 위치표시</span>
                                                 )}
                                             </div>
                                             <div className="text-sm text-slate-500 truncate" title={site.address}>{site.address}</div>
