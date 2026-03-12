@@ -44,6 +44,28 @@ export function AdminSiteMap() {
     const markerMapRef = useRef<Map<string, any>>(new Map())
     const bounceOverlayRef = useRef<any>(null)
 
+    // 회사 필터링
+    const [companyId, setCompanyId] = useState<string | null>(null)
+
+    // 0. 로그인된 유저의 company_id 조회
+    useEffect(() => {
+        const fetchCompany = async () => {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('company_id')
+                    .eq('id', user.id)
+                    .single()
+                if (profile?.company_id) {
+                    setCompanyId(profile.company_id)
+                }
+            }
+        }
+        fetchCompany()
+    }, [])
+
     // 1. 카카오맵 로드 대기 및 초기화
     useEffect(() => {
         const initMap = () => {
@@ -90,6 +112,8 @@ export function AdminSiteMap() {
 
     // 2. 날짜 변경 시 해당 날짜의 현장 데이터 불러오기
     useEffect(() => {
+        if (!companyId) return // 회사 정보가 아직 로드되지 않았으면 대기
+
         const fetchSites = async () => {
             setIsLoading(true)
             const supabase = createClient()
@@ -106,6 +130,7 @@ export function AdminSiteMap() {
                     id, name, address, created_at, cleaning_date, start_time,
                     worker:users!worker_id (name)
                 `)
+                .eq('company_id', companyId)
                 .or(`cleaning_date.gte.${startOfDay.toISOString()},and(cleaning_date.is.null,created_at.gte.${startOfDay.toISOString()})`)
 
             if (data && data.length > 0) {
@@ -127,7 +152,7 @@ export function AdminSiteMap() {
         }
 
         fetchSites()
-    }, [targetDate, geocoder, map])
+    }, [targetDate, geocoder, map, companyId])
 
     // 3. 주소를 카카오맵 좌표로 변환 및 지도 이동
     const convertAddressesToCoords = async (rawSites: any[]) => {
