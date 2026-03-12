@@ -115,8 +115,6 @@ export function AdminSiteMap() {
         const bounds = new window.kakao.maps.LatLngBounds()
         const newSites: SiteLocation[] = []
         
-        let processedCount = 0
-
         if(rawSites.length === 0) {
             setSites([])
             clearMarkers()
@@ -124,45 +122,58 @@ export function AdminSiteMap() {
             return
         }
 
-        rawSites.forEach((site) => {
-            geocoder.addressSearch(site.address, (result: any, status: any) => {
-                if (status === window.kakao.maps.services.Status.OK) {
-                    const position = new window.kakao.maps.LatLng(result[0].y, result[0].x)
-                    bounds.extend(position)
-                    
-                    // Extract worker name
-                    let wName = ''
-                    if (site.worker) {
-                        wName = site.worker.name || ''
+        // Helper to promisify addressSearch
+        const searchAddress = (address: string) => {
+            return new Promise<any>((resolve) => {
+                geocoder.addressSearch(address, (result: any, status: any) => {
+                    if (status === window.kakao.maps.services.Status.OK) {
+                        resolve(result[0])
+                    } else {
+                        resolve(null)
                     }
-
-                    newSites.push({
-                        id: site.id,
-                        name: site.name,
-                        address: site.address,
-                        lat: Number(result[0].y),
-                        lng: Number(result[0].x),
-                        workerName: wName,
-                        startTime: site.start_time
-                    })
-                }
-                
-                processedCount++
-                if (processedCount === rawSites.length) {
-                    setSites(newSites)
-                    drawSiteMarkers(newSites)
-                    if (newSites.length > 0) {
-                        map.setBounds(bounds)
-                    }
-                    setIsLoading(false)
-                    
-                    // 만약 이미 검색된 위치가 있다면 거리 재계산
-                    if (searchLocation) {
-                        calculateDistances(newSites, searchLocation)
-                    }
-                }
+                })
             })
-        })
+        }
+
+        // Process sequentially to bypass Kakao API rate limits
+        for (const site of rawSites) {
+            const result = await searchAddress(site.address)
+            
+            if (result) {
+                const position = new window.kakao.maps.LatLng(result.y, result.x)
+                bounds.extend(position)
+                
+                // Extract worker name
+                let wName = ''
+                if (site.worker) {
+                    wName = site.worker.name || ''
+                }
+
+                newSites.push({
+                    id: site.id,
+                    name: site.name,
+                    address: site.address,
+                    lat: Number(result.y),
+                    lng: Number(result.x),
+                    workerName: wName,
+                    startTime: site.start_time
+                })
+            }
+            // Small delay to prevent hitting the concurrent request limit
+            await new Promise(r => setTimeout(r, 100))
+        }
+
+        setSites(newSites)
+        drawSiteMarkers(newSites)
+        if (newSites.length > 0) {
+            map.setBounds(bounds)
+        }
+        setIsLoading(false)
+        
+        // 만약 이미 검색된 위치가 있다면 거리 재계산
+        if (searchLocation) {
+            calculateDistances(newSites, searchLocation)
+        }
     }
 
     // 마커 및 오버레이 초기화
