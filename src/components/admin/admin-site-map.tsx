@@ -17,6 +17,9 @@ interface SiteLocation {
     lat: number
     lng: number
     distance?: number // km
+    duration?: number // minutes
+    workerName?: string
+    startTime?: string
 }
 
 export function AdminSiteMap() {
@@ -80,7 +83,12 @@ export function AdminSiteMap() {
 
             const { data, error } = await supabase
                 .from('sites')
-                .select('id, name, address, created_at, cleaning_date')
+                .select(`
+                    id, name, address, created_at, cleaning_date, start_time,
+                    site_workers: site_workers (
+                        users: worker_id (name, role)
+                    )
+                `)
                 .or(`cleaning_date.gte.${startOfDay.toISOString()},and(cleaning_date.is.null,created_at.gte.${startOfDay.toISOString()})`)
 
             if (data && data.length > 0) {
@@ -124,12 +132,21 @@ export function AdminSiteMap() {
                     const position = new window.kakao.maps.LatLng(result[0].y, result[0].x)
                     bounds.extend(position)
                     
+                    // Extract worker name (getting the first one or finding the leader if possible)
+                    let wName = ''
+                    if (site.site_workers && site.site_workers.length > 0) {
+                        const firstWorker = site.site_workers[0]?.users
+                        wName = firstWorker ? firstWorker.name : ''
+                    }
+
                     newSites.push({
                         id: site.id,
                         name: site.name,
                         address: site.address,
                         lat: Number(result[0].y),
-                        lng: Number(result[0].x)
+                        lng: Number(result[0].x),
+                        workerName: wName,
+                        startTime: site.start_time
                     })
                 }
                 
@@ -179,7 +196,13 @@ export function AdminSiteMap() {
             })
             
             // 인포윈도우 (현장 이름 라벨)
-            const content = `<div class="bg-white px-2 py-1 rounded shadow-md border border-slate-200 text-xs font-bold text-slate-800 whitespace-nowrap -translate-y-2">${site.name}</div>`
+            const infoText = [
+                site.name,
+                site.workerName ? `담당: ${site.workerName}` : null,
+                site.startTime ? `시간: ${site.startTime}` : null,
+            ].filter(Boolean).join(' | ')
+
+            const content = `<div class="bg-white px-2 py-1 rounded shadow-md border border-slate-200 text-xs font-bold text-slate-800 whitespace-nowrap -translate-y-2">${infoText}</div>`
             const customOverlay = new window.kakao.maps.CustomOverlay({
                 map: map,
                 position: position,
@@ -241,46 +264,108 @@ export function AdminSiteMap() {
         })
     }
 
-    // 거리 계산 및 선(Polyline) 그리기
-    const calculateDistances = (siteList: SiteLocation[], centerCoords: {lat: number, lng: number}) => {
-        // 기존 폴리라인 제거
-        polylines.forEach(p => p.setMap(null))
-        const newPolylines: any[] = []
-
-        const updatedSites = siteList.map(site => {
-            const linePath = [
-                new window.kakao.maps.LatLng(centerCoords.lat, centerCoords.lng),
-                new window.kakao.maps.LatLng(site.lat, site.lng)
-            ]
-
-            const polyline = new window.kakao.maps.Polyline({
-                path: linePath,
-                strokeWeight: 2,
-                strokeColor: '#ef4444', // Red
-                strokeOpacity: 0.7,
-                strokeStyle: 'dashed'
-            })
-
-            polyline.setMap(map)
-            newPolylines.push(polyline)
-
-            // 카카오맵 내장 거리 계산 (미터 단위)
-            const distanceMeter = polyline.getLength()
-            return {
-                ...site,
-                distance: distanceMeter / 1000 // km로 저장
-            }
+    const handleSearchClear = () => {
+        setSearchQuery('')
+        setSearchMarker((prev: any) => {
+            if (prev) prev.setMap(null)
+            return null
         })
-
-        // 거리순 정렬
-        updatedSites.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-        
-        setPolylines(newPolylines)
-        setSites(updatedSites)
+        setSearchLocation(null)
+        setPolylines((prev: any[]) => {
+            prev.forEach(p => p.setMap(null))
+            return []
+        })
+        setSites((prev: SiteLocation[]) => prev.map(s => ({ ...s, distance: undefined, duration: undefined })))
     }
 
-    const prevDay = () => setTargetDate(subDays(targetDate, 1))
-    const nextDay = () => setTargetDate(addDays(targetDate, 1))
+    // 거리/시간 계산 및 선(Polyline) 그리기
+    const calculateDistances = async (siteList: SiteLocation[], centerCoords: {lat: number, lng: number}) => {
+        setIsLoading(true)
+        
+        // 기존 폴리라인 제거
+        setPolylines((prev: any[]) => {
+            prev.forEach(p => p.setMap(null))
+            return []
+        })
+        
+        const newPolylines: any[] = []
+
+        try {
+            // 카카오 네비게이션 서버 액션 (동적 임포트)
+            const { getKakaoDrivingRoute } = await import('@/actions/map')
+
+            const updatedSites = await Promise.all(siteList.map(async (site) => {
+                const origin = { lat: centerCoords.lat, lng: centerCoords.lng }
+                const destination = { lat: site.lat, lng: site.lng }
+                
+                const routeData = await getKakaoDrivingRoute(origin, destination)
+                
+                if (routeData) {
+                    const kakaoPath = routeData.path.map((p: any) => new window.kakao.maps.LatLng(p.lat, p.lng))
+                    const polyline = new window.kakao.maps.Polyline({
+                        path: kakaoPath,
+                        strokeWeight: 4,
+                        strokeColor: '#3b82f6', // 파란 라인
+                        strokeOpacity: 0.8,
+                        strokeStyle: 'solid'
+                    })
+                    polyline.setMap(map)
+                    newPolylines.push(polyline)
+
+                    return {
+                        ...site,
+                        distance: routeData.distance / 1000, 
+                        duration: Math.round(routeData.duration / 60)
+                    }
+                } else {
+                    // 서버 오류 또는 길찾기 실패 시 직선 하버사인 거리로 대체
+                    const linePath = [
+                        new window.kakao.maps.LatLng(origin.lat, origin.lng),
+                        new window.kakao.maps.LatLng(destination.lat, destination.lng)
+                    ]
+                    const polyline = new window.kakao.maps.Polyline({
+                        path: linePath,
+                        strokeWeight: 2,
+                        strokeColor: '#ef4444',
+                        strokeOpacity: 0.7,
+                        strokeStyle: 'dashed'
+                    })
+                    polyline.setMap(map)
+                    newPolylines.push(polyline)
+                    const distanceMeter = polyline.getLength()
+
+                    return {
+                        ...site,
+                        distance: distanceMeter / 1000
+                    }
+                }
+            }))
+
+            // 시간(거리)순 정렬
+            updatedSites.sort((a, b) => {
+                if (a.duration !== undefined && b.duration !== undefined) {
+                    return a.duration - b.duration
+                }
+                return (a.distance || 0) - (b.distance || 0)
+            })
+            
+            setPolylines(newPolylines)
+            setSites(updatedSites)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const prevDay = () => {
+        handleSearchClear()
+        setTargetDate(subDays(targetDate, 1))
+    }
+    const nextDay = () => {
+        handleSearchClear()
+        setTargetDate(addDays(targetDate, 1))
+    }
 
     return (
         <Card className="shadow-sm border-slate-200 mt-6 lg:mt-8 overflow-hidden">
@@ -315,7 +400,13 @@ export function AdminSiteMap() {
                                 <Input 
                                     placeholder="주소 검색 (거리 측정용)" 
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value
+                                        setSearchQuery(val)
+                                        if (!val) {
+                                            handleSearchClear()
+                                        }
+                                    }}
                                     className="pl-9 bg-slate-50"
                                 />
                             </form>
@@ -342,17 +433,26 @@ export function AdminSiteMap() {
                                                 }
                                             }}
                                         >
-                                            <span className="font-bold text-sm text-slate-800 line-clamp-1">{site.name}</span>
-                                            <span className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{site.address}</span>
-                                            
-                                            {site.distance !== undefined && (
+                                            <div className="font-semibold text-slate-800">{site.name}</div>
+                                            <div className="text-sm text-slate-500 truncate" title={site.address}>{site.address}</div>
+                                            {(site.workerName || site.startTime) && (
+                                                <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
+                                                    {site.workerName && <span>담당: {site.workerName}</span>}
+                                                    {site.startTime && <span>시작: {site.startTime}</span>}
+                                                </div>
+                                            )}
+                                            {site.duration !== undefined ? (
+                                                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
+                                                    <span className="text-[10px] font-medium text-blue-500 flex items-center gap-1">
+                                                        <Navigation className="w-3 h-3" />
+                                                        차량 약 {site.duration}분 예상 ({site.distance?.toFixed(1)}km)
+                                                    </span>
+                                                </div>
+                                            ) : site.distance !== undefined && (
                                                 <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
                                                     <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
-                                                        <Navigation className="w-3 h-3" />
-                                                        검색 위치로부터
-                                                    </span>
-                                                    <span className="text-xs font-bold text-red-500">
-                                                        {site.distance.toFixed(1)} km
+                                                        <Navigation className="w-3 h-3 text-slate-300" />
+                                                        직선 {site.distance.toFixed(1)}km 떨어짐 (예상 시간 불가)
                                                     </span>
                                                 </div>
                                             )}

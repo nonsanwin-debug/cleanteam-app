@@ -1,0 +1,10 @@
+
+ name                               value               environments                        created    
+ CRON_SECRET                        Encrypted           Development, Preview, Production    15d ago    
+ VAPID_PRIVATE_KEY                  Encrypted           Production                          26d ago    
+ NEXT_PUBLIC_VAPID_PUBLIC_KEY       Encrypted           Production                          26d ago    
+ GEMINI_API_KEY                     Encrypted           Development, Preview, Production    28d ago    
+ SUPABASE_SERVICE_ROLE_KEY          Encrypted           Development, Preview, Production    30d ago    
+ NEXT_PUBLIC_SUPABASE_ANON_KEY      Encrypted           Production, Preview, Development    31d ago    
+ NEXT_PUBLIC_SUPABASE_URL           Encrypted           Production, Preview, Development    31d ago    
+
