@@ -14,8 +14,8 @@ interface SiteLocation {
     id: string
     name: string
     address: string
-    lat: number
-    lng: number
+    lat?: number
+    lng?: number
     distance?: number // km
     duration?: number // minutes
     workerName?: string
@@ -139,15 +139,15 @@ export function AdminSiteMap() {
         for (const site of rawSites) {
             const result = await searchAddress(site.address)
             
+            // Extract worker name
+            let wName = ''
+            if (site.worker) {
+                wName = site.worker.name || ''
+            }
+
             if (result) {
                 const position = new window.kakao.maps.LatLng(result.y, result.x)
                 bounds.extend(position)
-                
-                // Extract worker name
-                let wName = ''
-                if (site.worker) {
-                    wName = site.worker.name || ''
-                }
 
                 newSites.push({
                     id: site.id,
@@ -155,6 +155,15 @@ export function AdminSiteMap() {
                     address: site.address,
                     lat: Number(result.y),
                     lng: Number(result.x),
+                    workerName: wName,
+                    startTime: site.start_time
+                })
+            } else {
+                // Keep the site in the list even if geocoding fails, so it doesn't disappear
+                newSites.push({
+                    id: site.id,
+                    name: site.name,
+                    address: site.address,
                     workerName: wName,
                     startTime: site.start_time
                 })
@@ -194,6 +203,8 @@ export function AdminSiteMap() {
         const newInfos: any[] = []
 
         siteList.forEach(site => {
+            if (site.lat === undefined || site.lng === undefined) return;
+
             const position = new window.kakao.maps.LatLng(site.lat, site.lng)
             
             // 파란색 기본 마커
@@ -260,11 +271,15 @@ export function AdminSiteMap() {
                 // 지도 포커스 이동 (검색된 곳과 핀들이 모두 보이게)
                 const bounds = new window.kakao.maps.LatLngBounds()
                 bounds.extend(position)
-                sites.forEach(s => bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng)))
+                sites.forEach(s => {
+                    if (s.lat !== undefined && s.lng !== undefined) {
+                        bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng))
+                    }
+                })
                 map.setBounds(bounds)
 
                 // 선 그리기 및 거리 계산
-                calculateDistances(sites, {lat, lng})
+                calculateDistances(sites.filter(s => s.lat !== undefined && s.lng !== undefined), {lat, lng})
 
             } else {
                 alert('주소를 찾을 수 없습니다. 정확한 도로명/지번을 입력해주세요.')
@@ -303,6 +318,9 @@ export function AdminSiteMap() {
             const { getKakaoDrivingRoute } = await import('@/actions/map')
 
             const updatedSites = await Promise.all(siteList.map(async (site) => {
+                if (site.lat === undefined || site.lng === undefined) {
+                    return site
+                }
                 const origin = { lat: centerCoords.lat, lng: centerCoords.lng }
                 const destination = { lat: site.lat, lng: site.lng }
                 
@@ -436,12 +454,17 @@ export function AdminSiteMap() {
                                     {sites.map((site) => (
                                         <li key={site.id} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col hover:border-blue-300 transition-colors cursor-pointer"
                                             onClick={() => {
-                                                if (map) {
+                                                if (map && site.lat !== undefined && site.lng !== undefined) {
                                                     map.panTo(new window.kakao.maps.LatLng(site.lat, site.lng))
                                                 }
                                             }}
                                         >
-                                            <div className="font-semibold text-slate-800">{site.name}</div>
+                                            <div className="font-semibold text-slate-800 flex items-center gap-2">
+                                                {site.name}
+                                                {(site.lat === undefined || site.lng === undefined) && (
+                                                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">지도 좌표 확인 불가</span>
+                                                )}
+                                            </div>
                                             <div className="text-sm text-slate-500 truncate" title={site.address}>{site.address}</div>
                                             {(site.workerName || site.startTime) && (
                                                 <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
@@ -488,7 +511,11 @@ export function AdminSiteMap() {
                                     onClick={() => {
                                         if(!map) return;
                                         const bounds = new window.kakao.maps.LatLngBounds()
-                                        sites.forEach(s => bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng)))
+                                        sites.forEach(s => {
+                                            if (s.lat !== undefined && s.lng !== undefined) {
+                                                bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng))
+                                            }
+                                        })
                                         if(searchLocation) {
                                             bounds.extend(new window.kakao.maps.LatLng(searchLocation.lat, searchLocation.lng))
                                         }
