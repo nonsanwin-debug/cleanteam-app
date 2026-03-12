@@ -2,6 +2,7 @@ import { getDashboardStats, getTodayActivitySites, getRecentActivities } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Building, ClipboardCheck, AlertCircle, Clock, CheckCircle2, PlayCircle, Image as ImageIcon } from "lucide-react"
 import Link from "next/link"
+import { AdminSiteMap } from '@/components/admin/admin-site-map'
 
 function calculateDuration(start?: string, end?: string) {
     if (!start) return "알 수 없음"
@@ -243,6 +244,9 @@ export default async function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
+            
+            {/* Map Dashboard */}
+            <AdminSiteMap />
         </div>
     )
 }
