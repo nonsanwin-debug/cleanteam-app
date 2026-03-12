@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2 } from 'lucide-react'
-import { addSiteMember, removeSiteMember } from '@/actions/sites'
+import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2, BellRing } from 'lucide-react'
+import { addSiteMember, removeSiteMember, requestHappyCallPush } from '@/actions/sites'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -86,6 +86,19 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                 router.refresh()
             } else {
                 toast.error(result.error || '제거 실패')
+            }
+        })
+    }
+
+    function handleRequestHappyCall(e: React.MouseEvent, siteId: string, workerId: string) {
+        e.preventDefault()
+        e.stopPropagation()
+        startTransition(async () => {
+            const result = await requestHappyCallPush(siteId, workerId)
+            if (result.success) {
+                toast.success('해피콜 요청 알림이 발송되었습니다')
+            } else {
+                toast.error(result.error || '푸시 알림 발송 실패')
             }
         })
     }
@@ -281,8 +294,22 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     해피콜
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
-                                                    해피콜 대기
+                                                <div className="flex flex-col items-end gap-1.5">
+                                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                        해피콜 대기
+                                                    </div>
+                                                    {site.worker_id && (
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            className="h-6 text-[10px] px-2 py-0"
+                                                            onClick={(e) => handleRequestHappyCall(e, site.id, site.worker_id!)}
+                                                            disabled={isPending}
+                                                        >
+                                                            <BellRing className="w-3 h-3 mr-1" />
+                                                            요청
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

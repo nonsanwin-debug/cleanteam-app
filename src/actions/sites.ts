@@ -817,3 +817,21 @@ export async function getAllSiteMembers() {
 
     return data || []
 }
+
+export async function requestHappyCallPush(siteId: string, workerId: string) {
+    try {
+        const { sendPushToUser } = await import('@/actions/push')
+        
+        await sendPushToUser(workerId, {
+            title: '해피콜 요청',
+            body: '해당 현장의 해피콜을 진행해주세요. 이미 진행하셨다면 해피콜 버튼을 눌러주세요.',
+            url: `/worker/sites/${siteId}`,
+            tag: `happy-call-request-${siteId}`,
+        })
+
+        return { success: true }
+    } catch (e: any) {
+        console.error('requestHappyCallPush error:', e)
+        return { success: false, error: e.message || '해피콜 푸시 실패' }
+    }
+}

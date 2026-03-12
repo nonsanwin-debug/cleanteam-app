@@ -402,7 +402,9 @@ export function AdminSiteMap() {
                     }
                 }
 
-                const routeData = await getKakaoDrivingRoute(origin, destination)
+                // swap origin and destination for Kakao Driving API request
+                // Because centerCoords should be the "Destination" that other sites travel to
+                const routeData = await getKakaoDrivingRoute(destination, origin)
                 
                 if (routeData) {
                     const kakaoPath = routeData.path.map((p: any) => new window.kakao.maps.LatLng(p.lat, p.lng))
@@ -420,7 +422,7 @@ export function AdminSiteMap() {
                     const durationTime = Math.round(routeData.duration / 60)
                     const timeOverlay = new window.kakao.maps.CustomOverlay({
                         map: map,
-                        position: new window.kakao.maps.LatLng(destination.lat, destination.lng),
+                        position: new window.kakao.maps.LatLng(destination.lat, destination.lng), // Place UI badge at the starting "origin" point since the arrows travel to centerCoords
                         content: `<div class="bg-blue-600/90 text-white px-2 py-1 rounded-full shadow-md text-[11px] font-bold border border-blue-400 translate-y-6 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 11 4-7"></path><path d="m19 11-4-7"></path><path d="M2 11h20"></path><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"></path><path d="M9 11v9"></path><path d="M15 11v9"></path></svg> <span>${durationTime}분</span></div>`,
                         yAnchor: 0,
                         zIndex: 5
@@ -562,7 +564,7 @@ export function AdminSiteMap() {
                                                         map: map,
                                                         position: position,
                                                         image: markerImage,
-                                                        title: "출발 기준 현장"
+                                                        title: "도착 기준 현장"
                                                     })
 
                                                     setSearchMarker(newSearchMarker)
@@ -606,7 +608,7 @@ export function AdminSiteMap() {
                                                 <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
                                                     <span className="text-[10px] font-bold text-red-500 flex items-center gap-1">
                                                         <MapPin className="w-3 h-3" />
-                                                        출발 기준 현장
+                                                        도착 기준 현장
                                                     </span>
                                                 </div>
                                             ) : site.duration !== undefined ? (
