@@ -1,12 +1,45 @@
 'use client'
 
-import { useState, TouchEvent } from 'react'
+import { useState, TouchEvent, useEffect } from 'react'
 import { X, ChevronLeft, ChevronRight, Sparkles, Camera } from 'lucide-react'
 
 export function PhotoGrid({ photos, title }: { photos: string[], title: string }) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
     const [touchStart, setTouchStart] = useState<number | null>(null)
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+    useEffect(() => {
+        const handlePopState = () => {
+            if (selectedIndex !== null) {
+                setSelectedIndex(null)
+            }
+        }
+        window.addEventListener('popstate', handlePopState)
+        return () => window.removeEventListener('popstate', handlePopState)
+    }, [selectedIndex])
+
+    useEffect(() => {
+        if (selectedIndex !== null) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => {
+            document.body.style.overflow = ''
+        }
+    }, [selectedIndex])
+
+    const openModal = (index: number) => {
+        setSelectedIndex(index)
+        window.history.pushState({ imageModalOpen: true }, '')
+    }
+
+    const closeModal = () => {
+        setSelectedIndex(null)
+        if (window.history.state?.imageModalOpen) {
+            window.history.back()
+        }
+    }
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50
@@ -62,7 +95,7 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
                     {photos.map((url, i) => (
                         <div
                             key={i}
-                            onClick={() => setSelectedIndex(i)}
+                            onClick={() => openModal(i)}
                             className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 shadow-sm border border-slate-200 cursor-pointer"
                         >
                             <img
@@ -77,11 +110,11 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
             </div>
 
             {selectedIndex !== null && (
-                <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col touch-none">
+                <div className="fixed top-0 left-0 w-full h-[100dvh] z-[100] bg-black/95 flex flex-col touch-none overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 text-white">
                         <button
-                            onClick={() => setSelectedIndex(null)}
+                            onClick={closeModal}
                             className="p-2 flex items-center gap-1 text-sm font-medium hover:bg-white/10 rounded-lg transition-colors"
                         >
                             <ChevronLeft className="w-5 h-5" />
@@ -91,7 +124,7 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
                             {selectedIndex + 1} / {photos.length}
                         </span>
                         <button
-                            onClick={() => setSelectedIndex(null)}
+                            onClick={closeModal}
                             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                         >
                             <X className="w-6 h-6" />
@@ -100,8 +133,8 @@ export function PhotoGrid({ photos, title }: { photos: string[], title: string }
 
                     {/* Image Viewer */}
                     <div
-                        className="flex-1 relative flex items-center justify-center p-4"
-                        onClick={() => setSelectedIndex(null)}
+                        className="flex-1 relative flex items-center justify-center p-4 overflow-hidden"
+                        onClick={closeModal}
                         onTouchStart={onTouchStart}
                         onTouchMove={onTouchMove}
                         onTouchEnd={onTouchEndEvent}
