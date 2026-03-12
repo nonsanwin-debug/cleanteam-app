@@ -119,9 +119,13 @@ export default async function AdminDashboard() {
                                                         }`}>
                                                         {isComplete ? '완료됨' : '작업 중'}
                                                     </span>
-                                                    {site.happy_call_completed && (
+                                                    {site.happy_call_completed ? (
                                                         <span className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-indigo-50 text-indigo-600 border-indigo-200 flex items-center gap-0.5">
                                                             <CheckCircle2 className="w-3 h-3" />해피콜
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-slate-50 text-slate-500 border-slate-200 flex items-center gap-0.5">
+                                                            해피콜 대기
                                                         </span>
                                                     )}
                                                 </div>

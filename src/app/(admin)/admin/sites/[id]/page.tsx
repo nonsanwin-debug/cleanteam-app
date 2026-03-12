@@ -47,10 +47,14 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                             {site.status === 'completed' ? '완료' :
                                 site.status === 'in_progress' ? '진행중' : '대기'}
                         </Badge>
-                        {site.happy_call_completed && (
+                        {site.happy_call_completed ? (
                             <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 gap-1 px-2.5">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 해피콜 완료
+                            </Badge>
+                        ) : (
+                            <Badge variant="outline" className="text-slate-500 bg-slate-50 border-slate-200 gap-1 px-2.5">
+                                해피콜 대기
                             </Badge>
                         )}
                     </div>

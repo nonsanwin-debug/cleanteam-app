@@ -275,10 +275,14 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 {site.status === 'completed' ? '완료' :
                                                     site.status === 'in_progress' ? '진행중' : '대기'}
                                             </Badge>
-                                            {site.happy_call_completed && (
+                                            {site.happy_call_completed ? (
                                                 <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shadow-sm">
                                                     <CheckCircle2 className="w-3 h-3" />
                                                     해피콜
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                    해피콜 대기
                                                 </div>
                                             )}
                                         </div>
