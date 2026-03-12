@@ -70,6 +70,20 @@ export function AdminSiteMap() {
         return () => clearInterval(checkKakao)
     }, [])
 
+    // 시간 포맷을 이쁘게 (15:00 -> 오후 3시) 바꿔주는 헬퍼
+    const formatKoreanTime = (timeStr?: string) => {
+        if (!timeStr) return null;
+        const [h, m] = timeStr.split(':').map(Number);
+        const isPM = h >= 12;
+        let hour = h % 12;
+        if (hour === 0) hour = 12;
+        const ampm = isPM ? "오후" : "오전";
+        const minStr = m > 0 ? ` ${m}분` : '';
+        const text = `${ampm} ${hour}시${minStr}`;
+        const colorClass = isPM ? "text-orange-600" : "text-blue-600";
+        return { text, colorClass, isPM };
+    }
+
     // 2. 날짜 변경 시 해당 날짜의 현장 데이터 불러오기
     useEffect(() => {
         const fetchSites = async () => {
@@ -230,23 +244,34 @@ export function AdminSiteMap() {
                 title: site.name
             })
             
-            // 인포윈도우 (현장 이름 라벨)
+            // 인포윈도우 (Hover 시에만 노출되도록 내용 구성)
+            const timeObj = formatKoreanTime(site.startTime);
+            const timeHtml = timeObj ? `<span class="${timeObj.colorClass} font-extrabold">${timeObj.text}</span>` : null;
+
             const infoText = [
                 site.name,
                 site.workerName ? `담당: ${site.workerName}` : null,
-                site.startTime ? `시간: ${site.startTime}` : null,
-            ].filter(Boolean).join(' | ')
+                timeHtml ? `시간: ${timeHtml}` : null,
+            ].filter(Boolean).join(' <span class="text-slate-300 mx-1">|</span> ')
 
-            const content = `<div class="bg-white px-2 py-1 rounded shadow-md border border-slate-200 text-xs font-bold text-slate-800 whitespace-nowrap -translate-y-2">${infoText}</div>`
+            const content = `<div class="bg-white px-3 py-2 rounded-lg shadow-lg border border-slate-200 text-xs font-bold text-slate-800 whitespace-nowrap -translate-y-4">${infoText}</div>`
             const customOverlay = new window.kakao.maps.CustomOverlay({
-                map: map,
                 position: position,
                 content: content,
-                yAnchor: 2.5
+                yAnchor: 2.5,
+                zIndex: 10
+            })
+
+            // 마커 마우스오버/아웃 시 커스텀오버레이 표시 (텍스트 겹침 방지)
+            window.kakao.maps.event.addListener(marker, 'mouseover', () => {
+                customOverlay.setMap(map)
+            })
+            window.kakao.maps.event.addListener(marker, 'mouseout', () => {
+                customOverlay.setMap(null)
             })
 
             newMarkers.push(marker)
-            newInfos.push(customOverlay)
+            newInfos.push(customOverlay) // keep reference to clean up on unmount
         })
 
         setMarkers(newMarkers)
@@ -354,10 +379,21 @@ export function AdminSiteMap() {
                     polyline.setMap(map)
                     newPolylines.push(polyline)
 
+                    // 목적지 마커 근처에 소요 시간 뱃지 오버레이 추가
+                    const durationTime = Math.round(routeData.duration / 60)
+                    const timeOverlay = new window.kakao.maps.CustomOverlay({
+                        map: map,
+                        position: new window.kakao.maps.LatLng(destination.lat, destination.lng),
+                        content: `<div class="bg-blue-600/90 text-white px-2 py-1 rounded-full shadow-md text-[11px] font-bold border border-blue-400 translate-y-6 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 11 4-7"></path><path d="m19 11-4-7"></path><path d="M2 11h20"></path><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"></path><path d="M9 11v9"></path><path d="M15 11v9"></path></svg> <span>${durationTime}분</span></div>`,
+                        yAnchor: 0,
+                        zIndex: 5
+                    })
+                    newPolylines.push(timeOverlay) // clears correctly under handleSearchClear
+
                     return {
                         ...site,
                         distance: routeData.distance / 1000, 
-                        duration: Math.round(routeData.duration / 60)
+                        duration: durationTime
                     }
                 } else {
                     // 서버 오류 또는 길찾기 실패 시 직선 하버사인 거리로 대체
@@ -486,8 +522,14 @@ export function AdminSiteMap() {
                                             <div className="text-sm text-slate-500 truncate" title={site.address}>{site.address}</div>
                                             {(site.workerName || site.startTime) && (
                                                 <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                                                    {site.workerName && <span>담당: {site.workerName}</span>}
-                                                    {site.startTime && <span>시작: {site.startTime}</span>}
+                                                    {site.workerName && <span>담당: <span className="text-slate-700 font-medium">{site.workerName}</span></span>}
+                                                    {site.startTime && (
+                                                        <span>
+                                                            시작: <span className={formatKoreanTime(site.startTime)?.colorClass + " font-bold"}>
+                                                                {formatKoreanTime(site.startTime)?.text}
+                                                            </span>
+                                                        </span>
+                                                    )}
                                                 </div>
                                             )}
                                             {site.duration !== undefined ? (
