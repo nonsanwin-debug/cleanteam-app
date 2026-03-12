@@ -1,0 +1,47 @@
+Vercel CLI 50.1.6
+Fetching deployment "cleanteam-ewo1ca08e-kimyongmins-projects-0691bbec.vercel.app" in kimyongmins-projects-0691bbec
+2026-03-12T07:18:52.342Z  Running build in Portland, USA (West) – pdx1 (Turbo Build Machine)
+2026-03-12T07:18:52.342Z  Build machine configuration: 30 cores, 60 GB
+2026-03-12T07:18:52.454Z  Cloning github.com/nonsanwin-debug/cleanteam-app (Branch: main, Commit: 7bb9ab5)
+2026-03-12T07:18:53.004Z  Cloning completed: 550.000ms
+2026-03-12T07:18:54.318Z  Restored build cache from previous deployment (6cnKD48nNQJYgJTW6GfqcHu6scYU)
+2026-03-12T07:18:54.601Z  Running "vercel build"
+2026-03-12T07:18:55.151Z  Vercel CLI 50.28.0
+2026-03-12T07:18:55.455Z  Installing dependencies...
+2026-03-12T07:18:56.821Z  
+2026-03-12T07:18:56.821Z  up to date in 1s
+2026-03-12T07:18:56.821Z  
+2026-03-12T07:18:56.821Z  154 packages are looking for funding
+2026-03-12T07:18:56.821Z  run `npm fund` for details
+2026-03-12T07:18:56.858Z  Detected Next.js version: 16.1.6
+2026-03-12T07:18:56.863Z  Running "npm run build"
+2026-03-12T07:18:56.973Z  
+2026-03-12T07:18:56.973Z  > cleanteam@0.1.1 build
+2026-03-12T07:18:56.973Z  > next build
+2026-03-12T07:18:56.973Z  
+2026-03-12T07:18:58.036Z  ⚠ `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+2026-03-12T07:18:58.045Z  ⚠ Invalid next.config.ts options detected:
+2026-03-12T07:18:58.045Z  ⚠     Unrecognized key(s) in object: 'eslint'
+2026-03-12T07:18:58.045Z  ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+2026-03-12T07:18:58.062Z  ▲ Next.js 16.1.6 (Turbopack)
+2026-03-12T07:18:58.062Z  - Experiments (use with caution):
+2026-03-12T07:18:58.062Z  · serverActions
+2026-03-12T07:18:58.063Z  
+2026-03-12T07:18:58.070Z  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+2026-03-12T07:18:58.105Z  Creating an optimized production build ...
+2026-03-12T07:19:03.468Z  ✓ Compiled successfully in 4.8s
+2026-03-12T07:19:03.473Z  Running TypeScript ...
+2026-03-12T07:19:12.104Z  Failed to compile.
+2026-03-12T07:19:12.104Z  
+2026-03-12T07:19:12.105Z  ./test-db.ts:2:25
+2026-03-12T07:19:12.105Z  Type error: Cannot find module 'dotenv' or its corresponding type declarations.
+2026-03-12T07:19:12.105Z  
+2026-03-12T07:19:12.105Z  1 | import { createClient } from '@supabase/supabase-js'
+2026-03-12T07:19:12.105Z  > 2 | import * as dotenv from 'dotenv'
+2026-03-12T07:19:12.105Z  |                         ^
+2026-03-12T07:19:12.105Z  3 |
+2026-03-12T07:19:12.105Z  4 | dotenv.config({ path: '.env.local' })
+2026-03-12T07:19:12.105Z  5 |
+2026-03-12T07:19:12.173Z  Next.js build worker exited with code: 1 and signal: null
+2026-03-12T07:19:12.239Z  Error: Command "npm run build" exited with 1
+status	● Error
