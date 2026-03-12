@@ -19,7 +19,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         // 1. 팀장으로 배정된 현장 (기존)
         const { data: leaderSites, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
             .eq('worker_id', user.id)
             .order('start_time', { ascending: true, nullsFirst: false })
             .order('created_at', { ascending: true })
@@ -41,7 +41,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                 const siteIds = memberData.map(m => m.site_id)
                 const { data: sites } = await supabase
                     .from('sites')
-                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
                     .in('id', siteIds)
                     .order('start_time', { ascending: true, nullsFirst: false })
                     .order('created_at', { ascending: true })
@@ -375,7 +375,7 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
             .eq('id', id)
             .single()
 
@@ -785,5 +785,45 @@ export async function hideCompletedSite(siteId: string): Promise<ActionResponse>
     } catch (error) {
         console.error('hideCompletedSite error:', error)
         return { success: false, error: '작업 삭제 중 오류가 발생했습니다.' }
+    }
+}
+
+/** 현장 해피콜 처리 완료 상태로 변경 */
+export async function completeHappyCall(siteId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 현재 현장 조회 (권한 및 상태 확인용)
+        const { data: site } = await supabase
+            .from('sites')
+            .select('status, worker_id')
+            .eq('id', siteId)
+            .single()
+
+        if (!site) return { success: false, error: '현장을 찾을 수 없습니다.' }
+        if (site.worker_id !== user.id) return { success: false, error: '담당 팀장만 해피콜 상태를 변경할 수 있습니다.' }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                happy_call_completed: true,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('completeHappyCall error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath('/worker/home')
+        revalidatePath('/worker/schedule')
+        revalidatePath(`/worker/sites/${siteId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('completeHappyCall error:', error)
+        return { success: false, error: '해피콜 상태 변경 중 오류가 발생했습니다.' }
     }
 }

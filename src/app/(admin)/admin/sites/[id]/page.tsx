@@ -47,6 +47,12 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                             {site.status === 'completed' ? '완료' :
                                 site.status === 'in_progress' ? '진행중' : '대기'}
                         </Badge>
+                        {site.happy_call_completed && (
+                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 gap-1 px-2.5">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                해피콜 완료
+                            </Badge>
+                        )}
                     </div>
                     <p className="text-muted-foreground text-sm flex items-center mt-1">
                         <MapPin className="h-3 w-3 mr-1" /> {site.address}

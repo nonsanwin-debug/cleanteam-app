@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal } from 'lucide-react'
+import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2 } from 'lucide-react'
 import { addSiteMember, removeSiteMember } from '@/actions/sites'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -33,6 +33,7 @@ type Site = {
     worker?: { name: string | null; display_color?: string | null } | null
     worker_notes?: string | null
     special_notes?: string | null
+    happy_call_completed?: boolean
 }
 
 interface Props {
@@ -260,19 +261,27 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 )}
                                             </CardDescription>
                                         </div>
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                site.status === 'completed'
-                                                    ? 'bg-[#A3CCA3] text-white border-transparent hover:bg-[#92b892]'
-                                                    : site.status === 'in_progress'
-                                                        ? 'bg-primary text-primary-foreground hover:bg-primary/80'
-                                                        : 'text-foreground'
-                                            }
-                                        >
-                                            {site.status === 'completed' ? '완료' :
-                                                site.status === 'in_progress' ? '진행중' : '대기'}
-                                        </Badge>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <Badge
+                                                variant="outline"
+                                                className={
+                                                    site.status === 'completed'
+                                                        ? 'bg-[#A3CCA3] text-white border-transparent hover:bg-[#92b892]'
+                                                        : site.status === 'in_progress'
+                                                            ? 'bg-primary text-primary-foreground hover:bg-primary/80'
+                                                            : 'text-foreground'
+                                                }
+                                            >
+                                                {site.status === 'completed' ? '완료' :
+                                                    site.status === 'in_progress' ? '진행중' : '대기'}
+                                            </Badge>
+                                            {site.happy_call_completed && (
+                                                <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                    <CheckCircle2 className="w-3 h-3" />
+                                                    해피콜
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="pt-4 space-y-3">

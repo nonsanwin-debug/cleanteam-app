@@ -14,6 +14,7 @@ export type AssignedSite = {
     cleaning_date?: string
     start_time?: string
     special_notes?: string
+    happy_call_completed?: boolean
     // Added for compatibility
     description?: string
     manager_name?: string

@@ -333,6 +333,27 @@ function JobCard({ site, currentUserId, onNoteSaved, onRequestPoints }: { site: 
     }
     const timeLabel = getTimeLabel()
 
+    const [hcLoading, setHcLoading] = useState(false)
+
+    const handleHappyCall = async () => {
+        if (!confirm('해피콜을 완료 처리하시겠습니까?')) return
+        setHcLoading(true)
+        try {
+            const { completeHappyCall } = await import('@/actions/worker')
+            const res = await completeHappyCall(site.id)
+            if (res.success) {
+                toast.success('해피콜 처리가 완료되었습니다.')
+                onNoteSaved() // Refresh lists
+            } else {
+                toast.error(res.error || '해피콜 처리 실패')
+            }
+        } catch {
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setHcLoading(false)
+        }
+    }
+
     return (
         <Card className={cn(
             "border-l-4 shadow-sm hover:shadow-md transition-shadow",
@@ -418,6 +439,32 @@ function JobCard({ site, currentUserId, onNoteSaved, onRequestPoints }: { site: 
 
                 {/* 현장 메모 (팀장 편집 / 팀원 읽기) */}
                 <MemoSection site={site} isLeader={isLeader} onSaved={onNoteSaved} />
+
+                {/* 해피콜 완료 섹션 */}
+                {isLeader && (
+                    <div className="mt-3">
+                        {site.happy_call_completed ? (
+                            <div className="flex justify-center items-center py-2 bg-indigo-50 border border-indigo-100 rounded-md text-indigo-700 text-sm font-bold w-full">
+                                <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                                해피콜 완료
+                            </div>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                className="w-full text-indigo-700 border-indigo-200 hover:bg-indigo-50 h-9 text-xs"
+                                onClick={handleHappyCall}
+                                disabled={hcLoading}
+                            >
+                                {hcLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                                ) : (
+                                    <Phone className="h-4 w-4 mr-1.5" />
+                                )}
+                                해피콜 진행 확인
+                            </Button>
+                        )}
+                    </div>
+                )}
 
                 {site.status !== 'completed' && (
                     <div className="mt-2">

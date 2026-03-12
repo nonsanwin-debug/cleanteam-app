@@ -13,6 +13,7 @@ export type Site = {
     created_at: string
     updated_at?: string
     // New Fields
+    happy_call_completed?: boolean
     customer_name?: string
     customer_phone?: string
     residential_type?: string
