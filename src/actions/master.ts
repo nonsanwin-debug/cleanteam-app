@@ -39,7 +39,7 @@ export async function getMasterCompanies() {
         .from('companies')
         .select(`
             *,
-            owner:users!companies_owner_id_fkey(name, email, phone)
+            owner:users(name, email, phone)
         `)
         .order('created_at', { ascending: false })
 
