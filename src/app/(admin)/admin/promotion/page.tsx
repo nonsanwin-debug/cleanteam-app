@@ -87,7 +87,7 @@ export default function AdminPromotionPage() {
                             {sites.map(site => (
                                 <div
                                     key={site.id}
-                                    className={`flex items-center justify-between p-4 rounded-lg border ${site.hidden_from_promotion
+                                    className={`flex flex-col md:flex-row md:items-center md:justify-between p-4 rounded-lg border gap-3 ${site.hidden_from_promotion
                                         ? 'bg-slate-50 border-slate-200 opacity-75'
                                         : 'bg-white border-blue-100 shadow-sm'
                                         }`}
@@ -143,13 +143,13 @@ export default function AdminPromotionPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex-shrink-0 ml-4">
+                                    <div className="flex-shrink-0 md:ml-4">
                                         <Button
                                             variant={site.hidden_from_promotion ? "outline" : "destructive"}
                                             size="sm"
                                             onClick={() => handleToggleVisibility(site.id, site.hidden_from_promotion)}
                                             disabled={togglingId === site.id}
-                                            className={site.hidden_from_promotion ? '' : 'bg-red-500 hover:bg-red-600'}
+                                            className={`w-full md:w-auto ${site.hidden_from_promotion ? '' : 'bg-red-500 hover:bg-red-600'}`}
                                         >
                                             {togglingId === site.id ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
