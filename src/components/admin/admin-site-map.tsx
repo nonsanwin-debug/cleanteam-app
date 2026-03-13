@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MapPin, Search, Calendar as CalendarIcon, Loader2, Navigation } from 'lucide-react'
+import { MapPin, Search, Calendar as CalendarIcon, Loader2, Navigation, AlertCircle } from 'lucide-react'
 import { format, subDays, addDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -66,34 +66,58 @@ export function AdminSiteMap() {
         fetchCompany()
     }, [])
 
+    const [mapError, setMapError] = useState<string | null>(null)
+
     // 1. 카카오맵 로드 대기 및 초기화
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout
+
         const initMap = () => {
             if (window.kakao && window.kakao.maps && mapRef.current) {
                 window.kakao.maps.load(() => {
-                    const options = {
-                        center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 기본 서울 시청
-                        level: 8,
+                    try {
+                        const options = {
+                            center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 기본 서울 시청
+                            level: 8,
+                        }
+                        const newMap = new window.kakao.maps.Map(mapRef.current, options)
+                        setMap(newMap)
+                        
+                        // 주소-좌표 변환 객체 생성
+                        const newGeocoder = new window.kakao.maps.services.Geocoder()
+                        setGeocoder(newGeocoder)
+                        setMapError(null)
+                    } catch (e: any) {
+                        console.error('Kakao map init error:', e)
+                        setMapError(`지도 초기화 실패: ${e.message}`)
                     }
-                    const newMap = new window.kakao.maps.Map(mapRef.current, options)
-                    setMap(newMap)
-                    
-                    // 주소-좌표 변환 객체 생성
-                    const newGeocoder = new window.kakao.maps.services.Geocoder()
-                    setGeocoder(newGeocoder)
                 })
             }
         }
 
         // 스크립트가 로드되었는지 확인 후 초기화
+        let attempts = 0
         const checkKakao = setInterval(() => {
+            attempts++
             if (window.kakao && window.kakao.maps) {
                 clearInterval(checkKakao)
+                clearTimeout(timeoutId)
                 initMap()
+            } else if (attempts > 30) { // 9초 후 포기
+                clearInterval(checkKakao)
+                setMapError('카카오 지도 스크립트 로드 지연. 네트워크나 브라우저 확장프로그램(광고차단 등)을 확인해주세요.')
             }
         }, 300)
 
-        return () => clearInterval(checkKakao)
+        timeoutId = setTimeout(() => {
+            clearInterval(checkKakao)
+            if (!mapError) setMapError('카카오 지도 서버에 연결할 수 없습니다.')
+        }, 10000)
+
+        return () => {
+            clearInterval(checkKakao)
+            clearTimeout(timeoutId)
+        }
     }, [])
 
     // 시간 포맷을 이쁘게 (15:00 -> 오후 3시) 바꿔주는 헬퍼
@@ -548,11 +572,11 @@ export function AdminSiteMap() {
             </CardHeader>
             
             <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-4 h-[600px]">
+                <div className="grid grid-cols-1 md:grid-cols-4 h-[500px] md:h-[650px]">
                     
                     {/* Sidebar / List */}
-                    <div className="md:col-span-1 border-r border-slate-200 bg-slate-50 flex flex-col h-[300px] md:h-full">
-                        <div className="p-4 bg-white border-b border-slate-100">
+                    <div className="md:col-span-1 border-r border-slate-200 bg-slate-50 flex flex-col h-full overflow-hidden">
+                        <div className="p-4 bg-white border-b border-slate-100 flex-shrink-0">
                             <form onSubmit={handleSearch} className="relative">
                                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <Input 
@@ -713,10 +737,18 @@ export function AdminSiteMap() {
                     
                     {/* Map Area */}
                     <div className="md:col-span-3 relative h-full min-h-[300px]">
-                        <div ref={mapRef} className="w-full h-full" />
+                        {mapError ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-500 p-4 text-center">
+                                <AlertCircle className="w-10 h-10 text-red-500 mb-2" />
+                                <p className="font-semibold text-slate-800">{mapError}</p>
+                                <p className="text-sm mt-2">페이지를 새로고침하거나 브라우저 확장앱(광고 차단기 등)을 확인해주세요.</p>
+                            </div>
+                        ) : (
+                            <div ref={mapRef} className="w-full h-full bg-slate-100" />
+                        )}
                         
                         {/* Map Center Aim */}
-                        {!isLoading && sites.length > 0 && (
+                        {!isLoading && !mapError && sites.length > 0 && (
                              <div className="absolute top-4 right-4 z-10">
                                 <Button 
                                     size="sm" 

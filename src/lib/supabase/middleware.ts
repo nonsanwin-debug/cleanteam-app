@@ -65,14 +65,16 @@ export async function updateSession(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     // Protected Routes Logic
+    if (request.nextUrl.pathname.startsWith('/master')) {
+        if (!user) {
+            return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+        }
+    }
+
     if (request.nextUrl.pathname.startsWith('/admin')) {
         if (!user) {
             return NextResponse.redirect(new URL('/auth/admin-login', request.url))
         }
-        // Optional: Check if user is actually admin
-        // We'd need to query the 'users' table here to be sure, 
-        // but for now let's just ensure they are logged in.
-        // If they are a worker logged in, the admin page will likely check role and block/redirect anyway.
     }
 
     if (request.nextUrl.pathname.startsWith('/worker')) {

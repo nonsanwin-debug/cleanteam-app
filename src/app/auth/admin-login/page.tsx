@@ -110,7 +110,11 @@ export default function AdminLoginPage() {
                 }
 
                 // Redirect based on role
-                if (profile?.role === 'admin') {
+                if (profile?.role === 'master') {
+                    console.log('🌟 마스터로 리다이렉트');
+                    toast.success('마스터 로그인 성공')
+                    window.location.href = '/master/dashboard'
+                } else if (profile?.role === 'admin') {
                     console.log('👑 관리자로 리다이렉트');
                     toast.success('관리자 로그인 성공')
                     window.location.href = '/admin/dashboard'
