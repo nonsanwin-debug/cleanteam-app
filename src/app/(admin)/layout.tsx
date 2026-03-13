@@ -44,11 +44,11 @@ export default async function AdminLayout({
             }
 
             if (company && company.name && company.code) {
-                displayName = `${company.name}#${company.code}`
+                displayName = `${company.name} # ${company.code} 관리자`
             } else if (profile.name) {
-                displayName = profile.name
+                displayName = `${profile.name} 관리자`
             } else {
-                displayName = `${profile.role === 'admin' ? '관리자' : '팀원'}`
+                displayName = `관리자`
             }
         }
     }
