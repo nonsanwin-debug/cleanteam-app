@@ -44,8 +44,8 @@ export default function RootLayout({
         {children}
         <Toaster />
         <Script 
-            strategy="beforeInteractive" 
-            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services,clusterer,drawing&autoload=false`} 
+            strategy="afterInteractive" 
+            src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services,clusterer,drawing&autoload=false`} 
         />
       </body>
     </html>

@@ -113,11 +113,13 @@ export default function AdminLoginPage() {
                 if (profile?.role === 'master') {
                     console.log('🌟 마스터로 리다이렉트');
                     toast.success('마스터 로그인 성공')
-                    window.location.href = '/master/dashboard'
+                    router.refresh()
+                    router.push('/master/dashboard')
                 } else if (profile?.role === 'admin') {
                     console.log('👑 관리자로 리다이렉트');
                     toast.success('관리자 로그인 성공')
-                    window.location.href = '/admin/dashboard'
+                    router.refresh()
+                    router.push('/admin/dashboard')
                 } else {
                     console.log('❌ 권한 부족 - worker가 admin 페이지 접근 시도');
                     toast.error('로그인 실패: 권한 부족', {

@@ -117,9 +117,11 @@ export default function LoginPage() {
                 // Redirect based on role
                 toast.success('로그인 성공')
                 if (profile?.role === 'admin') {
-                    window.location.href = '/admin/dashboard'
+                    router.refresh()
+                    router.push('/admin/dashboard')
                 } else {
-                    window.location.href = '/worker/home'
+                    router.refresh()
+                    router.push('/worker/home')
                 }
             }
         } catch (err: any) {
