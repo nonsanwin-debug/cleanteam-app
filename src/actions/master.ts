@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 // Action Responses
@@ -9,15 +10,32 @@ export type ActionResponse = {
     error?: string
 }
 
+async function verifyMasterAccess() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+        
+    return profile?.role === 'master'
+}
+
 /* ============================
     Companies Management
 ============================ */
 
 export async function getMasterCompanies() {
-    const supabase = await createClient()
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
 
     // 1. Fetch companies
-    const { data: companies, error } = await supabase
+    const { data: companies, error } = await adminClient
         .from('companies')
         .select(`
             *,
@@ -35,9 +53,12 @@ export async function getMasterCompanies() {
 
 export async function updateCompanyStatus(companyId: string, status: 'approved' | 'rejected' | 'deleted'): Promise<ActionResponse> {
     try {
-        const supabase = await createClient()
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
 
-        const { error } = await supabase
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
             .from('companies')
             .update({ status })
             .eq('id', companyId)
@@ -60,10 +81,13 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
             return { success: false, error: '올바른 금액을 입력하세요.' }
         }
 
-        const supabase = await createClient()
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
         
         // 1. Get current company point
-        const { data: company, error: fetchError } = await supabase
+        const { data: company, error: fetchError } = await adminClient
             .from('companies')
             .select('points, name')
             .eq('id', companyId)
@@ -84,7 +108,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
         }
 
         // 2. Update company points
-        const { error: updateError } = await supabase
+        const { error: updateError } = await adminClient
             .from('companies')
             .update({ points: newBalance })
             .eq('id', companyId)
@@ -95,7 +119,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
         }
 
         // 3. Log (master_logs or wallet_logs) - Optional: could insert into wallet_logs as type 'system_add' to track master movements
-        const { error: logError } = await supabase
+        const { error: logError } = await adminClient
             .from('wallet_logs')
             .insert({
                 company_id: companyId,
@@ -121,9 +145,12 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
 ============================ */
 
 export async function getMasterUsers() {
-    const supabase = await createClient()
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
 
-    const { data: users, error } = await supabase
+    const adminClient = createAdminClient()
+
+    const { data: users, error } = await adminClient
         .from('users')
         .select(`
             id, name, phone, email, role, status, created_at, account_info, current_money, 
@@ -139,10 +166,11 @@ export async function getMasterUsers() {
     return users || []
 }
 
-import { createAdminClient } from '@/lib/supabase/admin'
-
 export async function deleteUserForce(userId: string): Promise<ActionResponse> {
     try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
         const adminClient = createAdminClient()
 
         // 1. Soft delete on `users` table
