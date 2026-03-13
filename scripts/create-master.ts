@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function createMasterUser() {
-  const email = 'nexusadmin@cleanteam.temp';
+  const email = 'nexusadmin@cleanteam.local';
   const password = 'winwinwinwin';
 
   console.log('1. Adding "master" to role check constraint...');
