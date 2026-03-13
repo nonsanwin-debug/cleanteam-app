@@ -114,6 +114,18 @@ export async function approvePayment(siteId: string, userId: string, amount: num
 
         const commissionRate = worker?.commission_rate ?? 100
 
+        // 2.5 Fetch company points
+        const { data: companyData } = await supabase
+            .from('companies')
+            .select('points')
+            .eq('id', site.company_id)
+            .single()
+
+        const companyPoints = companyData?.points || 0
+        if (companyPoints < amount) {
+            return { success: false, error: '업체의 잔여 포인트가 부족하여 정산을 승인할 수 없습니다. (마스터 충전 필요)' }
+        }
+
         // 3. Update site payment status
         const { error: siteUpdateError } = await supabase
             .from('sites')
@@ -122,6 +134,17 @@ export async function approvePayment(siteId: string, userId: string, amount: num
 
         if (siteUpdateError) {
             return { success: false, error: '현장 상태 업데이트에 실패했습니다.' }
+        }
+
+        // 3.5 Deduct company points
+        const { error: companyUpdateError } = await supabase
+            .from('companies')
+            .update({ points: companyPoints - amount })
+            .eq('id', site.company_id)
+
+        if (companyUpdateError) {
+            console.error('Company points deduction error:', companyUpdateError)
+            return { success: false, error: '업체 포인트 차감에 실패했습니다.' }
         }
 
         // 4. Update worker balance
@@ -617,12 +640,37 @@ export async function adjustWorkerBalance(
             return { success: false, error: '같은 업체의 팀원만 관리할 수 있습니다.' }
         }
 
+        // Get company points
+        const { data: companyData } = await supabase
+            .from('companies')
+            .select('points')
+            .eq('id', companyId)
+            .single()
+
+        const companyPoints = companyData?.points || 0
+
+        if (type === 'add' && companyPoints < amount) {
+            return { success: false, error: '업체의 잔여 포인트가 부족합니다. (마스터 충전 필요)' }
+        }
+
         const currentBalance = worker.current_money || 0
         const adjustAmount = type === 'add' ? amount : -amount
         const newBalance = currentBalance + adjustAmount
 
         if (newBalance < 0) {
             return { success: false, error: '잔액이 부족합니다.' }
+        }
+
+        // Update company points (Deduct on add, Refund on deduct)
+        const newCompanyPoints = type === 'add' ? companyPoints - amount : companyPoints + amount;
+        const { error: companyUpdateError } = await supabase
+            .from('companies')
+            .update({ points: newCompanyPoints })
+            .eq('id', companyId)
+
+        if (companyUpdateError) {
+            console.error('Company points update error:', companyUpdateError)
+            return { success: false, error: '업체 포인트 업데이트에 실패했습니다.' }
         }
 
         // Update balance

@@ -16,12 +16,13 @@ export default async function AdminLayout({
     const { data: { user } } = await supabase.auth.getUser()
 
     let displayName = '관리자'
+    let companyPoints = 0
 
     if (user) {
         // Fetch user profile with company info in a single join
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('name, role, company_id, companies(name, code)')
+            .select('name, role, company_id, companies(name, code, status, points)')
             .eq('id', user.id)
             .single()
 
@@ -37,7 +38,7 @@ export default async function AdminLayout({
                 console.warn('⚠️ Link to company exists but data not fetched. Checking RLS...')
                 const { data: directCompany } = await supabase
                     .from('companies')
-                    .select('name, code')
+                    .select('name, code, status, points')
                     .eq('id', profile.company_id)
                     .single()
                 if (directCompany) company = directCompany
@@ -50,6 +51,46 @@ export default async function AdminLayout({
             } else {
                 displayName = `관리자`
             }
+
+            // Company Status Check
+            if (company && company.status === 'pending') {
+                return (
+                    <div className="flex h-screen bg-slate-100 items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center space-y-6">
+                            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-3xl">⏳</span>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-800">승인 대기 중입니다</h1>
+                                <p className="text-slate-500 mt-2 mt-4 text-sm whitespace-pre-line">
+                                    NEXUS 시스템 심사가 진행 중입니다.{"\n"}
+                                    최고 관리자의 승인 완료 후부터{"\n"}모든 관리자 기능을 사용하실 수 있습니다.
+                                </p>
+                            </div>
+                            <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full mt-4 text-red-500 border-red-200 hover:bg-red-50" />
+                        </div>
+                    </div>
+                )
+            } else if (company && company.status === 'rejected') {
+                return (
+                    <div className="flex h-screen bg-slate-100 items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center space-y-6">
+                            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                                <span className="text-3xl">🚫</span>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-800">가입이 반려되었습니다</h1>
+                                <p className="text-slate-500 mt-2 mt-4 text-sm whitespace-pre-line">
+                                    업체 승인이 거절되었습니다. 최고 관리자에게 문의하세요.
+                                </p>
+                            </div>
+                            <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full mt-4 text-red-500 border-red-200 hover:bg-red-50" />
+                        </div>
+                    </div>
+                )
+            }
+            
+            companyPoints = profile?.companies ? (Array.isArray(profile.companies) ? profile.companies[0]?.points : (profile.companies as any)?.points) : 0;
         }
     }
 
@@ -67,7 +108,11 @@ export default async function AdminLayout({
                 <div className="p-6 border-b border-slate-100">
                     <h1 className="text-xl font-bold text-slate-800">NEXUS Admin</h1>
                     <div className="mt-3 space-y-1">
-                        <p className="text-sm font-semibold text-primary">{displayName}님 반갑습니다</p>
+                        <p className="text-sm font-semibold text-primary break-keep">{displayName}님 반갑습니다</p>
+                        <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md mt-2">
+                           <span>잔여 포인트</span>
+                           <span>{companyPoints?.toLocaleString() || 0} P</span>
+                        </div>
                     </div>
                 </div>
 

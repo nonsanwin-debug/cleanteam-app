@@ -1,0 +1,36 @@
+{
+  "companies": [
+    "id",
+    "name",
+    "created_at",
+    "owner_id",
+    "code",
+    "sms_bank_name",
+    "sms_account_number",
+    "sms_enabled",
+    "sms_message_template",
+    "company_collection_message",
+    "sharing_enabled",
+    "company_code",
+    "promotion_page_enabled",
+    "promotion_contact_number"
+  ],
+  "users": [
+    "id",
+    "name",
+    "phone",
+    "role",
+    "company_id",
+    "status",
+    "account_info",
+    "current_money",
+    "created_at",
+    "worker_type",
+    "email",
+    "initial_password",
+    "display_color",
+    "commission_rate",
+    "sms_bank_name",
+    "sms_account_number"
+  ]
+}
