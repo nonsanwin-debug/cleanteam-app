@@ -572,10 +572,10 @@ export function AdminSiteMap() {
             </CardHeader>
             
             <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-4 h-[500px] md:h-[650px]">
+                <div className="flex flex-col md:grid md:grid-cols-4 md:h-[650px]">
                     
                     {/* Sidebar / List */}
-                    <div className="md:col-span-1 border-r border-slate-200 bg-slate-50 flex flex-col h-full overflow-hidden">
+                    <div className="md:col-span-1 border-r border-slate-200 bg-slate-50 flex flex-col md:h-full md:overflow-hidden">
                         <div className="p-4 bg-white border-b border-slate-100 flex-shrink-0">
                             <form onSubmit={handleSearch} className="relative">
                                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -594,7 +594,7 @@ export function AdminSiteMap() {
                             </form>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-2">
+                        <div className="flex-1 md:overflow-y-auto p-2">
                             {isLoading ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-400">
                                     <Loader2 className="w-6 h-6 animate-spin mb-2 text-blue-500" />
@@ -736,7 +736,7 @@ export function AdminSiteMap() {
                     </div>
                     
                     {/* Map Area */}
-                    <div className="md:col-span-3 relative h-full min-h-[300px]">
+                    <div className="md:col-span-3 relative h-[350px] md:h-full shrink-0">
                         {mapError ? (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-500 p-4 text-center">
                                 <AlertCircle className="w-10 h-10 text-red-500 mb-2" />

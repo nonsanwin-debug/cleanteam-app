@@ -554,13 +554,12 @@ export async function getDashboardStats() {
             .select('*', { count: 'exact', head: true })
             .eq('company_id', companyId)
             .eq('status', 'completed'),
-        // 4. 활동 중인 팀장
+        // 4. 활동 팀장 및 팀원 (오늘 배정된 현장 또는 현재 진행 중인 현장 참여자)
         supabase
             .from('sites')
-            .select('worker_id')
+            .select('worker_id, site_members(user_id)')
             .eq('company_id', companyId)
-            .eq('status', 'in_progress')
-            .not('worker_id', 'is', null),
+            .or(`cleaning_date.eq.${today},status.eq.in_progress`),
         // 5. 전체 팀장 수
         supabase
             .from('users')
@@ -569,8 +568,17 @@ export async function getDashboardStats() {
             .eq('role', 'worker')
     ])
 
-    // Count unique workers
-    const activeWorkersCount = new Set(activeWorkersData?.map(s => s.worker_id)).size
+    // Count unique workers and members
+    const activeWorkersSet = new Set<string>()
+    activeWorkersData?.forEach((site: any) => {
+        if (site.worker_id) activeWorkersSet.add(site.worker_id)
+        if (site.site_members && Array.isArray(site.site_members)) {
+            site.site_members.forEach((member: any) => {
+                if (member.user_id) activeWorkersSet.add(member.user_id)
+            })
+        }
+    })
+    const activeWorkersCount = activeWorkersSet.size
 
     return {
         todayScheduled: todayScheduled || 0,

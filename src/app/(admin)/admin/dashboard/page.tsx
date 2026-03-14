@@ -48,41 +48,41 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="p-3 sm:p-6 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 sm:pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground">오늘 예정</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground tracking-tighter shrink-0">오늘 예정</CardTitle>
                         <Building className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="text-xl sm:text-2xl font-bold">{stats.todayScheduled}</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.todayScheduled}건</div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">오늘 날짜 기준</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 sm:pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground">진행 중</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground tracking-tighter shrink-0">진행 중</CardTitle>
                         <ClipboardCheck className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}건</div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">실시간 모니터링 중</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 sm:pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground">완료 (대기)</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground tracking-tighter shrink-0">작업 완료</CardTitle>
                         <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}건</div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">보고서 확인 필요</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 sm:pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground sm:text-foreground">활동 팀장</CardTitle>
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 sm:pb-2 gap-1">
+                        <CardTitle className="text-[11px] sm:text-sm font-medium text-muted-foreground sm:text-foreground tracking-tighter shrink-0 truncate">활동 팀장 및 팀원</CardTitle>
+                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="text-xl sm:text-2xl font-bold">{stats.activeWorkers}</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.activeWorkers}명</div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">총 {stats.totalWorkers}명 중</p>
                     </CardContent>
                 </Card>
@@ -191,7 +191,7 @@ export default async function AdminDashboard() {
                         )}
                     </CardContent>
                 </Card>
-                <Card className="col-span-1 md:col-span-1 lg:col-span-3">
+                <Card className="hidden md:block col-span-1 md:col-span-1 lg:col-span-3">
                     <CardHeader>
                         <CardTitle>최근 알림</CardTitle>
                     </CardHeader>
