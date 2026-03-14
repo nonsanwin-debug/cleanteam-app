@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
-import { restoreCompany, restoreUser } from '@/actions/master'
-import { RefreshCw, Undo2, Building2, Users } from 'lucide-react'
+import { restoreCompany, restoreUser, hardDeleteCompany, hardDeleteUser } from '@/actions/master'
+import { RefreshCw, Undo2, Building2, Users, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export function MasterRecoveryClient({ initialCompanies, initialUsers }: { initialCompanies: any[], initialUsers: any[] }) {
@@ -29,6 +29,21 @@ export function MasterRecoveryClient({ initialCompanies, initialUsers }: { initi
         }
     }
 
+    const handleHardDeleteCompany = async (companyId: string, companyName: string) => {
+        if (!confirm(`[경고] '${companyName}' 업체를 데이터베이스에서 완전히 영구 삭제하시겠습니까?\n이 작업은 절대 되돌릴 수 없으며, 연관된 모든 데이터가 손실될 수 있습니다.`)) return
+
+        setIsUpdating(true)
+        const result = await hardDeleteCompany(companyId)
+        setIsUpdating(false)
+
+        if (result.success) {
+            alert('업체가 영구적으로 삭제되었습니다.')
+            router.refresh()
+        } else {
+            alert(result.error || '오류가 발생했습니다.')
+        }
+    }
+
     const handleRestoreUser = async (userId: string, userName: string) => {
         if (!confirm(`'${userName}' 회원을 복구하시겠습니까?\n복구 시 즉시 로그인이 가능한 상태로 돌아갑니다.`)) return
 
@@ -38,6 +53,21 @@ export function MasterRecoveryClient({ initialCompanies, initialUsers }: { initi
 
         if (result.success) {
             alert('회원이 복구되었습니다.')
+            router.refresh()
+        } else {
+            alert(result.error || '오류가 발생했습니다.')
+        }
+    }
+
+    const handleHardDeleteUser = async (userId: string, userName: string) => {
+        if (!confirm(`[경고] '${userName}' 회원을 시스템에서 완전히 영구 삭제하시겠습니까?\n이 작업은 절대 되돌릴 수 없으며, 즉시 인증 정보가 파기됩니다.`)) return
+
+        setIsUpdating(true)
+        const result = await hardDeleteUser(userId)
+        setIsUpdating(false)
+
+        if (result.success) {
+            alert('회원이 영구적으로 삭제되었습니다.')
             router.refresh()
         } else {
             alert(result.error || '오류가 발생했습니다.')
@@ -98,6 +128,10 @@ export function MasterRecoveryClient({ initialCompanies, initialUsers }: { initi
                                                 <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => handleRestoreCompany(company.id, company.name)} disabled={isUpdating}>
                                                     {isUpdating ? <RefreshCw className="w-4 h-4 mr-1 animate-spin" /> : <Undo2 className="w-4 h-4 mr-1" />}
                                                     복구하기
+                                                </Button>
+                                                <Button size="sm" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 border-dashed ml-2" onClick={() => handleHardDeleteCompany(company.id, company.name)} disabled={isUpdating}>
+                                                    <Trash2 className="w-4 h-4 mr-1" />
+                                                    영구 삭제
                                                 </Button>
                                             </td>
                                         </tr>
@@ -163,6 +197,10 @@ export function MasterRecoveryClient({ initialCompanies, initialUsers }: { initi
                                                 <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => handleRestoreUser(user.id, user.name)} disabled={isUpdating}>
                                                     {isUpdating ? <RefreshCw className="w-4 h-4 mr-1 animate-spin" /> : <Undo2 className="w-4 h-4 mr-1" />}
                                                     복구하기
+                                                </Button>
+                                                <Button size="sm" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 border-dashed ml-2" onClick={() => handleHardDeleteUser(user.id, user.name)} disabled={isUpdating}>
+                                                    <Trash2 className="w-4 h-4 mr-1" />
+                                                    영구 삭제
                                                 </Button>
                                             </td>
                                         </tr>

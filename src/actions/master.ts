@@ -317,3 +317,69 @@ export async function restoreUser(userId: string): Promise<ActionResponse> {
         return { success: false, error: '복구 중 오류가 발생했습니다.' }
     }
 }
+
+export async function hardDeleteCompany(companyId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('companies')
+            .delete()
+            .eq('id', companyId)
+
+        if (error) {
+            console.error('Error hard deleting company:', error)
+            if (error.code === '23503') {
+                return { success: false, error: '이 업체에 연결된 작업 혹은 결제 내역이 있어 완전히 삭제할 수 없습니다.' }
+            }
+            return { success: false, error: '업체 영구 삭제 중 오류가 발생했습니다.' }
+        }
+
+        revalidatePath('/master/companies')
+        revalidatePath('/master/recovery')
+        return { success: true }
+    } catch (error) {
+        console.error('hardDeleteCompany error:', error)
+        return { success: false, error: '영구 삭제 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function hardDeleteUser(userId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        // 1. Delete from auth.users (This cascads to public.users usually)
+        const { error: authError } = await adminClient.auth.admin.deleteUser(userId)
+        
+        if (authError) {
+            console.error('Auth user hard delete error:', authError)
+            return { success: false, error: '인증 정보 영구 삭제 중 오류가 발생했습니다.' }
+        }
+
+        // 2. Just to be safe, delete from public.users as well in case cascade is off
+        const { error: profileError } = await adminClient
+            .from('users')
+            .delete()
+            .eq('id', userId)
+
+        if (profileError && profileError.code !== 'PGRST116') {
+            console.error('User profile hard delete error:', profileError)
+            if (profileError.code === '23503') {
+                return { success: false, error: '이 회원과 연결된 작업 내역이 있어 프로필을 완전히 지울 수 없습니다.' }
+            }
+        }
+
+        revalidatePath('/master/users')
+        revalidatePath('/master/recovery')
+        return { success: true }
+    } catch (error) {
+        console.error('hardDeleteUser error:', error)
+        return { success: false, error: '영구 삭제 중 오류가 발생했습니다.' }
+    }
+}
