@@ -35,7 +35,7 @@ export default async function WorkerLayout({
                     <Image src="/icons/icon-192.png" alt="NEXUS" width={24} height={24} className="rounded-md" />
                     <h1 className="font-bold text-slate-800">NEXUS Worker</h1>
                 </Link>
-                <LogoutButton variant="ghost" showText={true} className="text-sm text-slate-500 hover:text-red-500 p-0 h-auto" />
+                <LogoutButton variant="ghost" showText={true} className="text-sm text-slate-500 hover:text-red-500 p-0 h-auto" redirectTo="/" />
             </header>
 
             {/* Main Content */}

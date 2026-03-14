@@ -194,122 +194,85 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center p-4">
-      <div className="max-w-4xl w-full space-y-8 text-center flex flex-col md:flex-row md:items-start md:text-left gap-12">
-
-        {/* Left Side: Intro Text */}
-        <div className="flex-1 space-y-6 pt-8">
-          <div className="space-y-4 flex flex-col items-center md:items-start w-full">
-            <h1 className="flex items-center justify-center gap-3 text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 md:justify-start">
-              <Image src="/icons/icon-192.png" alt="NEXUS Logo" width={48} height={48} className="rounded-[10px] shadow-sm" />
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-[420px]">
+        <Card className="shadow-sm border-slate-200 bg-white">
+          <CardHeader className="text-center pt-10 pb-6">
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
               NEXUS
             </h1>
-            <p className="text-xl text-slate-500 text-center md:text-left">
-              청소 현장 관리 시스템 & 스마트 검수 솔루션
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 text-slate-600 pt-4">
-            <div className="flex items-center gap-3 text-left">
-              <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-slate-700">표준화된 체크리스트</h3>
-                <p className="text-sm">매뉴얼화된 청소 기준으로 품질 보장</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-6 h-6 rounded bg-[#FAE100] flex items-center justify-center text-[#3C1E1E] font-bold mt-0.5 text-[10px] flex-shrink-0">MAP</div>
-              <div>
-                <h3 className="font-semibold text-slate-700">작업 현장 간 예상거리 제공</h3>
-                <p className="text-sm">정확한 현장 도착 시간과 위치 기록</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs flex-shrink-0">IMG</div>
-              <div>
-                <h3 className="font-semibold text-slate-700">사진 검수 시스템</h3>
-                <p className="text-sm">작업 전/중/후 사진 실시간 공유</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side: Login Form */}
-        <div className="w-full max-w-md mx-auto md:mx-0">
-          <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <Image src="/icons/icon-192.png" width={48} height={48} alt="NEXUS" className="rounded-xl shadow-sm" />
-              </div>
-              <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
-              <CardDescription>
-                {isSignUp ? '새 계정 만들기' : '작업 시작, 사진 촬영, 체크리스트 제출'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAuth} className="space-y-4">
-                {isSignUp && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">이름</Label>
-                      <Input id="name" name="name" placeholder="홍길동" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="companyName">소속 (업체명#코드)</Label>
-                      <Input id="companyName" name="companyName" placeholder="예: 클린프로#1234" required />
-                      <p className="text-xs text-slate-500">* 관리자에게 확인한 업체명과 코드를 정확히 입력해주세요.</p>
-                    </div>
-                  </>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="username">아이디</Label>
-                  <Input id="username" name="username" type="text" placeholder="teamleader01" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">비밀번호</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+            <CardDescription className="text-slate-500 font-medium">
+              {isSignUp ? '현장 팀장 계정 생성' : '현장 팀장 로그인 (System v3 Updated)'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pb-8 px-8">
+            <form onSubmit={handleAuth} className="space-y-6">
+              {isSignUp && (
+                <>
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="name" className="font-bold text-slate-800 text-sm">이름</Label>
+                    <Input id="name" name="name" placeholder="홍길동" required className="bg-slate-50/50 py-6 placeholder:text-slate-400" />
                   </div>
-                </div>
-                <Button type="submit" className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '로그인')}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center space-y-2">
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-sm text-slate-500 hover:text-blue-600 underline block w-full"
-                >
-                  {isSignUp ? '이미 계정이 있으신가요? 로그인' : '현장 팀장 계정이 없으신가요? 회원가입'}
-                </button>
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="companyName" className="font-bold text-slate-800 text-sm">소속 (업체명#코드)</Label>
+                    <Input id="companyName" name="companyName" placeholder="예: 클린프로#1234" required className="bg-slate-50/50 py-6 placeholder:text-slate-400" />
+                    <p className="text-xs text-slate-500">* 관리자에게 확인한 업체명과 코드를 정확히 입력해주세요.</p>
+                  </div>
+                </>
+              )}
+              <div className="space-y-2 text-left">
+                <Label htmlFor="username" className="font-bold text-slate-800 text-sm">아이디</Label>
+                <Input 
+                  id="username" 
+                  name="username" 
+                  type="text" 
+                  placeholder="아이디를 입력하세요 (예: team8594)" 
+                  required 
+                  className="bg-slate-50/50 py-6 placeholder:text-slate-400 focus-visible:ring-slate-900" 
+                />
               </div>
-            </CardContent>
-          </Card>
-          <div className="text-center mt-4">
-            <Link href="/auth/admin-login" className="text-xs text-slate-300 hover:text-slate-500 transition-colors">
-              관리자 페이지로 이동
-            </Link>
-          </div>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="password" className="font-bold text-slate-800 text-sm">비밀번호</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="비밀번호를 입력하세요"
+                    required
+                    className="bg-slate-50/50 py-6 pr-10 placeholder:text-slate-400 focus-visible:ring-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full text-base font-semibold py-6 bg-[#1a1a1a] hover:bg-black text-white mt-4 transition-colors" disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '현장 팀장 로그인')}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-[13px] text-slate-500 hover:text-slate-800 underline underline-offset-4 font-medium transition-colors"
+              >
+                {isSignUp ? '이미 계정이 있으신가요? 로그인' : '현장 팀장 계정이 없으신가요? 회원가입'}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="text-center mt-6">
+           <Link href="/auth/admin-login" className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium">
+             관리자 전용 로그인
+           </Link>
         </div>
-
       </div>
-
-      <footer className="mt-12 text-sm text-slate-400 text-center">
-        © 2026 Field Management System. All rights reserved.
-      </footer>
     </div>
   )
 }
