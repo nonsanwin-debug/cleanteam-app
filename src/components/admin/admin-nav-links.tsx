@@ -13,18 +13,18 @@ interface AdminNavLinksProps {
 
 const NAV_ITEMS = [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
-    { href: '/admin/inquiries', icon: MessageSquarePlus, label: '1:1 문의 / 요청', iconColor: 'text-indigo-600' },
     { href: '/admin/sites', icon: MapPin, label: '현장 관리', iconColor: 'text-rose-500' },
     { href: '/admin/shared-orders', icon: Share2, label: '오더 공유', iconColor: 'text-emerald-500' },
-    { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리', iconColor: 'text-amber-500' },
-    { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true, iconColor: 'text-cyan-500' },
-    { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리', iconColor: 'text-orange-500' },
-    { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true, iconColor: 'text-violet-500' },
     { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
     { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
     { href: '/admin/promotion', icon: Camera, label: '홍보 관리', iconColor: 'text-sky-500' },
-    { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
+    { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리', iconColor: 'text-orange-500' },
+    { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true, iconColor: 'text-violet-500' },
+    { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true, iconColor: 'text-cyan-500' },
     { href: '/admin/memos', icon: CheckSquare, label: '관리자 메모', iconColor: 'text-yellow-500' },
+    { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리', iconColor: 'text-amber-500' },
+    { href: '/admin/inquiries', icon: MessageSquarePlus, label: '1:1 문의 / 요청', iconColor: 'text-indigo-600' },
+    { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
 ]
 
 export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
