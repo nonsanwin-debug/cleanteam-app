@@ -37,10 +37,7 @@ export async function getMasterCompanies() {
     // 1. Fetch companies, excluding deleted ones
     const { data: companies, error } = await adminClient
         .from('companies')
-        .select(`
-            *,
-            owner:users!companies_owner_id_fkey(name, email, phone)
-        `)
+        .select('*')
         .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
@@ -221,10 +218,7 @@ export async function getDeletedCompanies() {
 
     const { data: companies, error } = await adminClient
         .from('companies')
-        .select(`
-            *,
-            owner:users!companies_owner_id_fkey(name, email, phone)
-        `)
+        .select('*')
         .eq('status', 'deleted')
         .order('created_at', { ascending: false })
 
