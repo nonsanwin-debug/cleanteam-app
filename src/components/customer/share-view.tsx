@@ -7,6 +7,7 @@ import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CalendarDays, MapPin, User } from 'lucide-react'
+import { AdBanner } from '@/components/customer/ad-banner'
 
 export function ShareView({ siteId }: { siteId: string }) {
     const [site, setSite] = useState<any>(null)
@@ -186,7 +187,8 @@ export function ShareView({ siteId }: { siteId: string }) {
 
                 {/* Checklist (Customer Sign) */}
                 <section>
-                    <h3 className="font-bold mb-2 flex items-center text-lg">
+                    <AdBanner placement="share_above_text" />
+                    <h3 className="font-bold mb-2 flex items-center text-lg mt-6">
                         작업 완료 확인
                     </h3>
                     <div className="bg-white rounded-lg border p-4 shadow-sm">

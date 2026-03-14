@@ -15,6 +15,7 @@ import { Loader2, CheckCircle2, Image as ImageIcon, ZoomIn, X } from 'lucide-rea
 import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import Image from 'next/image'
+import { AdBanner } from '@/components/customer/ad-banner'
 
 const DEFAULT_TEMPLATE = {
     title: '작업 완료 확인서',
@@ -251,6 +252,9 @@ export function CustomerChecklist({ siteId, photos = [], onSuccess }: CustomerCh
                 </Card>
             )}
 
+            {/* Photo Zoom Dialog */}
+            <AdBanner placement="share_above_signature" />
+            
             <Card>
                 <CardContent className="p-4 space-y-4">
                     <Label className="text-base font-bold">고객 서명</Label>
