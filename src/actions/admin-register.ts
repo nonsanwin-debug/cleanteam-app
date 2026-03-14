@@ -41,7 +41,7 @@ export async function registerAdminRobust(formData: any) {
                 code: code,
                 company_code: code,
                 owner_id: userId,
-                status: 'approved'
+                status: 'pending'
             })
             .select()
             .single();
@@ -70,7 +70,7 @@ export async function registerAdminRobust(formData: any) {
                 name: name,
                 phone: phone,
                 role: 'admin',
-                status: 'active',
+                status: 'pending',
                 email: generatedEmail
             });
 

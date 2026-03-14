@@ -67,7 +67,7 @@ BEGIN
         new.raw_user_meta_data->>'phone',
         v_role,
         v_company_id,
-        CASE WHEN v_role = 'admin' THEN 'active' ELSE 'pending' END,
+        'pending',
         new.email
     )
     ON CONFLICT (id) DO UPDATE SET
