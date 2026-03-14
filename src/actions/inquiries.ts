@@ -83,10 +83,12 @@ export async function getUnreadReplyCount() {
 
 export async function markRepliesAsRead() {
     try {
-        const { supabase, companyId } = await getAuthCompany()
+        const { companyId } = await getAuthCompany()
         if (!companyId) return { success: false }
 
-        const { error } = await supabase
+        const adminSupabase = createAdminClient()
+
+        const { error } = await adminSupabase
             .from('admin_inquiries')
             .update({ admin_read: true })
             .eq('company_id', companyId)
