@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { registerAdminRobust } from '@/actions/admin-register'
+import { Checkbox } from '@/components/ui/checkbox'
+import { TermsDialog } from '@/components/auth/terms-dialog'
 
 export default function AdminRegisterPage() {
     const router = useRouter()
@@ -22,6 +24,8 @@ export default function AdminRegisterPage() {
         companyName: '',
         phone: ''
     })
+    const [agreedToTerms, setAgreedToTerms] = useState(false)
+    const [isTermsOpen, setIsTermsOpen] = useState(false)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -29,6 +33,12 @@ export default function AdminRegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        
+        if (!agreedToTerms) {
+            toast.error('가입 실패', { description: 'NEXUS 서비스 이용약관에 동의해야 합니다.' })
+            return
+        }
+
         setLoading(true)
 
         try {
@@ -128,6 +138,19 @@ export default function AdminRegisterPage() {
                             <p className="text-xs text-slate-500">* 업체 생성 시 4자리 고유 코드가 자동 발급됩니다. 가입 후 팀원들에게 코드를 공유해주세요.</p>
                         </div>
 
+                        <div className="flex items-center space-x-2 pt-2 pb-1">
+                            <Checkbox id="terms-admin" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
+                            <label
+                                htmlFor="terms-admin"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700"
+                            >
+                                <button type="button" onClick={() => setIsTermsOpen(true)} className="text-indigo-600 underline underline-offset-2 hover:text-indigo-800 font-bold mx-1">
+                                    NEXUS 서비스 이용약관
+                                </button>
+                                에 동의합니다.
+                            </label>
+                        </div>
+
                         <Button type="submit" className="w-full py-6 mt-4 bg-indigo-600 hover:bg-indigo-700" disabled={loading}>
                             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '업체 생성 및 가입하기'}
                         </Button>
@@ -140,6 +163,7 @@ export default function AdminRegisterPage() {
                     </form>
                 </CardContent>
             </Card>
+            <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
         </div>
     )
 }

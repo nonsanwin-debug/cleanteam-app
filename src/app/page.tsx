@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Loader2, CheckCircle2, HardHat, Eye, EyeOff } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { TermsDialog } from '@/components/auth/terms-dialog'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export default function Home() {
@@ -19,6 +21,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [isTermsOpen, setIsTermsOpen] = useState(false)
   const router = useRouter()
 
   // Initialize Supabase client only on the client side
@@ -73,6 +77,12 @@ export default function Home() {
         const [inputName, inputCode] = companyName.split('#')
         if (!inputName || !inputCode) {
           toast.error('소속 형식 오류', { description: '업체명과 코드를 모두 입력해주세요.' })
+          setIsLoading(false)
+          return
+        }
+
+        if (!agreedToTerms) {
+          toast.error('가입 실패', { description: 'NEXUS 서비스 이용약관에 동의해야 합니다.' })
           setIsLoading(false)
           return
         }
@@ -251,6 +261,27 @@ export default function Home() {
                   </button>
                 </div>
               </div>
+              
+              {isSignUp && (
+                <div className="flex items-start space-x-2 pt-1 pb-1">
+                  <Checkbox 
+                    id="terms-worker" 
+                    checked={agreedToTerms} 
+                    onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} 
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor="terms-worker"
+                    className="text-sm font-medium leading-normal peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700 text-left"
+                  >
+                    <button type="button" onClick={() => setIsTermsOpen(true)} className="text-[#1a1a1a] underline underline-offset-2 hover:text-black font-bold mx-1">
+                      NEXUS 서비스 이용약관
+                    </button>
+                    에 동의합니다.
+                  </label>
+                </div>
+              )}
+
               <Button type="submit" className="w-full text-base font-semibold py-6 bg-[#1a1a1a] hover:bg-black text-white mt-4 transition-colors" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '현장 팀장 로그인')}
               </Button>
@@ -273,6 +304,7 @@ export default function Home() {
            </Link>
         </div>
       </div>
+      <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
     </div>
   )
 }
