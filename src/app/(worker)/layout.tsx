@@ -31,9 +31,27 @@ export default async function WorkerLayout({
         <div className="flex flex-col h-screen bg-slate-50">
             {/* Header */}
             <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-10">
-                <Link href="/worker/home" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <Image src="/logos/N.png" alt="NEXUS" width={24} height={24} className="object-contain" />
-                    <h1 className="font-bold text-slate-800">NEXUS</h1>
+                <Link href="/worker/home" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="worker-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stopColor="#4F46E5" />
+                                <stop offset="100%" stopColor="#22D3EE" />
+                            </linearGradient>
+                            <linearGradient id="worker-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#22D3EE" />
+                                <stop offset="100%" stopColor="#10B981" />
+                            </linearGradient>
+                            <linearGradient id="worker-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stopColor="#10B981" />
+                                <stop offset="100%" stopColor="#BEF264" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#worker-grad-1)" />
+                        <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#worker-grad-3)" />
+                        <path d="M5.25 4.75L18.75 19.25" stroke="url(#worker-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                    </svg>
+                    <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
                 </Link>
                 <LogoutButton variant="ghost" showText={true} className="text-sm text-slate-500 hover:text-red-500 p-0 h-auto" redirectTo="/" />
             </header>

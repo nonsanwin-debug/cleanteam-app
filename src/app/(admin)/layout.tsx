@@ -111,9 +111,27 @@ export default async function AdminLayout({
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
-                    <Link href="/admin/dashboard" className="text-xl font-bold text-slate-900 flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <Image src="/logos/N.png" alt="NEXUS" width={28} height={28} className="object-contain" />
-                        NEXUS
+                    <Link href="/admin/dashboard" className="text-xl font-black text-slate-900 flex items-center gap-2 hover:opacity-80 transition-opacity tracking-tighter">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[28px] h-[28px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="admin-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
+                                </linearGradient>
+                                <linearGradient id="admin-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#22D3EE" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="admin-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#10B981" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#admin-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#admin-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#admin-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                        <span className="pt-1">NEXUS</span>
                     </Link>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-primary break-keep">{displayName}님 반갑습니다</p>

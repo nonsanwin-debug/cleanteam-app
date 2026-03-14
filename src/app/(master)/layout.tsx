@@ -37,9 +37,27 @@ export default async function MasterLayout({
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col text-white">
                 <div className="p-6 border-b border-slate-800">
-                    <div className="flex items-center gap-3">
-                        <img src="/logos/N.png" alt="NEXUS" className="w-8 h-8 object-contain bg-white rounded-md p-1" />
-                        <h1 className="text-xl font-black text-white tracking-widest">NEXUS</h1>
+                    <div className="flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[32px] h-[32px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="master-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
+                                </linearGradient>
+                                <linearGradient id="master-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#22D3EE" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="master-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#10B981" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#master-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#master-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#master-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                        <h1 className="text-2xl font-black text-white tracking-tighter pt-1">NEXUS</h1>
                     </div>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-indigo-400">{displayName}님 접속중</p>
