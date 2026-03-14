@@ -269,7 +269,7 @@ export default function Home() {
 
         {/* Right Side: Login Form */}
         <div className="w-full max-w-md mx-auto md:mx-0">
-          <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
+          <Card className="hover:shadow-lg transition-shadow border-0 shadow-xl overflow-hidden rounded-2xl">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-2">
                 <svg viewBox="0 0 24 24" fill="none" className="w-[40px] h-[40px]" xmlns="http://www.w3.org/2000/svg">
@@ -294,11 +294,11 @@ export default function Home() {
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>
-                {isSignUp ? '새 계정 만들기' : '작업 시작, 사진 촬영, 체크리스트 제출'}
+                스마트폰으로 간편하게 시작하세요.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAuth} className="space-y-4">
+            <CardContent className="px-6 pb-8">
+              <form onSubmit={handleAuth} className="space-y-3">
                 {isSignUp && (
                   <>
                     <div className="space-y-2">
@@ -355,8 +355,8 @@ export default function Home() {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '팀장 등록하기' : '로그인')}
+                <Button type="submit" className="w-full text-[15px] py-5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl mt-2 border border-slate-700" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isSignUp ? '회원가입' : '로그인')}
                 </Button>
               </form>
 
