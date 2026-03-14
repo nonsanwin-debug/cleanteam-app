@@ -215,8 +215,27 @@ export default function Home() {
         {/* Left Side: Intro Text */}
         <div className="flex-1 space-y-6 pt-8">
           <div className="space-y-2">
-            <h1 className="flex items-center justify-center md:justify-start mb-2">
-              <img src="/logos/logo-wide.png" alt="NEXUS Logo" className="h-12 object-contain" />
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 flex items-center justify-center space-x-3 md:justify-start mb-2">
+                <svg viewBox="0 0 24 24" fill="none" className="w-[40px] h-[40px]" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="header-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stopColor="#4F46E5" />
+                            <stop offset="100%" stopColor="#22D3EE" />
+                        </linearGradient>
+                        <linearGradient id="header-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#22D3EE" />
+                            <stop offset="100%" stopColor="#10B981" />
+                        </linearGradient>
+                        <linearGradient id="header-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stopColor="#10B981" />
+                            <stop offset="100%" stopColor="#BEF264" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-1)" />
+                    <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-3)" />
+                    <path d="M5.25 4.75L18.75 19.25" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                </svg>
+                <span className="font-black text-[#0F172A] tracking-tighter">NEXUS</span>
             </h1>
             <p className="text-xl text-slate-500">
               청소 현장 관리 시스템 & 스마트 검수 솔루션
