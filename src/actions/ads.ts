@@ -90,6 +90,46 @@ export async function updateAdStatus(id: string, is_active: boolean) {
     }
 }
 
+export async function updateAd(id: string, adData: {
+    title?: string,
+    image_url?: string,
+    link_url?: string,
+    phone_number?: string,
+    placement?: string,
+    is_active?: boolean,
+    max_impressions?: number
+}) {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const supabase = await createClient()
+        
+        // Prepare the update payload by removing undefined values
+        const payload: any = {}
+        if (adData.title !== undefined) payload.title = adData.title
+        if (adData.image_url !== undefined) payload.image_url = adData.image_url
+        if (adData.link_url !== undefined) payload.link_url = adData.link_url || null
+        if (adData.phone_number !== undefined) payload.phone_number = adData.phone_number || null
+        if (adData.placement !== undefined) payload.placement = adData.placement
+        if (adData.is_active !== undefined) payload.is_active = adData.is_active
+        if (adData.max_impressions !== undefined) payload.max_impressions = adData.max_impressions
+
+        const { error } = await supabase
+            .from('ads')
+            .update(payload)
+            .eq('id', id)
+
+        if (error) throw error
+
+        revalidatePath('/master/ads')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Failed to update ad:', error)
+        return { success: false, error: error.message }
+    }
+}
+
 export async function deleteAd(id: string) {
     try {
         const isMaster = await verifyMasterAccess()

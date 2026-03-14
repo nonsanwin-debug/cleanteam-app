@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Plus, Trash2, Megaphone, Eye, MousePointerClick, RefreshCw, Activity, AlertCircle, Link, Image as ImageIcon, MapPin, Phone } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
-import { createAd, deleteAd, updateAdStatus } from '@/actions/ads'
+import { createAd, deleteAd, updateAdStatus, updateAd } from '@/actions/ads'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -21,6 +21,7 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [uploadingImage, setUploadingImage] = useState(false)
+    const [editingAdId, setEditingAdId] = useState<string | null>(null)
 
     // Form states
     const [title, setTitle] = useState('')
@@ -70,12 +71,24 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
     }
 
     const resetForm = () => {
+        setEditingAdId(null)
         setTitle('')
         setImageUrl('')
         setLinkUrl('')
         setPhoneNumber('')
         setPlacement('share_above_text')
         setMaxImpressions('1000')
+    }
+
+    const handleEditClick = (ad: any) => {
+        setEditingAdId(ad.id)
+        setTitle(ad.title)
+        setImageUrl(ad.image_url)
+        setLinkUrl(ad.link_url || '')
+        setPhoneNumber(ad.phone_number || '')
+        setPlacement(ad.placement)
+        setMaxImpressions(ad.max_impressions.toString())
+        setIsDialogOpen(true)
     }
 
     const handleCreateSubmit = async () => {
@@ -96,24 +109,45 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
         }
 
         setIsUpdating(true)
-        const result = await createAd({
-            title,
-            image_url: imageUrl,
-            link_url: linkUrl || undefined,
-            phone_number: phoneNumber || undefined,
-            placement,
-            is_active: true,
-            max_impressions: maxImpParsed
-        })
+        let result;
+        
+        if (editingAdId) {
+            result = await updateAd(editingAdId, {
+                title,
+                image_url: imageUrl,
+                link_url: linkUrl || undefined,
+                phone_number: phoneNumber || undefined,
+                placement,
+                max_impressions: maxImpParsed
+            })
+        } else {
+            result = await createAd({
+                title,
+                image_url: imageUrl,
+                link_url: linkUrl || undefined,
+                phone_number: phoneNumber || undefined,
+                placement,
+                is_active: true,
+                max_impressions: maxImpParsed
+            })
+        }
         setIsUpdating(false)
 
         if (result.success) {
             setIsDialogOpen(false)
+            alert(editingAdId ? '광고가 성공적으로 수정 되었습니다.' : '광고가 성공적으로 등록 되었습니다.')
             resetForm()
-            alert('광고가 성공적으로 등록 되었습니다.')
-            router.refresh() // Rely on server component re-fetching
+            // Server component re-fetching will happen via router.refresh() 
+            // but we can also optimistic update the local state for immediate feedback
+            if (editingAdId) {
+                setAds(prev => prev.map(ad => ad.id === editingAdId ? {
+                    ...ad, title, image_url: imageUrl, link_url: linkUrl || null, phone_number: phoneNumber || null, placement, max_impressions: maxImpParsed
+                } : ad))
+            } else {
+                router.refresh()
+            }
         } else {
-            alert(result.error || '광고 등록에 실패했습니다.')
+            alert(result.error || (editingAdId ? '광고 수정에 실패했습니다.' : '광고 등록에 실패했습니다.'))
         }
     }
 
@@ -172,16 +206,19 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                     </p>
                 </div>
                 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                    setIsDialogOpen(open)
+                    if (!open) resetForm()
+                }}>
                     <DialogTrigger asChild>
-                        <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={resetForm}>
                             <Plus className="w-4 h-4 mr-2" />
                             새 배너 등록
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>새 배너 광고 추가</DialogTitle>
+                            <DialogTitle>{editingAdId ? '배너 광고 수정' : '새 배너 광고 추가'}</DialogTitle>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="space-y-2">
@@ -256,7 +293,7 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>취소</Button>
                             <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={handleCreateSubmit} disabled={isUpdating || uploadingImage}>
                                 {(isUpdating || uploadingImage) && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
-                                등록 완료
+                                {editingAdId ? '수정 완료' : '등록 완료'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -361,10 +398,14 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                                 </CardContent>
                                 <CardFooter className="p-3 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
                                     <span className="text-xs text-slate-400">{new Date(ad.created_at).toLocaleDateString()} 등록</span>
-                                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 text-xs font-semibold px-2" onClick={() => handleDelete(ad.id, ad.title)} disabled={isUpdating}>
-                                        <Trash2 className="w-3.5 h-3.5 mr-1" />
-                                        삭제
-                                    </Button>
+                                    <div className="flex items-center gap-1">
+                                        <Button variant="ghost" size="sm" className="text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 h-8 text-xs font-semibold px-2" onClick={() => handleEditClick(ad)} disabled={isUpdating}>
+                                            수정
+                                        </Button>
+                                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 text-xs font-semibold px-2" onClick={() => handleDelete(ad.id, ad.title)} disabled={isUpdating}>
+                                            삭제
+                                        </Button>
+                                    </div>
                                 </CardFooter>
                             </Card>
                         )
