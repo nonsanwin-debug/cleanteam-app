@@ -278,7 +278,7 @@ export default function SharedOrdersPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
-                                <Input value={basicInfo} onChange={e => setBasicInfo(e.target.value)} placeholder="예: 천안아산 32평 15만원" className="mt-1" />
+                                <Input value={basicInfo} onChange={e => setBasicInfo(e.target.value)} placeholder="예: 서울 32평 32만원" className="mt-1" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">특이사항</label>
