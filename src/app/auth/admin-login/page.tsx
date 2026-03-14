@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
         const password = formData.get('password') as string
         // 아이디 정규화 (소문자 및 공백 제거)
         const normalizedUsername = username.trim().toLowerCase()
-        const email = `${normalizedUsername}@cleanteam.local`
+        const email = `${normalizedUsername}@cleanteam.temp`
 
         try {
             console.log('🔐 관리자 로그인 시도:', { username: normalizedUsername, email });

@@ -7,7 +7,7 @@ export async function registerAdminRobust(formData: any) {
     const adminClient = createAdminClient();
 
     try {
-        const generatedEmail = `${username}@cleanteam.local`;
+        const generatedEmail = `${username}@cleanteam.temp`;
 
         // 1. Create the Auth user via Admin API
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
