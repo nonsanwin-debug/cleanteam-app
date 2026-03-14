@@ -109,7 +109,6 @@ export default async function AdminDashboard() {
                                             site={site} 
                                             isComplete={isComplete} 
                                             duration={duration} 
-                                            formatTime={formatTime} 
                                         />
                                     )
                                 })}

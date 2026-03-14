@@ -11,15 +11,25 @@ type ActiveSiteItemProps = {
     site: any
     isComplete: boolean
     duration: string
-    formatTime: (iso?: string) => string
 }
 
-export function ActiveSiteItem({ site, isComplete, duration, formatTime }: ActiveSiteItemProps) {
+export function ActiveSiteItem({ site, isComplete, duration }: ActiveSiteItemProps) {
     const router = useRouter()
     const [isRequesting, setIsRequesting] = useState(false)
     
     // Derived status
     const isScheduled = site.status === 'scheduled'
+
+    const formatTime = (isoString?: string) => {
+        if (!isoString) return '-'
+        const date = new Date(isoString)
+        return new Intl.DateTimeFormat('ko-KR', {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false,
+            timeZone: 'Asia/Seoul'
+        }).format(date)
+    }
 
     const handleHappyCallRequest = async (e: React.MouseEvent) => {
         e.stopPropagation() // Prevent div click
