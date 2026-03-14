@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,11 @@ import { useRouter } from 'next/navigation'
 export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: any[] }) {
     const router = useRouter()
     const [inquiries, setInquiries] = useState(initialInquiries)
+    
+    useEffect(() => {
+        setInquiries(initialInquiries)
+    }, [initialInquiries])
+
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
