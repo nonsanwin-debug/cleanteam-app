@@ -242,26 +242,26 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 text-slate-600 pt-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center md:items-start gap-6 pt-6">
+            <div className="flex items-center w-full max-w-[320px]">
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold">표준화된 체크리스트</h3>
-                <p className="text-sm">매뉴얼화된 청소 기준으로 품질 보장</p>
+              <div className="flex-1 text-center md:text-left md:pl-4">
+                <h3 className="font-bold text-slate-700 text-[16px]">표준화된 체크리스트</h3>
+                <p className="text-[14px] text-slate-500 mt-1">매뉴얼화된 청소 기준으로 품질 보장</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center w-full max-w-[320px]">
               <div className="w-6 h-6 rounded bg-[#FBE54E] flex items-center justify-center text-slate-800 font-bold text-[10px] flex-shrink-0">MAP</div>
-              <div>
-                <h3 className="font-semibold">작업 현장 간 예상거리 제공</h3>
-                <p className="text-sm">정확한 현장 도착 시간과 위치 기록</p>
+              <div className="flex-1 text-center md:text-left md:pl-4">
+                <h3 className="font-bold text-slate-700 text-[16px]">작업 현장 간 예상거리 제공</h3>
+                <p className="text-[14px] text-slate-500 mt-1">정확한 현장 도착 시간과 위치 기록</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs flex-shrink-0">IMG</div>
-              <div>
-                <h3 className="font-semibold">사진 검수 시스템</h3>
-                <p className="text-sm">작업 전/중/후 사진 실시간 공유</p>
+            <div className="flex items-center w-full max-w-[320px]">
+              <div className="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-[10px] flex-shrink-0">IMG</div>
+              <div className="flex-1 text-center md:text-left md:pl-4">
+                <h3 className="font-bold text-slate-700 text-[16px]">사진 검수 시스템</h3>
+                <p className="text-[14px] text-slate-500 mt-1">작업 전/중/후 사진 실시간 공유</p>
               </div>
             </div>
           </div>
@@ -271,8 +271,8 @@ export default function Home() {
         <div className="w-full max-w-md mx-auto md:mx-0">
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border shadow-sm">
-                <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
+              <div className="flex justify-center mb-2">
+                <img src="/logos/N.png" alt="NEXUS Logo" className="h-10 object-contain" />
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>
