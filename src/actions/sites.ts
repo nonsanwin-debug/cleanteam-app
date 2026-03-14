@@ -679,7 +679,7 @@ export async function getTodayActivitySites() {
         `)
         .eq('company_id', companyId)
         .eq('cleaning_date', today)
-        .or('status.eq.in_progress,status.eq.completed')
+        .or('status.eq.scheduled,status.eq.in_progress,status.eq.completed')
         .order('started_at', { ascending: false, nullsFirst: false })
         .limit(20)
 

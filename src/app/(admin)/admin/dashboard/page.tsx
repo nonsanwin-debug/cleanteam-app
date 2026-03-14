@@ -94,7 +94,7 @@ export default async function AdminDashboard() {
                     <CardContent>
                         {activeSites.length === 0 ? (
                             <div className="h-[200px] flex items-center justify-center text-slate-400 bg-slate-50 rounded-md">
-                                현재 진행 중이거나 완료된 작업이 없습니다.
+                                오늘 일정이 없습니다.
                             </div>
                         ) : (
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
