@@ -1,0 +1,87 @@
+{
+  "required": [
+    "id",
+    "name",
+    "company_code"
+  ],
+  "properties": {
+    "id": {
+      "default": "gen_random_uuid()",
+      "description": "Note:\nThis is a Primary Key.<pk/>",
+      "format": "uuid",
+      "type": "string"
+    },
+    "name": {
+      "format": "text",
+      "type": "string"
+    },
+    "created_at": {
+      "default": "now()",
+      "format": "timestamp with time zone",
+      "type": "string"
+    },
+    "owner_id": {
+      "format": "uuid",
+      "type": "string"
+    },
+    "code": {
+      "format": "character",
+      "maxLength": 4,
+      "type": "string"
+    },
+    "sms_bank_name": {
+      "default": "",
+      "format": "text",
+      "type": "string"
+    },
+    "sms_account_number": {
+      "default": "",
+      "format": "text",
+      "type": "string"
+    },
+    "sms_enabled": {
+      "default": false,
+      "format": "boolean",
+      "type": "boolean"
+    },
+    "sms_message_template": {
+      "default": "고객님 청소는 잘 마무리 되었습니다\r\n아래 계좌번호로 명시된 금액 입금 후\r\n예금주 성함과 함께 문자 부탁드리겠습니다\r\n\r\n입금 계좌번호 :\r\n{은행명}\r\n{계좌번호}\r\n잔금 : {잔금}원\r\n추가금 : {추가금}원\r\n합계 : {합계}원\r\n\r\n추후 부족하신 부분이나 문제가 있는 부분에 대해서\r\n연락주시면 바로 처리 도와드리겠습니다",
+      "format": "text",
+      "type": "string"
+    },
+    "company_collection_message": {
+      "format": "text",
+      "type": "string"
+    },
+    "sharing_enabled": {
+      "default": false,
+      "format": "boolean",
+      "type": "boolean"
+    },
+    "company_code": {
+      "format": "character varying",
+      "maxLength": 4,
+      "type": "string"
+    },
+    "promotion_page_enabled": {
+      "default": false,
+      "format": "boolean",
+      "type": "boolean"
+    },
+    "promotion_contact_number": {
+      "format": "text",
+      "type": "string"
+    },
+    "status": {
+      "default": "pending",
+      "format": "text",
+      "type": "string"
+    },
+    "points": {
+      "default": 0,
+      "format": "integer",
+      "type": "integer"
+    }
+  },
+  "type": "object"
+}

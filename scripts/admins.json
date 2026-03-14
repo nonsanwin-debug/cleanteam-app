@@ -1,0 +1,86 @@
+[
+  {
+    "id": "061f8de4-c006-4965-a36c-0541a4ff8402",
+    "name": "박진현",
+    "role": "admin",
+    "company_id": "e1df32eb-a77c-45e9-aef8-4bf4c9767e41",
+    "companies": {
+      "code": "7819",
+      "name": "더클린"
+    }
+  },
+  {
+    "id": "e2deb81e-c9a3-466d-9178-15f599154026",
+    "name": "이하늘",
+    "role": "admin",
+    "company_id": "7c0d50ea-4263-401d-a8b4-03340f2ec786",
+    "companies": {
+      "code": "6382",
+      "name": "더 클린"
+    }
+  },
+  {
+    "id": "2d8f84ae-2fae-4205-a962-5864d15508af",
+    "name": "김용민",
+    "role": "admin",
+    "company_id": "df6dba14-8079-4266-8add-076a92e1eca7",
+    "companies": {
+      "code": "0490",
+      "name": "더클린"
+    }
+  },
+  {
+    "id": "0b8a9705-51e7-491e-82d8-214b65bea1b9",
+    "name": "김프로",
+    "role": "admin",
+    "company_id": null,
+    "companies": null
+  },
+  {
+    "id": "33d08953-af8e-43c5-9618-a1ffe8769e0b",
+    "name": "김용민",
+    "role": "admin",
+    "company_id": "3e61e5d6-d0d0-40d4-aebb-4ef2b9f2f2a6",
+    "companies": {
+      "code": "5039",
+      "name": "더클린"
+    }
+  },
+  {
+    "id": "891c5526-4273-46bb-8feb-8a4e9eadb155",
+    "name": "이진수",
+    "role": "admin",
+    "company_id": null,
+    "companies": null
+  },
+  {
+    "id": "cb26f649-92bb-48fc-a588-8141c35c7544",
+    "name": "김용민",
+    "role": "admin",
+    "company_id": "3e5351e8-b4d3-4fb4-bf69-6ecaef002c1d",
+    "companies": {
+      "code": "4757",
+      "name": "클린프로"
+    }
+  },
+  {
+    "id": "a2a8b083-147d-43a8-9184-d4d731ab3fee",
+    "name": "최성광",
+    "role": "admin",
+    "company_id": "529a7559-e9b9-455d-972b-2b0c8a5e0da9",
+    "companies": {
+      "code": "3163",
+      "name": "클래식클린 서울"
+    }
+  },
+  {
+    "id": "f4c54fb0-5b6c-42a6-b778-ce6a9dd48e88",
+    "name": "김태휘",
+    "role": "admin",
+    "company_id": "bff5d57d-9735-4023-bbfd-44a247cd94c3",
+    "companies": {
+      "code": "3599",
+      "name": "청소이다"
+    }
+  }
+]

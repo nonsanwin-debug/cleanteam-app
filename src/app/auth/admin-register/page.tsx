@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { registerAdminRobust } from '@/actions/admin-register'
 
 export default function AdminRegisterPage() {
     const router = useRouter()
@@ -31,31 +32,17 @@ export default function AdminRegisterPage() {
         setLoading(true)
 
         try {
-            const supabase = createClient()
-
-            // 1. Sign Up (generate email from username)
-            const generatedEmail = `${formData.username}@cleanteam.local`
-            const { data, error: signUpError } = await supabase.auth.signUp({
-                email: generatedEmail,
-                password: formData.password,
-                options: {
-                    data: {
-                        name: formData.name,
-                        phone: formData.phone,
-                        role: 'admin',
-                        company_name: formData.companyName // Trigger will handle Company Creation
-                    }
-                }
-            })
-
-            if (signUpError) throw signUpError
-
-            if (data.user) {
-                toast.success('회원가입 완료!', {
-                    description: '이메일 인증 후 로그인해주세요.'
-                })
-                router.push('/auth/admin-login')
+            // 1. Call custom robust server action
+            const result = await registerAdminRobust(formData)
+            
+            if (!result.success) {
+                throw new Error(result.error)
             }
+
+            toast.success('회원가입 완료!', {
+                description: '업체가 성공적으로 등록되었습니다. 로그인해주세요.'
+            })
+            router.push('/auth/admin-login')
 
         } catch (err: any) {
             console.error(err)

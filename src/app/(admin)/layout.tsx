@@ -45,7 +45,7 @@ export default async function AdminLayout({
             }
 
             if (company && company.name && company.code) {
-                displayName = `${company.name} # ${company.code} 관리자`
+                displayName = `${company.name}#${company.code} 관리자`
             } else if (profile.name) {
                 displayName = `${profile.name} 관리자`
             } else {

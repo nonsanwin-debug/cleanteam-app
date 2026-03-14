@@ -34,13 +34,14 @@ export async function getMasterCompanies() {
 
     const adminClient = createAdminClient()
 
-    // 1. Fetch companies
+    // 1. Fetch companies, excluding deleted ones
     const { data: companies, error } = await adminClient
         .from('companies')
         .select(`
             *,
-            owner:users(name, email, phone)
+            owner:users!companies_owner_id_fkey(name, email, phone)
         `)
+        .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -69,6 +70,7 @@ export async function updateCompanyStatus(companyId: string, status: 'approved' 
         }
 
         revalidatePath('/master/companies')
+        revalidatePath('/master/recovery')
         return { success: true }
     } catch (error) {
         return { success: false, error: '서버 오류가 발생했습니다.' }
@@ -156,6 +158,7 @@ export async function getMasterUsers() {
             id, name, phone, email, role, status, created_at, account_info, current_money, 
             companies(name, code, status)
         `)
+        .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -185,11 +188,9 @@ export async function deleteUserForce(userId: string): Promise<ActionResponse> {
         }
 
         // 2. Scramble auth state to completely block login
-        const deletedEmail = `banned_${userId}_${Date.now()}@cleanteam.temp`;
-        const randomPassword = crypto.randomUUID();
+        // NOT scrambling password so they can log back in easily upon restore IF we just change their metadata.
+        // Or we just update their auth role to 'banned'.
         const { error: authError } = await adminClient.auth.admin.updateUserById(userId, {
-            email: deletedEmail,
-            password: randomPassword,
             user_metadata: { status: 'deleted', role: 'banned' }
         })
 
@@ -199,9 +200,126 @@ export async function deleteUserForce(userId: string): Promise<ActionResponse> {
         }
 
         revalidatePath('/master/users')
+        revalidatePath('/master/recovery')
         return { success: true }
     } catch (error) {
         console.error('deleteUserForce error:', error)
         return { success: false, error: '강제 탈퇴 중 오류가 발생했습니다.' }
+    }
+}
+
+
+/* ============================
+    Recovery Management
+============================ */
+
+export async function getDeletedCompanies() {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
+
+    const { data: companies, error } = await adminClient
+        .from('companies')
+        .select(`
+            *,
+            owner:users!companies_owner_id_fkey(name, email, phone)
+        `)
+        .eq('status', 'deleted')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching deleted companies:', error)
+        return []
+    }
+
+    return companies || []
+}
+
+export async function getDeletedUsers() {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
+
+    const { data: users, error } = await adminClient
+        .from('users')
+        .select(`
+            id, name, phone, email, role, status, created_at, account_info, current_money, 
+            companies(name, code, status)
+        `)
+        .eq('status', 'deleted')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching deleted users:', error)
+        return []
+    }
+
+    return users || []
+}
+
+export async function restoreCompany(companyId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('companies')
+            .update({ status: 'approved' }) // Restore back to approved (or active depending on your logic)
+            .eq('id', companyId)
+
+        if (error) {
+            console.error('Error restoring company error:', error)
+            return { success: false, error: '업체 복구 중 오류가 발생했습니다.' }
+        }
+
+        revalidatePath('/master/companies')
+        revalidatePath('/master/recovery')
+        return { success: true }
+    } catch (error) {
+        console.error('restoreCompany error:', error)
+        return { success: false, error: '복구 중 오류가 발생했습니다.' }
+    }
+}
+
+export async function restoreUser(userId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        // 1. Restore `users` table state
+        const { data: userProfile, error: profileError } = await adminClient
+            .from('users')
+            .update({ status: 'active' }) // Back to active
+            .eq('id', userId)
+            .select('role')
+            .single()
+
+        if (profileError) {
+            console.error('User restore profile update error:', profileError)
+            return { success: false, error: '회원 프로필 복구 중 오류가 발생했습니다.' }
+        }
+
+        // 2. Restore auth user metadata
+        const { error: authError } = await adminClient.auth.admin.updateUserById(userId, {
+            user_metadata: { status: 'active', role: userProfile?.role || 'worker' }
+        })
+
+        if (authError) {
+            console.error('Auth user restore error:', authError)
+            return { success: false, error: '회원 인증 정보 복구 중 오류가 발생했습니다.' }
+        }
+
+        revalidatePath('/master/users')
+        revalidatePath('/master/recovery')
+        return { success: true }
+    } catch (error) {
+        console.error('restoreUser error:', error)
+        return { success: false, error: '복구 중 오류가 발생했습니다.' }
     }
 }
