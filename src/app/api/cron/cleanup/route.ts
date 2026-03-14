@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 /**
  * 완료된 작업 자동 삭제 Cron Job
  * 매일 자정 (KST 기준) 실행
- * completed_at이 30일 이상 된 completed 상태의 현장을 삭제
+ * completed_at이 180일 이상 된 completed 상태의 현장을 삭제
  */
 export async function GET(request: Request) {
     // Vercel Cron 인증 확인
@@ -18,9 +18,9 @@ export async function GET(request: Request) {
     try {
         const adminSupabase = createAdminClient()
 
-        // 30일(1개월) 전 날짜 계산
+        // 180일(6개월) 전 날짜 계산
         const cutoffDateObj = new Date()
-        cutoffDateObj.setDate(cutoffDateObj.getDate() - 30)
+        cutoffDateObj.setDate(cutoffDateObj.getDate() - 180)
         const cutoffDate = cutoffDateObj.toISOString()
 
         // 1. 삭제 대상 현장 조회 (관련 사진 Storage 정리를 위해)
