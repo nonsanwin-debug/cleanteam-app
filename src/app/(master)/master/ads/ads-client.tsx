@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Trash2, Megaphone, Eye, MousePointerClick, RefreshCw, Activity, AlertCircle, Link, Image as ImageIcon, MapPin } from 'lucide-react'
+import { Plus, Trash2, Megaphone, Eye, MousePointerClick, RefreshCw, Activity, AlertCircle, Link, Image as ImageIcon, MapPin, Phone } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { createAd, deleteAd, updateAdStatus } from '@/actions/ads'
 import { createBrowserClient } from '@supabase/ssr'
@@ -26,6 +26,7 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
     const [title, setTitle] = useState('')
     const [imageUrl, setImageUrl] = useState('')
     const [linkUrl, setLinkUrl] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
     const [placement, setPlacement] = useState('share_above_text')
     const [maxImpressions, setMaxImpressions] = useState('1000')
 
@@ -72,13 +73,19 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
         setTitle('')
         setImageUrl('')
         setLinkUrl('')
+        setPhoneNumber('')
         setPlacement('share_above_text')
         setMaxImpressions('1000')
     }
 
     const handleCreateSubmit = async () => {
-        if (!title || !imageUrl || !linkUrl) {
-            alert('광고명, 배너 이미지, 랜딩 링크를 모두 입력해주세요.')
+        if (!title || !imageUrl) {
+            alert('광고명, 배너 이미지를 입력해주세요.')
+            return
+        }
+        
+        if (!linkUrl && !phoneNumber) {
+            alert('클릭 시 이동할 링크나 연락처 중 하나는 필수로 입력해야 합니다.')
             return
         }
 
@@ -92,7 +99,8 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
         const result = await createAd({
             title,
             image_url: imageUrl,
-            link_url: linkUrl,
+            link_url: linkUrl || undefined,
+            phone_number: phoneNumber || undefined,
             placement,
             is_active: true,
             max_impressions: maxImpParsed
@@ -222,8 +230,14 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="link">클릭 시 이동할 링크 (URL)</Label>
+                                <Label htmlFor="link">클릭 시 이동할 링크 (URL) <span className="text-slate-400 font-normal ml-1">(선택)</span></Label>
                                 <Input id="link" placeholder="https://..." value={linkUrl} onChange={e => setLinkUrl(e.target.value)} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">업체 연락처 (전화걸기) <span className="text-slate-400 font-normal ml-1">(선택)</span></Label>
+                                <Input id="phone" placeholder="010-0000-0000" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} />
+                                <p className="text-xs text-slate-500 mt-1">* 링크와 연락처 둘 다 입력 시 링크가 우선 작동합니다.</p>
                             </div>
 
                             <div className="space-y-2">
@@ -322,9 +336,19 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center text-xs text-slate-500 bg-slate-50 p-2 rounded-md border border-slate-100 truncate">
-                                        <Link className="w-3.5 h-3.5 min-w-3.5 mr-1.5 text-slate-400" />
-                                        <span className="truncate">{ad.link_url}</span>
+                                    <div className="space-y-2 mt-4 pt-4 border-t border-slate-100">
+                                        {ad.link_url && (
+                                            <div className="flex items-center text-xs text-slate-500 bg-slate-50 p-2 rounded-md border border-slate-100 truncate">
+                                                <Link className="w-3.5 h-3.5 min-w-3.5 mr-1.5 text-slate-400" />
+                                                <span className="truncate">{ad.link_url}</span>
+                                            </div>
+                                        )}
+                                        {ad.phone_number && (
+                                            <div className="flex items-center text-xs text-slate-500 bg-slate-50 p-2 rounded-md border border-slate-100 truncate">
+                                                <Phone className="w-3.5 h-3.5 min-w-3.5 mr-1.5 text-slate-400" />
+                                                <span className="truncate font-mono">{ad.phone_number}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                 </CardContent>

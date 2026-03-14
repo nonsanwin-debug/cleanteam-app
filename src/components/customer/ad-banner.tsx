@@ -77,8 +77,12 @@ export function AdBanner({ placement }: { placement: string }) {
             console.error('Failed to log click:', error)
         }
 
-        // Navigate
-        window.open(currentAd.link_url, '_blank', 'noopener,noreferrer')
+        // Navigate based on priority: Link > Phone
+        if (currentAd.link_url) {
+            window.open(currentAd.link_url, '_blank', 'noopener,noreferrer')
+        } else if (currentAd.phone_number) {
+            window.location.href = `tel:${currentAd.phone_number}`
+        }
     }
 
     if (loading) {

@@ -32,7 +32,8 @@ export async function getAds() {
 export async function createAd(adData: {
     title: string,
     image_url: string,
-    link_url: string,
+    link_url?: string,
+    phone_number?: string,
     placement: string,
     is_active: boolean,
     max_impressions: number
@@ -48,7 +49,8 @@ export async function createAd(adData: {
             .insert({
                 title: adData.title,
                 image_url: adData.image_url,
-                link_url: adData.link_url,
+                link_url: adData.link_url || null,
+                phone_number: adData.phone_number || null,
                 placement: adData.placement,
                 is_active: adData.is_active,
                 max_impressions: adData.max_impressions,
