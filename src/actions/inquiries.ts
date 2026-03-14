@@ -8,6 +8,8 @@ import { verifyMasterAccess } from './master'
 // ADMIN (Company) Actions
 // ============================================
 
+import { getAuthCompany } from '@/lib/supabase/auth-context'
+
 export async function createInquiry({
     type,
     content
@@ -16,23 +18,14 @@ export async function createInquiry({
     content: string
 }) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
-
-        // Find the user's company_id
-        const { data: userCompany, error: ucError } = await supabase
-            .from('users_companies')
-            .select('company_id')
-            .eq('user_id', user.id)
-            .single()
-
-        if (ucError || !userCompany) return { success: false, error: '소속된 업체를 찾을 수 없습니다.' }
+        const { supabase, companyId } = await getAuthCompany()
+        
+        if (!companyId) return { success: false, error: '소속된 업체를 찾을 수 없습니다.' }
 
         const { error } = await supabase
             .from('admin_inquiries')
             .insert({
-                company_id: userCompany.company_id,
+                company_id: companyId,
                 type,
                 content,
                 status: 'pending'
@@ -50,13 +43,13 @@ export async function createInquiry({
 
 export async function getAdminInquiries() {
     try {
-        const supabase = await createClient()
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '소속된 업체를 찾을 수 없습니다.', data: [] }
         
-        // Let RLS handle the filtering by company_id automatically
-        // as we defined in the policy
         const { data, error } = await supabase
             .from('admin_inquiries')
             .select('*')
+            .eq('company_id', companyId)
             .order('created_at', { ascending: false })
 
         if (error) throw error
