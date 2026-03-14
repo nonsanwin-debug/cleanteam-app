@@ -23,7 +23,10 @@ export function MobileNav({ displayName, children }: MobileNavProps) {
     }, [pathname])
 
     return (
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:hidden">
+        <header 
+            className="bg-white border-b border-slate-200 flex items-center justify-between px-6 md:hidden"
+            style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: 'calc(4rem + env(safe-area-inset-top))' }}
+        >
             <div>
                 <Link href="/admin/dashboard" className="flex items-center gap-1.5 text-lg font-black tracking-tighter text-slate-900 hover:opacity-80 transition-opacity">
                     <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">

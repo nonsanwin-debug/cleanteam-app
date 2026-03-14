@@ -30,7 +30,10 @@ export default async function WorkerLayout({
     return (
         <div className="flex flex-col h-screen bg-slate-50">
             {/* Header */}
-            <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-10">
+            <header 
+                className="bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-10"
+                style={{ paddingTop: 'env(safe-area-inset-top)', minHeight: 'calc(3.5rem + env(safe-area-inset-top))' }}
+            >
                 <Link href="/worker/home" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                     <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -57,7 +60,7 @@ export default async function WorkerLayout({
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto p-4 pb-20">
+            <main className="flex-1 overflow-auto p-4" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
                 {children}
             </main>
 
@@ -65,7 +68,10 @@ export default async function WorkerLayout({
             <UploadIndicator />
 
             {/* Bottom Navigation (Mobile) */}
-            <nav className="h-16 bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 flex items-center justify-around z-10 safe-area-bottom">
+            <nav 
+                className="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 flex items-stretch justify-around z-10"
+                style={{ paddingBottom: 'env(safe-area-inset-bottom)', minHeight: 'calc(4rem + env(safe-area-inset-bottom))' }}
+            >
                 <Link href="/worker/home" className="flex flex-col items-center justify-center w-full h-full text-primary">
                     <Home className="h-6 w-6" />
                     <span className="text-xs mt-1">홈</span>
