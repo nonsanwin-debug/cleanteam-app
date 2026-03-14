@@ -4,15 +4,17 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 import { deleteUserForce } from '@/actions/master'
-import { Trash2, Users, ChevronDown, ChevronRight, Building2, ShieldAlert } from 'lucide-react'
+import { Trash2, Users, ChevronDown, ChevronRight, Building2, ShieldAlert, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
     const router = useRouter()
     const [isUpdating, setIsUpdating] = useState(false)
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+    const [searchTerm, setSearchTerm] = useState('')
 
     const handleDeleteUser = async (userId: string, userName: string) => {
         if (!confirm(`[경고] 정말로 ${userName} 회원을 강제 탈퇴시키겠습니까?\n이 작업은 즉시 로그인 권한을 박탈하며 복구할 수 없습니다.`)) return
@@ -34,19 +36,39 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
     }
 
     // Grouping and sorting logic
-    const { masterGroup, companyGroups, noCompanyGroup } = useMemo(() => {
+    const { masterGroup, companyGroups, noCompanyGroup, autoExpanded } = useMemo(() => {
         const masters: any[] = []
         const noCompany: any[] = []
         const companyMap: Record<string, { id: string, name: string, code: string, status: string, users: any[] }> = {}
+        const autoExpanded: Record<string, boolean> = {}
+
+        const lowerSearch = searchTerm.toLowerCase().trim()
 
         initialUsers.forEach(user => {
+            const compName = user.companies?.name || ''
+            const compCode = user.companies?.code || ''
+            
+            const matchesUser = lowerSearch === '' || 
+                user.name.toLowerCase().includes(lowerSearch) || 
+                (user.phone && user.phone.includes(lowerSearch)) ||
+                (user.email && user.email.toLowerCase().includes(lowerSearch));
+                
+            const matchesCompany = lowerSearch === '' ||
+                compName.toLowerCase().includes(lowerSearch) ||
+                compCode.toLowerCase().includes(lowerSearch);
+
+            // Skip user if neither user nor their company matches the search
+            if (!matchesUser && !matchesCompany) return;
+
             if (user.role === 'master') {
                 masters.push(user)
+                if (lowerSearch && matchesUser) autoExpanded['master'] = true;
                 return
             }
 
             if (!user.companies) {
                 noCompany.push(user)
+                if (lowerSearch && matchesUser) autoExpanded['unassociated'] = true;
                 return
             }
 
@@ -62,6 +84,10 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
                 }
             }
             companyMap[compKey].users.push(user)
+            
+            if (lowerSearch && matchesUser) {
+                autoExpanded[user.companies.name] = true;
+            }
         })
 
         // Convert the map to an array and sort by number of users descending
@@ -70,9 +96,10 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
         return {
             masterGroup: masters,
             companyGroups: groupedArray,
-            noCompanyGroup: noCompany
+            noCompanyGroup: noCompany,
+            autoExpanded
         }
-    }, [initialUsers])
+    }, [initialUsers, searchTerm])
 
 
     // Render standard user row
@@ -126,6 +153,17 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
             </CardHeader>
             <CardContent className="p-4 space-y-4 bg-slate-50/30">
                 
+                {/* Search Input */}
+                <div className="relative mb-6">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input 
+                        placeholder="이름, 전화번호, 이메일, 혹은 업체명으로 회원을 검색해 보세요..."
+                        className="pl-12 h-14 bg-white border-slate-200 shadow-sm text-base rounded-xl focus-visible:ring-indigo-500"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
                 {/* 1. Master Group */}
                 {masterGroup.length > 0 && (
                     <Card className="border-purple-200 overflow-hidden shadow-sm">
@@ -139,10 +177,10 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
                                 <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-none">{masterGroup.length}</Badge>
                             </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8 pointer-events-none">
-                                {expandedGroups['master'] ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
+                                {(expandedGroups['master'] !== undefined ? expandedGroups['master'] : autoExpanded['master']) ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
                             </Button>
                         </div>
-                        {expandedGroups['master'] && (
+                        {(expandedGroups['master'] !== undefined ? expandedGroups['master'] : autoExpanded['master']) && (
                             <div className="overflow-x-auto bg-white">
                                 <table className="w-full text-left align-middle border-collapse">
                                     <tbody className="divide-y divide-slate-100">
@@ -156,7 +194,7 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
 
                 {/* 2. Companies Sorted By User Count */}
                 {companyGroups.map((group, idx) => {
-                    const isExpanded = expandedGroups[group.name] === undefined ? false : expandedGroups[group.name];
+                    const isExpanded = expandedGroups[group.name] !== undefined ? expandedGroups[group.name] : (autoExpanded[group.name] || false);
                     return (
                         <Card key={idx} className="border-indigo-100 overflow-hidden shadow-sm transition-all duration-200">
                             <div 
@@ -235,10 +273,10 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
                                 <Badge className="bg-slate-200 text-slate-700 hover:bg-slate-200 border-none">{noCompanyGroup.length}</Badge>
                             </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8 pointer-events-none">
-                                {expandedGroups['unassociated'] ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
+                                {(expandedGroups['unassociated'] !== undefined ? expandedGroups['unassociated'] : autoExpanded['unassociated']) ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
                             </Button>
                         </div>
-                        {expandedGroups['unassociated'] && (
+                        {(expandedGroups['unassociated'] !== undefined ? expandedGroups['unassociated'] : autoExpanded['unassociated']) && (
                             <div className="overflow-x-auto bg-white border-t border-slate-100">
                                 <table className="w-full text-left align-middle border-collapse">
                                     <tbody className="divide-y divide-slate-100">
@@ -253,6 +291,11 @@ export function MasterUsersClient({ initialUsers }: { initialUsers: any[] }) {
                 {initialUsers.length === 0 && (
                     <div className="p-12 text-center text-slate-500 bg-white rounded-lg border border-dashed border-slate-200">
                         가입된 회원이 없습니다.
+                    </div>
+                )}
+                {initialUsers.length > 0 && companyGroups.length === 0 && masterGroup.length === 0 && noCompanyGroup.length === 0 && (
+                    <div className="p-12 text-center text-slate-500 bg-white rounded-lg border border-dashed border-slate-200">
+                        검색 결과가 없습니다.
                     </div>
                 )}
             </CardContent>
