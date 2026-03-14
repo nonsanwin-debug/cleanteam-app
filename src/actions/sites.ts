@@ -312,8 +312,8 @@ export async function getRecentActivities() {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return []
 
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+    const todayStart = new Date(`${todayStr}T00:00:00+09:00`).toISOString()
 
     const { data: photos, error } = await supabase
         .from('photos')
@@ -327,7 +327,7 @@ export async function getRecentActivities() {
             user:users(name)
         `)
         .eq('site.company_id', companyId)
-        .gte('created_at', sevenDaysAgo.toISOString())
+        .gte('created_at', todayStart)
         .order('created_at', { ascending: false })
         .limit(500)
 

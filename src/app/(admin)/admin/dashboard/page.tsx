@@ -189,7 +189,7 @@ export default async function AdminDashboard() {
                 </Card>
                 <Card className="hidden md:block col-span-1 md:col-span-1 lg:col-span-3">
                     <CardHeader>
-                        <CardTitle>최근 알림</CardTitle>
+                        <CardTitle>알림</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
