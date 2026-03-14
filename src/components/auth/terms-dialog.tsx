@@ -99,6 +99,37 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
               </ul>
             </section>
 
+            <section className="space-y-3">
+              <h4 className="font-bold">제 8 조 (정산 정보의 등록 및 관리)</h4>
+              <ul className="list-decimal pl-5 space-y-2">
+                <li>회원은 업체와 팀장 간의 원활한 보수 정산을 위해 본인의 계좌번호, 은행명, 예금주 정보를 정확히 등록해야 합니다.</li>
+                <li>회원은 계좌 정보가 변경될 경우 즉시 플랫폼 내에서 수정해야 하며, 정보 수정을 게을리하여 발생한 정산 오류 및 불이익에 대해 회사는 고의 또는 중과실이 없는 한 책임을 지지 않습니다.</li>
+                <li>회사가 플랫폼 내에 표시하는 계좌 정보는 업체 회원이 팀장 회원에게 직접 보수를 지급할 때 참고하는 용도이며, 실제 송금 실행 및 송금 결과에 대한 모든 법적 책임은 지급 주체인 업체 회원에게 있습니다.</li>
+              </ul>
+            </section>
+
+            <h3 className="font-bold text-lg text-slate-900 mt-8 mb-4">[개인정보 처리방침]</h3>
+
+            <section className="space-y-4">
+              <div>
+                <h4 className="font-bold text-slate-800">[수집하는 개인정보 항목]</h4>
+                <p className="mt-1">필수 항목: 은행명, 계좌번호, 예금주 명</p>
+              </div>
+              
+              <div>
+                <h4 className="font-bold text-slate-800">[개인정보의 수집 및 이용 목적]</h4>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>업체 회원과 팀장 회원 간의 서비스 이용 대금 정산 편의 제공</li>
+                  <li>서비스 이용에 따른 본인 확인 및 부정 이용 방지</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-800">[개인정보의 보유 및 이용 기간]</h4>
+                <p className="mt-1">회원 탈퇴 시까지 (단, 관련 법령에 따라 보존할 필요가 있는 경우 해당 기간까지 보관)</p>
+              </div>
+            </section>
+
             <div className="pt-6 border-t border-slate-200 text-slate-500 text-sm">
               <h4 className="font-bold mb-2">부칙</h4>
               <p>제 1 조 (시행일) 본 약관은 2026년 4월 10일부터 시행합니다.</p>

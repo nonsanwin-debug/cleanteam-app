@@ -2,21 +2,16 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export default function LoginPage() {
     const [isMounted, setIsMounted] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
-    const router = useRouter()
 
     // Initialize Supabase client only on the client side
     const supabase = useMemo<SupabaseClient | null>(() => {
@@ -31,8 +26,6 @@ export default function LoginPage() {
 
     useEffect(() => {
         setIsMounted(true)
-
-        // Check if Supabase client was initialized successfully
         if (!supabase) {
             toast.error('초기화 오류', {
                 description: 'Supabase 연결에 실패했습니다. 환경 변수를 확인해주세요.'
@@ -59,143 +52,71 @@ export default function LoginPage() {
         )
     }
 
-    async function handleAuth(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-
-        if (!supabase) {
-            toast.error('연결 오류', { description: 'Supabase 클라이언트가 초기화되지 않았습니다.' })
-            return
-        }
-
+    async function handleKakaoLogin() {
+        if (!supabase) return
         setIsLoading(true)
-
-        const formData = new FormData(e.currentTarget)
-        const username = formData.get('username') as string
-        const password = formData.get('password') as string
-        const name = formData.get('name') as string // Only for signup
-        const role = 'worker' // Always worker here
-
-        // 아이디를 이메일 형식으로 변환 (도메인 통일: .temp, 대소문자 & 공백 무시)
-        const email = `${username.trim().toLowerCase()}@cleanteam.temp`
-
         try {
-            // SIGN IN LOGIC
-            console.log('🔐 로그인 시도:', { username, email });
-
-            const { data: signInData, error } = await supabase.auth.signInWithPassword({
-                email,
-                password: password.trim(),
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'kakao',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                },
             })
-
-            if (error) {
-                console.error('❌ 로그인 에러:', error);
-                throw error;
-            }
-
-            console.log('✅ 로그인 성공:', signInData.user?.email);
-
-            // Check user role
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (user) {
-                console.log('👤 사용자 확인 완료:', user.id);
-
-                let { data: profile } = await supabase
-                    .from('users')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single()
-
-                // Fallback profile creation
-                if (!profile) {
-                    const nameToSet = user.user_metadata.name || '사용자'
-                    // Default to worker
-                    await supabase.from('users').insert([{ id: user.id, name: nameToSet, role: 'worker' }])
-                    profile = { role: 'worker' }
-                }
-
-                // Redirect based on role
-                toast.success('로그인 성공')
-                if (profile?.role === 'admin') {
-                    router.refresh()
-                    router.push('/admin/dashboard')
-                } else {
-                    router.refresh()
-                    router.push('/worker/home')
-                }
-            }
+            if (error) throw error
         } catch (err: any) {
-            console.error('🚨 인증 오류:', err);
-
-            // 더 상세한 오류 메시지 제공
-            let errorMessage = err.message;
-
-            if (err.message?.includes('Invalid login credentials')) {
-                errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
-            } else if (err.message?.includes('Email not confirmed')) {
-                errorMessage = '이메일 확인이 필요합니다. Supabase 설정을 확인하세요.';
-            } else if (err.message?.includes('User already registered')) {
-                errorMessage = '이미 등록된 아이디입니다. 로그인을 시도하세요.';
-            }
-
-            toast.error('로그인 실패', { description: errorMessage })
-        } finally {
+            console.error('Kakao login error:', err)
+            toast.error('로그인 실패', { description: '카카오 로그인 중 오류가 발생했습니다.' })
             setIsLoading(false)
         }
     }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold text-primary">NEXUS</CardTitle>
-                    <CardDescription>
-                        현장 팀장 로그인 (System v3 Updated)
-                    </CardDescription>
+            <Card className="w-full max-w-md shadow-lg border-t-8 border-yellow-400">
+                <CardHeader className="text-center space-y-4">
+                    <div className="mx-auto flex justify-center items-center mb-2">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[48px] h-[48px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="worker-form-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#3B82F6" />
+                                    <stop offset="100%" stopColor="#60A5FA" />
+                                </linearGradient>
+                                <linearGradient id="worker-form-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#60A5FA" />
+                                    <stop offset="100%" stopColor="#93C5FD" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#worker-form-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#worker-form-grad-1)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#worker-form-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                    <div>
+                        <CardTitle className="text-2xl font-bold text-slate-800">NEXUS 현장 팀장</CardTitle>
+                        <CardDescription className="text-sm">
+                            빠르고 간편하게 카카오톡으로 로그인하세요.
+                        </CardDescription>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleAuth} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="username">아이디</Label>
-                            <Input
-                                id="username"
-                                name="username"
-                                type="text"
-                                placeholder="아이디를 입력하세요 (예: team8594)"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">비밀번호</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="비밀번호를 입력하세요"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
-                        <Button type="submit" className="w-full text-lg py-6" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '현장 팀장 로그인'}
-                        </Button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <button
-                            onClick={() => router.push('/auth/register')}
-                            className="text-sm text-slate-500 hover:text-primary underline"
+                    <div className="space-y-4 pt-4">
+                        <Button 
+                            onClick={handleKakaoLogin}
+                            className="w-full text-lg py-6 bg-[#FEE500] text-[#000000] hover:bg-[#FEE500]/90 font-bold border border-[#FEE500]/20" 
+                            disabled={isLoading}
                         >
-                            현장 팀장 계정이 없으신가요? 회원가입
-                        </button>
+                            {isLoading ? (
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            ) : (
+                                <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3C6.477 3 2 6.551 2 10.932c0 2.825 1.83 5.305 4.542 6.64-.131.427-.428 1.403-.497 1.642-.086.299.103.292.215.218.087-.058 1.385-.922 1.954-1.3l.067-.044c1.192.27 2.441.413 3.719.413 5.523 0 10-3.55 10-7.931s-4.477-7.932-10-7.932z"/>
+                                </svg>
+                            )}
+                            카카오 로그인 / 회원가입
+                        </Button>
+                        <p className="text-xs text-center text-slate-500 mt-4">
+                            아이디와 비밀번호 없이 1초만에 시작하세요.
+                        </p>
                     </div>
                 </CardContent>
             </Card>
