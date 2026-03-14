@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 
 interface AdminNavLinksProps {
     pendingCount: number
+    unreadReplyCount?: number
 }
 
 const NAV_ITEMS = [
@@ -23,11 +24,11 @@ const NAV_ITEMS = [
     { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true, iconColor: 'text-cyan-500' },
     { href: '/admin/memos', icon: CheckSquare, label: '관리자 메모', iconColor: 'text-yellow-500' },
     { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리', iconColor: 'text-amber-500' },
-    { href: '/admin/inquiries', icon: MessageSquarePlus, label: '1:1 문의 / 요청', iconColor: 'text-indigo-600' },
+    { href: '/admin/inquiries', icon: MessageSquarePlus, label: '1:1 문의 / 요청', iconColor: 'text-indigo-600', showInquiriesBadge: true },
     { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
 ]
 
-export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
+export function AdminNavLinks({ pendingCount, unreadReplyCount = 0 }: AdminNavLinksProps) {
     const pathname = usePathname()
 
     return (
@@ -48,18 +49,20 @@ export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
                         <Button
                             variant={isActive ? 'default' : 'ghost'}
                             className={cn(
-                                'w-full justify-start border-l-4',
+                                'w-full justify-start border-l-4 justify-between',
                                 isActive
                                     ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm border-blue-700'
                                     : 'text-slate-600 hover:text-primary hover:bg-indigo-50 border-transparent hover:border-indigo-600',
                             )}
                         >
-                            <Icon className={cn(
-                                'mr-2 h-4 w-4',
-                                item.iconRotate && 'rotate-180',
-                                !isActive && item.iconColor,
-                            )} />
-                            {item.label}
+                            <span className="flex items-center">
+                                <Icon className={cn(
+                                    'mr-2 h-4 w-4',
+                                    item.iconRotate && 'rotate-180',
+                                    !isActive && item.iconColor,
+                                )} />
+                                {item.label}
+                            </span>
                             {item.showBadge && pendingCount > 0 && (
                                 <Badge className={cn(
                                     'ml-auto h-5 min-w-5 flex items-center justify-center px-1.5',
@@ -68,6 +71,16 @@ export function AdminNavLinks({ pendingCount }: AdminNavLinksProps) {
                                         : 'bg-red-500 text-white hover:bg-red-600'
                                 )}>
                                     {pendingCount}
+                                </Badge>
+                            )}
+                            {item.showInquiriesBadge && unreadReplyCount > 0 && (
+                                <Badge className={cn(
+                                    'ml-auto h-5 min-w-5 flex items-center justify-center px-1.5',
+                                    isActive
+                                        ? 'bg-white text-indigo-600 hover:bg-white/90'
+                                        : 'bg-red-500 text-white hover:bg-red-600'
+                                )}>
+                                    {unreadReplyCount}
                                 </Badge>
                             )}
                         </Button>

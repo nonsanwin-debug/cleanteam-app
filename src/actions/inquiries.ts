@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { verifyMasterAccess } from './master'
 
@@ -61,11 +62,52 @@ export async function getAdminInquiries() {
     }
 }
 
+export async function getUnreadReplyCount() {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return 0
+        
+        const { count, error } = await supabase
+            .from('admin_inquiries')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', companyId)
+            .eq('status', 'resolved')
+            .eq('admin_read', false)
+
+        if (error) return 0
+        return count || 0
+    } catch {
+        return 0
+    }
+}
+
+export async function markRepliesAsRead() {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false }
+
+        const { error } = await supabase
+            .from('admin_inquiries')
+            .update({ admin_read: true })
+            .eq('company_id', companyId)
+            .eq('status', 'resolved')
+            .eq('admin_read', false)
+
+        if (error) throw error
+
+        revalidatePath('/admin/inquiries')
+        // We might also need to revalidate the layout if the badge is in the layout
+        revalidatePath('/admin', 'layout')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to mark replies as read:', error)
+        return { success: false }
+    }
+}
+
 // ============================================
 // MASTER Actions
 // ============================================
-
-import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function getAllInquiries() {
     try {
@@ -116,5 +158,24 @@ export async function resolveInquiry(id: string, reply: string) {
     } catch (error: any) {
         console.error('Failed to resolve inquiry:', error)
         return { success: false, error: '문의 상태 업데이트에 실패했습니다.' }
+    }
+}
+
+export async function getPendingInquiryCount() {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return 0
+
+        const adminClient = createAdminClient()
+        
+        const { count, error } = await adminClient
+            .from('admin_inquiries')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending')
+
+        if (error) return 0
+        return count || 0
+    } catch {
+        return 0
     }
 }

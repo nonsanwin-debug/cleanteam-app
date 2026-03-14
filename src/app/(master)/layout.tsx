@@ -29,6 +29,8 @@ export default async function MasterLayout({
     }
 
     const displayName = 'NEXUS 시스템 마스터'
+    const { getPendingInquiryCount } = await import('@/actions/inquiries')
+    const pendingInquiriesCount = await getPendingInquiryCount()
 
     return (
         <div className="flex h-screen bg-slate-100">
@@ -42,7 +44,7 @@ export default async function MasterLayout({
                 </div>
 
                 <div className="p-4 flex-1">
-                    <MasterNavLinks />
+                    <MasterNavLinks pendingInquiriesCount={pendingInquiriesCount} />
                 </div>
 
                 <div className="p-4 border-t border-slate-800">
@@ -55,7 +57,7 @@ export default async function MasterLayout({
                 <MobileNav displayName={displayName}>
                     <div className="flex flex-col h-full bg-slate-900">
                         <div className="p-4 flex-1">
-                            <MasterNavLinks />
+                            <MasterNavLinks pendingInquiriesCount={pendingInquiriesCount} />
                         </div>
                         <div className="p-4 border-t border-slate-800 mt-auto mb-10">
                             <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100 bg-white" />

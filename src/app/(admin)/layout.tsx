@@ -96,7 +96,10 @@ export default async function AdminLayout({
 
     // Get pending withdrawal count
     const pendingCount = await getPendingWithdrawalCount()
-
+    
+    // Get unread inquiry replies
+    const { getUnreadReplyCount } = await import('@/actions/inquiries')
+    const unreadReplyCount = await getUnreadReplyCount()
 
 
     return (
@@ -117,7 +120,7 @@ export default async function AdminLayout({
                 </div>
 
                 <div className="p-4 flex-1">
-                    <AdminNavLinks pendingCount={pendingCount} />
+                    <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} />
                 </div>
 
                 <div className="p-4 border-t border-slate-100">
@@ -130,7 +133,7 @@ export default async function AdminLayout({
                 <MobileNav displayName={displayName}>
                     <div className="flex flex-col h-full">
                         <div className="p-4 flex-1">
-                            <AdminNavLinks pendingCount={pendingCount} />
+                            <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} />
                         </div>
                         <div className="p-4 border-t mt-auto mb-10">
                             <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
