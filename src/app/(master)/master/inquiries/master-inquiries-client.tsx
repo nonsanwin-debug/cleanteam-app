@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquarePlus, Clock, CheckCircle2, Building2, Calendar } from 'lucide-react'
+import { MessageSquarePlus, Clock, CheckCircle2, Building2, Calendar, Reply } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 import { resolveInquiry } from '@/actions/inquiries'
 import { useRouter } from 'next/navigation'
 
@@ -12,21 +13,27 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
     const router = useRouter()
     const [inquiries, setInquiries] = useState(initialInquiries)
     const [resolvingId, setResolvingId] = useState<string | null>(null)
+    const [replyText, setReplyText] = useState<Record<string, string>>({})
 
     const handleResolve = async (id: string) => {
-        if (!confirm('이 문의를 처리 완료 상태로 변경하시겠습니까?')) return
+        const reply = replyText[id] || ''
+        if (!reply.trim()) {
+            if (!confirm('답변 내용이 비어있습니다. 이대로 처리 완료하시겠습니까?')) return
+        } else {
+            if (!confirm('작성하신 답변과 함께 처리 완료 상태로 변경하시겠습니까?')) return
+        }
 
         setResolvingId(id)
-        const result = await resolveInquiry(id)
+        const result = await resolveInquiry(id, reply)
         setResolvingId(null)
 
         if (result.success) {
-            alert('처리 완료되었습니다.')
+            alert('답변 및 처리가 완료되었습니다.')
             // Optimistic update
             setInquiries(prev => 
                 prev.map(inquiry => 
                     inquiry.id === id 
-                    ? { ...inquiry, status: 'resolved', resolved_at: new Date().toISOString() } 
+                    ? { ...inquiry, status: 'resolved', reply: reply, resolved_at: new Date().toISOString() } 
                     : inquiry
                 )
             )
@@ -105,30 +112,51 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
                             </div>
                             
                             {/* Footer & Actions */}
-                            <div className="p-4 bg-slate-50/50 border-t border-slate-100 mt-auto flex items-end justify-between gap-4">
-                                <div className="space-y-1">
-                                    <div className="flex items-center text-xs text-slate-500">
-                                        <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                                        접수: {new Date(inquiry.created_at).toLocaleString()}
+                            <div className="p-4 bg-slate-50/50 border-t border-slate-100 mt-auto flex flex-col gap-4">
+                                {inquiry.status === 'resolved' && inquiry.reply && (
+                                    <div className="bg-purple-50 border border-purple-100 rounded-md p-3">
+                                        <div className="flex items-center text-xs font-bold text-purple-700 mb-1">
+                                            <Reply className="w-3.5 h-3.5 mr-1" /> 마스터 답변
+                                        </div>
+                                        <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{inquiry.reply}</div>
                                     </div>
-                                    {inquiry.resolved_at && (
-                                        <div className="flex items-center text-xs text-emerald-600">
-                                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                                            처리: {new Date(inquiry.resolved_at).toLocaleString()}
+                                )}
+                                
+                                <div className="flex items-end justify-between gap-4 mt-1">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center text-xs text-slate-500">
+                                            <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                                            접수: {new Date(inquiry.created_at).toLocaleString()}
+                                        </div>
+                                        {inquiry.resolved_at && (
+                                            <div className="flex items-center text-xs text-emerald-600">
+                                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                                처리: {new Date(inquiry.resolved_at).toLocaleString()}
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {inquiry.status === 'pending' && (
+                                        <div className="flex flex-col gap-2 w-full max-w-[250px]">
+                                            <Textarea 
+                                                placeholder="답변 내용을 입력하세요..." 
+                                                className="text-sm bg-white resize-none min-h-[80px]"
+                                                value={replyText[inquiry.id] || ''}
+                                                onChange={(e) => setReplyText(prev => ({...prev, [inquiry.id]: e.target.value}))}
+                                            />
+                                            <div className="flex justify-end">
+                                                <Button 
+                                                    size="sm" 
+                                                    className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
+                                                    onClick={() => handleResolve(inquiry.id)}
+                                                    disabled={resolvingId === inquiry.id}
+                                                >
+                                                    {resolvingId === inquiry.id ? '처리 중...' : '답변 및 처리 완료'}
+                                                </Button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                                
-                                {inquiry.status === 'pending' && (
-                                    <Button 
-                                        size="sm" 
-                                        className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
-                                        onClick={() => handleResolve(inquiry.id)}
-                                        disabled={resolvingId === inquiry.id}
-                                    >
-                                        {resolvingId === inquiry.id ? '처리 중...' : '처리 완료하기'}
-                                    </Button>
-                                )}
                             </div>
 
                         </Card>

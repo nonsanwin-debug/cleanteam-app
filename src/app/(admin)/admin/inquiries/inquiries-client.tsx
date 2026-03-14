@@ -155,8 +155,18 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 bg-slate-50 rounded-lg p-4 text-sm text-slate-700 border border-slate-100 min-h-[80px]">
-                                    <p className="whitespace-pre-wrap leading-relaxed">{inquiry.content}</p>
+                                <div className="flex-1 space-y-3">
+                                    <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 border border-slate-100 min-h-[80px]">
+                                        <p className="whitespace-pre-wrap leading-relaxed">{inquiry.content}</p>
+                                    </div>
+                                    {inquiry.status === 'resolved' && inquiry.reply && (
+                                        <div className="bg-indigo-50 rounded-lg p-4 text-sm text-slate-700 border border-indigo-100">
+                                            <div className="text-xs font-bold text-indigo-700 mb-2 flex items-center">
+                                                <CheckCircle2 className="w-4 h-4 mr-1.5" /> 마스터 답변
+                                            </div>
+                                            <p className="whitespace-pre-wrap leading-relaxed text-indigo-950">{inquiry.reply}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </Card>

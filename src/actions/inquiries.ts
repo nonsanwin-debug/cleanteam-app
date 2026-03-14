@@ -93,7 +93,7 @@ export async function getAllInquiries() {
     }
 }
 
-export async function resolveInquiry(id: string) {
+export async function resolveInquiry(id: string, reply: string) {
     try {
         const isMaster = await verifyMasterAccess()
         if (!isMaster) return { success: false, error: '권한이 없습니다.' }
@@ -104,6 +104,7 @@ export async function resolveInquiry(id: string) {
             .from('admin_inquiries')
             .update({ 
                 status: 'resolved',
+                reply: reply,
                 resolved_at: new Date().toISOString()
             })
             .eq('id', id)
