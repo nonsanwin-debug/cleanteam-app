@@ -79,7 +79,7 @@ export async function getAllInquiries() {
             .from('admin_inquiries')
             .select(`
                 *,
-                company:companies(name, code, point_balance)
+                company:companies(name, code, points)
             `)
             .order('status', { ascending: false }) // 'pending' comes before 'resolved' textually
             .order('created_at', { ascending: false })

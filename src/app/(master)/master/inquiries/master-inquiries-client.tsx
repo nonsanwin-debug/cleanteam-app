@@ -91,7 +91,7 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
                                     </div>
                                     {inquiry.type === 'point' && inquiry.company && (
                                         <div className="text-xs text-indigo-600 font-medium mt-1 ml-5.5">
-                                            현재 보유: {inquiry.company.point_balance?.toLocaleString()} P
+                                            현재 보유: {inquiry.company.points?.toLocaleString()} P
                                         </div>
                                     )}
                                 </div>
