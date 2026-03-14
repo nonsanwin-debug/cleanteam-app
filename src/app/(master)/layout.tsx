@@ -37,7 +37,10 @@ export default async function MasterLayout({
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-slate-900 border-r border-slate-800 hidden md:flex flex-col text-white">
                 <div className="p-6 border-b border-slate-800">
-                    <h1 className="text-xl font-black text-white tracking-widest">NEXUS MASTER</h1>
+                    <div className="flex items-center gap-3">
+                        <img src="/logos/N.png" alt="NEXUS" className="w-8 h-8 object-contain bg-white rounded-md p-1" />
+                        <h1 className="text-xl font-black text-white tracking-widest">NEXUS</h1>
+                    </div>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-indigo-400">{displayName}님 접속중</p>
                     </div>

@@ -73,8 +73,8 @@ export default function AdminRegisterPage() {
         <div className="flex items-center justify-center min-h-screen bg-slate-100 p-4 border-t-8 border-indigo-600">
             <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="text-center space-y-4">
-                    <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-indigo-600" />
+                    <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden border shadow-sm">
+                        <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
                     </div>
                     <div>
                         <CardTitle className="text-2xl font-bold text-slate-800">업체 관리자 회원가입</CardTitle>

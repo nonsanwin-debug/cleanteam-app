@@ -112,7 +112,7 @@ export default async function AdminLayout({
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
                     <Link href="/admin/dashboard" className="text-xl font-bold text-slate-900 flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <Image src="/icons/icon-192.png" alt="NEXUS" width={28} height={28} className="rounded-md" />
+                        <Image src="/logos/N.png" alt="NEXUS" width={28} height={28} className="object-contain" />
                         NEXUS
                     </Link>
                     <div className="mt-3 space-y-1">
