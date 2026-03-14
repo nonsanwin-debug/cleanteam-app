@@ -39,6 +39,11 @@ export default function AdminRegisterPage() {
             return
         }
 
+        if (formData.companyName.includes(' ')) {
+            toast.error('가입 불가', { description: '업체명에는 띄어쓰기를 포함할 수 없습니다.' })
+            return
+        }
+
         setLoading(true)
 
         try {

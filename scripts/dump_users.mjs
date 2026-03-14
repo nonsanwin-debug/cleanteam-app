@@ -10,11 +10,15 @@ const supabase = createClient(
 )
 
 async function run() {
-  const { data: users, error } = await supabase.from('users').select('*').limit(5)
+  const { data: users, error } = await supabase
+    .from('users')
+    .select('*')
+
   console.log('Public Users:', users)
 
-  const { data: workers, error: workerErr } = await supabase.from('workers').select('*').limit(5)
-  console.log('Workers:', workers)
+  const { data: auth, error: authErr } = await supabase.auth.admin.listUsers()
+  console.log('Auth Users Emails:', auth.users.map(u => u.email))
+  console.log('Auth Users Meta:', auth.users.map(u => u.user_metadata))
 }
 
 run()
