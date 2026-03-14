@@ -215,8 +215,9 @@ export default function Home() {
         {/* Left Side: Intro Text */}
         <div className="flex-1 space-y-6 pt-8">
           <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900">
-              NEXUS
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 flex items-center justify-center space-x-3 md:justify-start">
+              <img src="/logos/N.png" alt="NEXUS Logo" className="w-10 h-10 object-contain" />
+              <span>NEXUS</span>
             </h1>
             <p className="text-xl text-slate-500">
               청소 현장 관리 시스템 & 스마트 검수 솔루션
@@ -232,9 +233,9 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">GPS</div>
+              <div className="w-6 h-6 rounded bg-[#FBE54E] flex items-center justify-center text-slate-800 font-bold text-[10px] flex-shrink-0">MAP</div>
               <div>
-                <h3 className="font-semibold">위치 기반 출석</h3>
+                <h3 className="font-semibold">작업 현장 간 예상거리 제공</h3>
                 <p className="text-sm">정확한 현장 도착 시간과 위치 기록</p>
               </div>
             </div>
@@ -252,8 +253,8 @@ export default function Home() {
         <div className="w-full max-w-md mx-auto md:mx-0">
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <HardHat className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border">
+                <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>
