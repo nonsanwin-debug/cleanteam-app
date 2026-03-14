@@ -215,9 +215,8 @@ export default function Home() {
         {/* Left Side: Intro Text */}
         <div className="flex-1 space-y-6 pt-8">
           <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 flex items-center justify-center space-x-3 md:justify-start">
-              <img src="/logos/N.png" alt="NEXUS Logo" className="w-10 h-10 object-contain" />
-              <span>NEXUS</span>
+            <h1 className="flex items-center justify-center md:justify-start mb-2">
+              <img src="/logos/logo-wide.png" alt="NEXUS Logo" className="h-12 object-contain" />
             </h1>
             <p className="text-xl text-slate-500">
               청소 현장 관리 시스템 & 스마트 검수 솔루션
@@ -253,8 +252,8 @@ export default function Home() {
         <div className="w-full max-w-md mx-auto md:mx-0">
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border">
-                <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border shadow-sm">
+                <img src="/logos/nfx-circle.png" alt="NFX Logo" className="w-12 h-12 object-cover" />
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>

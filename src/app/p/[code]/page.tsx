@@ -55,26 +55,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
             <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm px-4 py-4">
                 <div className="max-w-md mx-auto flex flex-col items-center justify-center text-center gap-1">
                     <div className="flex items-center gap-1.5 justify-center">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-[20px] h-[20px]" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="header-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" stopColor="#4F46E5" />
-                                    <stop offset="100%" stopColor="#22D3EE" />
-                                </linearGradient>
-                                <linearGradient id="header-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#22D3EE" />
-                                    <stop offset="100%" stopColor="#10B981" />
-                                </linearGradient>
-                                <linearGradient id="header-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" stopColor="#10B981" />
-                                    <stop offset="100%" stopColor="#BEF264" />
-                                </linearGradient>
-                            </defs>
-                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-1)" />
-                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-3)" />
-                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
-                        </svg>
-                        <span className="font-black text-[#0F172A] tracking-tighter text-[18px] ml-0.5 mt-0.5 cursor-default">NEXUS</span>
+                        <img src="/logos/logo-wide.png" alt="NEXUS" className="h-6 object-contain" />
                         <span className="text-slate-400 font-medium mx-0.5 text-sm mt-0.5 cursor-default">x</span>
                         <span className="text-lg font-black text-slate-800 leading-tight max-w-[150px] sm:max-w-[200px] truncate mt-0.5">
                             {response.companyName}
