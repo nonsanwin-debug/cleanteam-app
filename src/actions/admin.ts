@@ -400,44 +400,10 @@ export async function createWorker(data: {
         })
 
         if (authError) {
-            // NUCLEAR OPTION: If user already exists, DELETE and recreate to ensure clean state
-            if (authError.message.includes('already registered') || authError.status === 422) {
-                console.log('🔄 계정 중복 발견: 기존 계정 삭제 후 재생성 시도...', email)
-
-                // 1. Find existing user ID (Search all pages to be sure)
-                const { data: { users: authUsers } } = await adminClient.auth.admin.listUsers({ perPage: 1000 })
-                const found = authUsers.find(u => u.email?.toLowerCase() === email.toLowerCase())
-
-                if (found) {
-                    const oldUserId = found.id
-                    console.log('🗑️ 기존 계정 및 프로필 삭제 중:', oldUserId)
-
-                    // Delete profile first (to avoid orphan records if possible, though upsert handles it)
-                    await adminClient.from('users').delete().eq('id', oldUserId)
-                    // Delete auth user (This clears invalid states/passwords)
-                    await adminClient.auth.admin.deleteUser(oldUserId)
-
-                    // 2. Try creating again fresh
-                    const { data: retryData, error: retryError } = await adminClient.auth.admin.createUser({
-                        email: email,
-                        password: password,
-                        email_confirm: true,
-                        user_metadata: {
-                            name: data.name,
-                            phone: data.phone,
-                            role: 'worker',
-                            company_name: companyName
-                        }
-                    })
-
-                    if (retryError) throw new Error(`계정 재생성 실패: ${retryError.message}`)
-                    userId = retryData.user.id
-                } else {
-                    throw new Error(`계정이 이미 존재한다고 하지만 찾을 수 없습니다: ${authError.message}`)
-                }
-            } else {
-                throw new Error(authError.message)
+            if (authError.message.includes('already registered') || authError.status === 422 || authError.message.includes('duplicate')) {
+                return { success: false, error: '이미 사용중인 아이디입니다. 다른 아이디를 입력해주세요.' }
             }
+            throw new Error(authError.message)
         } else {
             userId = authData.user.id
         }

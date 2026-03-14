@@ -24,8 +24,8 @@ export async function registerAdminRobust(formData: any) {
 
         if (authError) {
             console.error('Auth Creation Error:', authError);
-            if (authError.message.includes('already registered')) {
-                return { success: false, error: '이미 사용중인 아이디입니다.' };
+            if (authError.message.includes('already registered') || authError.status === 422 || authError.message.includes('duplicate')) {
+                return { success: false, error: '이미 사용중인 아이디입니다. 다른 아이디를 입력해주세요.' };
             }
             return { success: false, error: authError.message };
         }
