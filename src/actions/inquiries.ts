@@ -65,15 +65,17 @@ export async function getAdminInquiries() {
 // MASTER Actions
 // ============================================
 
+import { createAdminClient } from '@/lib/supabase/admin'
+
 export async function getAllInquiries() {
     try {
         const isMaster = await verifyMasterAccess()
         if (!isMaster) return { success: false, error: '권한이 없습니다.', data: [] }
 
-        const supabase = await createClient()
+        const adminClient = createAdminClient()
         
         // Fetch all inquiries and join with companies table to get the company name
-        const { data, error } = await supabase
+        const { data, error } = await adminClient
             .from('admin_inquiries')
             .select(`
                 *,
@@ -96,9 +98,9 @@ export async function resolveInquiry(id: string) {
         const isMaster = await verifyMasterAccess()
         if (!isMaster) return { success: false, error: '권한이 없습니다.' }
 
-        const supabase = await createClient()
+        const adminClient = createAdminClient()
         
-        const { error } = await supabase
+        const { error } = await adminClient
             .from('admin_inquiries')
             .update({ 
                 status: 'resolved',
