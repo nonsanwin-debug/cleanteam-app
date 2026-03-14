@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Building, ClipboardCheck, AlertCircle, Clock, CheckCircle2, PlayCircle, Image as ImageIcon } from "lucide-react"
 import Link from "next/link"
 import { AdminSiteMap } from '@/components/admin/admin-site-map'
+import { ActiveSiteItem } from './active-site-item'
 
 function calculateDuration(start?: string, end?: string) {
     if (!start) return "알 수 없음"
@@ -99,88 +100,17 @@ export default async function AdminDashboard() {
                             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                                 {activeSites.map(site => {
                                     const isComplete = site.status === 'completed'
-                                    // Use completed_at or updated_at as fallback. If both missing, show "Unknown" to avoid eternal ticking.
                                     const completionTime = isComplete ? (site.completed_at || site.updated_at) : undefined
-
                                     const duration = calculateDuration(site.started_at, completionTime)
 
                                     return (
-                                        <Link key={site.id} href={`/admin/sites/${site.id}`} className="flex flex-col sm:flex-row items-start sm:justify-between p-3 sm:p-4 border rounded-lg bg-white shadow-sm gap-3 sm:gap-0 cursor-pointer transition-all hover:border-blue-400 hover:shadow-md">
-                                            <div className="space-y-1 w-full sm:w-auto">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className={`flex h-2 w-2 rounded-full shrink-0 ${isComplete ? 'bg-green-500' : 'bg-blue-500 animate-pulse'}`} />
-                                                    <h4 className="font-semibold text-sm truncate">{site.name}</h4>
-                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded border shrink-0 ${isComplete
-                                                        ? 'bg-green-50 text-green-600 border-green-200'
-                                                        : 'bg-blue-50 text-blue-600 border-blue-200'
-                                                        }`}>
-                                                        {isComplete ? '완료됨' : '작업 중'}
-                                                    </span>
-                                                    {site.happy_call_completed ? (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-indigo-50 text-indigo-600 border-indigo-200 flex items-center gap-0.5">
-                                                            <CheckCircle2 className="w-3 h-3" />해피콜
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-slate-50 text-slate-500 border-slate-200 flex items-center gap-0.5">
-                                                            해피콜 대기
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center text-xs text-slate-500">
-                                                    <Users className="mr-1 h-3 w-3" />
-                                                    <span style={{ color: site.worker?.display_color || undefined }}>
-                                                        {site.worker?.name || '팀장 미지정'}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-slate-400 mt-1 truncate">
-                                                    {site.address}
-                                                </div>
-                                                {(site.special_notes || site.worker_notes) && (
-                                                    <div className="mt-2 space-y-1">
-                                                        {site.special_notes && (
-                                                            <div className="text-[11px] bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100 line-clamp-1">
-                                                                <span className="font-bold mr-1">특이사항:</span>{site.special_notes}
-                                                            </div>
-                                                        )}
-                                                        {site.worker_notes && (
-                                                            <div className="text-[11px] bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 line-clamp-1">
-                                                                <span className="font-bold mr-1">팀장메모:</span>{site.worker_notes}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="w-full sm:w-auto text-right sm:text-right pt-2 sm:pt-0 border-t sm:border-0 border-slate-50 flex flex-row sm:flex-col justify-between sm:justify-end items-center sm:items-end">
-                                                {isComplete ? (
-                                                    <div className="space-y-0.5 sm:space-y-1 w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:justify-end gap-2 sm:gap-0">
-                                                        <div className="text-xs text-slate-600">
-                                                            <span className="sm:hidden mr-1 text-slate-400">시작</span>
-                                                            <span className="font-medium">{site.started_at ? formatTime(site.started_at) : '-'}</span>
-                                                            <span className="hidden sm:inline"> 작업시작</span>
-                                                        </div>
-                                                        <div className="text-xs text-slate-600">
-                                                            <span className="sm:hidden mr-1 text-slate-400">종료</span>
-                                                            <span className="font-medium">{formatTime(site.completed_at)}</span>
-                                                            <span className="hidden sm:inline"> 작업마감</span>
-                                                        </div>
-                                                        <div className="text-xs font-bold text-green-600 mt-1 sm:mt-1">
-                                                            {duration}
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-0.5 sm:space-y-1 w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:justify-end items-center sm:items-stretch">
-                                                        <div className="text-xs text-slate-400">
-                                                            {formatTime(site.started_at)} 시작됨
-                                                        </div>
-                                                        <div className="flex items-center justify-end text-blue-600 text-sm font-bold">
-                                                            <Clock className="mr-1 h-3 w-3" />
-                                                            {duration}째 작업 중
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Link>
+                                        <ActiveSiteItem 
+                                            key={site.id} 
+                                            site={site} 
+                                            isComplete={isComplete} 
+                                            duration={duration} 
+                                            formatTime={formatTime} 
+                                        />
                                     )
                                 })}
                             </div>
