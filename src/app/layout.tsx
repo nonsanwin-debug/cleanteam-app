@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     title: 'NEXUS',
   },
   icons: {
-    icon: '/icons/icon-192.png',
-    apple: '/icons/icon-192.png',
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
   },
 }
 

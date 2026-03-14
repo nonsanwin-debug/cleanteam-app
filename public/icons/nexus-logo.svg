@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" fill="transparent"/>
+<defs>
+<linearGradient id="gradLeft" x1="140" y1="410" x2="140" y2="102" gradientUnits="userSpaceOnUse">
+<stop stop-color="#3b82f6"/> <!-- blue-500 -->
+<stop offset="1" stop-color="#06b6d4"/> <!-- cyan-500 -->
+</linearGradient>
+<linearGradient id="gradMid" x1="140" y1="102" x2="372" y2="410" gradientUnits="userSpaceOnUse">
+<stop stop-color="#06b6d4"/> <!-- cyan-500 -->
+<stop offset="1" stop-color="#10b981"/> <!-- emerald-500 -->
+</linearGradient>
+<linearGradient id="gradRight" x1="372" y1="410" x2="372" y2="102" gradientUnits="userSpaceOnUse">
+<stop stop-color="#10b981"/> <!-- emerald-500 -->
+<stop offset="1" stop-color="#84cc16"/> <!-- lime-500 -->
+</linearGradient>
+</defs>
+
+<path d="M140 102 L372 410" stroke="url(#gradMid)" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M140 410 L140 102" stroke="url(#gradLeft)" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M372 410 L372 102" stroke="url(#gradRight)" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
