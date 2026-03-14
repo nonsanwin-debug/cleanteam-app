@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { PushSubscriber } from '@/components/PushSubscriber'
+import Image from 'next/image'
 
 export default async function AdminLayout({
     children,
@@ -109,7 +110,10 @@ export default async function AdminLayout({
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
-                    <h1 className="text-xl font-bold text-slate-800">NEXUS Admin</h1>
+                    <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <Image src="/icons/icon-192.png" alt="NEXUS" width={28} height={28} className="rounded-md" />
+                        NEXUS
+                    </h1>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-primary break-keep">{displayName}님 반갑습니다</p>
                         <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md mt-2">
