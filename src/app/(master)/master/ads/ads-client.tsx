@@ -206,8 +206,10 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                                 <Label htmlFor="image">배너 이미지</Label>
                                 {imageUrl ? (
                                     <div className={`relative w-full flex justify-center bg-slate-50 border border-slate-200 rounded-md py-4`}>
-                                        <div className={`relative overflow-hidden shadow-sm ${placement === 'share_above_text' ? 'w-[320px] h-[50px] aspect-[32/5]' : 'w-[320px] h-[100px] aspect-[16/5]'}`}>
-                                            <Image src={imageUrl} alt="Banner Preview" fill className="object-cover" />
+                                        <div className="relative w-full max-w-[320px] rounded overflow-hidden shadow-sm">
+                                            {/* Use basic img tag to preserve natural aspect ratio, or Next Image with height auto */}
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={imageUrl} alt="Banner Preview" className="w-full h-auto block" />
                                         </div>
                                         <Button variant="destructive" size="sm" className="absolute top-2 right-2 h-7 z-10" onClick={() => setImageUrl('')}>
                                             <Trash2 className="w-3 h-3 mr-1" /> 제거
@@ -223,7 +225,7 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                                                     <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
                                                 )}
                                                 <p className="mb-2 text-sm text-slate-500 font-semibold">{uploadingImage ? '업로드 중...' : '클릭하여 이미지 업로드'}</p>
-                                                <p className="text-xs text-slate-500 font-bold text-indigo-500">권장 사이즈: {placement === 'share_above_text' ? '320x50' : '320x100'}</p>
+                                                <p className="text-xs text-slate-500 font-bold text-indigo-500">권장 너비: 320px (높이는 자동 설정됨)</p>
                                             </div>
                                             <input id="dropzone-file" type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} />
                                         </label>
@@ -278,9 +280,10 @@ export function MasterAdsClient({ initialAds }: { initialAds: any[] }) {
                         
                         return (
                             <Card key={ad.id} className={`overflow-hidden transition-all duration-200 ${!ad.is_active || isExpired ? 'opacity-80 grayscale-[0.3]' : 'border-indigo-100 shadow-md ring-1 ring-indigo-50'}`}>
-                                <div className={`relative w-full flex justify-center bg-slate-100 border-b border-slate-100 py-4 ${ad.placement === 'share_above_text' ? 'min-h-[82px]' : 'min-h-[132px]'}`}>
-                                    <div className={`relative overflow-hidden shadow-sm ${ad.placement === 'share_above_text' ? 'w-[320px] h-[50px] aspect-[32/5]' : 'w-[320px] h-[100px] aspect-[16/5]'}`}>
-                                        <Image src={ad.image_url} alt={ad.title} fill className="object-cover" />
+                                <div className="relative w-full flex justify-center bg-slate-100 border-b border-slate-100 py-4 min-h-[100px]">
+                                    <div className="relative w-full max-w-[320px] rounded overflow-hidden shadow-sm">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={ad.image_url} alt={ad.title} className="w-full h-auto block" />
                                     </div>
                                     {!isActive && (
                                         <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center z-10 backdrop-blur-[1px]">

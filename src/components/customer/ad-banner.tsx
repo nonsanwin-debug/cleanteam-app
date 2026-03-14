@@ -94,21 +94,20 @@ export function AdBanner({ placement }: { placement: string }) {
     }
 
     return (
-        <div className="flex justify-center w-full mb-6">
+        <div className="flex justify-center w-full mb-6 relative z-0">
             <div 
                 ref={containerRef}
-                className={`relative rounded-md overflow-hidden shadow-sm cursor-pointer group bg-white border border-slate-200 ${currentAd.placement === 'share_above_text' ? 'w-full max-w-[320px] aspect-[32/5]' : 'w-full max-w-[320px] aspect-[16/5]'}`}
+                className="relative rounded-md overflow-hidden shadow-sm cursor-pointer group bg-white border border-slate-200 w-full max-w-[320px]"
                 onClick={handleAdClick}
             >
-                <Image 
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
                     src={currentAd.image_url} 
                     alt={currentAd.title} 
-                    fill 
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    priority
+                    className="w-full h-auto block transition-transform duration-300 group-hover:scale-105"
                 />
                 {/* Optional Ad Badge */}
-                <div className="absolute top-1 right-1 bg-black/40 backdrop-blur-sm text-white text-[9px] px-1.5 py-0.5 rounded-sm shadow-sm z-10">
+                <div className="absolute top-1 right-1 bg-black/40 backdrop-blur-sm text-white text-[9px] px-1.5 py-0.5 rounded-sm shadow-sm z-10 pointer-events-none">
                     AD
                 </div>
             </div>
