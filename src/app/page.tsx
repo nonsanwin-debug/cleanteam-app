@@ -215,8 +215,8 @@ export default function Home() {
         {/* Left Side: Intro Text */}
         <div className="flex-1 space-y-6 pt-8">
           <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 flex items-center justify-center space-x-3 md:justify-start mb-2">
-                <svg viewBox="0 0 24 24" fill="none" className="w-[40px] h-[40px]" xmlns="http://www.w3.org/2000/svg">
+            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 flex items-center justify-center gap-2 md:justify-start mb-2">
+                <svg viewBox="0 0 24 24" fill="none" className="w-[40px] h-[40px] flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="header-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
                             <stop offset="0%" stopColor="#4F46E5" />
@@ -235,7 +235,7 @@ export default function Home() {
                     <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#header-grad-3)" />
                     <path d="M5.25 4.75L18.75 19.25" stroke="url(#header-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
                 </svg>
-                <span className="font-black text-[#0F172A] tracking-tighter">NEXUS</span>
+                <span className="font-black text-[#0F172A] tracking-tighter pt-1.5">NEXUS</span>
             </h1>
             <p className="text-xl text-slate-500">
               청소 현장 관리 시스템 & 스마트 검수 솔루션
@@ -272,7 +272,7 @@ export default function Home() {
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border shadow-sm">
-                <img src="/logos/nfx-circle.png" alt="NFX Logo" className="w-12 h-12 object-cover" />
+                <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>
