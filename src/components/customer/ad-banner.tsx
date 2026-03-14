@@ -94,12 +94,12 @@ export function AdBanner({ placement }: { placement: string }) {
     }
 
     return (
-        <div 
-            ref={containerRef}
-            className="w-full relative rounded-xl overflow-hidden shadow-sm mb-6 cursor-pointer group bg-white border border-slate-200"
-            onClick={handleAdClick}
-        >
-            <div className="relative w-full aspect-[21/9]">
+        <div className="flex justify-center w-full mb-6">
+            <div 
+                ref={containerRef}
+                className={`relative rounded-md overflow-hidden shadow-sm cursor-pointer group bg-white border border-slate-200 ${currentAd.placement === 'share_above_text' ? 'w-full max-w-[320px] aspect-[32/5]' : 'w-full max-w-[320px] aspect-[16/5]'}`}
+                onClick={handleAdClick}
+            >
                 <Image 
                     src={currentAd.image_url} 
                     alt={currentAd.title} 
@@ -107,10 +107,10 @@ export function AdBanner({ placement }: { placement: string }) {
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     priority
                 />
-            </div>
-            {/* Optional Ad Badge */}
-            <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded shadow-sm">
-                AD
+                {/* Optional Ad Badge */}
+                <div className="absolute top-1 right-1 bg-black/40 backdrop-blur-sm text-white text-[9px] px-1.5 py-0.5 rounded-sm shadow-sm z-10">
+                    AD
+                </div>
             </div>
         </div>
     )
