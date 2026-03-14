@@ -15,8 +15,8 @@ interface AdminNavLinksProps {
 const NAV_ITEMS = [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
     { href: '/admin/sites', icon: MapPin, label: '현장 관리', iconColor: 'text-rose-500' },
-    { href: '/admin/shared-orders', icon: Share2, label: '오더 공유', iconColor: 'text-emerald-500' },
-    { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
+    // { href: '/admin/shared-orders', icon: Share2, label: '오더 공유', iconColor: 'text-emerald-500' },
+    // { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
     { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
     { href: '/admin/promotion', icon: Camera, label: '홍보 관리', iconColor: 'text-sky-500' },
     { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리', iconColor: 'text-orange-500' },
