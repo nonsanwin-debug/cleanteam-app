@@ -53,7 +53,6 @@ export default async function AdminDashboard() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="text-xl sm:text-2xl font-bold">{stats.todayScheduled}건</div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">오늘 날짜 기준</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
@@ -63,7 +62,6 @@ export default async function AdminDashboard() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}건</div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">실시간 모니터링 중</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
@@ -73,7 +71,6 @@ export default async function AdminDashboard() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}건</div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">보고서 확인 필요</p>
                     </CardContent>
                 </Card>
                 <Card className="p-3 sm:p-6 shadow-sm">
@@ -83,7 +80,6 @@ export default async function AdminDashboard() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="text-xl sm:text-2xl font-bold">{stats.activeWorkers}명</div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">총 {stats.totalWorkers}명 중</p>
                     </CardContent>
                 </Card>
             </div>

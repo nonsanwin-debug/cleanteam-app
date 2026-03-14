@@ -33,7 +33,6 @@ export default async function MasterDashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{companiesCount || 0}개</div>
-                        <p className="text-xs text-muted-foreground">플랫폼 내 활성 업체들</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -43,7 +42,6 @@ export default async function MasterDashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{adminCount || 0}명</div>
-                        <p className="text-xs text-muted-foreground">업체별 메인 관리자</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -53,7 +51,6 @@ export default async function MasterDashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{workerCount || 0}명</div>
-                        <p className="text-xs text-muted-foreground">현장 업무 담당자들</p>
                     </CardContent>
                 </Card>
             </div>
