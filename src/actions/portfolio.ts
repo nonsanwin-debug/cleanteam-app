@@ -69,18 +69,27 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
             return { success: true, companyName: company.name, sites: [] }
         }
 
-        // 3. Fetch photos for these sites
+        // 3. Fetch photos for these sites in chunks to bypass 1000-row Supabase limit
         const siteIds = sites.map(s => s.id)
-        const { data: photos, error: photosError } = await adminSupabase
-            .from('photos')
-            .select('site_id, url, type, is_featured')
-            .in('site_id', siteIds)
-            .in('type', ['before', 'after'])
+        let allPhotos: any[] = []
 
-        if (photosError) {
-            console.error('Error fetching photos for portfolio:', photosError)
-            return { success: false, error: '사진을 불러오는 중 오류가 발생했습니다.' }
+        for (let i = 0; i < siteIds.length; i += 10) {
+            const chunk = siteIds.slice(i, i + 10)
+            const { data: photosChunk, error: photosError } = await adminSupabase
+                .from('photos')
+                .select('site_id, url, type, is_featured')
+                .in('site_id', chunk)
+                .in('type', ['before', 'after'])
+
+            if (photosError) {
+                console.error('Error fetching photos for portfolio chunk:', photosError)
+                return { success: false, error: '사진을 불러오는 중 오류가 발생했습니다.' }
+            }
+            if (photosChunk) {
+                allPhotos = allPhotos.concat(photosChunk)
+            }
         }
+
 
         // Helper to pick up to 4 featured photos, fallback to first 4
         const getDisplayPhotos = (photoList: any[]) => {
@@ -93,10 +102,10 @@ export async function getPublicPortfolio(companyCode: string): Promise<PublicPor
 
         // 4. Assemble payload (limit to 4 before, 4 after)
         const publicSites: PublicSite[] = sites.map(site => {
-            const sitePhotos = photos?.filter(p => p.site_id === site.id) || []
+            const sitePhotos = allPhotos.filter((p: any) => p.site_id === site.id)
 
-            const beforeList = sitePhotos.filter(p => p.type === 'before')
-            const afterList = sitePhotos.filter(p => p.type === 'after')
+            const beforeList = sitePhotos.filter((p: any) => p.type === 'before')
+            const afterList = sitePhotos.filter((p: any) => p.type === 'after')
 
             const photosBefore = getDisplayPhotos(beforeList)
             const photosAfter = getDisplayPhotos(afterList)
@@ -181,20 +190,29 @@ export async function getAdminPortfolio() {
         if (!sites || sites.length === 0) return []
 
         const siteIds = sites.map(s => s.id)
-        const { data: photos } = await supabase
-            .from('photos')
-            .select('site_id, url, type')
-            .in('site_id', siteIds)
+        let allPhotos: any[] = []
+
+        for (let i = 0; i < siteIds.length; i += 10) {
+            const chunk = siteIds.slice(i, i + 10)
+            const { data: photosChunk } = await supabase
+                .from('photos')
+                .select('site_id, url, type')
+                .in('site_id', chunk)
+            
+            if (photosChunk) {
+                allPhotos = allPhotos.concat(photosChunk)
+            }
+        }
 
         const sitesWithThumbs = sites.map(site => {
-            const sitePhotos = photos?.filter(p => p.site_id === site.id) || []
-            const beforePhotos = sitePhotos.filter(p => p.type === 'before')
-            const afterPhotos = sitePhotos.filter(p => p.type === 'after')
+            const sitePhotos = allPhotos.filter((p: any) => p.site_id === site.id)
+            const beforePhotos = sitePhotos.filter((p: any) => p.type === 'before')
+            const afterPhotos = sitePhotos.filter((p: any) => p.type === 'after')
             return {
                 ...site,
                 thumbnails: {
-                    before: beforePhotos.slice(0, 2).map(p => p.url),
-                    after: afterPhotos.slice(0, 2).map(p => p.url),
+                    before: beforePhotos.slice(0, 2).map((p: any) => p.url),
+                    after: afterPhotos.slice(0, 2).map((p: any) => p.url),
                     beforeCount: beforePhotos.length,
                     afterCount: afterPhotos.length
                 }
