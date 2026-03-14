@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, MessageSquarePlus, Clock, CheckCircle2, RefreshCw } from 'lucide-react'
-import { createInquiry } from '@/actions/inquiries'
+import { createInquiry, markRepliesAsRead } from '@/actions/inquiries'
 import { useRouter } from 'next/navigation'
 
 export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: any[] }) {
@@ -20,6 +20,17 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
     useEffect(() => {
         setInquiries(initialInquiries)
     }, [initialInquiries])
+
+    useEffect(() => {
+        async function clearNotifications() {
+            const hasUnread = initialInquiries.some(i => i.status === 'resolved' && !i.admin_read)
+            if (hasUnread) {
+                await markRepliesAsRead()
+                router.refresh()
+            }
+        }
+        clearNotifications()
+    }, [initialInquiries, router])
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
