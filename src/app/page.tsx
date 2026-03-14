@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -198,34 +199,35 @@ export default function Home() {
 
         {/* Left Side: Intro Text */}
         <div className="flex-1 space-y-6 pt-8">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900">
+          <div className="space-y-4 flex flex-col items-center md:items-start w-full">
+            <h1 className="flex items-center justify-center gap-3 text-4xl font-extrabold tracking-tight lg:text-5xl text-slate-900 md:justify-start">
+              <Image src="/icons/icon-192.png" alt="NEXUS Logo" width={48} height={48} className="rounded-[10px] shadow-sm" />
               NEXUS
             </h1>
-            <p className="text-xl text-slate-500">
+            <p className="text-xl text-slate-500 text-center md:text-left">
               청소 현장 관리 시스템 & 스마트 검수 솔루션
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 text-slate-600 pt-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-left">
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold">표준화된 체크리스트</h3>
+                <h3 className="font-semibold text-slate-700">표준화된 체크리스트</h3>
                 <p className="text-sm">매뉴얼화된 청소 기준으로 품질 보장</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-left">
               <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">GPS</div>
               <div>
-                <h3 className="font-semibold">위치 기반 출석</h3>
+                <h3 className="font-semibold text-slate-700">작업 현장 간 예상거리 제공</h3>
                 <p className="text-sm">정확한 현장 도착 시간과 위치 기록</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-left">
               <div className="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs flex-shrink-0">IMG</div>
               <div>
-                <h3 className="font-semibold">사진 검수 시스템</h3>
+                <h3 className="font-semibold text-slate-700">사진 검수 시스템</h3>
                 <p className="text-sm">작업 전/중/후 사진 실시간 공유</p>
               </div>
             </div>
@@ -236,8 +238,8 @@ export default function Home() {
         <div className="w-full max-w-md mx-auto md:mx-0">
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <HardHat className="w-6 h-6 text-blue-600" />
+              <div className="flex justify-center mb-4">
+                <Image src="/icons/icon-192.png" width={48} height={48} alt="NEXUS" className="rounded-xl shadow-sm" />
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>
