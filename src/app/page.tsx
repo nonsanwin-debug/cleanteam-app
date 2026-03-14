@@ -242,24 +242,24 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col items-center md:items-start gap-6 pt-6">
-            <div className="flex items-center w-full max-w-[320px]">
+          <div className="flex flex-col gap-6 pt-6 max-w-[320px] mx-auto md:mx-0">
+            <div className="flex items-center gap-4 text-left">
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
-              <div className="flex-1 text-center md:text-left md:pl-4">
+              <div>
                 <h3 className="font-bold text-slate-700 text-[16px]">표준화된 체크리스트</h3>
                 <p className="text-[14px] text-slate-500 mt-1">매뉴얼화된 청소 기준으로 품질 보장</p>
               </div>
             </div>
-            <div className="flex items-center w-full max-w-[320px]">
+            <div className="flex items-center gap-4 text-left">
               <div className="w-6 h-6 rounded bg-[#FBE54E] flex items-center justify-center text-slate-800 font-bold text-[10px] flex-shrink-0">MAP</div>
-              <div className="flex-1 text-center md:text-left md:pl-4">
+              <div>
                 <h3 className="font-bold text-slate-700 text-[16px]">작업 현장 간 예상거리 제공</h3>
                 <p className="text-[14px] text-slate-500 mt-1">정확한 현장 도착 시간과 위치 기록</p>
               </div>
             </div>
-            <div className="flex items-center w-full max-w-[320px]">
+            <div className="flex items-center gap-4 text-left">
               <div className="w-6 h-6 rounded bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-[10px] flex-shrink-0">IMG</div>
-              <div className="flex-1 text-center md:text-left md:pl-4">
+              <div>
                 <h3 className="font-bold text-slate-700 text-[16px]">사진 검수 시스템</h3>
                 <p className="text-[14px] text-slate-500 mt-1">작업 전/중/후 사진 실시간 공유</p>
               </div>
@@ -272,7 +272,25 @@ export default function Home() {
           <Card className="hover:shadow-lg transition-shadow border-t-4 border-t-blue-600">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-2">
-                <img src="/logos/N.png" alt="NEXUS Logo" className="h-10 object-contain" />
+                <svg viewBox="0 0 24 24" fill="none" className="w-[40px] h-[40px]" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="form-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stopColor="#4F46E5" />
+                            <stop offset="100%" stopColor="#22D3EE" />
+                        </linearGradient>
+                        <linearGradient id="form-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#22D3EE" />
+                            <stop offset="100%" stopColor="#10B981" />
+                        </linearGradient>
+                        <linearGradient id="form-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stopColor="#10B981" />
+                            <stop offset="100%" stopColor="#BEF264" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#form-grad-1)" />
+                    <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#form-grad-3)" />
+                    <path d="M5.25 4.75L18.75 19.25" stroke="url(#form-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                </svg>
               </div>
               <CardTitle className="text-2xl">현장 팀장 로그인</CardTitle>
               <CardDescription>

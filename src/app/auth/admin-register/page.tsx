@@ -73,8 +73,26 @@ export default function AdminRegisterPage() {
         <div className="flex items-center justify-center min-h-screen bg-slate-100 p-4 border-t-8 border-indigo-600">
             <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="text-center space-y-4">
-                    <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden border shadow-sm">
-                        <img src="/logos/N.png" alt="NEXUS Logo" className="w-8 h-8 object-contain" />
+                    <div className="mx-auto flex justify-center items-center mb-2">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[48px] h-[48px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="reg-form-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
+                                </linearGradient>
+                                <linearGradient id="reg-form-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#22D3EE" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="reg-form-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#10B981" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#reg-form-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#reg-form-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#reg-form-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
                     </div>
                     <div>
                         <CardTitle className="text-2xl font-bold text-slate-800">업체 관리자 회원가입</CardTitle>
