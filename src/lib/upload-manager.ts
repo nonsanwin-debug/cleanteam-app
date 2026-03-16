@@ -64,8 +64,31 @@ class UploadManager {
     }
 
     async addFiles(files: File[], siteId: string, type: string) {
+        const { toast } = await import('sonner')
+        const { isGalaxyPortraitMode } = await import('@/lib/utils/check-portrait')
+
+        const validFiles: File[] = []
+        let blockedCount = 0
+
+        for (const file of files) {
+            const isPortrait = await isGalaxyPortraitMode(file)
+            if (isPortrait) {
+                blockedCount++
+            } else {
+                validFiles.push(file)
+            }
+        }
+
+        if (blockedCount > 0) {
+            toast.error('업로드 불가', {
+                description: '카메라 모드 인물 사진으로 촬영 시 업로드 되지 않습니다. 다시 촬영해주세요.'
+            })
+        }
+
+        if (validFiles.length === 0) return
+
         const batchId = uuidv4()
-        const items: UploadItem[] = files.map(f => ({
+        const items: UploadItem[] = validFiles.map(f => ({
             id: uuidv4(),
             fileName: f.name,
             status: 'queued' as const,
@@ -78,7 +101,7 @@ class UploadManager {
             siteId,
             type,
             items,
-            totalCount: files.length,
+            totalCount: validFiles.length,
             doneCount: 0,
             failCount: 0,
         }
@@ -87,7 +110,7 @@ class UploadManager {
         this.notify()
 
         // 백그라운드 처리 시작
-        this.processFiles(batchId, files).catch(console.error)
+        this.processFiles(batchId, validFiles).catch(console.error)
     }
 
     private async processFiles(batchId: string, files: File[]) {
