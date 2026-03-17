@@ -174,9 +174,9 @@ export function ShareView({ siteId }: { siteId: string }) {
 
                 {/* 인사말 */}
                 <Card className="border-none shadow-sm bg-blue-50/50">
-                    <CardContent className="p-4 text-sm space-y-4 text-slate-700 leading-relaxed">
+                    <CardContent className="p-6 text-base space-y-5 text-slate-800 leading-relaxed text-center font-medium">
                         <p>
-                            청소 현장 팀장 <span className="font-bold text-slate-900">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
+                            청소 현장 팀장 <span className="font-bold text-slate-900 border-b-2 border-blue-200 pb-0.5">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
                             오늘 진행한 청소 작업 현장 사진과 함께<br />
                             완료 보고 드립니다.
                         </p>
