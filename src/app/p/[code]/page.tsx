@@ -21,6 +21,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
         title: `${portfolio.companyName} 포트폴리오 | NEXUS`,
         description: `${portfolio.companyName}의 최신 작업 결과물입니다.`,
+        openGraph: {
+            title: `${portfolio.companyName} 포트폴리오 | NEXUS`,
+            description: `${portfolio.companyName}의 최신 작업 결과물입니다.`,
+            images: [
+                {
+                    url: '/og-portfolio.png',
+                    width: 1200,
+                    height: 630,
+                    alt: `${portfolio.companyName} 명함`,
+                }
+            ]
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${portfolio.companyName} 포트폴리오 | NEXUS`,
+            description: `${portfolio.companyName}의 최신 작업 결과물입니다.`,
+            images: ['/og-portfolio.png'],
+        }
     }
 }
 

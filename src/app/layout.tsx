@@ -19,6 +19,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'),
   title: 'NEXUS',
   description: '청소 현장 관리 시스템',
   manifest: '/manifest.json',
