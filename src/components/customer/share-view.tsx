@@ -2,7 +2,6 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from 'react'
-import { CustomerChecklist } from '@/components/customer/customer-checklist'
 import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -173,6 +172,36 @@ export function ShareView({ siteId }: { siteId: string }) {
                     </CardContent>
                 </Card>
 
+                {/* 특이사항 및 메모 */}
+                {(site.special_notes || site.worker_notes) && (
+                    <Card className="border-none shadow-sm">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <span className="bg-amber-100 text-amber-700 p-1 rounded">⚠️</span>
+                                특이사항 및 메모
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm space-y-3">
+                            {site.special_notes && (
+                                <div>
+                                    <span className="font-bold text-slate-700 block mb-1">고객 특이사항</span>
+                                    <div className="bg-amber-50 text-amber-900 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap">
+                                        {site.special_notes}
+                                    </div>
+                                </div>
+                            )}
+                            {site.worker_notes && (
+                                <div>
+                                    <span className="font-bold text-slate-700 block mb-1">팀장 메모</span>
+                                    <div className="bg-blue-50 text-blue-900 p-3 rounded-lg border border-blue-100 whitespace-pre-wrap">
+                                        {site.worker_notes}
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Photos (ReadOnly) */}
                 <section>
                     <h3 className="font-bold mb-2 flex items-center text-lg">
@@ -185,30 +214,9 @@ export function ShareView({ siteId }: { siteId: string }) {
                     />
                 </section>
 
-                {/* Checklist (Customer Sign) */}
-                <section>
+                <div className="mt-8">
                     <AdBanner placement="share_above_text" />
-                    <h3 className="font-bold mb-2 flex items-center text-lg mt-6">
-                        작업 완료 확인
-                    </h3>
-                    <div className="bg-white rounded-lg border p-4 shadow-sm">
-                        {site.status === 'completed' ? (
-                            <div className="text-center py-8 space-y-3">
-                                <div className="mx-auto w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-lg">최종 승인 완료</h4>
-                                    <p className="text-slate-500 text-sm">고객님의 서명이 확인되었습니다.</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <CustomerChecklist siteId={site.id} photos={photos} onSuccess={fetchData} />
-                        )}
-                    </div>
-                </section>
+                </div>
             </main>
         </div>
     )

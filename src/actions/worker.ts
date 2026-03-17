@@ -323,6 +323,16 @@ export async function uploadPhoto(formData: FormData): Promise<ActionResponse> {
             return { success: false, error: dbError.message }
         }
 
+        // 사진 등록 시 현장이 '대기중(scheduled)'이면 '진행중(in_progress)'으로 자동 변경
+        try {
+            const { data: siteObj } = await supabase.from('sites').select('status').eq('id', siteId).single()
+            if (siteObj?.status === 'scheduled') {
+                await supabase.from('sites').update({ status: 'in_progress' }).eq('id', siteId)
+            }
+        } catch (e) {
+            console.error('Failed to auto-start site on photo upload:', e)
+        }
+
         revalidatePath(`/worker/sites/${siteId}`)
         return { success: true, data: { publicUrl } }
     } catch (error) {
@@ -360,6 +370,16 @@ export async function insertPhotoRecord(
         if (dbError) {
             console.error('Photo DB Insert Error:', dbError)
             return { success: false, error: dbError.message }
+        }
+
+        // 사진 등록 시 현장이 '대기중(scheduled)'이면 '진행중(in_progress)'으로 자동 변경
+        try {
+            const { data: siteObj } = await supabase.from('sites').select('status').eq('id', siteId).single()
+            if (siteObj?.status === 'scheduled') {
+                await supabase.from('sites').update({ status: 'in_progress' }).eq('id', siteId)
+            }
+        } catch (e) {
+            console.error('Failed to auto-start site on photo upload:', e)
         }
 
         revalidatePath(`/worker/sites/${siteId}`)
