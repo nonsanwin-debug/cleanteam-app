@@ -172,35 +172,21 @@ export function ShareView({ siteId }: { siteId: string }) {
                     </CardContent>
                 </Card>
 
-                {/* 특이사항 및 메모 */}
-                {(site.special_notes || site.worker_notes) && (
-                    <Card className="border-none shadow-sm">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <span className="bg-amber-100 text-amber-700 p-1 rounded">⚠️</span>
-                                특이사항 및 메모
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-sm space-y-3">
-                            {site.special_notes && (
-                                <div>
-                                    <span className="font-bold text-slate-700 block mb-1">고객 특이사항</span>
-                                    <div className="bg-amber-50 text-amber-900 p-3 rounded-lg border border-amber-100 whitespace-pre-wrap">
-                                        {site.special_notes}
-                                    </div>
-                                </div>
-                            )}
-                            {site.worker_notes && (
-                                <div>
-                                    <span className="font-bold text-slate-700 block mb-1">팀장 메모</span>
-                                    <div className="bg-blue-50 text-blue-900 p-3 rounded-lg border border-blue-100 whitespace-pre-wrap">
-                                        {site.worker_notes}
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                {/* 인사말 */}
+                <Card className="border-none shadow-sm bg-blue-50/50">
+                    <CardContent className="p-4 text-sm space-y-4 text-slate-700 leading-relaxed">
+                        <p>
+                            청소 현장 팀장 <span className="font-bold text-slate-900">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
+                            오늘 진행한 청소 작업 현장 사진과 함께<br />
+                            완료 보고 드립니다.
+                        </p>
+                        <p>
+                            작업 내용 중 궁금하신 점이나<br />
+                            확인이 필요한 부분이 있다면<br />
+                            연락 부탁드립니다. 감사합니다.
+                        </p>
+                    </CardContent>
+                </Card>
 
                 {/* Photos (ReadOnly) */}
                 <section>
