@@ -66,7 +66,25 @@ export async function updateCompanyStatus(companyId: string, status: 'approved' 
             return { success: false, error: '상태 업데이트에 실패했습니다.' }
         }
 
+        // When a company is approved, automatically activate its pending admin/users
+        if (status === 'approved') {
+            await adminClient
+                .from('users')
+                .update({ status: 'active' })
+                .eq('company_id', companyId)
+                .eq('status', 'pending');
+        } else if (status === 'rejected') {
+            // If rejected, maybe set them to deleted so they don't clog up the pending list forever
+            // or leave them pending so they can be re-approved. Setting to deleted is safer for cleanup.
+            await adminClient
+                .from('users')
+                .update({ status: 'deleted' })
+                .eq('company_id', companyId)
+                .eq('status', 'pending');
+        }
+
         revalidatePath('/master/companies')
+        revalidatePath('/master/users')
         revalidatePath('/master/recovery')
         return { success: true }
     } catch (error) {
@@ -270,7 +288,15 @@ export async function restoreCompany(companyId: string): Promise<ActionResponse>
             return { success: false, error: '업체 복구 중 오류가 발생했습니다.' }
         }
 
+        // Also restore associated deleted users
+        await adminClient
+            .from('users')
+            .update({ status: 'active' })
+            .eq('company_id', companyId)
+            .eq('status', 'deleted');
+
         revalidatePath('/master/companies')
+        revalidatePath('/master/users')
         revalidatePath('/master/recovery')
         return { success: true }
     } catch (error) {
