@@ -22,18 +22,19 @@ export default function Home() {
   const [showPassword, setShowPassword] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [isTermsOpen, setIsTermsOpen] = useState(false)
+  const [keepLoggedIn, setKeepLoggedIn] = useState(true)
   const router = useRouter()
 
   // Initialize Supabase client only on the client side
   const supabase = useMemo<SupabaseClient | null>(() => {
     if (typeof window === 'undefined') return null
     try {
-      return createClient()
+      return createClient(keepLoggedIn)
     } catch (error) {
       console.error('Failed to create Supabase client:', error)
       return null
     }
-  }, [])
+  }, [keepLoggedIn])
 
   useEffect(() => {
     setIsMounted(true)
@@ -351,6 +352,20 @@ export default function Home() {
                         NEXUS 서비스 이용약관
                       </button>
                       에 동의합니다.
+                    </label>
+                  </div>
+                )}
+                
+                {!isSignUp && (
+                  <div className="flex items-center space-x-2 pt-1 pb-1 px-1">
+                    <Checkbox 
+                        id="keepLoggedIn" 
+                        checked={keepLoggedIn}
+                        onCheckedChange={(checked) => setKeepLoggedIn(checked as boolean)}
+                        className="mt-0.5 border-slate-400"
+                    />
+                    <label htmlFor="keepLoggedIn" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        로그인 상태 유지
                     </label>
                   </div>
                 )}
