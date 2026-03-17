@@ -47,6 +47,7 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
             case 'general': return '일반 문의'
             case 'banner': return '배너 광고 요청'
             case 'point': return '포인트 충전 요청'
+            case 'notice': return '마스터 발신 메시지'
             default: return t
         }
     }
@@ -56,10 +57,10 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
             <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                     <MessageSquarePlus className="w-6 h-6 text-purple-600" />
-                    업체 문의 / 요청 관리
+                    업체 문의 / 메시지 관리
                 </h1>
                 <p className="text-slate-500 mt-1">
-                    각 업체에서 보낸 문의 및 요청 사항을 확인하고 처리합니다.
+                    업체에서 보낸 문의를 처리하거나 발송한 전체 메시지를 확인합니다.
                 </p>
             </div>
 
@@ -106,14 +107,23 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
 
                             {/* Content */}
                             <div className="p-4 flex-1">
-                                <div className="bg-slate-50 rounded p-3 text-sm text-slate-700 border border-slate-100 min-h-[100px] whitespace-pre-wrap leading-relaxed">
-                                    {inquiry.content}
-                                </div>
+                                {inquiry.type === 'notice' ? (
+                                    <div className="bg-indigo-50 rounded p-4 text-sm text-indigo-950 border border-indigo-100 min-h-[100px] whitespace-pre-wrap leading-relaxed">
+                                        <div className="text-xs font-bold text-indigo-700 mb-2 flex items-center">
+                                            <Reply className="w-3.5 h-3.5 mr-1 scale-x-[-1]" /> 수신처: {inquiry.company?.name || '업체 알 수 없음'}
+                                        </div>
+                                        {inquiry.content}
+                                    </div>
+                                ) : (
+                                    <div className="bg-slate-50 rounded p-3 text-sm text-slate-700 border border-slate-100 min-h-[100px] whitespace-pre-wrap leading-relaxed">
+                                        {inquiry.content}
+                                    </div>
+                                )}
                             </div>
                             
                             {/* Footer & Actions */}
                             <div className="p-4 bg-slate-50/50 border-t border-slate-100 mt-auto flex flex-col gap-4">
-                                {inquiry.status === 'resolved' && inquiry.reply && (
+                                {inquiry.status === 'resolved' && inquiry.reply && inquiry.type !== 'notice' && (
                                     <div className="bg-purple-50 border border-purple-100 rounded-md p-3">
                                         <div className="flex items-center text-xs font-bold text-purple-700 mb-1">
                                             <Reply className="w-3.5 h-3.5 mr-1" /> 마스터 답변
@@ -126,9 +136,9 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
                                     <div className="space-y-1">
                                         <div className="flex items-center text-xs text-slate-500">
                                             <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400" />
-                                            접수: {new Date(inquiry.created_at).toLocaleString()}
+                                            {inquiry.type === 'notice' ? '발송' : '접수'}: {new Date(inquiry.created_at).toLocaleString()}
                                         </div>
-                                        {inquiry.resolved_at && (
+                                        {inquiry.resolved_at && inquiry.type !== 'notice' && (
                                             <div className="flex items-center text-xs text-emerald-600">
                                                 <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                                                 처리: {new Date(inquiry.resolved_at).toLocaleString()}
@@ -136,7 +146,7 @@ export function MasterInquiriesClient({ initialInquiries }: { initialInquiries: 
                                         )}
                                     </div>
                                     
-                                    {inquiry.status === 'pending' && (
+                                    {inquiry.status === 'pending' && inquiry.type !== 'notice' && (
                                         <div className="flex flex-col gap-2 w-full max-w-[250px]">
                                             <Textarea 
                                                 placeholder="답변 내용을 입력하세요..." 

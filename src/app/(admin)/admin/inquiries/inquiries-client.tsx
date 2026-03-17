@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, MessageSquarePlus, Clock, CheckCircle2, RefreshCw } from 'lucide-react'
+import { Plus, MessageSquarePlus, Clock, CheckCircle2, RefreshCw, BellRing, ArrowRight } from 'lucide-react'
 import { createInquiry, markRepliesAsRead } from '@/actions/inquiries'
 import { useRouter } from 'next/navigation'
 
@@ -67,6 +67,7 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
             case 'general': return '일반 문의'
             case 'banner': return '배너 광고 요청'
             case 'point': return '포인트 충전 요청'
+            case 'notice': return '마스터 메시지'
             default: return t
         }
     }
@@ -144,11 +145,15 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {inquiries.map(inquiry => (
-                        <Card key={inquiry.id} className="overflow-hidden bg-white shadow-sm border border-slate-200">
+                        <Card key={inquiry.id} className={`overflow-hidden shadow-sm border ${inquiry.type === 'notice' ? 'bg-indigo-50/50 border-indigo-200 ring-1 ring-indigo-100' : 'bg-white border-slate-200'}`}>
                             <div className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:gap-6">
                                 {/* Status Icon & Badge */}
                                 <div className="flex flex-col items-start gap-2 min-w-[120px]">
-                                    {inquiry.status === 'pending' ? (
+                                    {inquiry.type === 'notice' ? (
+                                        <Badge variant="secondary" className="bg-indigo-600 text-white hover:bg-indigo-700 font-medium whitespace-nowrap">
+                                            <BellRing className="w-3.5 h-3.5 mr-1" /> 알림
+                                        </Badge>
+                                    ) : inquiry.status === 'pending' ? (
                                         <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium whitespace-nowrap">
                                             <Clock className="w-3.5 h-3.5 mr-1" /> 대기중
                                         </Badge>
@@ -157,7 +162,7 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
                                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> 답변완료
                                         </Badge>
                                     )}
-                                    <div className="text-xs font-semibold text-slate-500 mt-1">
+                                    <div className={`text-xs font-semibold mt-1 ${inquiry.type === 'notice' ? 'text-indigo-700' : 'text-slate-500'}`}>
                                         {getTypeKorean(inquiry.type)}
                                     </div>
                                     <div className="text-[11px] text-slate-400">
@@ -167,16 +172,27 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
 
                                 {/* Content */}
                                 <div className="flex-1 space-y-3">
-                                    <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 border border-slate-100 min-h-[80px]">
-                                        <p className="whitespace-pre-wrap leading-relaxed">{inquiry.content}</p>
-                                    </div>
-                                    {inquiry.status === 'resolved' && inquiry.reply && (
-                                        <div className="bg-indigo-50 rounded-lg p-4 text-sm text-slate-700 border border-indigo-100">
+                                    {inquiry.type === 'notice' ? (
+                                        <div className="bg-white rounded-lg p-4 text-sm text-slate-800 border border-indigo-100 shadow-sm">
                                             <div className="text-xs font-bold text-indigo-700 mb-2 flex items-center">
-                                                <CheckCircle2 className="w-4 h-4 mr-1.5" /> 마스터 답변
+                                                <ArrowRight className="w-4 h-4 mr-1.5" /> 마스터 수신 메시지
                                             </div>
-                                            <p className="whitespace-pre-wrap leading-relaxed text-indigo-950">{inquiry.reply}</p>
+                                            <p className="whitespace-pre-wrap leading-relaxed">{inquiry.content}</p>
                                         </div>
+                                    ) : (
+                                        <>
+                                            <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 border border-slate-100 min-h-[80px]">
+                                                <p className="whitespace-pre-wrap leading-relaxed">{inquiry.content}</p>
+                                            </div>
+                                            {inquiry.status === 'resolved' && inquiry.reply && (
+                                                <div className="bg-indigo-50 rounded-lg p-4 text-sm text-slate-700 border border-indigo-100">
+                                                    <div className="text-xs font-bold text-indigo-700 mb-2 flex items-center">
+                                                        <CheckCircle2 className="w-4 h-4 mr-1.5" /> 마스터 답변
+                                                    </div>
+                                                    <p className="whitespace-pre-wrap leading-relaxed text-indigo-950">{inquiry.reply}</p>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

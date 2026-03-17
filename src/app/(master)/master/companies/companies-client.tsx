@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { format } from 'date-fns'
 import { updateCompanyStatus, manageCompanyPoints } from '@/actions/master'
-import { RefreshCw, CheckCircle, XCircle, Plus, Minus, Building2 } from 'lucide-react'
+import { createMasterNotice } from '@/actions/inquiries'
+import { RefreshCw, CheckCircle, XCircle, Plus, Minus, Building2, MessageSquarePlus, Send } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Textarea } from '@/components/ui/textarea'
 
 export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: any[] }) {
     const router = useRouter()
@@ -19,6 +21,11 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
         open: false, companyId: '', companyName: '', actionType: 'add'
     })
     const [pointAmount, setPointAmount] = useState<string>('')
+
+    const [messageDialog, setMessageDialog] = useState<{ open: boolean, companyId: string, companyName: string }>({
+        open: false, companyId: '', companyName: ''
+    })
+    const [messageContent, setMessageContent] = useState<string>('')
 
     const handleStatusUpdate = async (companyId: string, status: 'approved' | 'rejected' | 'deleted') => {
         const actionMap = {
@@ -69,6 +76,23 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
 
     const onPointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPointAmount(formatPoints(e.target.value))
+    }
+
+    const handleSendMessage = async () => {
+        if (!messageContent.trim()) {
+            alert('메시지 내용을 입력하세요.')
+            return
+        }
+        setIsUpdating(true)
+        const result = await createMasterNotice(messageDialog.companyId, messageContent)
+        setIsUpdating(false)
+        if (result.success) {
+            alert('메시지가 성공적으로 발송되었습니다.')
+            setMessageDialog({ ...messageDialog, open: false })
+            setMessageContent('')
+        } else {
+            alert(result.error || '메시지 발송에 실패했습니다.')
+        }
     }
 
     return (
@@ -137,6 +161,10 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                                             <Minus className="w-4 h-4 mr-1" />
                                                             차감
                                                         </Button>
+                                                        <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50" onClick={() => setMessageDialog({ open: true, companyId: company.id, companyName: company.name })}>
+                                                            <MessageSquarePlus className="w-4 h-4 mr-1" />
+                                                            메시지 발송
+                                                        </Button>
                                                     </>
                                                 )}
                                                 {company.status === 'rejected' && (
@@ -201,6 +229,43 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                         >
                             {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
                             {pointDialog.actionType === 'add' ? '충전하기' : '차감하기'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={messageDialog.open} onOpenChange={(open) => !open && setMessageDialog({ ...messageDialog, open: false })}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>어드민(업체) 메시지 발송</DialogTitle>
+                        <DialogDescription>
+                            {messageDialog.companyName} 관리자(어드민)에게 직접 확인 가능한 메시지를 보냅니다. 해당 메시지는 업체의 '1:1 문의 / 요청' 목록에 공지사항 형태로 표시됩니다.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>메시지 내용</Label>
+                            <Textarea
+                                placeholder="어드민에게 전달할 내용을 입력하세요."
+                                value={messageContent}
+                                onChange={(e) => setMessageContent(e.target.value)}
+                                rows={5}
+                                className="resize-none"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setMessageDialog({ ...messageDialog, open: false })}>취소</Button>
+                        <Button
+                            className={'bg-indigo-600 hover:bg-indigo-700 text-white'}
+                            onClick={handleSendMessage}
+                            disabled={isUpdating || !messageContent.trim()}
+                        >
+                            {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                            <Send className="mr-2 w-4 h-4" />
+                            전송하기
                         </Button>
                     </DialogFooter>
                 </DialogContent>

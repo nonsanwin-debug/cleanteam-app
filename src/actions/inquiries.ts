@@ -137,6 +137,36 @@ export async function getAllInquiries() {
     }
 }
 
+export async function createMasterNotice(companyId: string, content: string) {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+        
+        const { error } = await adminClient
+            .from('admin_inquiries')
+            .insert({
+                company_id: companyId,
+                type: 'notice',
+                content: content,
+                status: 'resolved', // treat notices implicitly as resolved because they are just messages
+                admin_read: false,
+                reply: '', // or leave null
+                resolved_at: new Date().toISOString()
+            })
+
+        if (error) throw error
+
+        revalidatePath('/master/companies')
+        revalidatePath('/master/inquiries')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Failed to create master notice:', error)
+        return { success: false, error: '메시지 발송 중 오류가 발생했습니다.' }
+    }
+}
+
 export async function resolveInquiry(id: string, reply: string) {
     try {
         const isMaster = await verifyMasterAccess()
