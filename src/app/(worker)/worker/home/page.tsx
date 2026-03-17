@@ -135,9 +135,11 @@ export default function WorkerHomePage() {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>
     }
 
-    // Filter sites based on status
-    const activeSites = (sites || []).filter(site => site.status !== 'completed')
-    const completedSites = (sites || []).filter(site => site.status === 'completed')
+    // Filter sites based on status (예정됨, 진행중인 현장만 표시)
+    const activeSites = (sites || []).filter(site => site.status === 'scheduled' || site.status === 'in_progress' || (site.status as any) === 'pending')
+    
+    // Filter AS Requests (처리완료 내역 제외)
+    const activeAsRequests = (asRequests || []).filter(req => req.status !== 'resolved')
 
     return (
         <div className="space-y-4">
@@ -153,14 +155,14 @@ export default function WorkerHomePage() {
 
             <div className="space-y-4">
                 {/* AS 내역 */}
-                {(asRequests || []).length > 0 && (
+                {activeAsRequests.length > 0 && (
                     <div className="space-y-3 mb-4">
                         <h3 className="text-base font-bold flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5 text-red-500" />
                             AS 내역
-                            <Badge variant="destructive" className="text-xs">{(asRequests || []).length}건</Badge>
+                            <Badge variant="destructive" className="text-xs">{activeAsRequests.length}건</Badge>
                         </h3>
-                        {(asRequests || []).map(req => {
+                        {activeAsRequests.map(req => {
                             const statusMap: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'outline' }> = {
                                 pending: { label: '접수/대기', variant: 'destructive' },
                                 monitoring: { label: '모니터링', variant: 'secondary' },
