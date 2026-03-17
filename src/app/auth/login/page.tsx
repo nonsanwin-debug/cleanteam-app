@@ -16,18 +16,19 @@ export default function LoginPage() {
     const [isMounted, setIsMounted] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [keepLoggedIn, setKeepLoggedIn] = useState(true)
     const router = useRouter()
 
     // Initialize Supabase client only on the client side
     const supabase = useMemo<SupabaseClient | null>(() => {
         if (typeof window === 'undefined') return null
         try {
-            return createClient()
+            return createClient(keepLoggedIn)
         } catch (error) {
             console.error('Failed to create Supabase client:', error)
             return null
         }
-    }, [])
+    }, [keepLoggedIn])
 
     useEffect(() => {
         setIsMounted(true)
@@ -184,6 +185,20 @@ export default function LoginPage() {
                                 </button>
                             </div>
                         </div>
+                        
+                        <div className="flex items-center space-x-2 pt-1 pb-2">
+                            <input 
+                                type="checkbox" 
+                                id="keepLoggedIn" 
+                                checked={keepLoggedIn}
+                                onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                className="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary"
+                            />
+                            <Label htmlFor="keepLoggedIn" className="text-sm font-medium text-slate-700 cursor-pointer">
+                                로그인 상태 유지
+                            </Label>
+                        </div>
+
                         <Button type="submit" className="w-full text-lg py-6" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '현장 팀장 로그인'}
                         </Button>

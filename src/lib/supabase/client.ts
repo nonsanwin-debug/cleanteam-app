@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-export function createClient() {
+export function createClient(keepLoggedIn: boolean = true) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -8,5 +8,7 @@ export function createClient() {
     throw new Error('Missing Supabase Environment Variables (Client)')
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey)
+  return createBrowserClient(supabaseUrl, supabaseKey, {
+    cookieOptions: keepLoggedIn ? { maxAge: 31536000 } : {}
+  })
 }

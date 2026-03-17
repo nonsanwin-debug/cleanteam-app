@@ -15,18 +15,19 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export default function AdminLoginPage() {
     const [isMounted, setIsMounted] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [keepLoggedIn, setKeepLoggedIn] = useState(true)
     const router = useRouter()
 
     // Initialize Supabase client only on the client side
     const supabase = useMemo<SupabaseClient | null>(() => {
         if (typeof window === 'undefined') return null
         try {
-            return createClient()
+            return createClient(keepLoggedIn)
         } catch (error) {
             console.error('Failed to create Supabase client:', error)
             return null
         }
-    }, [])
+    }, [keepLoggedIn])
 
     useEffect(() => {
         setIsMounted(true)
@@ -182,6 +183,20 @@ export default function AdminLoginPage() {
                             <Label htmlFor="password-admin">비밀번호</Label>
                             <Input id="password-admin" name="password" type="password" required className="border-slate-300" />
                         </div>
+                        
+                        <div className="flex items-center space-x-2 pt-1 pb-2">
+                            <input 
+                                type="checkbox" 
+                                id="keepLoggedInAdmin" 
+                                checked={keepLoggedIn}
+                                onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-600"
+                            />
+                            <Label htmlFor="keepLoggedInAdmin" className="text-sm font-medium text-slate-700 cursor-pointer">
+                                로그인 상태 유지
+                            </Label>
+                        </div>
+                        
                         <Button type="submit" variant="destructive" className="w-full py-6 text-lg" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '관리자 로그인'}
                         </Button>
