@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { Camera, Upload, Loader2, Image as ImageIcon, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download, Star } from 'lucide-react'
+import { Camera, Upload, Loader2, Image as ImageIcon, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download, Star, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -241,9 +241,12 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
 
                     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
                         {currentPhotos.length === 0 ? (
-                            <div className="col-span-3 lg:col-span-5 py-8 text-center text-slate-400 bg-slate-50 rounded text-sm flex flex-col items-center justify-center">
-                                <ImageIcon className="h-8 w-8 mb-2 opacity-20" />
-                                등록된 사진이 없습니다.
+                            <div className="col-span-3 lg:col-span-5 py-16 mt-4 text-center text-slate-500 bg-slate-50/80 border border-slate-200 border-dashed rounded-xl text-sm flex flex-col items-center justify-center shadow-sm">
+                                <div className="p-4 bg-blue-100/50 text-blue-500 rounded-full mb-4">
+                                    <Sparkles className="h-8 w-8" />
+                                </div>
+                                <span className="font-bold text-slate-700 text-base mb-1">사진을 준비 중입니다</span>
+                                <span className="text-slate-500">꼼꼼하게 청소하고 있어요. 잠시만 기다려 주세요!</span>
                             </div>
                         ) : (
                             currentPhotos.map((photo, index) => (

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, MapPin, User } from 'lucide-react'
+import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles } from 'lucide-react'
 import { AdBanner } from '@/components/customer/ad-banner'
 
 export function ShareView({ siteId }: { siteId: string }) {
@@ -141,32 +141,52 @@ export function ShareView({ siteId }: { siteId: string }) {
 
             <main className="max-w-md mx-auto p-4 space-y-6">
                 {/* Site Info */}
-                <Card className="border-none shadow-sm">
-                    <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-slate-500" />
+                <Card className="border-none shadow-sm overflow-hidden">
+                    <div className="h-2 w-full bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                    <CardHeader className="pb-2 pt-4">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                                <MapPin className="h-4 w-4 text-blue-500" />
                                 현장 정보
                             </CardTitle>
-                            <Badge variant={site.status === 'completed' ? 'default' : 'secondary'}>
-                                {site.status === 'completed' ? '작업 완료' : '진행 중'}
-                            </Badge>
+                            {site.status === 'completed' ? (
+                                <Badge className="bg-green-500 hover:bg-green-600">작업 완료</Badge>
+                            ) : site.status === 'in_progress' ? (
+                                <Badge className="bg-blue-500 hover:bg-blue-600">작업 진행 중</Badge>
+                            ) : (
+                                <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50">현장 도착</Badge>
+                            )}
                         </div>
                     </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                        <div className="flex items-start gap-2 text-slate-600">
-                            <span className="min-w-fit font-medium">주소:</span>
-                            <span>{site.address}</span>
+                    <CardContent className="text-sm space-y-3">
+                        <div className="flex items-start gap-2 text-slate-700">
+                            <span className="min-w-fit font-semibold text-slate-500">주소:</span>
+                            <span className="leading-snug">{site.address}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                            <User className="h-4 w-4" />
-                            <span>담당자: {site.worker?.name || site.worker_name || '미배정'}</span>
+                        {site.cleaning_time && site.cleaning_time.includes('-') && site.status !== 'completed' && (
+                            <div className="flex items-center gap-2 text-slate-700 bg-blue-50/50 p-2 rounded-md">
+                                <span className="min-w-fit font-semibold text-slate-500">작업 종료 예정:</span>
+                                맹<span>{site.cleaning_time.split('-')[1].trim()}</span>
+                            </div>
+                        )}
+                        <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                            <div className="flex items-center gap-2 text-slate-700">
+                                <User className="h-4 w-4 text-slate-400" />
+                                <span className="font-semibold text-slate-500">담당자:</span>
+                                <span>{site.worker?.name || site.worker_name || '미배정'} 전문가</span>
+                            </div>
+                            
                             {(site.worker?.phone || site.worker_phone) && (
-                                <a href={`tel:${site.worker?.phone || site.worker_phone}`} className="ml-2 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-3">
-                                    <span className="sr-only">전화하기</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-                                    전화하기
-                                </a>
+                                <div className="flex gap-2 mt-2">
+                                    <a href={`tel:${site.worker?.phone || site.worker_phone}`} className="flex-1 inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 h-9 px-3 shadow-sm">
+                                        <Phone className="w-3.5 h-3.5 mr-2 text-blue-600" />
+                                        전화 문의
+                                    </a>
+                                    <a href={`sms:${site.worker?.phone || site.worker_phone}`} className="flex-1 inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 h-9 px-3 shadow-sm">
+                                        <MessageSquare className="w-3.5 h-3.5 mr-2 text-green-600" />
+                                        문자 문의
+                                    </a>
+                                </div>
                             )}
                         </div>
                     </CardContent>
@@ -176,27 +196,57 @@ export function ShareView({ siteId }: { siteId: string }) {
                 <div className="flex flex-col mb-8 mt-2 px-1">
                     <div className="flex items-start gap-3 w-full">
                         {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0 shadow-sm">
-                            <span className="text-blue-700 font-bold text-sm">팀장</span>
+                        <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
+                            <Sparkles className="w-5 h-5 text-blue-500" />
                         </div>
                         
                         {/* Message Content */}
                         <div className="flex flex-col flex-1 gap-1 max-w-[90%]">
-                            <span className="text-sm text-slate-500 font-medium ml-1">
-                                {site.worker?.name || site.worker_name || '담당 팀장'}
+                            <span className="text-sm text-slate-500 font-medium ml-1 flex items-center gap-1.5">
+                                {site.worker?.name || site.worker_name || '담당 팀장'} 
+                                <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-sm">청소 전문가</span>
                             </span>
                             
-                            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 pb-5 text-[15px] leading-[1.6] text-slate-800 shadow-sm">
-                                <p className="mb-4">
-                                    청소 현장 팀장 <span className="font-bold text-slate-900 bg-blue-50 px-1 py-0.5 rounded">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
-                                    오늘 진행한 청소 작업 현장 사진과 함께<br />
-                                    완료 보고 드립니다.
-                                </p>
-                                <p>
-                                    작업 내용 중 궁금하신 점이나<br />
-                                    확인이 필요한 부분이 있다면<br />
-                                    연락 부탁드립니다. 감사합니다.
-                                </p>
+                            <div className={`border rounded-2xl p-4 pb-5 text-[15px] leading-[1.6] shadow-sm relative ${
+                                site.status === 'completed' ? 'bg-white border-slate-200 text-slate-800 rounded-tl-none' 
+                                : 'bg-blue-50 border-blue-100 text-slate-800 rounded-tl-none'
+                            }`}>
+                                {/* Status specific messages */}
+                                {site.status === 'completed' ? (
+                                    <>
+                                        <p className="font-bold text-blue-600 mb-2">"작업이 모두 무사히 완료되었습니다!"</p>
+                                        <p className="mb-4">
+                                            청소 현장 팀장 <span className="font-bold">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
+                                            오늘 진행한 청소 작업 현장 사진과 함께<br />
+                                            완료 보고 드립니다.
+                                        </p>
+                                        <p>
+                                            작업 내용 중 궁금하신 점이나 확인이 필요한 부분이 있다면 연락 부탁드립니다. 감사합니다.
+                                        </p>
+                                    </>
+                                ) : site.status === 'in_progress' ? (
+                                    <>
+                                        <p className="font-bold text-blue-600 mb-2">"지금은 한창 깨끗해지는 중입니다! 🧹"</p>
+                                        <p className="mb-4">
+                                            현재 구역별 오염 제거 작업을 열심히 진행하고 있습니다. 아래 <strong>현장 사진</strong>의 [작업 중] 탭을 누르시면 실시간으로 변하고 있는 모습을 확인하실 수 있습니다.
+                                        </p>
+                                        <p>
+                                            궁금하신 점은 언제든 전화나 문자로 연락 주셔도 좋습니다!<br />
+                                            작업이 끝나면 다시 한번 알림을 드릴게요. 안심하고 기다려 주세요!
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-bold text-blue-600 mb-2">"고객님, 현장에 도착했습니다! ✨"</p>
+                                        <p className="mb-4">
+                                            안녕하세요, 오늘 작업을 맡은 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong> 팀장입니다. 방금 현장에 도착하여 장비 점검을 마쳤습니다.
+                                        </p>
+                                        <p>
+                                            작업 전 상태를 꼼꼼히 기록하고, 고객님의 소중한 공간을 정성껏 케어하겠습니다.<br />
+                                            작업이 끝나면 다시 반가운 소식으로 알림을 드릴게요. 안심하고 기다려 주세요!
+                                        </p>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -215,6 +265,14 @@ export function ShareView({ siteId }: { siteId: string }) {
                 </section>
 
                 <div className="mt-8">
+                    <div className="bg-orange-50/50 border border-orange-100 rounded-lg p-4 mb-4 mt-6 flex gap-3 text-sm text-amber-900">
+                        <span className="text-xl">💡</span>
+                        <div className="flex flex-col gap-1">
+                            <span className="font-bold">고객 가이드 안내</span>
+                            <span>오늘 청소 후 새집증후군 방지와 쾌적한 실내 공기를 위해 <strong>3시간 정도는 충분히 환기</strong>하시는 것을 권장합니다.</span>
+                        </div>
+                    </div>
+
                     <AdBanner placement="share_above_text" />
                 </div>
             </main>
