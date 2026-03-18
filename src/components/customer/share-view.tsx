@@ -297,7 +297,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 return (
 
                             
-                            <div className={`border rounded-2xl p-4 pb-5 text-[15px] leading-[1.6] shadow-sm relative ${
+                            <div className={`break-keep border rounded-2xl p-4 pb-5 text-[15px] leading-[1.6] shadow-sm relative ${
                                 site.status === 'completed' ? 'bg-white border-slate-200 text-slate-800 rounded-tl-none' 
                                 : 'bg-blue-50 border-blue-100 text-slate-800 rounded-tl-none'
                             }`}>
@@ -306,8 +306,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                     <>
                                         <p className="font-bold text-blue-600 mb-2">"작업이 모두 무사히 완료되었습니다!"</p>
                                         <p className="mb-4">
-                                            청소 현장 팀장 <span className="font-bold">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
-                                            모든 청소 작업을 마치고 완료 보고 드립니다.
+                                            청소 현장 팀장 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong>입니다. 모든 청소 작업을 마치고 완료 보고 드립니다.
                                             {hasAfterPhotos && (
                                                 <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 후] 탭에서 깨끗해진 현장 모습을 확인해 보세요.</span>
                                             )}
