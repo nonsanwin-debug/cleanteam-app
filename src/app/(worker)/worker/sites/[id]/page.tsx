@@ -140,7 +140,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             checklistRef.current.copyLink()
         } else {
             if (!site) return
-            const link = `${window.location.origin}/share/${site.id}`
+            const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${site.id}`
             const copyText = `[${site.name}] 작업 보고서를 확인해주세요.\n${link}`
 
             // Fallback Copy
@@ -217,7 +217,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         <div className="flex flex-col gap-2">
                             {isLeader && site.customer_phone ? (
                                 <a
-                                    href={`sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/${site.id}`)}`}
+                                    href={`sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`[${site.name}] 작업 보고서를 확인해주세요.\n${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${site.id}`)}`}
                                     className="w-full"
                                 >
                                     <Button

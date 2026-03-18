@@ -116,7 +116,7 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
     }
 
     const handleCopyLink = async () => {
-        const link = `${window.location.origin}/share/${siteId}`
+        const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${siteId}`
         const copyText = siteName ? `[${siteName}] 작업 보고서를 확인해주세요.\n${link}` : link
         let copied = false
 
