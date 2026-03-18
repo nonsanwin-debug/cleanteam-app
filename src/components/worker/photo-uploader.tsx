@@ -274,15 +274,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                         className="object-cover"
                                         sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
                                     /> */}
-                                    <a
-                                        href={photo.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded z-10 hover:bg-black/70"
-                                    >
-                                        Raw
-                                    </a>
+
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
                                         <ZoomIn className="text-white opacity-0 group-hover:opacity-100 w-6 h-6" />
                                     </div>
@@ -332,13 +324,14 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                             <div className="absolute top-4 right-4 z-50 flex gap-2">
                                 <Button
                                     variant="secondary"
-                                    size="icon"
-                                    className="rounded-full shadow-lg bg-white/90 hover:bg-white"
+                                    className="rounded-full shadow-lg bg-white/90 hover:bg-white flex items-center gap-2 pr-4 pl-3"
                                     onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
                                     disabled={isDownloading}
-                                    title="전체 다운로드"
                                 >
-                                    {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-slate-700" />}
+                                    {isDownloading ? <Loader2 className="h-4 w-4 animate-spin text-slate-700" /> : <Download className="h-4 w-4 text-slate-700" />}
+                                    <span className="text-sm font-bold text-slate-800">
+                                        ({currentPhotos.length}) 묶음 다운로드
+                                    </span>
                                 </Button>
 
                                 {canDelete && (

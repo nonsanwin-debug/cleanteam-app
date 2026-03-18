@@ -172,21 +172,35 @@ export function ShareView({ siteId }: { siteId: string }) {
                     </CardContent>
                 </Card>
 
-                {/* 인사말 */}
-                <Card className="border-none shadow-sm bg-blue-50/50">
-                    <CardContent className="p-6 text-base space-y-5 text-slate-800 leading-relaxed text-center font-medium">
-                        <p>
-                            청소 현장 팀장 <span className="font-bold text-slate-900 border-b-2 border-blue-200 pb-0.5">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
-                            오늘 진행한 청소 작업 현장 사진과 함께<br />
-                            완료 보고 드립니다.
-                        </p>
-                        <p>
-                            작업 내용 중 궁금하신 점이나<br />
-                            확인이 필요한 부분이 있다면<br />
-                            연락 부탁드립니다. 감사합니다.
-                        </p>
-                    </CardContent>
-                </Card>
+                {/* 팀장 메시지 (말풍선 스타일) */}
+                <div className="flex flex-col mb-8 mt-2 px-1">
+                    <div className="flex items-start gap-3 w-full">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0 shadow-sm">
+                            <span className="text-blue-700 font-bold text-sm">팀장</span>
+                        </div>
+                        
+                        {/* Message Content */}
+                        <div className="flex flex-col flex-1 gap-1 max-w-[90%]">
+                            <span className="text-sm text-slate-500 font-medium ml-1">
+                                {site.worker?.name || site.worker_name || '담당 팀장'}
+                            </span>
+                            
+                            <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 pb-5 text-[15px] leading-[1.6] text-slate-800 shadow-sm">
+                                <p className="mb-4">
+                                    청소 현장 팀장 <span className="font-bold text-slate-900 bg-blue-50 px-1 py-0.5 rounded">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
+                                    오늘 진행한 청소 작업 현장 사진과 함께<br />
+                                    완료 보고 드립니다.
+                                </p>
+                                <p>
+                                    작업 내용 중 궁금하신 점이나<br />
+                                    확인이 필요한 부분이 있다면<br />
+                                    연락 부탁드립니다. 감사합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Photos (ReadOnly) */}
                 <section>
