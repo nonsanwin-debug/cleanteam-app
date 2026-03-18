@@ -19,7 +19,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
         // 1. 팀장으로 배정된 현장 (기존)
         const { data: leaderSites, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at')
             .eq('worker_id', user.id)
             .order('start_time', { ascending: true, nullsFirst: false })
             .order('created_at', { ascending: true })
@@ -41,7 +41,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                 const siteIds = memberData.map(m => m.site_id)
                 const { data: sites } = await supabase
                     .from('sites')
-                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+                    .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at')
                     .in('id', siteIds)
                     .order('start_time', { ascending: true, nullsFirst: false })
                     .order('created_at', { ascending: true })
@@ -395,7 +395,7 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at')
             .eq('id', id)
             .single()
 
