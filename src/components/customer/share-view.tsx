@@ -179,7 +179,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                 <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
                     <div className="flex items-center gap-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/N.png" alt="NEXUS" className="w-5 h-5 object-contain" />
+                        <img src="/icon.png" alt="NEXUS" className="w-5 h-5 object-contain" />
                         <span className="font-black text-blue-700 tracking-tight text-lg">NEXUS</span>
                     </div>
                     <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
