@@ -275,6 +275,15 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-sm">청소 전문가</span>
                             </span>
                             
+                            {(() => {
+                                const hasBeforePhotos = photos.some(p => p.type === 'before')
+                                const hasDuringPhotos = photos.some(p => p.type === 'during')
+                                const hasAfterPhotos = photos.some(p => p.type === 'after')
+                                const hasSpecialPhotos = photos.some(p => p.type === 'special')
+                                
+                                return (
+
+                            
                             <div className={`border rounded-2xl p-4 pb-5 text-[15px] leading-[1.6] shadow-sm relative ${
                                 site.status === 'completed' ? 'bg-white border-slate-200 text-slate-800 rounded-tl-none' 
                                 : 'bg-blue-50 border-blue-100 text-slate-800 rounded-tl-none'
@@ -285,22 +294,30 @@ export function ShareView({ siteId }: { siteId: string }) {
                                         <p className="font-bold text-blue-600 mb-2">"작업이 모두 무사히 완료되었습니다!"</p>
                                         <p className="mb-4">
                                             청소 현장 팀장 <span className="font-bold">[{site.worker?.name || site.worker_name || '미배정'}]</span> 입니다.<br />
-                                            오늘 진행한 청소 작업 현장 사진과 함께<br />
-                                            완료 보고 드립니다.
+                                            모든 청소 작업을 마치고 완료 보고 드립니다.
+                                            {hasAfterPhotos && (
+                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 후] 탭에서 깨끗해진 현장 모습을 확인해 보세요.</span>
+                                            )}
+                                            {hasSpecialPhotos && (
+                                                <span className="block mt-1">특이사항 탭에도 별도로 기록 사진을 남겨 두었으니 함께 확인 부탁드립니다.</span>
+                                            )}
                                         </p>
                                         <p>
-                                            작업 내용 중 궁금하신 점이나 확인이 필요한 부분이 있다면 연락 부탁드립니다. 감사합니다.
+                                            작업 내용 중 궁금하신 점이나 확인이 필요한 부분이 있다면 편하게 연락 부탁드립니다. 감사합니다.
                                         </p>
                                     </>
                                 ) : site.status === 'in_progress' ? (
                                     <>
                                         <p className="font-bold text-blue-600 mb-2">"지금은 한창 깨끗해지는 중입니다! 🧹"</p>
                                         <p className="mb-4">
-                                            현재 구역별 오염 제거 작업을 열심히 진행하고 있습니다. 아래 <strong>현장 사진</strong>의 [작업 중] 탭을 누르시면 실시간으로 변하고 있는 모습을 확인하실 수 있습니다.
+                                            현재 구역별 오염 제거 작업을 열심히 진행하고 있습니다.
+                                            {hasDuringPhotos && (
+                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 중] 탭을 누르시면 실시간으로 변하고 있는 모습을 확인하실 수 있습니다.</span>
+                                            )}
                                         </p>
                                         <p>
                                             궁금하신 점은 언제든 전화나 문자로 연락 주셔도 좋습니다!<br />
-                                            작업이 끝나면 다시 한번 알림을 드릴게요. 안심하고 기다려 주세요!
+                                            작업이 끝나면 다시 반가운 소식으로 알림을 드릴게요. 안심하고 기다려 주세요!
                                         </p>
                                     </>
                                 ) : (
@@ -310,12 +327,16 @@ export function ShareView({ siteId }: { siteId: string }) {
                                             안녕하세요, 오늘 작업을 맡은 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong> 팀장입니다. 방금 현장에 도착하여 장비 점검을 마쳤습니다.
                                         </p>
                                         <p>
-                                            작업 전 상태를 꼼꼼히 기록하고, 고객님의 소중한 공간을 정성껏 케어하겠습니다.<br />
-                                            작업이 끝나면 다시 반가운 소식으로 알림을 드릴게요. 안심하고 기다려 주세요!
+                                            상태를 꼼꼼히 살피며 고객님의 소중한 공간을 정성껏 케어하겠습니다.
+                                            {hasBeforePhotos && (
+                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 전] 탭을 누르시면 현재 현장 모습을 확인하실 수 있습니다.</span>
+                                            )}
                                         </p>
                                     </>
                                 )}
                             </div>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
