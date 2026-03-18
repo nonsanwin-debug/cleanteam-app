@@ -13,6 +13,7 @@ export type AssignedSite = {
     structure_type?: string
     cleaning_date?: string
     start_time?: string
+    estimated_end_at?: string | null
     special_notes?: string
     happy_call_completed?: boolean
     // Added for compatibility

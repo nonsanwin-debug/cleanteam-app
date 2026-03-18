@@ -1,0 +1,1 @@
+ALTER TABLE sites ADD COLUMN estimated_end_at TIMESTAMPTZ;

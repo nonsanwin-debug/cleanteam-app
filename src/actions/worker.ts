@@ -847,3 +847,41 @@ export async function completeHappyCall(siteId: string): Promise<ActionResponse>
         return { success: false, error: '해피콜 상태 변경 중 오류가 발생했습니다.' }
     }
 }
+
+/** 작업 예상 종료 시간 설정/수정 */
+export async function setEstimatedEndTime(siteId: string, estimatedEndAt: string | null): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        const { data: site } = await supabase
+            .from('sites')
+            .select('status, worker_id')
+            .eq('id', siteId)
+            .single()
+
+        if (!site) return { success: false, error: '현장을 찾을 수 없습니다.' }
+        if (site.worker_id !== user.id) return { success: false, error: '담당 팀장만 예상 종료 시간을 설정할 수 있습니다.' }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                estimated_end_at: estimatedEndAt,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('setEstimatedEndTime error:', error)
+            return { success: false, error: error.message || '시간 수정 실패' }
+        }
+
+        revalidatePath('/worker/home')
+        revalidatePath(`/worker/sites/${siteId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('setEstimatedEndTime error:', error)
+        return { success: false, error: '예상 종료 시간 변경 중 오류가 발생했습니다.' }
+    }
+}

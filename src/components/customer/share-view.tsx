@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles } from 'lucide-react'
+import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles, Clock } from 'lucide-react'
 import { AdBanner } from '@/components/customer/ad-banner'
 
 export function ShareView({ siteId }: { siteId: string }) {
@@ -13,6 +13,48 @@ export function ShareView({ siteId }: { siteId: string }) {
     const [photos, setPhotos] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null)
+    const [isOverdue, setIsOverdue] = useState(false)
+    const [randomMessage, setRandomMessage] = useState("")
+
+    useEffect(() => {
+        const messages = [
+            "현재 주방과 화장실의 묵은 때와 치열하게 전투 중입니다!",
+            "구석진 곳의 먼지 한 톨까지 꼼꼼하게 잡고 있습니다.",
+            "지정 구역의 오염 제거가 예정대로 순조롭게 진행 중입니다.",
+            "쾌적한 공간을 위해 마지막 땀방울을 흘리고 있습니다. 잠시만 기다려주세요!"
+        ]
+        setRandomMessage(messages[Math.floor(Math.random() * messages.length)])
+    }, [])
+
+    useEffect(() => {
+        if (!site?.estimated_end_at || site.status === 'completed') {
+            setTimeLeft(null)
+            setIsOverdue(false)
+            return
+        }
+
+        const calcTime = () => {
+            const diff = new Date(site.estimated_end_at).getTime() - Date.now()
+            if (diff <= 0) {
+                setIsOverdue(true)
+                setTimeLeft(null)
+                return
+            }
+            setIsOverdue(false)
+            const totalSeconds = Math.floor(diff / 1000)
+            setTimeLeft({
+                hours: Math.floor(totalSeconds / 3600),
+                minutes: Math.floor((totalSeconds % 3600) / 60),
+                seconds: totalSeconds % 60
+            })
+        }
+        
+        calcTime()
+        const timer = setInterval(calcTime, 1000)
+        return () => clearInterval(timer)
+    }, [site?.estimated_end_at, site?.status])
+
 
     const fetchData = async () => {
         try {
@@ -140,6 +182,32 @@ export function ShareView({ siteId }: { siteId: string }) {
             </header>
 
             <main className="max-w-md mx-auto p-4 space-y-6">
+                {/* Timer Banner */}
+                {site?.status !== 'completed' && (timeLeft || isOverdue) && (
+                    <div className={`rounded-xl p-4 shadow-sm border text-white transition-colors duration-1000 ${isOverdue ? 'bg-indigo-600 border-indigo-700' : (timeLeft && timeLeft.hours === 0 && timeLeft.minutes < 10) ? 'bg-orange-500 border-orange-600' : 'bg-blue-600 border-blue-700'}`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-sm bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                                <Clock className="w-3.5 h-3.5" />
+                                {isOverdue ? '작업 마무리 중' : '남은 예상 시간'}
+                            </span>
+                        </div>
+                        {isOverdue ? (
+                            <p className="text-xl font-extrabold tracking-tight mb-1 animate-pulse">
+                                거의 완료되었습니다! ✨
+                            </p>
+                        ) : (
+                            <p className="text-4xl font-extrabold tracking-tight mb-1 font-mono tabular-nums">
+                                {String(timeLeft!.hours).padStart(2, '0')}:
+                                {String(timeLeft!.minutes).padStart(2, '0')}:
+                                {String(timeLeft!.seconds).padStart(2, '0')}
+                            </p>
+                        )}
+                        <p className="text-xs text-white/90 leading-relaxed break-keep mt-3 border-t border-white/20 pt-3">
+                            {isOverdue ? "마무리 정리 작업 중입니다. 곧 완료 알림을 드리겠습니다. 조금만 기다려주세요!" : randomMessage}
+                        </p>
+                    </div>
+                )}
+
                 {/* Site Info */}
                 <Card className="border-none shadow-sm overflow-hidden">
                     <div className="h-2 w-full bg-gradient-to-r from-blue-400 to-indigo-500"></div>

@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings } from '@/actions/worker'
+import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings, setEstimatedEndTime } from '@/actions/worker'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
@@ -30,6 +30,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [savingAdditional, setSavingAdditional] = useState(false)
     const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string } | null>(null)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [isSettingTime, setIsSettingTime] = useState(false)
 
     const router = useRouter()
 
@@ -188,6 +189,30 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     }
 
     const isLeader = !!(currentUserId && site.worker_id === currentUserId)
+
+    const handleAddTime = async (minutes: number) => {
+        if (!site) return
+        setIsSettingTime(true)
+        try {
+            let baseTime = site.estimated_end_at ? new Date(site.estimated_end_at) : new Date()
+            if (baseTime.getTime() < Date.now()) {
+                baseTime = new Date()
+            }
+            const newTime = new Date(baseTime.getTime() + minutes * 60000)
+            
+            const res = await setEstimatedEndTime(site.id, newTime.toISOString())
+            if (res.success) {
+                toast.success('예상 종료 시간이 설정되었습니다.')
+                setSite({ ...site, estimated_end_at: newTime.toISOString() })
+            } else {
+                toast.error(res.error || '시간 설정에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('시간 설정 중 오류가 발생했습니다.')
+        } finally {
+            setIsSettingTime(false)
+        }
+    }
 
     return (
         <div className="space-y-6 pb-20">
@@ -524,6 +549,62 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {/* 예상 종료 시간 설정 (팀장 전용) */}
+            {isLeader && site.status !== 'completed' && (
+                <section className="mb-4">
+                    <div className="bg-white border rounded-lg p-4 shadow-sm border-indigo-100">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-indigo-600" />
+                                <span className="font-bold text-slate-800">예상 완료 시간 알림</span>
+                            </div>
+                            {site.estimated_end_at && new Date(site.estimated_end_at).getTime() > Date.now() ? (
+                                <Badge variant="outline" className="text-indigo-700 bg-indigo-50 border-indigo-200">
+                                    {new Date(site.estimated_end_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 완료 예정
+                                </Badge>
+                            ) : site.estimated_end_at ? (
+                                <Badge variant="outline" className="text-orange-600 bg-orange-50 border-orange-200">
+                                    시간 초과됨
+                                </Badge>
+                            ) : (
+                                <Badge variant="outline" className="text-slate-500 bg-slate-50">
+                                    미설정
+                                </Badge>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700"
+                                onClick={() => handleAddTime(30)}
+                                disabled={isSettingTime}
+                            >
+                                <Plus className="w-4 h-4 mr-1 text-slate-400" />30분
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700"
+                                onClick={() => handleAddTime(60)}
+                                disabled={isSettingTime}
+                            >
+                                <Plus className="w-4 h-4 mr-1 text-slate-400" />1시간
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700"
+                                onClick={() => handleAddTime(120)}
+                                disabled={isSettingTime}
+                            >
+                                <Plus className="w-4 h-4 mr-1 text-slate-400" />2시간
+                            </Button>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2 text-center">
+                            * 설정된 시간은 고객용 공유 페이지의 상단에 실시간으로 표시됩니다.
+                        </p>
+                    </div>
+                </section>
             )}
 
             {/* Photo Section */}
