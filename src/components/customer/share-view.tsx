@@ -371,6 +371,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                         <div className="flex flex-col gap-1">
                             <span className="font-bold">고객 가이드 안내</span>
                             <span>오늘 청소 후 새집증후군 방지와 쾌적한 실내 공기를 위해 <strong>3시간 정도는 충분히 환기</strong>하시는 것을 권장합니다.</span>
+                            <span className="mt-1">본 리포트는 보안을 위해 30일간 제공됩니다. 사진 저장이 필요하신 경우, 사진 상세 보기에서 <strong>'묶음 다운로드'</strong> 기능을 이용해 주시기 바랍니다.</span>
                         </div>
                     </div>
 
