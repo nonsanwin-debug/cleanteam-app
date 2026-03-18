@@ -183,30 +183,43 @@ export function ShareView({ siteId }: { siteId: string }) {
 
             <main className="max-w-md mx-auto p-4 space-y-6">
                 {/* Timer Banner */}
-                {site?.status !== 'completed' && (timeLeft || isOverdue) && (
-                    <div className={`rounded-xl p-4 shadow-sm border text-white transition-colors duration-1000 ${isOverdue ? 'bg-indigo-600 border-indigo-700' : (timeLeft && timeLeft.hours === 0 && timeLeft.minutes < 10) ? 'bg-orange-500 border-orange-600' : 'bg-blue-600 border-blue-700'}`}>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-sm bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
-                                <Clock className="w-3.5 h-3.5" />
-                                {isOverdue ? '작업 마무리 중' : '남은 예상 시간'}
-                            </span>
+                {site?.status !== 'completed' && (timeLeft || isOverdue) && (() => {
+                    const isUnder30Mins = timeLeft && timeLeft.hours === 0 && timeLeft.minutes < 30
+                    return (
+                        <div className={`rounded-xl p-4 shadow-sm border text-white transition-colors duration-1000 ${
+                            isOverdue 
+                                ? 'bg-emerald-600 border-emerald-700' 
+                                : isUnder30Mins 
+                                    ? 'bg-orange-500 border-orange-600' 
+                                    : 'bg-blue-600 border-blue-700'
+                        }`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-sm bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    {isOverdue ? '작업 예약 시간 종료' : '남은 예상 시간'}
+                                </span>
+                            </div>
+                            {isOverdue ? (
+                                <p className="text-xl font-extrabold tracking-tight mb-1 animate-pulse">
+                                    예상 작업 시간이 종료되었습니다 ✨
+                                </p>
+                            ) : (
+                                <p className={`text-4xl font-extrabold tracking-tight mb-1 font-mono tabular-nums ${isUnder30Mins ? 'animate-pulse' : ''}`}>
+                                    {String(timeLeft!.hours).padStart(2, '0')}:
+                                    {String(timeLeft!.minutes).padStart(2, '0')}:
+                                    {String(timeLeft!.seconds).padStart(2, '0')}
+                                </p>
+                            )}
+                            <p className="text-[13px] text-white/95 font-medium leading-relaxed break-keep mt-3 border-t border-white/20 pt-3">
+                                {isOverdue 
+                                    ? "현장 정리를 마치고 대기 중입니다. 서두르지 마시고 안전하게 도착하시면 연락해 주세요!" 
+                                    : isUnder30Mins 
+                                        ? "청소가 곧 완료됩니다! 현장 검수를 위해 이동해 주세요." 
+                                        : randomMessage}
+                            </p>
                         </div>
-                        {isOverdue ? (
-                            <p className="text-xl font-extrabold tracking-tight mb-1 animate-pulse">
-                                거의 완료되었습니다! ✨
-                            </p>
-                        ) : (
-                            <p className="text-4xl font-extrabold tracking-tight mb-1 font-mono tabular-nums">
-                                {String(timeLeft!.hours).padStart(2, '0')}:
-                                {String(timeLeft!.minutes).padStart(2, '0')}:
-                                {String(timeLeft!.seconds).padStart(2, '0')}
-                            </p>
-                        )}
-                        <p className="text-xs text-white/90 leading-relaxed break-keep mt-3 border-t border-white/20 pt-3">
-                            {isOverdue ? "마무리 정리 작업 중입니다. 곧 완료 알림을 드리겠습니다. 조금만 기다려주세요!" : randomMessage}
-                        </p>
-                    </div>
-                )}
+                    )
+                })()}
 
                 {/* Site Info */}
                 <Card className="border-none shadow-sm overflow-hidden">
