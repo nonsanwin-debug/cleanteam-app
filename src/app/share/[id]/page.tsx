@@ -14,24 +14,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const { data: site } = await supabase.from('sites').select('name').eq('id', resolvedParams.id).single()
         if (site) {
             return {
-                title: `${site.name} - 작업 보고서 | NEXUS`,
+                title: `${site.name} - 작업 보고서 | 🅝 NEXUS`,
                 description: '현장 작업 사진 및 완료 내역을 확인하세요.',
                 openGraph: {
-                    title: `${site.name} - 작업 보고서 | NEXUS`,
+                    title: `${site.name} - 작업 보고서 | 🅝 NEXUS`,
                     description: '현장 작업 사진 및 완료 내역을 확인하세요.',
-                    images: ['/icon.png'],
                 }
             }
         }
     } catch (e) { }
 
     return {
-        title: 'NEXUS 작업 보고서',
+        title: '🅝 NEXUS 작업 보고서',
         description: '현장 작업 사진 및 완료 내역을 확인하세요.',
         openGraph: {
-            title: 'NEXUS 작업 보고서',
+            title: '🅝 NEXUS 작업 보고서',
             description: '현장 작업 사진 및 완료 내역을 확인하세요.',
-            images: ['/icon.png'],
         }
     }
 }
