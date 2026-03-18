@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus, Minus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
@@ -251,6 +251,32 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                     미설정
                                 </Badge>
                             )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 mb-2">
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-rose-50 hover:text-rose-700 border-slate-200"
+                                onClick={() => handleAddTime(-30)}
+                                disabled={isSettingTime}
+                            >
+                                <Minus className="w-4 h-4 mr-1 text-rose-400" />30분
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-rose-50 hover:text-rose-700 border-slate-200"
+                                onClick={() => handleAddTime(-60)}
+                                disabled={isSettingTime}
+                            >
+                                <Minus className="w-4 h-4 mr-1 text-rose-400" />1시간
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full text-slate-700 font-medium hover:bg-rose-50 hover:text-rose-700 border-slate-200"
+                                onClick={() => handleAddTime(-120)}
+                                disabled={isSettingTime}
+                            >
+                                <Minus className="w-4 h-4 mr-1 text-rose-400" />2시간
+                            </Button>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                             <Button
