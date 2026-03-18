@@ -177,10 +177,27 @@ export function ShareView({ siteId }: { siteId: string }) {
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                    <div className="flex items-center gap-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/icon.png" alt="NEXUS" className="w-5 h-5 object-contain" />
-                        <span className="font-black text-blue-700 tracking-tight text-lg">NEXUS</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="customer-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
+                                </linearGradient>
+                                <linearGradient id="customer-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#22D3EE" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="customer-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#10B981" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#customer-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#customer-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#customer-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                        <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
                     </div>
                     <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                         {site.name}
