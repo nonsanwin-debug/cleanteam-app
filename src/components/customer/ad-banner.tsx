@@ -97,7 +97,7 @@ export function AdBanner({ placement }: { placement: string }) {
         <div className="flex justify-center w-full mb-6 relative z-0">
             <div 
                 ref={containerRef}
-                className="relative rounded-md overflow-hidden shadow-sm cursor-pointer group bg-white border border-slate-200 w-full max-w-[320px]"
+                className="relative rounded-md overflow-hidden shadow-sm cursor-pointer group bg-white border border-slate-200 w-full"
                 onClick={handleAdClick}
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
