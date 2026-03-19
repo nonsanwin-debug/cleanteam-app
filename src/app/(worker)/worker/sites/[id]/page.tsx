@@ -142,7 +142,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         } else {
             if (!site) return
             const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${site.id}`
-            const copyText = link
+            const copyText = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
 
             // Fallback Copy
             try {
@@ -322,9 +322,13 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
 
                         <div className="flex flex-col gap-2">
-                            {isLeader && site.customer_phone ? (
+                            {isLeader && site.customer_phone ? (() => {
+                                const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${site.id}`
+                                const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
+                                const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`
+                                return (
                                 <a
-                                    href={`sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'}/share/${site.id}`)}`}
+                                    href={smsRef}
                                     className="w-full"
                                 >
                                     <Button
@@ -334,7 +338,8 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                         고객전용페이지 고객에게 보내기
                                     </Button>
                                 </a>
-                            ) : isLeader ? (
+                                )
+                            })() : isLeader ? (
                                 <Button
                                     variant="outline"
                                     className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
