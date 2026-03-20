@@ -44,12 +44,15 @@ export default function PartnerLoginPage() {
         setIsLoading(true)
 
         const formData = new FormData(e.currentTarget)
-        const email = formData.get('email') as string
+        const phone = formData.get('phone') as string
         const password = formData.get('password') as string
+        
+        // Convert phone to dummy email for Supabase Auth
+        const email = `${phone.replace(/[^0-9]/g, '')}@cleanteam.partner`
 
         try {
             const { data: signInData, error } = await supabase.auth.signInWithPassword({
-                email: email.trim(),
+                email: email,
                 password: password.trim(),
             })
 
@@ -101,14 +104,25 @@ export default function PartnerLoginPage() {
                 <CardContent>
                     <form onSubmit={handleAuth} className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="email">이메일 (아이디)</Label>
+                            <Label htmlFor="phone">전화번호 (아이디)</Label>
                             <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="가입하신 이메일 주소"
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                placeholder="010-0000-0000"
+                                maxLength={13}
                                 required
                                 className="h-12"
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9]/g, '')
+                                    let formatted = value
+                                    if (value.length > 3 && value.length <= 7) {
+                                        formatted = `${value.slice(0, 3)}-${value.slice(3)}`
+                                    } else if (value.length > 7) {
+                                        formatted = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`
+                                    }
+                                    e.target.value = formatted // Sync UI visual formatting
+                                }}
                             />
                         </div>
                         <div className="space-y-2">

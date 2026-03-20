@@ -6,11 +6,13 @@ import { ActionResponse } from './master'
 export async function registerPartnerAccount(
     name: string,
     phone: string,
-    email: string,
     password: string
 ): Promise<ActionResponse> {
     try {
         const adminClient = createAdminClient()
+        
+        // Auto-generate a dummy email using the phone number digits
+        const email = `${phone.replace(/[^0-9]/g, '')}@cleanteam.partner`
 
         // 1. Create auth user
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({

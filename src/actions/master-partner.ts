@@ -7,7 +7,6 @@ import { revalidatePath } from 'next/cache'
 export async function createPartnerAccount(
     name: string,
     phone: string,
-    email: string,
     password: string
 ): Promise<ActionResponse> {
     try {
@@ -15,6 +14,9 @@ export async function createPartnerAccount(
         if (!isMaster) return { success: false, error: '권한이 없습니다.' }
 
         const adminClient = createAdminClient()
+        
+        // Auto-generate the internal profile email from the phone number
+        const email = `${phone.replace(/[^0-9]/g, '')}@cleanteam.partner`
 
         // 1. Create auth user
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({

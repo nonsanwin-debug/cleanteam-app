@@ -31,7 +31,6 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
     const [submitting, setSubmitting] = useState(false)
     const [partnerName, setPartnerName] = useState('')
     const [partnerPhone, setPartnerPhone] = useState('')
-    const [partnerEmail, setPartnerEmail] = useState('')
     const [partnerPassword, setPartnerPassword] = useState('')
 
     const supabase = createClient()
@@ -52,27 +51,21 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
     }
 
     const handleCreatePartner = async () => {
-        if (!partnerName.trim() || !partnerEmail.trim() || !partnerPassword.trim()) {
-            toast.error('이름, 이메일, 비밀번호를 모두 입력해주세요.')
+        if (!partnerName.trim() || !partnerPhone.trim() || !partnerPassword.trim()) {
+            toast.error('이름, 연락처, 비밀번호를 모두 입력해주세요.')
             return
         }
 
         setSubmitting(true)
         try {
-            // Use Supabase signup (Admin ideally, but auth.signUp works for creation if email confirm is off)
-            // Notice: To create a user silently without logging in as them, we should use a server action or supabase admin.
-            // But since this is client side, let's call a server action or just use a dedicated api.
-            // For now, let's just use signup (which logs the master out... oops!)
-            // We MUST use a server action using supabase admin.
             const { createPartnerAccount } = await import('@/actions/master-partner')
-            const res = await createPartnerAccount(partnerName, partnerPhone, partnerEmail, partnerPassword)
+            const res = await createPartnerAccount(partnerName, partnerPhone, partnerPassword)
             
             if (res.success) {
                 toast.success('부동산 파트너 계정이 생성되었습니다.')
                 setCreateOpen(false)
                 setPartnerName('')
                 setPartnerPhone('')
-                setPartnerEmail('')
                 setPartnerPassword('')
                 router.refresh()
             } else {
@@ -89,8 +82,7 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
         const lower = searchTerm.toLowerCase()
         return lower === '' || 
             p.name.toLowerCase().includes(lower) || 
-            (p.phone && p.phone.includes(lower)) ||
-            (p.email && p.email.toLowerCase().includes(lower))
+            (p.phone && p.phone.includes(lower))
     })
 
     return (
@@ -123,12 +115,8 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                 <Input value={partnerName} onChange={e => setPartnerName(e.target.value)} placeholder="예: 자이공인중개사" className="mt-1" />
                             </div>
                             <div>
-                                <label className="text-sm font-medium">연락처</label>
+                                <label className="text-sm font-medium">연락처 (로그인 아이디) *</label>
                                 <Input value={partnerPhone} onChange={e => setPartnerPhone(e.target.value)} placeholder="010-0000-0000" className="mt-1" />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium">로그인 이메일 (아이디) *</label>
-                                <Input value={partnerEmail} onChange={e => setPartnerEmail(e.target.value)} placeholder="상호명@nexus.com 등" className="mt-1" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">비밀번호 *</label>
@@ -164,8 +152,7 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                             <tr className="border-b bg-slate-50">
                                 <th className="p-3 pl-4 font-semibold text-xs text-slate-600 w-[180px]">이름 (부동산명)</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 w-[100px]">상태</th>
-                                <th className="p-3 font-semibold text-xs text-slate-600 w-[150px]">연락처</th>
-                                <th className="p-3 font-semibold text-xs text-slate-600 w-[200px]">이메일 (로그인 ID)</th>
+                                <th className="p-3 font-semibold text-xs text-slate-600 w-[200px]">연락처 (로그인 ID)</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 w-[180px]">가입일</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 text-right">관리</th>
                             </tr>
@@ -186,7 +173,6 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                             {p.status === 'deleted' && <Badge variant="outline" className="text-red-600 bg-red-50">탈퇴</Badge>}
                                         </td>
                                         <td className="p-4 py-3 text-slate-500 text-sm">{p.phone || '-'}</td>
-                                        <td className="p-4 py-3 text-slate-500 text-sm">{p.email || '-'}</td>
                                         <td className="p-4 py-3 text-slate-500 text-sm">{format(new Date(p.created_at), 'yyyy-MM-dd HH:mm')}</td>
                                         <td className="p-4 py-3 text-right">
                                             <Button 

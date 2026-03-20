@@ -14,7 +14,6 @@ export default function PartnerRegisterPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
-        email: '',
         password: '',
         name: '',
         phone: ''
@@ -29,9 +28,9 @@ export default function PartnerRegisterPage() {
         setLoading(true)
 
         try {
-            const { email, password, name, phone } = formData
+            const { password, name, phone } = formData
 
-            if (!email.trim() || !password.trim() || !name.trim() || !phone.trim()) {
+            if (!password.trim() || !name.trim() || !phone.trim()) {
                 toast.error('입력 오류', { description: '모든 항목을 입력해주세요.' })
                 setLoading(false)
                 return
@@ -44,11 +43,11 @@ export default function PartnerRegisterPage() {
             }
 
             // Server action to create partner + virtual company
-            const res = await registerPartnerAccount(name.trim(), phone.trim(), email.trim(), password.trim())
+            const res = await registerPartnerAccount(name.trim(), phone.trim(), password.trim())
 
             if (res.success) {
                 toast.success('부동산 파트너 가입이 완료되었습니다!', {
-                    description: '생성한 이메일과 비밀번호로 로그인해주세요.'
+                    description: '전화번호와 비밀번호로 로그인해주세요.'
                 })
                 router.push('/auth/partner-login')
             } else {
@@ -94,7 +93,7 @@ export default function PartnerRegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">연락처</Label>
+                            <Label htmlFor="phone">전화번호 (로그인 시 아이디로 사용됨)</Label>
                             <Input
                                 id="phone"
                                 name="phone"
@@ -113,17 +112,6 @@ export default function PartnerRegisterPage() {
                                     }
                                     setFormData({ ...formData, phone: formatted })
                                 }}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">이메일 (로그인 시 사용)</Label>
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                placeholder="example@nexus.com"
-                                onChange={handleChange}
                             />
                         </div>
                         <div className="space-y-2">
