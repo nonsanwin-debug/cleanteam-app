@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react'
+import { PlusCircle, CalendarDays, ChevronRight, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { confirmOrderAssignee } from '@/actions/shared-orders'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { useState } from 'react'
 
 export function FieldHomeClient({ 
     partnerName, 
@@ -16,6 +20,7 @@ export function FieldHomeClient({
     recentOrders: any[]
 }) {
     const router = useRouter()
+    const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
     return (
         <div className="p-4 space-y-6">
@@ -98,8 +103,8 @@ export function FieldHomeClient({
                             return (
                                 <Card 
                                     key={order.id} 
-                                    className="cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
-                                    onClick={() => router.push(`/field/orders/${order.id}`)}
+                                    className="hover:shadow-md transition-shadow"
+                                    onClick={() => router.push(`/field/orders`)}
                                 >
                                     <CardContent className="p-4 flex flex-col gap-2">
                                         <div className="flex justify-between items-start">
@@ -122,6 +127,48 @@ export function FieldHomeClient({
                                                 </span>
                                             )}
                                         </div>
+
+                                        {/* 배정 요청 업체 리스트 (대기중일 때만) */}
+                                        {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
+                                            <div className="bg-orange-50/50 px-3 py-2 mt-2 border border-orange-100 rounded-lg">
+                                                <p className="text-xs font-bold text-orange-800 mb-2 flex items-center gap-1.5">
+                                                    🤝 {order.applicants.length}개의 업체가 배정을 대기 중입니다!
+                                                </p>
+                                                <div className="space-y-2">
+                                                    {order.applicants.map((app: any) => (
+                                                        <div key={app.id} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-orange-200 shadow-sm">
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-slate-800 text-sm">{app.name}</span>
+                                                            </div>
+                                                            <button
+                                                                className={cn(
+                                                                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all relative z-10",
+                                                                    confirmingId === app.id
+                                                                        ? "bg-slate-200 text-slate-500"
+                                                                        : "bg-orange-500 text-white hover:bg-orange-600 shadow-sm cursor-pointer"
+                                                                )}
+                                                                disabled={!!confirmingId}
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation()
+                                                                    setConfirmingId(app.id)
+                                                                    const res = await confirmOrderAssignee(order.id, app.id)
+                                                                    if (res.success) {
+                                                                        toast.success(`${app.name} 업체로 확정되었습니다!`)
+                                                                        router.refresh()
+                                                                    } else {
+                                                                        toast.error(res.error || '업체 확정에 실패했습니다.')
+                                                                    }
+                                                                    setConfirmingId(null)
+                                                                }}
+                                                            >
+                                                                {confirmingId === app.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : '업체 확정'}
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
                                     </CardContent>
                                 </Card>
                             )
