@@ -195,6 +195,7 @@ interface CreateOrderData {
     address?: string
     customer_phone?: string
     customer_name?: string
+    image_urls?: string[]
 }
 
 /** 오더 등록 */
@@ -215,7 +216,8 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             address: data.address || '',
             customer_phone: data.customer_phone || '',
             customer_name: data.customer_name || '',
-            status: 'open'
+            status: 'open',
+            parsed_details: data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : null
         })
 
     if (error) {

@@ -184,6 +184,30 @@ export async function getMasterUsers() {
     return users || []
 }
 
+export async function getMasterPartners() {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
+
+    const { data: partners, error } = await adminClient
+        .from('users')
+        .select(`
+            id, name, phone, email, role, status, created_at, account_info, current_money, 
+            companies(name, code, status)
+        `)
+        .eq('role', 'partner')
+        .neq('status', 'deleted')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching partners for master:', error)
+        return []
+    }
+
+    return partners || []
+}
+
 export async function deleteUserForce(userId: string): Promise<ActionResponse> {
     try {
         const isMaster = await verifyMasterAccess()

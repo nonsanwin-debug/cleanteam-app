@@ -83,6 +83,12 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
+    if (request.nextUrl.pathname.startsWith('/field')) {
+        if (!user) {
+            return NextResponse.redirect(new URL('/auth/partner-login', request.url))
+        }
+    }
+
     if (request.nextUrl.pathname === '/auth/login' || request.nextUrl.pathname === '/auth/admin-login') {
         if (user) {
             // If already logged in, maybe redirect to home?
