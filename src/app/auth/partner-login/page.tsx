@@ -148,6 +148,16 @@ export default function PartnerLoginPage() {
                         <Button type="submit" className="w-full h-14 text-lg bg-teal-600 hover:bg-teal-700 text-white shadow-md mt-6" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : '로그인'}
                         </Button>
+
+                        <div className="mt-6 text-center text-sm pt-2">
+                            <button
+                                type="button"
+                                onClick={() => router.push('/auth/partner-register')}
+                                className="font-medium text-slate-500 hover:text-teal-600 underline"
+                            >
+                                파트너 계정이 없으신가요? 회원가입
+                            </button>
+                        </div>
                     </form>
                 </CardContent>
             </Card>
