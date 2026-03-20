@@ -449,7 +449,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
 
     // 4. AI 자동 배정 옵션이 켜져있다면, 첫 번째 요청자(현재 요청자)에게 즉시 배정 확정
     if (order.is_auto_assign) {
-        const hasDetails = !!order.address
+        const hasDetails = order.address && order.customer_phone
         const newStatus = hasDetails ? 'transferred' : 'accepted'
 
         const { error: updateError } = await supabase
@@ -538,7 +538,7 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
     }
 
     // 2. 수락 처리
-    const hasDetails = !!order.address
+    const hasDetails = order.address && order.customer_phone
     const newStatus = hasDetails ? 'transferred' : 'accepted'
 
     const { error: updateError } = await supabase

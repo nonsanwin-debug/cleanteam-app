@@ -7,6 +7,7 @@ import { LogoutButton } from '@/components/auth/logout-button'
 import { PushSubscriber } from '@/components/PushSubscriber'
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({
     children,
@@ -31,6 +32,14 @@ export default async function AdminLayout({
         console.log('🔍 AdminLayout Data:', { profile, profileError, userId: user.id })
 
         if (profile) {
+            // Role Based Access Control: Prevent non-admins from entering
+            if (profile.role === 'partner') {
+                redirect('/field/home')
+            }
+            if (profile.role === 'worker') {
+                redirect('/worker/home')
+            }
+
             // Check if profile.company_id exists but companies join result is null (RLS Issue)
             const companyData = (profile as any).companies
             let company = Array.isArray(companyData) ? companyData[0] : companyData
