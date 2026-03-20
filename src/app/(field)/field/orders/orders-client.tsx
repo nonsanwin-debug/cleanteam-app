@@ -7,16 +7,70 @@ import { format } from 'date-fns'
 import { CheckCircle2, Clock, CheckSquare, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
-import { confirmOrderAssignee } from '@/actions/shared-orders'
+import { confirmOrderAssignee, deleteSharedOrder, updateSharedOrder } from '@/actions/shared-orders'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Edit, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Label } from '@/components/ui/label'
 
 export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const router = useRouter()
     const [searchTerm, setSearchTerm] = useState('')
     const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'done'>('all')
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
+
+    // Edit and Delete States
+    const [editingOrder, setEditingOrder] = useState<any | null>(null)
+    const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null)
+    const [isMutating, setIsMutating] = useState(false)
+
+    // Form states
+    const [editForm, setEditForm] = useState({ region: '', address: '', work_date: '', area_size: '', notes: '' })
+
+    const handleEditClick = (order: any) => {
+        setEditForm({
+            region: order.region || '',
+            address: order.address || '',
+            work_date: order.work_date || '',
+            area_size: order.area_size || '',
+            notes: order.notes || ''
+        })
+        setEditingOrder(order)
+    }
+
+    const handleEditSubmit = async () => {
+        if (!editingOrder) return
+        setIsMutating(true)
+        const res = await updateSharedOrder(editingOrder.id, {
+            ...editForm,
+            customer_name: editingOrder.customer_name,
+            customer_phone: editingOrder.customer_phone
+        })
+        if (res.success) {
+            toast.success('오더 정보가 수정되었습니다.')
+            setEditingOrder(null)
+            router.refresh()
+        } else {
+            toast.error(res.error || '수정에 실패했습니다.')
+        }
+        setIsMutating(false)
+    }
+
+    const handleDeleteSubmit = async () => {
+        if (!deletingOrderId) return
+        setIsMutating(true)
+        const res = await deleteSharedOrder(deletingOrderId)
+        if (res.success) {
+            toast.success('오더가 성공적으로 삭제되었습니다.')
+            setDeletingOrderId(null)
+            router.refresh()
+        } else {
+            toast.error(res.error || '삭제에 실패했습니다.')
+        }
+        setIsMutating(false)
+    }
 
     const filteredOrders = initialOrders.filter(order => {
         // Tab Filter
@@ -123,6 +177,18 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                 </span>
                                             </div>
                                         </div>
+
+                                        {/* Edit / Delete Actions (if open or accepted) */}
+                                        {(order.status === 'open' || order.status === 'accepted') && (
+                                            <div className="flex gap-2 justify-end px-4 pt-2 -mb-2">
+                                                <button onClick={() => handleEditClick(order)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition-colors">
+                                                    <Edit className="w-3.5 h-3.5 mr-1" /> 수정
+                                                </button>
+                                                <button onClick={() => setDeletingOrderId(order.id)} className="text-xs text-red-600 hover:text-red-800 flex items-center bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100 transition-colors">
+                                                    <Trash2 className="w-3.5 h-3.5 mr-1" /> 삭제
+                                                </button>
+                                            </div>
+                                        )}
                                         
                                         {/* 배정 요청 업체 리스트 (대기중일 때만) */}
                                         {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
@@ -181,6 +247,75 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                 </div>
 
             </main>
+
+            {/* Edit Dialog */}
+            <Dialog open={!!editingOrder} onOpenChange={(open) => !open && setEditingOrder(null)}>
+                <DialogContent className="sm:max-w-md w-[95%]">
+                    <DialogHeader>
+                        <DialogTitle>오더 수정</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>지역 (예: 서울 강남구)</Label>
+                            <Input value={editForm.region} onChange={e => setEditForm({ ...editForm, region: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>상세 주소 (선택)</Label>
+                            <Input value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>희망일 (선택)</Label>
+                                <Input type="date" value={editForm.work_date} onChange={e => setEditForm({ ...editForm, work_date: e.target.value })} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>평수 (선택)</Label>
+                                <Input placeholder="예: 32평" value={editForm.area_size} onChange={e => setEditForm({ ...editForm, area_size: e.target.value })} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>요청 사항</Label>
+                            <textarea 
+                                className="w-full min-h-[120px] p-3 text-sm border rounded-lg focus:ring-2 focus:ring-teal-500 bg-slate-50 border-input"
+                                value={editForm.notes} 
+                                onChange={e => setEditForm({ ...editForm, notes: e.target.value })} 
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+                        <button 
+                            className="bg-teal-600 text-white font-bold py-2.5 px-4 rounded-xl flex-1 flex justify-center w-full"
+                            onClick={handleEditSubmit}
+                            disabled={isMutating}
+                        >
+                            {isMutating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '수정 완료'}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Alert Dialog */}
+            <AlertDialog open={!!deletingOrderId} onOpenChange={(open) => !open && setDeletingOrderId(null)}>
+                <AlertDialogContent className="w-[90%] rounded-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>오더를 정말 삭제하시겠습니까?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            이 오더를 삭제하면 관련 정보 (배정 요청 포함) 가 모두 삭제되며 복구할 수 없습니다. 계속하시겠습니까?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isMutating}>취소</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDeleteSubmit}
+                            className="bg-red-500 hover:bg-red-600 font-bold"
+                            disabled={isMutating}
+                        >
+                            {isMutating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            삭제하기
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
