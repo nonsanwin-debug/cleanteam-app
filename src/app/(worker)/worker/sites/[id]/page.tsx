@@ -141,7 +141,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             checklistRef.current.copyLink()
         } else {
             if (!site) return
-            const baseUrl = 'https://nexus.닷컴'
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
             const link = `${baseUrl}/share/${site.id}`
             const copyText = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
 
@@ -324,7 +324,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
                         <div className="flex flex-col gap-2">
                             {isLeader && site.customer_phone ? (() => {
-                                const baseUrl = 'https://nexus.닷컴'
+                                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
                                 const link = `${baseUrl}/share/${site.id}`
                                 const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
                                 const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`

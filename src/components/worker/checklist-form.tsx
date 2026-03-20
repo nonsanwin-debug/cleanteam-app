@@ -116,7 +116,7 @@ export const ChecklistForm = forwardRef<ChecklistFormHandle, ChecklistFormProps>
     }
 
     const handleCopyLink = async () => {
-        const baseUrl = 'https://nexus.닷컴'
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
         const link = `${baseUrl}/share/${siteId}`
         const copyText = `[NEXUS 작업 보고서]\n현장명: ${siteName || '고객님 댁'}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
         let copied = false
