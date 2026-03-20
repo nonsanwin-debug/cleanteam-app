@@ -33,6 +33,7 @@ export function FieldBookClient() {
     
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [notes, setNotes] = useState('')
+    const [isAutoAssign, setIsAutoAssign] = useState(false)
     
     const [images, setImages] = useState<File[]>([])
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
@@ -118,6 +119,7 @@ export function FieldBookClient() {
             const finalNotes = `
 [요청타입] ${cleanType}
 [특이사항 태그] ${selectedTags.length > 0 ? selectedTags.join(', ') : '없음'}
+[자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 [상세 요청내용]
 ${notes}
             `.trim()
@@ -130,7 +132,8 @@ ${notes}
                 notes: finalNotes,
                 image_urls: imageUrls,
                 customer_phone: '',
-                customer_name: ''
+                customer_name: '',
+                is_auto_assign: isAutoAssign
             })
 
             if (res.success) {
@@ -364,6 +367,27 @@ ${notes}
                                             />
                                         </label>
                                     )}
+                                </div>
+                            </div>
+                            
+                            {/* 넥서스 AI 스마트 배정 매칭 */}
+                            <div className="bg-slate-50 border border-teal-100 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-teal-400/20 to-blue-400/20 rounded-bl-[100px] pointer-events-none"></div>
+                                <div className="flex items-center justify-between z-10">
+                                    <div className="flex flex-col">
+                                        <Label className="text-slate-800 font-bold mb-0.5 flex items-center gap-1.5">
+                                            🚀 넥서스 AI 스마트 배정
+                                        </Label>
+                                        <span className="text-xs text-slate-500 max-w-[200px] leading-tight mt-1">
+                                            접수 즉시 실시간으로 최적의 업체를 자동 매칭해드립니다. (제출 전용)
+                                        </span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsAutoAssign(!isAutoAssign)}
+                                        className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out ${isAutoAssign ? 'bg-teal-500' : 'bg-slate-300'}`}
+                                    >
+                                        <div className={`bg-white w-6 h-6 rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${isAutoAssign ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    </button>
                                 </div>
                             </div>
                         </div>

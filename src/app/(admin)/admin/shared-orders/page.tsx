@@ -344,7 +344,7 @@ export default function SharedOrdersPage() {
                                         ) : (
                                             <CheckCircle2 className="w-4 h-4 mr-2" />
                                         )}
-                                        {order.is_applied ? '상세정보 요청중' : '상세정보 요청'}
+                                        {order.is_applied ? '배정 요청됨' : '배정 요청'}
                                     </Button>
                                     <Button
                                         variant="outline"

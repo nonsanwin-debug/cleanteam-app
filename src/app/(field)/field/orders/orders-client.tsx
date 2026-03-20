@@ -7,11 +7,16 @@ import { format } from 'date-fns'
 import { CheckCircle2, Clock, CheckSquare, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
+import { confirmOrderAssignee } from '@/actions/shared-orders'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const router = useRouter()
     const [searchTerm, setSearchTerm] = useState('')
     const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'done'>('all')
+    const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
     const filteredOrders = initialOrders.filter(order => {
         // Tab Filter
@@ -113,12 +118,51 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                 </p>
                                             </div>
                                             <div className="text-right whitespace-nowrap">
-                                                <span className="text-sm font-semibold text-teal-700 bg-teal-50 px-2 py-1 rounded-lg">
-                                                    {/* Extract price from region if possible, otherwise just show label */}
-                                                    접수됨
+                                                <span className={cn("text-sm font-semibold px-2 py-1 rounded-lg", statusColor)}>
+                                                    {statusText}
                                                 </span>
                                             </div>
                                         </div>
+                                        
+                                        {/* 배정 요청 업체 리스트 (대기중일 때만) */}
+                                        {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
+                                            <div className="bg-orange-50/50 px-4 py-3 border-b border-orange-100">
+                                                <p className="text-xs font-bold text-orange-800 mb-2 flex items-center gap-1.5">
+                                                    🤝 {order.applicants.length}개의 업체가 배정을 대기 중입니다!
+                                                </p>
+                                                <div className="space-y-2">
+                                                    {order.applicants.map((app: any) => (
+                                                        <div key={app.id} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-orange-200 shadow-sm">
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-slate-800 text-sm">{app.name}</span>
+                                                            </div>
+                                                            <button
+                                                                className={cn(
+                                                                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                                                                    confirmingId === app.id
+                                                                        ? "bg-slate-200 text-slate-500"
+                                                                        : "bg-orange-500 text-white hover:bg-orange-600 shadow-sm cursor-pointer"
+                                                                )}
+                                                                disabled={!!confirmingId}
+                                                                onClick={async () => {
+                                                                    setConfirmingId(app.id)
+                                                                    const res = await confirmOrderAssignee(order.id, app.id)
+                                                                    if (res.success) {
+                                                                        toast.success(`${app.name} 업체로 확정되었습니다!`)
+                                                                        router.refresh()
+                                                                    } else {
+                                                                        toast.error(res.error || '업체 확정에 실패했습니다.')
+                                                                    }
+                                                                    setConfirmingId(null)
+                                                                }}
+                                                            >
+                                                                {confirmingId === app.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" /> : '업체 확정'}
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                         
                                         {/* Footer */}
                                         <div className="bg-slate-50 px-4 py-3 flex justify-between items-center text-xs text-slate-500">

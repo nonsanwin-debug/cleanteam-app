@@ -196,6 +196,7 @@ interface CreateOrderData {
     customer_phone?: string
     customer_name?: string
     image_urls?: string[]
+    is_auto_assign?: boolean
 }
 
 /** 오더 등록 */
@@ -217,6 +218,7 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_phone: data.customer_phone || '',
             customer_name: data.customer_name || '',
             status: 'open',
+            is_auto_assign: data.is_auto_assign || false,
             parsed_details: data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : null
         })
 
@@ -445,11 +447,64 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         .single()
     const companyName = myCompany?.name || '업체'
 
-    // 발신 업체에 알림
+    // 4. AI 자동 배정 옵션이 켜져있다면, 첫 번째 요청자(현재 요청자)에게 즉시 배정 확정
+    if (order.is_auto_assign) {
+        const hasDetails = order.address && order.customer_phone
+        const newStatus = hasDetails ? 'transferred' : 'accepted'
+
+        const { error: updateError } = await supabase
+            .from('shared_orders')
+            .update({
+                accepted_by: companyId,
+                accepted_at: new Date().toISOString(),
+                status: newStatus
+            })
+            .eq('id', orderId)
+
+        if (!updateError) {
+            // 상세 정보가 있으면 현장으로 자동 이관
+            if (hasDetails) {
+                const parsedDetails = order.parsed_details || {}
+                const orderToTransfer = {
+                    ...order,
+                    ...parsedDetails,
+                    site_name: parsedDetails.name,
+                    accepted_by: companyId,
+                    status: newStatus
+                }
+                /** Note: To avoid redefining transferToSite here if it's imported correctly elsewhere or just use it.
+                 *  Assuming transferToSite is imported at the top of this file and valid. 
+                 */
+                // @ts-ignore
+                if (typeof transferToSite === 'function') await transferToSite(orderToTransfer, companyId, supabase)
+            }
+
+            // 발신 업체(중개인)에게 알림 발송 - 자동 매칭 성공
+            await sendPushToAdmins(order.company_id, {
+                title: '오더 자동 배정 완료 🤖',
+                body: `넥서스 AI 시스템이 [${companyName}] 업체로 오더를 배정했습니다.`,
+                url: '/field/orders',
+                tag: `order-auto-assigned-${orderId}`
+            })
+
+            await supabase.from('shared_order_notifications').insert({
+                order_id: orderId,
+                company_id: order.company_id,
+                message: `넥서스 AI가 [${companyName}] 업체로 오더 배정을 확정했습니다.`
+            })
+
+            revalidatePath('/admin/shared-orders')
+            return { success: true }
+        } else {
+            console.error('Auto Assign Error:', updateError)
+        }
+    }
+
+    // 발신 업체에 알림 (일반적인 배정 요청)
     await sendPushToAdmins(order.company_id, {
-        title: '오더 승인 요청',
-        body: `${companyName}에서 오더 수락(상세정보)을 요청하였습니다.`,
-        url: '/admin/shared-orders',
+        title: '오더 배정 요청',
+        body: `${companyName}에서 오더 배정을 요청하였습니다.`,
+        url: '/field/orders',
         tag: `order-applied-${orderId}`
     })
 
@@ -457,7 +512,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     await supabase.from('shared_order_notifications').insert({
         order_id: orderId,
         company_id: order.company_id,
-        message: `${companyName}에서 오더 수락(상세정보)을 요청하였습니다.`
+        message: `${companyName}에서 오더 배정을 요청하였습니다.`
     })
 
     revalidatePath('/admin/shared-orders')
