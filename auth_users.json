@@ -1,0 +1,28 @@
+[
+  {
+    "id": "82fdb917-3dfa-4bb5-879b-8fb34bb09f51",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "01000000000@cleanteam.partner",
+    "email_confirmed_at": "2026-03-20T19:55:19.956383Z",
+    "phone": "",
+    "confirmed_at": "2026-03-20T19:55:19.956383Z",
+    "last_sign_in_at": "2026-03-20T19:55:33.156379Z",
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "user_metadata": {
+      "email_verified": true,
+      "name": "넥서스공인중개사",
+      "role": "partner",
+      "status": "active"
+    },
+    "identities": null,
+    "created_at": "2026-03-20T19:55:19.924885Z",
+    "updated_at": "2026-03-20T19:55:33.217663Z",
+    "is_anonymous": false
+  }
+]

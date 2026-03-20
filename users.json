@@ -1,0 +1,72 @@
+[
+  {
+    "id": "6814919a-7511-4a72-b1e5-47bc399813c6",
+    "name": "이진수",
+    "email": "jinsu7667@cleanteam.temp",
+    "phone": "01042287667",
+    "role": "admin"
+  },
+  {
+    "id": "d2ec2e53-4828-4bba-8b2d-592ad51b89da",
+    "name": "김프로",
+    "email": null,
+    "phone": null,
+    "role": "worker"
+  },
+  {
+    "id": "3331d1a5-e0e8-499e-a6aa-c4f90e3de1ac",
+    "name": "최고관리자",
+    "email": null,
+    "phone": null,
+    "role": "master"
+  },
+  {
+    "id": "7b2c48df-b14e-4950-b5f4-4b4cb0ef50d4",
+    "name": "최고관리자",
+    "email": null,
+    "phone": null,
+    "role": "master"
+  },
+  {
+    "id": "afd51ddc-f0b2-403b-a0cb-64f826c4b35d",
+    "name": "김용민",
+    "email": "kimmin@cleanteam.temp",
+    "phone": null,
+    "role": "worker"
+  },
+  {
+    "id": "56d412c0-704c-4a9b-bf6f-397058d92388",
+    "name": "김민",
+    "email": "kimmin@cleanteam.temp",
+    "phone": "010-0000-0000",
+    "role": "worker"
+  },
+  {
+    "id": "e7dff610-a296-43b9-9de1-ca8ecb1de449",
+    "name": "황호건",
+    "email": "apple123@cleanteam.temp",
+    "phone": "010-9043-6133",
+    "role": "worker"
+  },
+  {
+    "id": "cde62f76-d660-4ac9-ad2d-12763afb8795",
+    "name": "김선겸",
+    "email": "ksk070215@cleanteam.temp",
+    "phone": "010-2315-2330",
+    "role": "worker"
+  },
+  {
+    "id": "23931a3b-222b-46d9-af59-42f6ad3b5fe6",
+    "name": "권주현",
+    "email": "raudnees@cleanteam.temp",
+    "phone": "010-7627-7018",
+    "role": "worker"
+  },
+  {
+    "id": "2d8f84ae-2fae-4205-a962-5864d15508af",
+    "name": "김용민",
+    "email": "wpdhkd0000@cleanteam.local",
+    "phone": "010-7602-7436",
+    "role": "admin"
+  }
+]

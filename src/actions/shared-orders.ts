@@ -344,9 +344,18 @@ export async function getIncomingOrders() {
         .eq('partner_company_id', companyId)
         .eq('sharing_active', true)
 
-    if (!activePartners || activePartners.length === 0) return []
+    const senderIds = activePartners?.map(p => p.company_id) || []
 
-    const senderIds = activePartners.map(p => p.company_id)
+    // 파트너(부동산 중개인) 권한을 가진 유저들의 소속 업체 ID 모두 가져오기 (오픈 마켓용 글로벌 노출)
+    const { data: partnerUsers } = await adminSupabase
+        .from('users')
+        .select('company_id')
+        .eq('role', 'partner')
+
+    const realEstateCompIds = partnerUsers?.map(u => u.company_id).filter(Boolean) || []
+
+    // 프라이빗 공유 파트너 + 글로벌 부동산 채널 통합
+    const allSenderIds = Array.from(new Set([...senderIds, ...realEstateCompIds]))
 
     // 내가 삭제(숨김) 처리한 오더 목록 가져오기
     const { data: hiddenOrders } = await adminSupabase
@@ -357,11 +366,13 @@ export async function getIncomingOrders() {
     const hiddenOrderIds = hiddenOrders?.map(h => h.order_id) || []
 
     // 해당 업체들의 open 오더 조회
+    if (allSenderIds.length === 0) return []
+
     let query = adminSupabase
         .from('shared_orders')
         .select('*, sender_company:company_id(name, code)')
         .eq('status', 'open')
-        .in('company_id', senderIds)
+        .in('company_id', allSenderIds)
         .order('created_at', { ascending: false })
 
     // 숨긴 오더가 있으면 제외
