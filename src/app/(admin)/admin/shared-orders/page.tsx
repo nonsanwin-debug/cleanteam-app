@@ -36,13 +36,8 @@ import {
 import { SharedOrderParserDialog } from '@/components/admin/shared-order-parser-dialog'
 
 export default function SharedOrdersPage() {
-    const [activeTab, setActiveTab] = useState('outgoing')
-    const [myOrders, setMyOrders] = useState<any[]>([])
     const [incomingOrders, setIncomingOrders] = useState<any[]>([])
     const [notifications, setNotifications] = useState<any[]>([])
-    // 캘린더 및 필터 상태
-    const [currentDate, setCurrentDate] = useState(new Date())
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
     // 로딩 상태
     const [loading, setLoading] = useState(true)
@@ -72,35 +67,12 @@ export default function SharedOrdersPage() {
         loadData()
     }, [])
 
-    // 캘린더 생성 로직
-    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
-    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
-
-    const monthStart = startOfMonth(currentDate)
-    const monthEnd = endOfMonth(monthStart)
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 })
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 })
-
-    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate })
-    const weekDays = ['일', '월', '화', '수', '목', '금', '토']
-
-    // 필터링 적용된 오더 목록
-    const filteredMyOrders = selectedDate
-        ? myOrders.filter(order => order.work_date === format(selectedDate, 'yyyy-MM-dd'))
-        : myOrders
-
-    const filteredIncomingOrders = selectedDate
-        ? incomingOrders.filter(order => order.work_date === format(selectedDate, 'yyyy-MM-dd'))
-        : incomingOrders
-
     async function loadData() {
         setLoading(true)
-        const [my, incoming, notifs] = await Promise.all([
-            getMySharedOrders(),
+        const [incoming, notifs] = await Promise.all([
             getIncomingOrders(),
             getOrderNotifications()
         ])
-        setMyOrders(my)
         setIncomingOrders(incoming)
         setNotifications(notifs)
         setLoading(false)
@@ -114,7 +86,7 @@ export default function SharedOrdersPage() {
         setSubmitting(true)
         const result = await createSharedOrder({
             region: basicInfo,
-            work_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+            work_date: format(new Date(), 'yyyy-MM-dd'),
             area_size: '',
             notes,
             address: '',
@@ -261,20 +233,13 @@ export default function SharedOrdersPage() {
                     <DialogTrigger asChild>
                         <Button className="bg-blue-600 hover:bg-blue-700">
                             <Plus className="h-4 w-4 mr-2" />
-                            {selectedDate ? `${format(selectedDate, 'M/d')} ` : ''}오더 등록
+                            오더 등록
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                         <DialogHeader>
-                            <DialogTitle>
-                                {selectedDate ? format(selectedDate, 'M월 d일 ') : ''}오더 등록
-                            </DialogTitle>
+                            <DialogTitle>오더 등록</DialogTitle>
                         </DialogHeader>
-                        {!selectedDate && (
-                            <div className="bg-orange-50 text-orange-800 text-sm p-3 rounded-lg border border-orange-100 mb-2">
-                                💡 날짜를 지정하지 않고 등록 시 오늘 날짜로 자동 등록됩니다.
-                            </div>
-                        )}
                         <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
@@ -322,326 +287,78 @@ export default function SharedOrdersPage() {
                 </Dialog>
             </div>
 
-            {/* 캘린더 영역 */}
-            <Card className="border shadow-sm overflow-hidden bg-white">
-                <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b space-y-0">
-                    <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 text-slate-500">
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <span className="font-bold text-lg text-slate-800 tracking-tight">
-                        {format(currentDate, 'yyyy년 M월', { locale: ko })}
-                    </span>
-                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 text-slate-500">
-                        <ChevronRight className="h-5 w-5" />
-                    </Button>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="grid grid-cols-7 border-b bg-slate-50/80">
-                        {weekDays.map((day, i) => (
-                            <div key={day} className={cn(
-                                "py-2 text-center text-xs font-bold text-slate-600",
-                                i === 0 && "text-red-500",
-                                i === 6 && "text-blue-500"
-                            )}>
-                                {day}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="grid grid-cols-7 auto-rows-fr bg-slate-100 gap-[1px]">
-                        {calendarDays.map((day) => {
-                            const dateKey = format(day, 'yyyy-MM-dd')
-                            const holidayName = HOLIDAYS[dateKey]
-                            const isHoliday = !!holidayName
-                            const isSunday = day.getDay() === 0
-                            const isSaturday = day.getDay() === 6
-                            const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
-
-                            // 달력 표기용 점 계산
-                            const dayMyOrders = myOrders.filter(o => o.work_date === dateKey)
-                            const dayIncomingOrders = incomingOrders.filter(o => o.work_date === dateKey)
-
-                            // 클릭 핸들러: 이미 선택된 날짜를 누르면 리셋, 아니면 선택
-                            const handleDateClick = () => {
-                                if (selectedDate && isSameDay(selectedDate, day)) setSelectedDate(null)
-                                else setSelectedDate(day)
-                            }
-
-                            return (
-                                <div
-                                    key={day.toString()}
-                                    onClick={handleDateClick}
-                                    className={cn(
-                                        "bg-white p-1 pb-2 min-h-[50px] sm:min-h-[70px] flex flex-col items-center relative transition-colors cursor-pointer group",
-                                        !isSameMonth(day, monthStart) && "bg-slate-50/50 opacity-50",
-                                        isSelected && "bg-blue-50/50 ring-inset ring-2 ring-blue-500 rounded"
-                                    )}
-                                >
-                                    <div className="flex flex-col items-center w-full mt-1">
-                                        <span className={cn(
-                                            "text-sm font-semibold w-6 h-6 flex items-center justify-center rounded-full transition-all",
-                                            isToday(day) && "bg-slate-900 text-white shadow-sm",
-                                            !isToday(day) && (isSunday || isHoliday) && "text-red-500",
-                                            !isToday(day) && !isHoliday && isSaturday && "text-blue-500",
-                                            isSelected && !isToday(day) && "bg-blue-100 text-blue-700 font-bold"
-                                        )}>
-                                            {format(day, 'd')}
-                                        </span>
-                                        {holidayName && (
-                                            <span className="text-[8px] text-red-500 font-medium truncate w-full text-center mt-0.5 px-0.5">
-                                                {holidayName}
-                                            </span>
-                                        )}
-                                        <div className="flex gap-1 mt-auto pb-0.5 pt-1 justify-center items-center w-full">
-                                            <span className={cn(
-                                                "text-[10px] sm:text-xs font-medium",
-                                                (dayMyOrders.length + dayIncomingOrders.length) > 0 ? "text-blue-600 font-bold" : "text-slate-400"
-                                            )}>
-                                                ( {dayMyOrders.length + dayIncomingOrders.length} )
-                                            </span>
+            {/* 오더 수신 리스트 */}
+            <div className="mt-6 space-y-4">
+                {incomingOrders.length === 0 ? (
+                    <Card>
+                        <CardContent className="py-10 text-center text-muted-foreground">
+                            <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                            <p>수신된 오더가 없습니다.</p>
+                            <p className="text-xs mt-1">공유 오픈된 업체의 오더가 여기에 표시됩니다.</p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    incomingOrders.map(order => (
+                        <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
+                            <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
+                                            <span className="font-bold text-lg leading-tight">{order.region}</span>
                                         </div>
+                                        {(order.work_date || order.area_size) && (
+                                            <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
+                                                {order.work_date && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="h-3.5 w-3.5" />
+                                                        {order.work_date}
+                                                    </span>
+                                                )}
+                                                {order.area_size && (
+                                                    <span className="flex items-center gap-1">
+                                                        <Ruler className="h-3.5 w-3.5" />
+                                                        {order.area_size}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
+                                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100">
+                                        {order.sender_company?.name || '타업체'}
+                                    </Badge>
                                 </div>
-                            )
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
 
-            {/* 필터 안내 배너 */}
-            {selectedDate && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between text-blue-800 text-sm">
-                    <div className="flex items-center gap-2 font-medium">
-                        <CalendarDays className="h-4 w-4" />
-                        {format(selectedDate, 'yyyy년 M월 d일')} 오더만 표시 중
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedDate(null)} className="h-7 px-2 text-blue-700 hover:bg-blue-100">
-                        전체 보기
-                    </Button>
-                </div>
-            )}
+                                {order.notes && (
+                                    <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
+                                )}
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="outgoing" className="flex items-center gap-2">
-                        <Send className="h-4 w-4" /> 내 오더 ({filteredMyOrders.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="incoming" className="flex items-center gap-2">
-                        <Inbox className="h-4 w-4" /> 수신함 ({filteredIncomingOrders.length})
-                    </TabsTrigger>
-                </TabsList>
-
-                {/* 오더 등록 탭 */}
-                <TabsContent value="outgoing" className="mt-4 space-y-4">
-                    {filteredMyOrders.length === 0 ? (
-                        <Card>
-                            <CardContent className="py-10 text-center text-muted-foreground">
-                                <Send className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                <p>등록한 오더가 없습니다.</p>
-                                <p className="text-xs mt-1">상단의 &quot;오더 등록&quot; 버튼으로 새 오더를 등록하세요.</p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        className={cn("flex-1", order.is_applied ? "bg-slate-400 hover:bg-slate-400" : "bg-blue-600 hover:bg-blue-700")}
+                                        onClick={() => handleAccept(order.id)}
+                                        disabled={acceptingId === order.id || order.is_applied}
+                                    >
+                                        {acceptingId === order.id ? (
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        ) : (
+                                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                                        )}
+                                        {order.is_applied ? '상세정보 요청중' : '상세정보 요청'}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={() => handleDelete(order.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
-                    ) : (
-                        filteredMyOrders.map(order => (
-                            <Card key={order.id} className="overflow-hidden">
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
-                                                <span className="font-bold text-lg leading-tight">{order.region}</span>
-                                            </div>
-                                            {(order.work_date || order.area_size) && (
-                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
-                                                    {order.work_date && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="h-3.5 w-3.5" />
-                                                            {order.work_date}
-                                                        </span>
-                                                    )}
-                                                    {order.area_size && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Ruler className="h-3.5 w-3.5" />
-                                                            {order.area_size}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {getStatusBadge(order.status)}
-                                    </div>
-
-                                    {order.notes && (
-                                        <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
-                                    )}
-
-                                    {order.accepted_company?.name && (
-                                        <div className="mb-4 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
-                                            <p className="text-sm font-bold text-emerald-800 flex items-center gap-1.5 mb-1">
-                                                <CheckCircle2 className="w-4 h-4" />
-                                                최종 배정 업체: {order.accepted_company.name}
-                                            </p>
-                                            {order.accepted_company.code && (
-                                                <p className="text-xs text-emerald-600 pl-5">
-                                                    (업체코드: {order.accepted_company.code})
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {order.transferred_site && (
-                                        <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                            <p className="text-sm font-bold text-blue-800 flex items-center gap-1.5 mb-1">
-                                                <Activity className="w-4 h-4" />
-                                                현장 진행 상황: {
-                                                    order.transferred_site.status === 'scheduled' ? '예정' :
-                                                        order.transferred_site.status === 'in_progress' ? '진행 중' :
-                                                            order.transferred_site.status === 'completed' ? '완료' :
-                                                                order.transferred_site.status === 'cancelled' ? '취소됨' : '알 수 없음'
-                                                }
-                                            </p>
-                                            {(order.transferred_site.status === 'completed' || order.transferred_site.payment_status === 'paid' || order.transferred_site.payment_status === 'requested') && (
-                                                <p className="text-xs text-blue-600 pl-5">
-                                                    결제 상태: {
-                                                        order.transferred_site.payment_status === 'paid' ? '지급 완료' :
-                                                            order.transferred_site.payment_status === 'requested' ? '정산 요청됨' : '미청구'
-                                                    }
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {order.status === 'open' && order.applicants && order.applicants.length > 0 && (
-                                        <div className="mb-4 bg-orange-50 p-3 rounded-lg border border-orange-100">
-                                            <p className="text-sm font-semibold text-orange-800 mb-2">
-                                                요청 업체 ({order.applicants.length}곳)
-                                            </p>
-                                            <div className="space-y-2">
-                                                {order.applicants.map((app: any) => (
-                                                    <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm bg-white p-2.5 rounded shadow-sm border border-slate-100">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium text-slate-800">{app.name}</span>
-                                                            {app.status === 'rejected_by_receiver' && app.updated_at && (
-                                                                <span className="text-xs text-red-500 font-medium mt-0.5">
-                                                                    {format(new Date(app.updated_at), 'M월 d일 HH:mm', { locale: ko })} 이관된 현장 삭제(반려)함
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 text-xs bg-orange-500 hover:bg-orange-600 outline-none w-full sm:w-auto mt-1 sm:mt-0"
-                                                            onClick={() => handleConfirm(order.id, app.id)}
-                                                            disabled={confirmingId === app.id}
-                                                        >
-                                                            {confirmingId === app.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                                            확정
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-2">
-                                        {order.status === 'accepted' && (!order.address || !order.customer_phone) && (
-                                            <Button size="sm" className="bg-orange-500 hover:bg-orange-600" onClick={() => openDetailDialog(order)}>
-                                                <AlertCircle className="h-4 w-4 mr-1" />
-                                                상세 정보 입력
-                                            </Button>
-                                        )}
-                                        {order.status === 'open' && (
-                                            <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => openEditDialog(order)}>
-                                                수정
-                                            </Button>
-                                        )}
-                                        {order.status === 'open' && (
-                                            <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={() => handleCancel(order.id)}>
-                                                취소
-                                            </Button>
-                                        )}
-                                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDelete(order.id)}>
-                                            <Trash2 className="h-4 w-4 mr-1" />
-                                            삭제
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-                </TabsContent>
-
-                {/* 오더 수신함 탭 */}
-                <TabsContent value="incoming" className="mt-4 space-y-4">
-                    {filteredIncomingOrders.length === 0 ? (
-                        <Card>
-                            <CardContent className="py-10 text-center text-muted-foreground">
-                                <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                <p>{selectedDate ? '선택한 날짜에 ' : ''}수신된 오더가 없습니다.</p>
-                                <p className="text-xs mt-1">공유 활성화된 업체의 오더가 여기에 표시됩니다.</p>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        filteredIncomingOrders.map(order => (
-                            <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
-                                                <span className="font-bold text-lg leading-tight">{order.region}</span>
-                                            </div>
-                                            {(order.work_date || order.area_size) && (
-                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
-                                                    {order.work_date && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="h-3.5 w-3.5" />
-                                                            {order.work_date}
-                                                        </span>
-                                                    )}
-                                                    {order.area_size && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Ruler className="h-3.5 w-3.5" />
-                                                            {order.area_size}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100">
-                                            {order.sender_company?.name || '타업체'}
-                                        </Badge>
-                                    </div>
-
-                                    {order.notes && (
-                                        <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
-                                    )}
-
-                                    <div className="flex gap-2">
-                                        <Button
-                                            className={cn("flex-1", order.is_applied ? "bg-slate-400 hover:bg-slate-400" : "bg-blue-600 hover:bg-blue-700")}
-                                            onClick={() => handleAccept(order.id)}
-                                            disabled={acceptingId === order.id || order.is_applied}
-                                        >
-                                            {acceptingId === order.id ? (
-                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                            ) : (
-                                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            )}
-                                            {order.is_applied ? '상세정보 요청중' : '상세정보 요청'}
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="text-red-600 border-red-200 hover:bg-red-50"
-                                            onClick={() => handleDelete(order.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-                </TabsContent>
-            </Tabs>
+                    ))
+                )}
+            </div>
 
             {/* 상세 정보 입력 (AI) Dialog */}
             <SharedOrderParserDialog
