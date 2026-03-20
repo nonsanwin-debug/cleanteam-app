@@ -38,13 +38,14 @@ export async function createPartnerAccount(
         const userId = authData.user.id
 
         // 2. Create a Company record for this partner
+        const randomCode = Math.floor(1000 + Math.random() * 9000).toString()
         const { data: newCompany, error: companyError } = await adminClient
             .from('companies')
             .insert({
                 name: name,
                 status: 'approved',
-                // Optional: we can generate a random code or just a placeholder code since they are partners
-                code: Math.floor(1000 + Math.random() * 9000).toString() 
+                code: randomCode,
+                company_code: randomCode
             })
             .select('id')
             .single()

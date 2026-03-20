@@ -1,0 +1,6 @@
+{
+  "code": "23502",
+  "details": "Failing row contains (222fda90-6c6d-4063-abc8-4ea57c9f5ad8, Test Agency, 2026-03-20 19:31:59.646192+00, null, 9999, , , f, 고객님 청소는 잘 마무리 되었습니다\r\n아래 계좌..., null, f, null, f, null, approved, 0).",
+  "hint": null,
+  "message": "null value in column \"company_code\" of relation \"companies\" violates not-null constraint"
+}
