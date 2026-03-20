@@ -449,8 +449,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
 
     // 4. AI 자동 배정 옵션이 켜져있다면, 첫 번째 요청자(현재 요청자)에게 즉시 배정 확정
     if (order.is_auto_assign) {
-        const hasDetails = order.address && order.customer_phone
-        const newStatus = hasDetails ? 'transferred' : 'accepted'
+        const newStatus = 'transferred'
 
         const { error: updateError } = await supabase
             .from('shared_orders')
@@ -462,22 +461,17 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
             .eq('id', orderId)
 
         if (!updateError) {
-            // 상세 정보가 있으면 현장으로 자동 이관
-            if (hasDetails) {
-                const parsedDetails = order.parsed_details || {}
-                const orderToTransfer = {
-                    ...order,
-                    ...parsedDetails,
-                    site_name: parsedDetails.name,
-                    accepted_by: companyId,
-                    status: newStatus
-                }
-                /** Note: To avoid redefining transferToSite here if it's imported correctly elsewhere or just use it.
-                 *  Assuming transferToSite is imported at the top of this file and valid. 
-                 */
-                // @ts-ignore
-                if (typeof transferToSite === 'function') await transferToSite(orderToTransfer, companyId, supabase)
+            // 무조건 현장 관리(Sites)로 자동 이관
+            const parsedDetails = order.parsed_details || {}
+            const orderToTransfer = {
+                ...order,
+                ...parsedDetails,
+                site_name: parsedDetails.name,
+                accepted_by: companyId,
+                status: newStatus
             }
+            // @ts-ignore
+            if (typeof transferToSite === 'function') await transferToSite(orderToTransfer, companyId, supabase)
 
             // 발신 업체(중개인)에게 알림 발송 - 자동 매칭 성공
             await sendPushToAdmins(order.company_id, {
@@ -537,9 +531,8 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
         return { success: false, error: '오더를 찾을 수 없거나 이미 마감되었습니다.' }
     }
 
-    // 2. 수락 처리
-    const hasDetails = order.address && order.customer_phone
-    const newStatus = hasDetails ? 'transferred' : 'accepted'
+    // 2. 수락 처리 (강제로 무조건 이관)
+    const newStatus = 'transferred'
 
     const { error: updateError } = await supabase
         .from('shared_orders')
@@ -555,34 +548,24 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
         return { success: false, error: updateError.message }
     }
 
-    // 3. 업체 관리에 상세정보 이관
-    if (hasDetails) {
-        const parsedDetails = order.parsed_details || {}
-        const orderToTransfer = {
-            ...order,
-            ...parsedDetails,
-            site_name: parsedDetails.name,
-            accepted_by: assigneeCompanyId,
-            status: newStatus
-        }
-        await transferToSite(orderToTransfer, assigneeCompanyId, supabase)
-
-        const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
-        await sendPushToAdmins(assigneeCompanyId, {
-            title: '공유 오더 확정',
-            body: `${myCompany?.name || '업체'}에서 귀하의 오더 요청을 확정하였습니다. 현장 관리로 이관되었습니다.`,
-            url: '/admin/sites',
-            tag: `order-confirmed-${orderId}`
-        })
-    } else {
-        const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
-        await sendPushToAdmins(assigneeCompanyId, {
-            title: '공유 오더 확정',
-            body: `${myCompany?.name || '업체'}에서 귀하의 오더 요청을 확정하였습니다. 상세 정보 입력 대기 중입니다.`,
-            url: '/admin/shared-orders',
-            tag: `order-confirmed-waiting-${orderId}`
-        })
+    // 3. 업체 관리에 상세정보 무조건 이관 (전화번호나 주소가 미흡해도 현장 카드는 생성함)
+    const parsedDetails = order.parsed_details || {}
+    const orderToTransfer = {
+        ...order,
+        ...parsedDetails,
+        site_name: parsedDetails.name,
+        accepted_by: assigneeCompanyId,
+        status: newStatus
     }
+    await transferToSite(orderToTransfer, assigneeCompanyId, supabase)
+
+    const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
+    await sendPushToAdmins(assigneeCompanyId, {
+        title: '공유 오더 확정',
+        body: `${myCompany?.name || '업체'}에서 귀하의 오더 요청을 확정하였습니다. 바로 현장 관리로 이관되었습니다.`,
+        url: '/admin/sites',
+        tag: `order-confirmed-${orderId}`
+    })
 
     revalidatePath('/admin/shared-orders')
     return { success: true }
