@@ -37,7 +37,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [cleanType, setCleanType] = useState('')
     const [structureType, setStructureType] = useState('')
     
-    const [notes, setNotes] = useState('')
+    const [notes, setNotes] = useState('공동현관 비밀번호 : \n세대 비밀번호 : \n전달사항 : ')
     const [isAutoAssign, setIsAutoAssign] = useState(false)
     
     const [noPhotos, setNoPhotos] = useState(false)
@@ -435,7 +435,7 @@ ${notes}
                             <div className="space-y-2">
                                 <Label className="text-slate-700">추가 전달사항 (선택)</Label>
                                 <Textarea 
-                                    className="resize-none min-h-[100px] bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl p-3" 
+                                    className="resize-none min-h-[120px] bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl p-3 leading-relaxed" 
                                     placeholder="오염도가 심한 곳이나 특별히 신경 써야 할 부분을 자유롭게 적어주세요."
                                     value={notes}
                                     onChange={e => setNotes(e.target.value)}
