@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import PWARegister from '@/components/PWARegister'
+import { AuthStateListener } from '@/components/auth-state-listener'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -42,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
+        <AuthStateListener />
         <PWARegister />
         {children}
         <Toaster />
