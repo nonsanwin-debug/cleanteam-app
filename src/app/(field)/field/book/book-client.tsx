@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
-const CLEANING_TYPES = ['입주청소', '이사청소', '상가청소', '거주청소']
+const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소']
 const SPECIAL_TAGS = ['오전 청소 요망', '오후 청소 요망', '쓰레기 처리 포함', '스팀 청소 필수', '외창 청소 추가', '곰팡이 제거', '새집증후군 시공']
 
 export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
@@ -32,7 +32,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [useMyInfo, setUseMyInfo] = useState(false)
     
     const [workDate, setWorkDate] = useState('')
-    const [cleanType, setCleanType] = useState('입주청소')
+    const [cleanType, setCleanType] = useState('')
     
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [notes, setNotes] = useState('')
@@ -40,6 +40,13 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     
     const [images, setImages] = useState<File[]>([])
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
+
+    const getPricePerPyeong = (type: string) => {
+        if (type === '입주청소' || type === '이사청소') return 12000
+        if (type === '거주청소') return 13000
+        if (type === '사이청소') return 15000
+        return 12000
+    }
 
     // Handlers
     const toggleTag = (tag: string) => {
@@ -100,6 +107,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 
     const handleSubmit = async () => {
         // Validate
+        if (!cleanType) { toast.error('청소 종류를 먼저 선택해주세요.'); return }
         if (!address.trim()) { toast.error('기본 주소를 입력해주세요.'); return }
         if (!workDate) { toast.error('청소 날짜를 지정해주세요.'); return }
         if (!areaSize) { toast.error('평수를 입력해주세요.'); return }
@@ -117,7 +125,8 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             // 2. Format region/notes
             // Admin format: "서울 강남구 30평 30만원" etc.
             const parsedArea = parseInt(areaSize, 10) || 0
-            const calculatedPriceManwon = (parsedArea * 12000) / 10000
+            const pricePerPyeong = getPricePerPyeong(cleanType)
+            const calculatedPriceManwon = (parsedArea * pricePerPyeong) / 10000
 
             const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${calculatedPriceManwon}만원`
             const fullAddress = `${address} ${detailAddress}`.trim()
@@ -201,20 +210,45 @@ ${notes}
                             
                             <div className="space-y-4">
                                 <div className="space-y-2">
+                                    <Label className="text-slate-700">청소 종류 *</Label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {CLEANING_TYPES.map(type => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setCleanType(type)}
+                                                className={`h-12 rounded-xl border text-sm font-medium transition-all ${
+                                                    cleanType === type 
+                                                    ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
+                                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
                                     <Label className="text-slate-700">평수 (공급면적) *</Label>
                                     <div className="relative">
                                         <Input 
                                             type="number"
                                             className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl pr-10" 
-                                            placeholder="32"
+                                            placeholder={cleanType ? "32" : "유형 선택 시 입력가능"}
                                             value={areaSize}
-                                            onChange={e => setAreaSize(e.target.value)}
+                                            onChange={e => {
+                                                if (!cleanType) {
+                                                    toast.error('청소 유형을 먼저 선택해주세요.')
+                                                    return
+                                                }
+                                                setAreaSize(e.target.value)
+                                            }}
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">평</span>
                                     </div>
-                                    {areaSize && parseInt(areaSize) > 0 && (
+                                    {areaSize && parseInt(areaSize) > 0 && cleanType && (
                                         <p className="text-sm font-semibold text-teal-600 ml-1">
-                                            예상 결제금액: {(parseInt(areaSize) * 12000).toLocaleString()}원 (평당 12,000원)
+                                            예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
                                         </p>
                                     )}
                                 </div>
@@ -267,7 +301,7 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!address || !areaSize || !customerName || !customerPhone) {
+                                if (!cleanType || !address || !areaSize || !customerName || !customerPhone) {
                                     toast.error('필수 정보를 모두 입력해주세요.')
                                     return
                                 }
@@ -290,25 +324,6 @@ ${notes}
                         </div>
 
                         <div className="space-y-5">
-                            <div className="space-y-2">
-                                <Label className="text-slate-700">청소 종류 *</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {CLEANING_TYPES.map(type => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setCleanType(type)}
-                                            className={`h-12 rounded-xl border text-sm font-medium transition-all ${
-                                                cleanType === type 
-                                                ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
-                                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {type}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
                             <div className="space-y-2">
                                 <Label className="text-slate-700">요청 날짜 *</Label>
                                 <Input 
