@@ -1,0 +1,38 @@
+{
+  "orders": [
+    {
+      "id": "978e8e2b-67a5-45cf-a322-874dc944e1c4",
+      "status": "accepted",
+      "accepted_by": "7c0d50ea-4263-401d-a8b4-03340f2ec786",
+      "address": "서울 잠실 엘스아파트",
+      "transferred_site_id": null,
+      "created_at": "2026-03-21T03:56:51.630399+00:00"
+    },
+    {
+      "id": "2bcf80d9-4b77-4f10-9a3c-9e954db4d580",
+      "status": "open",
+      "accepted_by": null,
+      "address": "",
+      "transferred_site_id": null,
+      "created_at": "2026-03-07T07:03:04.65288+00:00"
+    }
+  ],
+  "sites": [
+    {
+      "id": "8db81487-598e-4d3b-8958-a6536662e8ad",
+      "name": "배방로201번길10 32평 35만원 현장",
+      "address": "배방로201번길10 금호어울림1단지 105동201호",
+      "cleaning_date": "2026-03-21",
+      "created_at": "2026-03-20T20:41:58.013596+00:00",
+      "status": "scheduled"
+    },
+    {
+      "id": "ddf4c5a2-4a0f-4096-a4a8-15036cbd4da9",
+      "name": "분당인텔리지2 A동 1904호",
+      "address": "경기도 성남시 분당구 정자일로 177",
+      "cleaning_date": "2026-03-20",
+      "created_at": "2026-03-19T09:20:12.072096+00:00",
+      "status": "completed"
+    }
+  ]
+}

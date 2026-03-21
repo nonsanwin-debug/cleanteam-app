@@ -1,0 +1,67 @@
+{
+  "orders": [
+    {
+      "id": "978e8e2b-67a5-45cf-a322-874dc944e1c4",
+      "company_id": "27885d24-fc28-48bb-ad2b-e38764882a34",
+      "created_by": "54354887-30e1-40fd-a2e2-730883eee3a1",
+      "region": "서울 잠실 32평 35만원",
+      "work_date": "2026-03-21",
+      "area_size": "32평",
+      "notes": "[요청타입] 입주청소\n[특이사항 태그] 오전 청소 요망, 곰팡이 제거\n[자동배정] 직접선택\n[상세 요청내용]",
+      "address": "서울 잠실 엘스아파트",
+      "customer_phone": "",
+      "customer_name": "",
+      "status": "transferred",
+      "accepted_by": "7c0d50ea-4263-401d-a8b4-03340f2ec786",
+      "accepted_at": "2026-03-21T03:57:18.234+00:00",
+      "transferred_site_id": "4c522b10-66e1-4ba2-9592-fd826987a94d",
+      "created_at": "2026-03-21T03:56:51.630399+00:00",
+      "collection_type": null,
+      "parsed_details": null,
+      "is_auto_assign": false,
+      "accepted_company": {
+        "code": "6382",
+        "name": "더클린"
+      },
+      "transferred_site": {
+        "status": "scheduled",
+        "payment_status": "none"
+      }
+    },
+    {
+      "id": "2bcf80d9-4b77-4f10-9a3c-9e954db4d580",
+      "company_id": "df6dba14-8079-4266-8add-076a92e1eca7",
+      "created_by": "2d8f84ae-2fae-4205-a962-5864d15508af",
+      "region": "천안 32평 잔 34",
+      "work_date": "2026-03-08",
+      "area_size": "",
+      "notes": "구석구석 꼼꼼한 작업 요망, 짐몰아둔 방 제외견적, 피톤치드 도포, 고온 스팀살균, 오염방지 코팅",
+      "address": "",
+      "customer_phone": "",
+      "customer_name": "",
+      "status": "open",
+      "accepted_by": null,
+      "accepted_at": "2026-03-07T07:03:41.965+00:00",
+      "transferred_site_id": null,
+      "created_at": "2026-03-07T07:03:04.65288+00:00",
+      "collection_type": null,
+      "parsed_details": {
+        "name": "한우리아파트 105동 205호",
+        "address": "대전 서구 탄방동",
+        "area_size": "30평",
+        "start_time": "14:00",
+        "cleaning_date": "2026-03-08",
+        "customer_name": "유기연",
+        "special_notes": "구석구석 꼼꼼한 작업 요망, 짐몰아둔 방 제외견적, 피톤치드 도포, 고온 스팀살균, 오염방지 코팅",
+        "balance_amount": 270000,
+        "customer_phone": "01051064111",
+        "structure_type": "방3 화2 베2 확장형",
+        "collection_type": "site",
+        "residential_type": "아파트"
+      },
+      "is_auto_assign": false,
+      "accepted_company": null,
+      "transferred_site": null
+    }
+  ]
+}

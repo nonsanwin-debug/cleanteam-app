@@ -94,8 +94,14 @@ export function FieldHomeClient({
                                 if (order.transferred_site?.status === 'completed') {
                                     statusText = '작업 완료'
                                     statusColor = 'bg-slate-100 text-slate-600'
+                                } else if (order.transferred_site?.status === 'in_progress') {
+                                    statusText = '현장 진행 중'
+                                    statusColor = 'bg-teal-100 text-teal-700'
+                                } else if (order.transferred_site?.status === 'scheduled') {
+                                    statusText = '배정 완료 (대기중)'
+                                    statusColor = 'bg-blue-100 text-blue-700'
                                 } else {
-                                    statusText = '진행 중'
+                                    statusText = '이관 완료'
                                     statusColor = 'bg-teal-100 text-teal-700'
                                 }
                             }
