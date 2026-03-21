@@ -8,7 +8,8 @@ import { PlusCircle, CalendarDays, ChevronRight, CheckCircle2, AlertCircle, Load
 import { confirmOrderAssignee } from '@/actions/shared-orders'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export function FieldHomeClient({ 
     partnerName, 
@@ -21,6 +22,23 @@ export function FieldHomeClient({
 }) {
     const router = useRouter()
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
+
+    useEffect(() => {
+        const supabase = createClient()
+        const channel = supabase.channel('partner-home-refresh')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'shared_orders' },
+                () => {
+                    router.refresh()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [router])
 
     return (
         <div className="p-4 space-y-6">
