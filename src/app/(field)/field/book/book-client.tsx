@@ -131,7 +131,11 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             } else {
                 const parsedArea = parseInt(areaSize, 10) || 0
                 const pricePerPyeong = getPricePerPyeong(cleanType)
-                const calculatedPriceManwon = (parsedArea * pricePerPyeong) / 10000
+                let calculatedPrice = parsedArea * pricePerPyeong
+                if (calculatedPrice < 150000) {
+                    calculatedPrice = 150000
+                }
+                const calculatedPriceManwon = calculatedPrice / 10000
                 priceString = `${calculatedPriceManwon}만원`
             }
 
@@ -270,9 +274,15 @@ ${notes}
                                                 예상 결제금액: 매칭 된 업체와 협의
                                             </p>
                                         ) : (
-                                            <p className="text-sm font-semibold text-teal-600 ml-1">
-                                                예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
-                                            </p>
+                                            (parseInt(areaSize) * getPricePerPyeong(cleanType)) < 150000 ? (
+                                                <p className="text-sm font-semibold text-teal-600 ml-1">
+                                                    예상 결제금액: 150,000원 (기본단가 15만원)
+                                                </p>
+                                            ) : (
+                                                <p className="text-sm font-semibold text-teal-600 ml-1">
+                                                    예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
+                                                </p>
+                                            )
                                         )
                                     )}
                                 </div>

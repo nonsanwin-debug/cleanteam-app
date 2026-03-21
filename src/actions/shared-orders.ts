@@ -754,7 +754,7 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     // 오더 정보 조회
     const { data: order } = await adminSupabase
         .from('shared_orders')
-        .select('company_id, accepted_by, status')
+        .select('company_id, accepted_by, status, transferred_site_id')
         .eq('id', orderId)
         .single()
 
@@ -781,6 +781,26 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     }
 
     if (isSender) {
+        // 이미 매칭되어 이관된 현장이 존재한다면, 파트너가 취소(삭제)할 시 해당 현장도 일괄 삭제
+        if (order.transferred_site_id) {
+            await adminSupabase.from('sites').delete().eq('id', order.transferred_site_id)
+            
+            // 수지가 배정된 업체에게 오더 취소 알림 통보
+            if (order.accepted_by) {
+                try {
+                    const { sendPushToAdmins } = await import('@/actions/push')
+                    await sendPushToAdmins(order.accepted_by, {
+                        title: '파트너 오더 취소 안내',
+                        body: `부동산/파트너 측에서 오더 접수를 취소하여 현장 목록에서 자동 제거되었습니다.`,
+                        url: '/admin/sites',
+                        tag: `site-cancelled-${order.transferred_site_id}`
+                    })
+                } catch (pushErr) {
+                    console.error('Failed to notify company about cancelled order:', pushErr)
+                }
+            }
+        }
+
         // 발신자는 완전 삭제
         const { error } = await adminSupabase
             .from('shared_orders')
