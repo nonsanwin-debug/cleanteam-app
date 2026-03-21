@@ -14,7 +14,7 @@ export default async function FieldBookPage() {
 
     const { data: profile } = await supabase
         .from('users')
-        .select('role')
+        .select('name, phone, role')
         .eq('id', user.id)
         .single()
 
@@ -22,5 +22,5 @@ export default async function FieldBookPage() {
         redirect('/auth/partner-login')
     }
 
-    return <FieldBookClient />
+    return <FieldBookClient partnerName={profile?.name || ''} partnerPhone={profile?.phone || ''} />
 }

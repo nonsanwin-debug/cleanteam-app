@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 const CLEANING_TYPES = ['입주청소', '이사청소', '상가청소', '거주청소']
 const SPECIAL_TAGS = ['오전 청소 요망', '오후 청소 요망', '쓰레기 처리 포함', '스팀 청소 필수', '외창 청소 추가', '곰팡이 제거', '새집증후군 시공']
 
-export function FieldBookClient() {
+export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
     const router = useRouter()
     
     const [step, setStep] = useState(1)
@@ -26,7 +26,10 @@ export function FieldBookClient() {
     const [address, setAddress] = useState('')
     const [detailAddress, setDetailAddress] = useState('')
     const [areaSize, setAreaSize] = useState('')
-    const [price, setPrice] = useState('')
+    
+    const [customerName, setCustomerName] = useState('')
+    const [customerPhone, setCustomerPhone] = useState('')
+    const [useMyInfo, setUseMyInfo] = useState(false)
     
     const [workDate, setWorkDate] = useState('')
     const [cleanType, setCleanType] = useState('입주청소')
@@ -100,7 +103,7 @@ export function FieldBookClient() {
         if (!address.trim()) { toast.error('기본 주소를 입력해주세요.'); return }
         if (!workDate) { toast.error('청소 날짜를 지정해주세요.'); return }
         if (!areaSize) { toast.error('평수를 입력해주세요.'); return }
-        if (!price) { toast.error('예상 금액(잔금)을 입력해주세요.'); return }
+        if (!customerName || !customerPhone) { toast.error('고객 정보를 입력해주세요.'); return }
 
         setIsSubmitting(true)
         
@@ -113,7 +116,10 @@ export function FieldBookClient() {
 
             // 2. Format region/notes
             // Admin format: "서울 강남구 30평 30만원" etc.
-            const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${price}만원`
+            const parsedArea = parseInt(areaSize, 10) || 0
+            const calculatedPriceManwon = (parsedArea * 12000) / 10000
+
+            const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${calculatedPriceManwon}만원`
             const fullAddress = `${address} ${detailAddress}`.trim()
             
             const finalNotes = `
@@ -131,8 +137,8 @@ ${notes}
                 work_date: workDate,
                 notes: finalNotes,
                 image_urls: imageUrls,
-                customer_phone: '',
-                customer_name: '',
+                customer_phone: customerPhone,
+                customer_name: customerName,
                 is_auto_assign: isAutoAssign
             })
 
@@ -193,7 +199,7 @@ ${notes}
                                 />
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-4">
                                 <div className="space-y-2">
                                     <Label className="text-slate-700">평수 (공급면적) *</Label>
                                     <div className="relative">
@@ -206,19 +212,54 @@ ${notes}
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">평</span>
                                     </div>
+                                    {areaSize && parseInt(areaSize) > 0 && (
+                                        <p className="text-sm font-semibold text-teal-600 ml-1">
+                                            예상 결제금액: {(parseInt(areaSize) * 12000).toLocaleString()}원 (평당 12,000원)
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-slate-700">예산 (결제금액) *</Label>
-                                    <div className="relative">
-                                        <Input 
-                                            type="number"
-                                            className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl pr-14" 
-                                            placeholder="35"
-                                            value={price}
-                                            onChange={e => setPrice(e.target.value)}
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">만원</span>
+
+                                <div className="pt-2 pb-1 border-t border-slate-100">
+                                    <h3 className="text-slate-800 font-semibold mb-3">고객 정보</h3>
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                        <div className="space-y-2">
+                                            <Label className="text-slate-700">고객명 *</Label>
+                                            <Input 
+                                                className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
+                                                placeholder="홍길동"
+                                                value={customerName}
+                                                onChange={e => setCustomerName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-slate-700">고객 연락처 *</Label>
+                                            <Input 
+                                                className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
+                                                placeholder="010-1234-5678"
+                                                value={customerPhone}
+                                                onChange={e => setCustomerPhone(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
+                                    <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer w-max pl-1">
+                                        <input 
+                                            type="checkbox" 
+                                            className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                            checked={useMyInfo}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked
+                                                setUseMyInfo(checked)
+                                                if (checked) {
+                                                    setCustomerName(partnerName)
+                                                    setCustomerPhone(partnerPhone)
+                                                } else {
+                                                    setCustomerName('')
+                                                    setCustomerPhone('')
+                                                }
+                                            }}
+                                        />
+                                        등록자(나의) 정보로 자동 채우기
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -226,7 +267,7 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!address || !areaSize || !price) {
+                                if (!address || !areaSize || !customerName || !customerPhone) {
                                     toast.error('필수 정보를 모두 입력해주세요.')
                                     return
                                 }
