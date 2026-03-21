@@ -37,7 +37,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [cleanType, setCleanType] = useState('')
     const [structureType, setStructureType] = useState('')
     
-    const [notes, setNotes] = useState('공동현관 비밀번호 : \n세대 비밀번호 : \n전달사항 : ')
+    const [notes, setNotes] = useState('공동 현관 비밀번호 : \n세대 비밀번호 : \n전달 사항 : ')
     const [isAutoAssign, setIsAutoAssign] = useState(false)
     
     const [noPhotos, setNoPhotos] = useState(false)
