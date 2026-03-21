@@ -197,6 +197,7 @@ interface CreateOrderData {
     customer_name?: string
     image_urls?: string[]
     is_auto_assign?: boolean
+    structure_type?: string
 }
 
 /** 오더 등록 */
@@ -219,6 +220,7 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
+            structure_type: data.structure_type || null,
             parsed_details: data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : null
         })
 
@@ -879,7 +881,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
             .from('sites')
             .insert({
                 company_id: receivingCompanyId,
-                name: order.site_name || order.customer_name || `${order.region} 현장`,
+                name: order.address || order.site_name || order.customer_name || `${order.region} 현장`,
                 address: order.address,
                 customer_name: order.customer_name || null,
                 customer_phone: order.customer_phone || null,

@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소', '상가청소', '특수청소']
 const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
+const STRUCTURE_TYPES = ['아파트', '빌라', '주택', '상가', '원룸', '투룸']
 
 export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
     const router = useRouter()
@@ -34,6 +35,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [workDate, setWorkDate] = useState('')
     const [timePreference, setTimePreference] = useState('')
     const [cleanType, setCleanType] = useState('')
+    const [structureType, setStructureType] = useState('')
     
     const [notes, setNotes] = useState('')
     const [isAutoAssign, setIsAutoAssign] = useState(false)
@@ -102,6 +104,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const handleSubmit = async () => {
         // Validate
         if (!cleanType) { toast.error('청소 종류를 먼저 선택해주세요.'); return }
+        if (!structureType) { toast.error('주거 형태를 먼저 선택해주세요.'); return }
         if (!address.trim()) { toast.error('기본 주소를 입력해주세요.'); return }
         if (!workDate) { toast.error('청소 날짜를 지정해주세요.'); return }
         if (!timePreference) { toast.error('희망 청소 시간을 선택해주세요.'); return }
@@ -153,7 +156,8 @@ ${notes}
                 image_urls: imageUrls,
                 customer_phone: customerPhone,
                 customer_name: customerName,
-                is_auto_assign: isAutoAssign
+                is_auto_assign: isAutoAssign,
+                structure_type: structureType
             })
 
             if (res.success) {
@@ -264,6 +268,25 @@ ${notes}
                                     </div>
                                 </div>
 
+                                <div className="space-y-2 pb-2">
+                                    <Label className="text-slate-700">주거 형태 *</Label>
+                                    <div className="relative">
+                                        <select 
+                                            className="h-12 w-full text-base bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 rounded-xl px-4 outline-none appearance-none cursor-pointer text-slate-700 font-medium transition-colors hover:bg-slate-100"
+                                            value={structureType}
+                                            onChange={e => setStructureType(e.target.value)}
+                                        >
+                                            <option value="" disabled hidden>원룸, 빌라, 아파트 등 선택</option>
+                                            {STRUCTURE_TYPES.map(type => (
+                                                <option key={type} value={type}>{type}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="space-y-2">
                                     <Label className="text-slate-700">평수 (공급면적) *</Label>
                                     <div className="relative">
@@ -349,7 +372,7 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!cleanType || !workDate || !timePreference || !address || !areaSize || !customerName || !customerPhone) {
+                                if (!cleanType || !structureType || !workDate || !timePreference || !address || !areaSize || !customerName || !customerPhone) {
                                     toast.error('필수 정보를 모두 입력해주세요.')
                                     return
                                 }
