@@ -28,9 +28,12 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'shared_orders' },
-                () => {
-                    router.refresh()
-                }
+                () => { router.refresh() }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'shared_order_applicants' },
+                () => { router.refresh() }
             )
             .subscribe()
 
@@ -159,7 +162,12 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                             let isDone = false
                             
                             if (order.status === 'accepted') {
-                                statusText = '업체 매칭됨'
+                                statusText = order.accepted_company?.name ? `${order.accepted_company.name} 확정` : '업체 확정됨'
+                                statusColor = 'bg-orange-100 text-orange-700'
+                            } else if (order.status === 'open' && order.applicants && order.applicants.length > 0) {
+                                statusText = order.applicants.length === 1 
+                                    ? `${order.applicants[0].name} 요청` 
+                                    : `${order.applicants[0].name} 외 ${order.applicants.length - 1}건`
                                 statusColor = 'bg-orange-100 text-orange-700'
                             } else if (order.status === 'transferred') {
                                 if (order.transferred_site?.status === 'completed') {
