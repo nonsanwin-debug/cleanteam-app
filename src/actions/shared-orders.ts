@@ -220,8 +220,12 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
-            structure_type: data.structure_type || null,
-            parsed_details: data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : null
+            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type
+                ? {
+                    ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),
+                    ...(data.structure_type ? { structure_type: data.structure_type } : {})
+                  }
+                : null
         })
 
     if (error) {
@@ -888,7 +892,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
                 cleaning_date: order.cleaning_date || order.work_date || null,
                 start_time: order.start_time || null,
                 residential_type: order.residential_type || null,
-                structure_type: order.structure_type || null,
+                structure_type: order.structure_type || order.parsed_details?.structure_type || null,
                 area_size: order.area_size || null,
                 balance_amount: order.balance_amount || 0,
                 special_notes: order.special_notes || order.notes
