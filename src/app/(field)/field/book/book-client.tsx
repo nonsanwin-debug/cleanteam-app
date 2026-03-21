@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
 const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소', '상가청소', '특수청소']
-const SPECIAL_TAGS = ['오전 청소 요망', '오후 청소 요망', '쓰레기 처리 포함', '스팀 청소 필수', '외창 청소 추가', '곰팡이 제거', '새집증후군 시공']
+const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
 
 export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
     const router = useRouter()
@@ -32,12 +32,13 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [useMyInfo, setUseMyInfo] = useState(false)
     
     const [workDate, setWorkDate] = useState('')
+    const [timePreference, setTimePreference] = useState('')
     const [cleanType, setCleanType] = useState('')
     
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [notes, setNotes] = useState('')
     const [isAutoAssign, setIsAutoAssign] = useState(false)
     
+    const [noPhotos, setNoPhotos] = useState(false)
     const [images, setImages] = useState<File[]>([])
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
 
@@ -50,14 +51,6 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const isNegotiatedType = (type: string) => type === '상가청소' || type === '특수청소'
 
     // Handlers
-    const toggleTag = (tag: string) => {
-        if (selectedTags.includes(tag)) {
-            setSelectedTags(selectedTags.filter(t => t !== tag))
-        } else {
-            setSelectedTags([...selectedTags, tag])
-        }
-    }
-
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
@@ -111,6 +104,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
         if (!cleanType) { toast.error('청소 종류를 먼저 선택해주세요.'); return }
         if (!address.trim()) { toast.error('기본 주소를 입력해주세요.'); return }
         if (!workDate) { toast.error('청소 날짜를 지정해주세요.'); return }
+        if (!timePreference) { toast.error('희망 청소 시간을 선택해주세요.'); return }
         if (!areaSize) { toast.error('평수를 입력해주세요.'); return }
         if (!customerName || !customerPhone) { toast.error('고객 정보를 입력해주세요.'); return }
 
@@ -144,7 +138,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             
             const finalNotes = `
 [요청타입] ${cleanType}
-[특이사항 태그] ${selectedTags.length > 0 ? selectedTags.join(', ') : '없음'}
+[희망시간] ${timePreference}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 [상세 요청내용]
 ${notes}
@@ -200,15 +194,35 @@ ${notes}
                         </div>
 
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label className="text-slate-700">요청 날짜 *</Label>
-                                <Input 
-                                    type="date"
-                                    className="h-14 text-lg bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
-                                    value={workDate}
-                                    onChange={e => setWorkDate(e.target.value)}
-                                    min={new Date().toISOString().split('T')[0]} // 오늘부터 선택 가능
-                                />
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label className="text-slate-700">요청 날짜 *</Label>
+                                    <Input 
+                                        type="date"
+                                        className="h-14 text-lg bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
+                                        value={workDate}
+                                        onChange={e => setWorkDate(e.target.value)}
+                                        min={new Date().toISOString().split('T')[0]} // 오늘부터 선택 가능
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-slate-700">희망 시간 *</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {TIME_PREFS.map(pref => (
+                                            <button
+                                                key={pref}
+                                                onClick={() => setTimePreference(pref)}
+                                                className={`h-11 rounded-xl border text-sm font-medium transition-all ${
+                                                    timePreference === pref 
+                                                    ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
+                                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {pref === '시간 협의' ? '시간 협의' : pref.replace(' 청소 요망', '')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -335,7 +349,7 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!cleanType || !workDate || !address || !areaSize || !customerName || !customerPhone) {
+                                if (!cleanType || !workDate || !timePreference || !address || !areaSize || !customerName || !customerPhone) {
                                     toast.error('필수 정보를 모두 입력해주세요.')
                                     return
                                 }
@@ -358,22 +372,40 @@ ${notes}
                         </div>
 
                         <div className="space-y-5">
-                            <div className="space-y-3">
-                                <Label className="text-slate-700">빠른 특이사항 태그</Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {SPECIAL_TAGS.map(tag => (
-                                        <button
-                                            key={tag}
-                                            onClick={() => toggleTag(tag)}
-                                            className={`p-2 px-3 rounded-full text-xs font-semibold transition-colors border ${
-                                                selectedTags.includes(tag)
-                                                ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {tag}
-                                        </button>
-                                    ))}
+                            {/* 안내 요금 표 */}
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-2 shadow-sm">
+                                <h3 className="font-bold text-slate-800 mb-3 text-[15px] flex items-center gap-1.5">
+                                    💡 추가 요금 안내 (예상)
+                                </h3>
+                                <div className="space-y-4 text-[13px] text-slate-700">
+                                    <div className="space-y-1.5">
+                                        <h4 className="font-semibold text-teal-700 px-1 border-b border-teal-100 pb-1">오염도</h4>
+                                        <ul className="space-y-2 bg-white rounded-lg p-3 border border-slate-100 divide-y divide-slate-50">
+                                            <li className="flex justify-between pt-1 first:pt-0"><span className="text-slate-600">심한 곰팡이 제거</span> <span className="font-semibold text-slate-900">50,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">니코틴 오염</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">실리콘 곰팡이 제거</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">시트지, 스티커 제거</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex flex-col gap-0.5 pt-2"><div className="flex justify-between"><span className="text-slate-600">타일 줄눈 변색</span> <span className="font-semibold text-slate-900">30,000원 ~</span></div><span className="text-[11px] text-slate-400 break-keep">※ 완벽 복구 불가</span></li>
+                                            <li className="flex flex-col gap-0.5 pt-2"><div className="flex justify-between"><span className="text-slate-600">쓰레기 제거</span> <span className="font-semibold text-slate-900">50,000원 ~</span></div><span className="text-[11px] text-slate-400 break-keep">※ 외부 배출 불가 (종량제 봉투 고객 지참)</span></li>
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <h4 className="font-semibold text-teal-700 px-1 border-b border-teal-100 pb-1">별도시공</h4>
+                                        <ul className="space-y-2 bg-white rounded-lg p-3 border border-slate-100 divide-y divide-slate-50">
+                                            <li className="flex justify-between pt-1 first:pt-0"><span className="text-slate-600">빌트인 가전 청소</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex flex-col gap-0.5 pt-2"><div className="flex justify-between"><span className="text-slate-600">가구 내부 세척 추가</span> <span className="font-semibold text-slate-900">30,000원 ~</span></div><span className="text-[11px] text-slate-400">※ 기본 붙박이장 외</span></li>
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <h4 className="font-semibold text-teal-700 px-1 border-b border-teal-100 pb-1">기타</h4>
+                                        <ul className="space-y-2 bg-white rounded-lg p-3 border border-slate-100 divide-y divide-slate-50">
+                                            <li className="flex justify-between pt-1 first:pt-0"><span className="text-slate-600">공실이 아닌 경우</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">대기 시간이 발생한 경우</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">베란다가 비확장형일 경우</span> <span className="font-semibold text-slate-900">30,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">사다리 작업이 추가될 경우</span> <span className="font-semibold text-slate-900">50,000원 ~</span></li>
+                                            <li className="flex justify-between pt-2"><span className="text-slate-600">집구조, 평수가 다른 경우</span> <span className="font-semibold text-slate-900 break-keep text-right">분양평수 등 산정</span></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
 
@@ -387,39 +419,57 @@ ${notes}
                                 />
                             </div>
 
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <Label className="text-slate-700">현장 사진 첨부 (최대 3장)</Label>
-                                    <span className="text-xs text-slate-400 font-medium">{images.length} / 3</span>
+                            <div className="space-y-3 p-4 border border-slate-100 bg-white rounded-xl shadow-sm">
+                                <div className="space-y-1 border-b border-slate-100 pb-3">
+                                    <div className="flex justify-between items-center">
+                                        <Label className="text-slate-800 font-bold">현장 사진 첨부</Label>
+                                        {!noPhotos && <span className="text-xs text-slate-400 font-medium">{images.length} / 3</span>}
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium">✨ 현장 사진은 <span className="text-teal-600 font-bold">선택 사항</span>입니다.</p>
                                 </div>
-                                <div className="flex gap-3 overflow-x-auto pb-2">
-                                    {imagePreviewUrls.map((url, i) => (
-                                        <div key={i} className="relative w-20 h-20 shrink-0 rounded-xl border border-slate-200 overflow-hidden bg-slate-100">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={url} alt="preview" className="w-full h-full object-cover" />
-                                            <button 
-                                                onClick={() => removeImage(i)}
-                                                className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    
-                                    {images.length < 3 && (
-                                        <label className="w-20 h-20 shrink-0 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-teal-200 bg-teal-50 hover:bg-teal-100/50 cursor-pointer text-teal-600 transition-colors">
-                                            <Camera className="w-6 h-6 mb-1" />
-                                            <span className="text-[10px] font-medium">사진 추가</span>
-                                            <input 
-                                                type="file" 
-                                                accept="image/*" 
-                                                multiple 
-                                                className="hidden" 
-                                                onChange={handleImageChange}
-                                            />
-                                        </label>
-                                    )}
-                                </div>
+                                <label className="flex items-center gap-2 mt-2 text-sm text-slate-700 cursor-pointer w-max select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={noPhotos}
+                                        onChange={(e) => {
+                                            setNoPhotos(e.target.checked)
+                                            if (e.target.checked) setImages([])
+                                        }}
+                                        className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                    />
+                                    사진 없음
+                                </label>
+
+                                {!noPhotos && (
+                                    <div className="flex gap-3 overflow-x-auto pt-2 pb-1">
+                                        {imagePreviewUrls.map((url, i) => (
+                                            <div key={i} className="relative w-20 h-20 shrink-0 rounded-xl border border-slate-200 overflow-hidden bg-slate-100">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={url} alt="preview" className="w-full h-full object-cover" />
+                                                <button 
+                                                    onClick={() => removeImage(i)}
+                                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        
+                                        {images.length < 3 && (
+                                            <label className="w-20 h-20 shrink-0 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-teal-200 bg-teal-50 hover:bg-teal-100/50 cursor-pointer text-teal-600 transition-colors">
+                                                <Camera className="w-6 h-6 mb-1" />
+                                                <span className="text-[10px] font-medium">사진 추가</span>
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*" 
+                                                    multiple 
+                                                    className="hidden" 
+                                                    onChange={handleImageChange}
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             
                             {/* 넥서스 AI 스마트 배정 매칭 */}
