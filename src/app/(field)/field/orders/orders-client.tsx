@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
@@ -20,6 +21,23 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'done'>('all')
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
+
+    useEffect(() => {
+        const supabase = createClient()
+        const channel = supabase.channel('partner-orders-refresh')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'shared_orders' },
+                () => {
+                    router.refresh()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [router])
 
     // Edit and Delete States
     const [editingOrder, setEditingOrder] = useState<any | null>(null)

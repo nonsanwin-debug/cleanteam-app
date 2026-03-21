@@ -199,6 +199,7 @@ interface CreateOrderData {
     is_auto_assign?: boolean
     structure_type?: string
     residential_type?: string
+    detail_address?: string
 }
 
 /** 오더 등록 */
@@ -221,11 +222,12 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
-            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type
+            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address
                 ? {
                     ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),
                     ...(data.structure_type ? { structure_type: data.structure_type } : {}),
-                    ...(data.residential_type ? { residential_type: data.residential_type } : {})
+                    ...(data.residential_type ? { residential_type: data.residential_type } : {}),
+                    ...(data.detail_address ? { detail_address: data.detail_address } : {})
                   }
                 : null
         })
@@ -888,7 +890,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
             .from('sites')
             .insert({
                 company_id: receivingCompanyId,
-                name: order.address || order.site_name || order.customer_name || `${order.region} 현장`,
+                name: order.parsed_details?.detail_address || order.address || order.site_name || order.customer_name || `${order.region} 현장`,
                 address: order.address,
                 customer_name: order.customer_name || null,
                 customer_phone: order.customer_phone || null,

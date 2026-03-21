@@ -138,8 +138,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             }
 
             const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${priceString}`
-            const fullAddress = `${address} ${detailAddress}`.trim()
-            
+            // fullAddress is no longer sent unified. It is split for UI purposes.
             const finalNotes = `
 [요청타입] ${cleanType}
 [희망시간] ${timePreference}
@@ -150,7 +149,8 @@ ${notes}
 
             const res = await createSharedOrder({
                 region: shortRegion,
-                address: fullAddress,
+                address: address,
+                detail_address: detailAddress,
                 area_size: `${areaSize}평`,
                 work_date: workDate,
                 notes: finalNotes,

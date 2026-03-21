@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -65,6 +66,21 @@ export default function SharedOrdersPage() {
 
     useEffect(() => {
         loadData()
+
+        const supabase = createClient()
+        const channel = supabase.channel('admin-orders-refresh')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'shared_orders' },
+                () => {
+                    loadData()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
 
     async function loadData() {
