@@ -50,6 +50,47 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     // Form states
     const [editForm, setEditForm] = useState({ region: '', address: '', work_date: '', area_size: '', notes: '' })
 
+    const getPricePerPyeong = (type: string) => {
+        if (type === '입주청소' || type === '이사청소') return 12000
+        if (type === '거주청소') return 13000
+        if (type === '사이청소') return 15000
+        return 12000
+    }
+
+    const handleAreaSizeChange = (newValue: string) => {
+        const onlyNumbers = newValue.replace(/[^0-9]/g, '')
+        const newAreaSize = onlyNumbers ? `${onlyNumbers}평` : ''
+        
+        const currentNotes = editForm.notes || ''
+        const typeMatch = currentNotes.match(/\[요청타입\]\s*(.+?)\n/)
+        const cleanType = typeMatch ? typeMatch[1].trim() : ''
+
+        const baseShortRegion = editForm.region.replace(/ \d+평.*?$/, '')
+        
+        let priceString = ''
+        if (cleanType && (cleanType === '상가청소' || cleanType === '특수청소')) {
+            priceString = '협의'
+        } else if (cleanType && onlyNumbers) {
+            const parsedArea = parseInt(onlyNumbers, 10) || 0
+            const pricePerPyeong = getPricePerPyeong(cleanType)
+            let calculatedPrice = parsedArea * pricePerPyeong
+            if (calculatedPrice > 0 && calculatedPrice < 150000) {
+                calculatedPrice = 150000
+            }
+            if (calculatedPrice > 0) {
+                priceString = `${calculatedPrice / 10000}만원`
+            }
+        }
+
+        const newRegion = baseShortRegion + (newAreaSize ? ` ${newAreaSize} ${priceString}`.trimEnd() : '')
+
+        setEditForm({
+            ...editForm,
+            area_size: newAreaSize,
+            region: newRegion
+        })
+    }
+
     const handleEditClick = (order: any) => {
         setEditForm({
             region: order.region || '',
@@ -306,7 +347,11 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                             </div>
                             <div className="space-y-2">
                                 <Label>평수 (선택)</Label>
-                                <Input placeholder="예: 32평" value={editForm.area_size} onChange={e => setEditForm({ ...editForm, area_size: e.target.value })} />
+                                <Input 
+                                    placeholder="예: 32" 
+                                    value={editForm.area_size} 
+                                    onChange={e => handleAreaSizeChange(e.target.value)} 
+                                />
                             </div>
                         </div>
                         <div className="space-y-2">
