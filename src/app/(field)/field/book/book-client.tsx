@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
-const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소']
+const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소', '상가청소', '특수청소']
 const SPECIAL_TAGS = ['오전 청소 요망', '오후 청소 요망', '쓰레기 처리 포함', '스팀 청소 필수', '외창 청소 추가', '곰팡이 제거', '새집증후군 시공']
 
 export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
@@ -47,6 +47,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
         if (type === '사이청소') return 15000
         return 12000
     }
+    const isNegotiatedType = (type: string) => type === '상가청소' || type === '특수청소'
 
     // Handlers
     const toggleTag = (tag: string) => {
@@ -124,11 +125,17 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 
             // 2. Format region/notes
             // Admin format: "서울 강남구 30평 30만원" etc.
-            const parsedArea = parseInt(areaSize, 10) || 0
-            const pricePerPyeong = getPricePerPyeong(cleanType)
-            const calculatedPriceManwon = (parsedArea * pricePerPyeong) / 10000
+            let priceString = ''
+            if (isNegotiatedType(cleanType)) {
+                priceString = '협의'
+            } else {
+                const parsedArea = parseInt(areaSize, 10) || 0
+                const pricePerPyeong = getPricePerPyeong(cleanType)
+                const calculatedPriceManwon = (parsedArea * pricePerPyeong) / 10000
+                priceString = `${calculatedPriceManwon}만원`
+            }
 
-            const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${calculatedPriceManwon}만원`
+            const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${priceString}`
             const fullAddress = `${address} ${detailAddress}`.trim()
             
             const finalNotes = `
@@ -172,7 +179,7 @@ ${notes}
                     <ChevronLeft className="w-6 h-6" />
                 </button>
                 <div className="font-bold text-slate-800 flex items-center gap-2">
-                    신규 예약 (3단계 중 {step}단계)
+                    신규 예약 (2단계 중 {step}단계)
                 </div>
                 <div className="w-10"></div>
             </header>
@@ -189,6 +196,17 @@ ${notes}
                         </div>
 
                         <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label className="text-slate-700">요청 날짜 *</Label>
+                                <Input 
+                                    type="date"
+                                    className="h-14 text-lg bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
+                                    value={workDate}
+                                    onChange={e => setWorkDate(e.target.value)}
+                                    min={new Date().toISOString().split('T')[0]} // 오늘부터 선택 가능
+                                />
+                            </div>
+
                             <div className="space-y-2">
                                 <Label className="text-slate-700">기본 주소 (동/호수 제외) *</Label>
                                 <Input 
@@ -247,9 +265,15 @@ ${notes}
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">평</span>
                                     </div>
                                     {areaSize && parseInt(areaSize) > 0 && cleanType && (
-                                        <p className="text-sm font-semibold text-teal-600 ml-1">
-                                            예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
-                                        </p>
+                                        isNegotiatedType(cleanType) ? (
+                                            <p className="text-sm font-semibold text-teal-600 ml-1">
+                                                예상 결제금액: 매칭 된 업체와 협의
+                                            </p>
+                                        ) : (
+                                            <p className="text-sm font-semibold text-teal-600 ml-1">
+                                                예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
+                                            </p>
+                                        )
                                     )}
                                 </div>
 
@@ -301,7 +325,7 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!cleanType || !address || !areaSize || !customerName || !customerPhone) {
+                                if (!cleanType || !workDate || !address || !areaSize || !customerName || !customerPhone) {
                                     toast.error('필수 정보를 모두 입력해주세요.')
                                     return
                                 }
@@ -313,46 +337,8 @@ ${notes}
                     </div>
                 )}
 
-                {/* 2. Date & Type */}
+                {/* 2. Notes & Photos */}
                 {step === 2 && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="mb-2">
-                            <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
-                                <Calendar className="w-6 h-6 text-teal-600" /> 언제가 좋을까요?
-                            </h2>
-                            <p className="text-sm text-slate-500">원하시는 청소 날짜와 종류를 선택해주세요.</p>
-                        </div>
-
-                        <div className="space-y-5">
-                            <div className="space-y-2">
-                                <Label className="text-slate-700">요청 날짜 *</Label>
-                                <Input 
-                                    type="date"
-                                    className="h-14 text-lg bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
-                                    value={workDate}
-                                    onChange={e => setWorkDate(e.target.value)}
-                                    min={new Date().toISOString().split('T')[0]} // 오늘부터 선택 가능
-                                />
-                            </div>
-                        </div>
-
-                        <Button 
-                            className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
-                            onClick={() => {
-                                if (!workDate) {
-                                    toast.error('날짜를 꼭 선택해주세요.')
-                                    return
-                                }
-                                setStep(3)
-                            }}
-                        >
-                            다음 단계로 <ChevronRight className="w-5 h-5 ml-1" />
-                        </Button>
-                    </div>
-                )}
-
-                {/* 3. Notes & Photos */}
-                {step === 3 && (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="mb-2">
                             <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
