@@ -787,9 +787,20 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     }
 
     if (isSender) {
+        // 발신자는 완전 삭제 (먼저 지워야 FK 참조 에러 방지)
+        const { error } = await adminSupabase
+            .from('shared_orders')
+            .delete()
+            .eq('id', orderId)
+
+        if (error) {
+            return { success: false, error: error.message }
+        }
+
         // 이미 매칭되어 이관된 현장이 존재한다면, 파트너가 취소(삭제)할 시 해당 현장도 일괄 삭제
         if (order.transferred_site_id) {
-            await adminSupabase.from('sites').delete().eq('id', order.transferred_site_id)
+            const { error: siteDeleteError } = await adminSupabase.from('sites').delete().eq('id', order.transferred_site_id)
+            if (siteDeleteError) console.error("siteDeleteError:", siteDeleteError)
             
             // 수지가 배정된 업체에게 오더 취소 알림 통보
             if (order.accepted_by) {
@@ -805,16 +816,6 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
                     console.error('Failed to notify company about cancelled order:', pushErr)
                 }
             }
-        }
-
-        // 발신자는 완전 삭제
-        const { error } = await adminSupabase
-            .from('shared_orders')
-            .delete()
-            .eq('id', orderId)
-
-        if (error) {
-            return { success: false, error: error.message }
         }
     } else {
         // 수신자가 삭제 → 해당 업체에게만 보이지 않게 숨기기 처리
