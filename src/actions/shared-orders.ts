@@ -519,6 +519,12 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         message: `${companyName}에서 오더 배정을 요청하였습니다.`
     })
 
+    // 강제 Realtime Broadcast (shared_order_applicants의 publication 제한 우회)
+    await supabase
+        .from('shared_orders')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+
     revalidatePath('/admin/shared-orders')
     return { success: true }
 }
