@@ -399,7 +399,7 @@ ${notes}
                                                             </div>
                                                         )}
                                                         <div className="flex justify-between items-center text-base font-bold text-teal-700 pt-2 border-t border-slate-200 mt-2">
-                                                            <span>최종 결제금액</span>
+                                                            <span>최종 결제금액 <span className="text-xs font-normal text-teal-600/80 tracking-tight ml-1">(부가세 별도)</span></span>
                                                             <span className="text-lg">{finalTotal.toLocaleString()}원</span>
                                                         </div>
                                                     </div>
