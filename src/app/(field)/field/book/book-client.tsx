@@ -457,10 +457,15 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!cleanType || !structureType || !workDate || !timePreference || !address || !areaSize || !customerName || !customerPhone) {
-                                    toast.error('필수 정보를 모두 입력해주세요.')
-                                    return
-                                }
+                                if (!cleanType) return toast.error('청소 종류를 선택해주세요.')
+                                if (!structureType && !residentialType) return toast.error('주거 형태를 선택해주세요.')
+                                if (!workDate) return toast.error('청소 날짜를 선택해주세요.')
+                                if (!timePreference) return toast.error('희망 청소 시간을 선택해주세요.')
+                                if (!address.trim()) return toast.error('기본 주소를 검색하여 입력해주세요.')
+                                if (!areaSize) return toast.error('평수를 입력해주세요.')
+                                if (!customerName) return toast.error('고객명을 입력해주세요.')
+                                if (!customerPhone) return toast.error('고객 연락처를 입력해주세요.')
+                                
                                 setStep(2)
                             }}
                         >
