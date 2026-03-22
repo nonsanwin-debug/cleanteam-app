@@ -37,6 +37,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [cleanType, setCleanType] = useState('')
     const [residentialType, setResidentialType] = useState('')
     const [structureType, setStructureType] = useState('')
+    const [buildingCondition, setBuildingCondition] = useState('신축')
     
     const [notes, setNotes] = useState('공동 현관 비밀번호 : \n세대 비밀번호 : \n전달 사항 : ')
     const [isAutoAssign, setIsAutoAssign] = useState(false)
@@ -129,7 +130,8 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             } else {
                 const parsedArea = parseInt(areaSize, 10) || 0
                 const pricePerPyeong = getPricePerPyeong(cleanType)
-                let calculatedPrice = parsedArea * pricePerPyeong
+                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0)
+                let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong)
                 if (calculatedPrice < 150000) {
                     calculatedPrice = 150000
                 }
@@ -141,6 +143,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             // fullAddress is no longer sent unified. It is split for UI purposes.
             const finalNotes = `
 [요청타입] ${cleanType}
+[건물상태] ${buildingCondition}
 [희망시간] ${timePreference}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 [상세 요청내용]
@@ -290,6 +293,25 @@ ${notes}
                                 </div>
 
                                 <div className="space-y-2">
+                                    <Label className="text-slate-700">건물 상태 *</Label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['신축', '구축', '인테리어'].map(condition => (
+                                            <button
+                                                key={condition}
+                                                onClick={() => setBuildingCondition(condition)}
+                                                className={`h-11 rounded-xl border text-sm font-medium transition-all ${
+                                                    buildingCondition === condition 
+                                                    ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
+                                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {condition}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
                                     <Label className="text-slate-700">구조 (선택)</Label>
                                     <Input 
                                         className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
@@ -323,15 +345,40 @@ ${notes}
                                                 예상 결제금액: 매칭 된 업체와 협의
                                             </p>
                                         ) : (
-                                            (parseInt(areaSize) * getPricePerPyeong(cleanType)) < 150000 ? (
-                                                <p className="text-sm font-semibold text-teal-600 ml-1">
-                                                    예상 결제금액: 150,000원 (기본단가 15만원)
-                                                </p>
-                                            ) : (
-                                                <p className="text-sm font-semibold text-teal-600 ml-1">
-                                                    예상 결제금액: {(parseInt(areaSize) * getPricePerPyeong(cleanType)).toLocaleString()}원 (평당 {getPricePerPyeong(cleanType).toLocaleString()}원)
-                                                </p>
-                                            )
+                                            (() => {
+                                                const parsedArea = parseInt(areaSize);
+                                                const basePricePerPyeong = getPricePerPyeong(cleanType);
+                                                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0);
+                                                
+                                                const baseTotal = parsedArea * basePricePerPyeong;
+                                                const conditionTotal = parsedArea * conditionAddPerPyeong;
+                                                const finalTotal = Math.max(150000, baseTotal + conditionTotal);
+
+                                                return (
+                                                    <div className="mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+                                                        <div className="flex justify-between text-sm text-slate-600">
+                                                            <span>기본 단가 ({parsedArea}평 × {(basePricePerPyeong/10000)}만원)</span>
+                                                            <span>{baseTotal.toLocaleString()}원</span>
+                                                        </div>
+                                                        {conditionAddPerPyeong > 0 && (
+                                                            <div className="flex justify-between text-sm text-slate-600">
+                                                                <span>{buildingCondition} 할증 (+{(conditionAddPerPyeong/10000)}만원/평)</span>
+                                                                <span>+{conditionTotal.toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
+                                                        {finalTotal === 150000 && (baseTotal + conditionTotal) < 150000 && (
+                                                            <div className="flex justify-between text-sm text-slate-600">
+                                                                <span>최소 정책금액 보정</span>
+                                                                <span>+{(150000 - (baseTotal + conditionTotal)).toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex justify-between items-center text-base font-bold text-teal-700 pt-2 border-t border-slate-200 mt-2">
+                                                            <span>최종 결제금액</span>
+                                                            <span className="text-lg">{finalTotal.toLocaleString()}원</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()
                                         )
                                     )}
                                 </div>
