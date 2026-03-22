@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 'lucide-react'
+import DaumPostcode from 'react-daum-postcode'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -27,6 +28,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [address, setAddress] = useState('')
     const [detailAddress, setDetailAddress] = useState('')
     const [areaSize, setAreaSize] = useState('')
+    const [isPostcodeOpen, setIsPostcodeOpen] = useState(false)
     
     const [customerName, setCustomerName] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
@@ -55,6 +57,20 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const isNegotiatedType = (type: string) => type === '상가청소' || type === '특수청소'
 
     // Handlers
+    const handleCompletePostcode = (data: any) => {
+        let fullAddress = data.address;
+        let extraAddress = '';
+
+        if (data.addressType === 'R') {
+            if (data.bname !== '') extraAddress += data.bname;
+            if (data.buildingName !== '') extraAddress += extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName;
+            fullAddress += extraAddress !== '' ? ` (${extraAddress})` : '';
+        }
+
+        setAddress(fullAddress);
+        setIsPostcodeOpen(false);
+    }
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
@@ -236,12 +252,22 @@ ${notes}
 
                             <div className="space-y-2">
                                 <Label className="text-slate-700">기본 주소 (동/호수 제외) *</Label>
-                                <Input 
-                                    className="h-12 text-base bg-slate-50 border-transparent focus:bg-white focus:border-teal-500 rounded-xl" 
-                                    placeholder="예: 서울 송파구 잠실동 123-45"
-                                    value={address}
-                                    onChange={e => setAddress(e.target.value)}
-                                />
+                                <div className="flex gap-2">
+                                    <Input 
+                                        className="flex-1 h-12 text-base bg-slate-50 border-transparent focus:ring-0 focus:border-transparent rounded-xl cursor-pointer" 
+                                        placeholder="주소 검색을 눌러주세요"
+                                        value={address}
+                                        readOnly
+                                        onClick={() => setIsPostcodeOpen(true)}
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setIsPostcodeOpen(true)} 
+                                        className="h-12 px-5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold whitespace-nowrap transition-colors"
+                                    >
+                                        주소 검색
+                                    </button>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-slate-700">상세 주소 (아파트/동/호수)</Label>
@@ -591,6 +617,24 @@ ${notes}
                     </div>
                 )}
             </main>
+
+            {/* Daum Postcode Modal */}
+            {isPostcodeOpen && (
+                <div className="fixed inset-0 z-50 flex flex-col bg-slate-50 animate-in slide-in-from-bottom-full duration-300">
+                    <header className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 h-14 flex items-center shadow-sm">
+                        <button onClick={() => setIsPostcodeOpen(false)} className="p-2 -ml-2 text-slate-600">
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <div className="font-bold text-slate-800 text-lg ml-2">주소 검색</div>
+                    </header>
+                    <div className="flex-1 w-full bg-white relative">
+                        <DaumPostcode 
+                            onComplete={handleCompletePostcode} 
+                            style={{ width: '100%', height: '100%' }} 
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
