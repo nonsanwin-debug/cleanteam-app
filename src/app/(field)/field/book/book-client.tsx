@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소', '상가청소', '특수청소']
 const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
-const STRUCTURE_TYPES = ['아파트', '빌라', '주택', '상가', '원룸', '투룸']
+const STRUCTURE_TYPES = ['아파트', '빌라', '주택', '오피스텔', '상가', '원룸', '투룸']
 
 export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
     const router = useRouter()
