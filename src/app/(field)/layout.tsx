@@ -12,9 +12,27 @@ export default function FieldLayout({
                 
                 {/* Fake Header for Branding */}
                 <header className="fixed top-0 left-0 right-0 max-w-md mx-auto h-14 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center px-4 z-50">
-                    <span className="font-bold text-xl text-teal-600 tracking-tight flex items-center gap-1.5">
-                        <span className="w-6 h-6 rounded bg-teal-600 text-white flex items-center justify-center text-sm">N</span>
-                        NEXUS
+                    <span className="font-black text-xl text-slate-900 tracking-tighter flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="field-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#4F46E5" />
+                                    <stop offset="100%" stopColor="#22D3EE" />
+                                </linearGradient>
+                                <linearGradient id="field-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#22D3EE" />
+                                    <stop offset="100%" stopColor="#10B981" />
+                                </linearGradient>
+                                <linearGradient id="field-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stopColor="#10B981" />
+                                    <stop offset="100%" stopColor="#BEF264" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#field-grad-1)" />
+                            <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#field-grad-3)" />
+                            <path d="M5.25 4.75L18.75 19.25" stroke="url(#field-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                        </svg>
+                        <span className="pt-0.5">NEXUS</span>
                     </span>
                     <span className="ml-2 text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
                         파트너스

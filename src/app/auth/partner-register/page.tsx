@@ -69,11 +69,32 @@ export default function PartnerRegisterPage() {
         <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
             <Card className="w-full max-w-md shadow-lg border-t-[4px] border-t-teal-600">
                 <CardHeader className="text-center space-y-4">
-                    <div className="mx-auto w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-teal-600" />
+                    <div className="flex justify-center mb-2">
+                        <span className="font-black text-3xl text-slate-900 tracking-tighter flex items-center gap-2">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[32px] h-[32px]" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="partner-reg-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#4F46E5" />
+                                        <stop offset="100%" stopColor="#22D3EE" />
+                                    </linearGradient>
+                                    <linearGradient id="partner-reg-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#22D3EE" />
+                                        <stop offset="100%" stopColor="#10B981" />
+                                    </linearGradient>
+                                    <linearGradient id="partner-reg-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#10B981" />
+                                        <stop offset="100%" stopColor="#BEF264" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#partner-reg-grad-1)" />
+                                <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#partner-reg-grad-3)" />
+                                <path d="M5.25 4.75L18.75 19.25" stroke="url(#partner-reg-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                            </svg>
+                            <span className="pt-1">NEXUS</span>
+                        </span>
                     </div>
                     <div>
-                        <CardTitle className="text-2xl font-bold text-slate-800">부동산 파트너 회원가입</CardTitle>
+                        <CardTitle className="text-xl font-bold text-slate-800">부동산 파트너 회원가입</CardTitle>
                         <CardDescription>
                             가입 즉시 NEXUS 오더 공유 파트너십이 시작됩니다.
                         </CardDescription>

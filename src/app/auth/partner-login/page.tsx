@@ -93,10 +93,31 @@ export default function PartnerLoginPage() {
         <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
             <Card className="w-full max-w-md border-t-[4px] border-t-teal-600 shadow-md">
                 <CardHeader className="text-center pb-6">
-                    <div className="mx-auto w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mb-4">
-                        <Building2 className="w-6 h-6 text-teal-600" />
+                    <div className="flex justify-center mb-4">
+                        <span className="font-black text-3xl text-slate-900 tracking-tighter flex items-center gap-2">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[32px] h-[32px]" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="partner-login-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#4F46E5" />
+                                        <stop offset="100%" stopColor="#22D3EE" />
+                                    </linearGradient>
+                                    <linearGradient id="partner-login-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#22D3EE" />
+                                        <stop offset="100%" stopColor="#10B981" />
+                                    </linearGradient>
+                                    <linearGradient id="partner-login-grad-3" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#10B981" />
+                                        <stop offset="100%" stopColor="#BEF264" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#partner-login-grad-1)" />
+                                <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#partner-login-grad-3)" />
+                                <path d="M5.25 4.75L18.75 19.25" stroke="url(#partner-login-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
+                            </svg>
+                            <span className="pt-1">NEXUS</span>
+                        </span>
                     </div>
-                    <CardTitle className="text-2xl font-bold text-slate-800">부동산 파트너 로그인</CardTitle>
+                    <CardTitle className="text-xl font-bold text-slate-800">부동산 파트너 로그인</CardTitle>
                     <CardDescription className="text-base mt-2">
                         NEXUS와 제휴된 부동산 중개인 전용입니다.
                     </CardDescription>
