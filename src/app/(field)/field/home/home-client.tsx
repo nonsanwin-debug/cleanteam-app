@@ -135,8 +135,14 @@ export function FieldHomeClient({
                             return (
                                 <Card 
                                     key={order.id} 
-                                    className="hover:shadow-md transition-shadow"
-                                    onClick={() => router.push(`/field/orders`)}
+                                    className="hover:shadow-md transition-shadow cursor-pointer"
+                                    onClick={() => {
+                                        if (order.transferred_site?.id) {
+                                            router.push(`/share/${order.transferred_site.id}`)
+                                        } else {
+                                            router.push(`/field/orders`)
+                                        }
+                                    }}
                                 >
                                     <CardContent className="p-4 flex flex-col gap-2">
                                         <div className="flex justify-between items-start">
@@ -147,16 +153,21 @@ export function FieldHomeClient({
                                                 {statusText}
                                             </Badge>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm text-slate-500">
+                                        <div className="flex flex-col gap-1.5 mt-1 text-sm text-slate-500">
                                             <span>
                                                 {order.work_date ? order.work_date : '날짜 미정'} 
                                                 {order.area_size && ` · ${order.area_size}`}
                                             </span>
                                             {order.accepted_company && (
-                                                <span className="font-medium text-slate-700 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-500" />
+                                                <div className="flex items-center gap-1.5 bg-slate-100 w-fit px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
                                                     {order.accepted_company.name}
-                                                </span>
+                                                    {order.transferred_site?.worker_name && (
+                                                        <span className="text-slate-500 border-l border-slate-300 ml-1 pl-1.5 font-medium">
+                                                            팀장: {order.transferred_site.worker_name}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
 

@@ -236,7 +236,15 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                             }
                             
                             return (
-                                <Card key={order.id} className={`overflow-hidden transition-all ${isDone ? 'opacity-70' : ''}`}>
+                                <Card 
+                                    key={order.id} 
+                                    className={`overflow-hidden transition-all ${isDone ? 'opacity-70' : ''} ${order.transferred_site?.id ? 'cursor-pointer hover:shadow-md' : ''}`}
+                                    onClick={() => {
+                                        if (order.transferred_site?.id) {
+                                            router.push(`/share/${order.transferred_site.id}`)
+                                        }
+                                    }}
+                                >
                                     <CardContent className="p-0">
                                         <div className="p-4 border-b border-slate-50 flex justify-between items-start w-full">
                                             <div className="flex-1 pr-4">
@@ -246,9 +254,20 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                 <h3 className="font-bold text-slate-800 text-lg leading-tight mb-1">
                                                     {order.address || order.region}
                                                 </h3>
-                                                <p className="text-sm text-slate-500">
-                                                    {order.work_date || '날짜 미정'} · {order.area_size}
-                                                </p>
+                                                <div className="text-sm text-slate-500 flex flex-col gap-1.5 mt-2">
+                                                    <span>{order.work_date || '날짜 미정'} · {order.area_size}</span>
+                                                    {order.accepted_company && (
+                                                        <div className="flex items-center gap-1.5 bg-slate-100 w-fit px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700">
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+                                                            {order.accepted_company.name}
+                                                            {order.transferred_site?.worker_name && (
+                                                                <span className="text-slate-500 border-l border-slate-300 ml-1 pl-1.5 font-medium">
+                                                                    팀장: {order.transferred_site.worker_name}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="text-right whitespace-nowrap">
                                                 <span className={cn("text-sm font-semibold px-2 py-1 rounded-lg", statusColor)}>
@@ -314,11 +333,6 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                         {/* Footer */}
                                         <div className="bg-slate-50 px-4 py-3 flex justify-between items-center text-xs text-slate-500">
                                             <span>제출일: {format(new Date(order.created_at), 'yyyy-MM-dd')}</span>
-                                            {order.accepted_company && (
-                                                <span className="font-medium flex items-center">
-                                                    담당: {order.accepted_company.name}
-                                                </span>
-                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>

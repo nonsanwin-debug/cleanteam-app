@@ -301,7 +301,7 @@ export async function getMySharedOrders() {
 
     const { data: orders, error } = await supabase
         .from('shared_orders')
-        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(status, payment_status)')
+        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, worker_name)')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 
@@ -892,6 +892,18 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
             .eq('id', order.company_id)
             .single()
 
+        // 금액 파싱 (예: "서울 강남구 32평 38.4만원")
+        let extractedPrice = 0
+        if (order.region) {
+            const priceMatch = order.region.match(/([\d.]+)만원/)
+            if (priceMatch && priceMatch[1]) {
+                extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
+            }
+        }
+        
+        const finalTotalPrice = order.total_price || extractedPrice || 0
+        const finalBalanceAmount = order.balance_amount || finalTotalPrice
+
         const { data: site, error } = await adminSupabase
             .from('sites')
             .insert({
@@ -905,7 +917,8 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
                 residential_type: order.residential_type || null,
                 structure_type: order.structure_type || order.parsed_details?.structure_type || null,
                 area_size: order.area_size || null,
-                balance_amount: order.balance_amount || 0,
+                total_price: finalTotalPrice,
+                balance_amount: finalBalanceAmount,
                 special_notes: order.special_notes || order.notes
                     ? `[오더 공유: ${senderCompany?.name || '타업체'}] ${order.special_notes || order.notes}`
                     : `[오더 공유: ${senderCompany?.name || '타업체'}]`,
