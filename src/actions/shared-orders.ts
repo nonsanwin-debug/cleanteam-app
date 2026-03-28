@@ -919,7 +919,6 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
                 residential_type: order.residential_type || null,
                 structure_type: order.structure_type || order.parsed_details?.structure_type || null,
                 area_size: order.area_size || null,
-                total_price: finalTotalPrice,
                 balance_amount: finalBalanceAmount,
                 special_notes: order.special_notes || order.notes
                     ? `[오더 공유: ${senderCompany?.name || '타업체'}] ${order.special_notes || order.notes}`
