@@ -421,8 +421,10 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
 
+    const adminSupabase = createAdminClient()
+
     // 1. 오더 정보 조회
-    const { data: order, error: fetchError } = await supabase
+    const { data: order, error: fetchError } = await adminSupabase
         .from('shared_orders')
         .select('*')
         .eq('id', orderId)
@@ -434,7 +436,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     }
 
     // 2. 지원 기록 추가 (shared_order_applicants)
-    const { error: insertError } = await supabase
+    const { error: insertError } = await adminSupabase
         .from('shared_order_applicants')
         .insert({
             order_id: orderId,
@@ -461,7 +463,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     if (order.is_auto_assign) {
         const newStatus = 'transferred'
 
-        const { error: updateError } = await supabase
+        const { error: updateError } = await adminSupabase
             .from('shared_orders')
             .update({
                 accepted_by: companyId,
@@ -491,7 +493,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
                 tag: `order-auto-assigned-${orderId}`
             })
 
-            await supabase.from('shared_order_notifications').insert({
+            await adminSupabase.from('shared_order_notifications').insert({
                 order_id: orderId,
                 company_id: order.company_id,
                 message: `넥서스 AI가 [${companyName}] 업체로 오더 배정을 확정했습니다.`
@@ -513,14 +515,14 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     })
 
     // 알림 기록 저장
-    await supabase.from('shared_order_notifications').insert({
+    await adminSupabase.from('shared_order_notifications').insert({
         order_id: orderId,
         company_id: order.company_id,
         message: `${companyName}에서 오더 배정을 요청하였습니다.`
     })
 
     // 강제 Realtime Broadcast (shared_order_applicants의 publication 제한 우회)
-    await supabase
+    await adminSupabase
         .from('shared_orders')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', orderId)
