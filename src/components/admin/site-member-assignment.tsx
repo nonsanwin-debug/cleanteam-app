@@ -381,9 +381,52 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                     {(site.special_notes || site.worker_notes) && (
                                         <div className="pt-2 space-y-1.5 opacity-90">
                                             {site.special_notes && (
-                                                <div className="text-xs bg-red-50 text-red-700 p-2 rounded border border-red-100 flex items-start">
-                                                    <span className="font-bold mr-1.5 shrink-0">특이사항:</span>
-                                                    <span className="whitespace-pre-wrap">{site.special_notes}</span>
+                                                <div className="text-xs bg-red-50/80 text-red-800 p-2.5 rounded border border-red-100 flex flex-col gap-1">
+                                                    <div className="font-bold text-red-700 flex items-center gap-1 mb-0.5">특이사항</div>
+                                                    {(() => {
+                                                        const notes = site.special_notes!;
+                                                        if (!notes.includes('[')) {
+                                                            return <div className="whitespace-pre-wrap leading-relaxed">{notes}</div>
+                                                        }
+
+                                                        const lines = notes.split('\n').filter((l: string) => !l.startsWith('[혜택선택]'));
+                                                        return (
+                                                            <div className="space-y-1.5 mt-0.5">
+                                                                {lines.map((line: string, i: number) => {
+                                                                    let tags: string[] = [];
+                                                                    let remainder = line.trim();
+                                                                    while(true) {
+                                                                        const m = remainder.match(/^\[(.*?)\]\s*(.*)$/);
+                                                                        if (m) {
+                                                                            tags.push(m[1]);
+                                                                            remainder = m[2];
+                                                                        } else {
+                                                                            break;
+                                                                        }
+                                                                    }
+
+                                                                    if (tags.length > 0) {
+                                                                        return (
+                                                                            <div key={i} className="flex items-start gap-1.5">
+                                                                                <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
+                                                                                    {tags.map((t, idx) => (
+                                                                                        <span key={idx} className="bg-red-200/60 text-red-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm">
+                                                                                            {t}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                                {remainder && <span className="flex-1 break-words mt-[3px] leading-snug">{remainder}</span>}
+                                                                            </div>
+                                                                        )
+                                                                    }
+                                                                    if (line.trim()) {
+                                                                        return <div key={i} className="pl-[2px] text-[11px] text-red-900/80 break-words whitespace-pre-wrap">{line}</div>
+                                                                    }
+                                                                    return null;
+                                                                })}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             )}
                                             {site.worker_notes && (
