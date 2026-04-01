@@ -280,11 +280,11 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                         {!isDone && (
                                             <div className="flex gap-2 justify-end px-4 pt-2 -mb-2 relative z-10 block">
                                                 {order.status !== 'transferred' && (
-                                                    <button onClick={() => handleEditClick(order)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition-colors cursor-pointer">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEditClick(order); }} className="text-xs text-blue-600 hover:text-blue-800 flex items-center bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition-colors cursor-pointer">
                                                         <Edit className="w-3.5 h-3.5 mr-1" /> 수정
                                                     </button>
                                                 )}
-                                                <button onClick={() => setDeletingOrderId(order.id)} className="text-xs text-red-600 hover:text-red-800 flex items-center bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100 transition-colors cursor-pointer">
+                                                <button onClick={(e) => { e.stopPropagation(); setDeletingOrderId(order.id); }} className="text-xs text-red-600 hover:text-red-800 flex items-center bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-100 transition-colors cursor-pointer">
                                                     <Trash2 className="w-3.5 h-3.5 mr-1" /> 삭제
                                                 </button>
                                             </div>
@@ -310,7 +310,8 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                                         : "bg-orange-500 text-white hover:bg-orange-600 shadow-sm cursor-pointer"
                                                                 )}
                                                                 disabled={!!confirmingId}
-                                                                onClick={async () => {
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation()
                                                                     setConfirmingId(app.id)
                                                                     const res = await confirmOrderAssignee(order.id, app.id)
                                                                     if (res.success) {
