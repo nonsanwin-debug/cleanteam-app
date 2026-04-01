@@ -314,36 +314,58 @@ export default function SharedOrdersPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    incomingOrders.map(order => (
-                        <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
-                            <CardContent className="p-4">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
-                                            <span className="font-bold text-lg leading-tight">{order.region}</span>
-                                        </div>
-                                        {(order.work_date || order.area_size) && (
-                                            <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
-                                                {order.work_date && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Calendar className="h-3.5 w-3.5" />
-                                                        {order.work_date}
-                                                    </span>
-                                                )}
-                                                {order.area_size && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Ruler className="h-3.5 w-3.5" />
-                                                        {order.area_size}
-                                                    </span>
-                                                )}
+                    incomingOrders.map(order => {
+                        const parsedDetails = order.parsed_details || {}
+                        const isDiscount = parsedDetails.reward_type === 'discount'
+                        const feeRate = isDiscount ? 0.1 : 0.2
+                        
+                        let extractedPrice = 0
+                        if (order.region) {
+                            const priceMatch = order.region.match(/([\d.]+)만원/)
+                            if (priceMatch && priceMatch[1]) {
+                                extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
+                            }
+                        }
+                        const orderPrice = order.total_price || extractedPrice || 0
+                        const requiredCash = Math.floor(orderPrice * feeRate)
+
+                        return (
+                            <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
+                                <CardContent className="p-4">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
+                                                <span className="font-bold text-lg leading-tight">{order.region}</span>
                                             </div>
-                                        )}
+                                            {(order.work_date || order.area_size) && (
+                                                <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
+                                                    {order.work_date && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="h-3.5 w-3.5" />
+                                                            {order.work_date}
+                                                        </span>
+                                                    )}
+                                                    {order.area_size && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Ruler className="h-3.5 w-3.5" />
+                                                            {order.area_size}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap justify-end pl-2">
+                                            {orderPrice > 0 && (
+                                                <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
+                                                    수수료 {isDiscount ? '10%' : '20%'} | 필요 캐쉬 ({requiredCash.toLocaleString()} C)
+                                                </Badge>
+                                            )}
+                                            <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 shrink-0">
+                                                {order.sender_company?.name || '타업체'}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100">
-                                        {order.sender_company?.name || '타업체'}
-                                    </Badge>
-                                </div>
 
                                 {order.notes && (
                                     <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
@@ -372,7 +394,7 @@ export default function SharedOrdersPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    ))
+                    )})
                 )}
             </div>
 

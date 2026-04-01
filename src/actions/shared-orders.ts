@@ -479,7 +479,11 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
 
     // [캐쉬 잔액 체크 로직]
     const orderPrice = extractOrderPrice(order)
-    const requiredCash = Math.floor(orderPrice * 0.2) // 20%
+    const parsedDetailsInfo = order.parsed_details || {}
+    const isDiscount = parsedDetailsInfo.reward_type === 'discount'
+    const feeRate = isDiscount ? 0.1 : 0.2
+    const requiredCash = Math.floor(orderPrice * feeRate)
+
     if (currentCash < requiredCash) {
         return { success: false, error: `캐쉬 잔액이 부족해 요청할 수 없습니다.\n필요 캐쉬: ${requiredCash.toLocaleString()} C\n현재 잔액: ${currentCash.toLocaleString()} C` }
     }
@@ -498,7 +502,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
             .eq('id', orderId)
 
         if (!updateError) {
-            // [캐쉬 20% 시스템 차감 로직 - 자동 배정이므로 즉시 차감]
+            // [캐쉬 (10~20%) 시스템 차감 로직 - 자동 배정이므로 즉시 차감]
             if (requiredCash > 0) {
                 await adminSupabase.from('companies')
                     .update({ cash: currentCash - requiredCash })
@@ -509,7 +513,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
                     type: 'system_deduct',
                     amount: requiredCash,
                     balance_after: currentCash - requiredCash,
-                    description: `[공유오더수수료] 자동 배정 확정으로 인한 캐쉬 차감`
+                    description: `[공유오더수수료 ${isDiscount ? '10%' : '20%'}] 자동 배정 확정으로 인한 캐쉬 차감`
                 })
             }
 
@@ -598,7 +602,10 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
         
     const currentCash = assigneeCompany?.cash || 0
     const orderPrice = extractOrderPrice(order)
-    const requiredCash = Math.floor(orderPrice * 0.2)
+    const parsedOrderDetails = order.parsed_details || {}
+    const isDiscountSetup = parsedOrderDetails.reward_type === 'discount'
+    const dynamicFeeRate = isDiscountSetup ? 0.1 : 0.2
+    const requiredCash = Math.floor(orderPrice * dynamicFeeRate)
 
     if (currentCash < requiredCash) {
         return { success: false, error: `업체의 캐쉬 잔액이 부족해 확정할 수 없습니다.\n업체 잔여: ${currentCash.toLocaleString()} C\n필요 캐쉬: ${requiredCash.toLocaleString()} C` }
@@ -632,7 +639,7 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
             type: 'system_deduct',
             amount: requiredCash,
             balance_after: currentCash - requiredCash,
-            description: `[공유오더수수료] 배정 확정으로 인한 캐쉬 차감`
+            description: `[공유오더수수료 ${isDiscountSetup ? '10%' : '20%'}] 배정 확정으로 인한 캐쉬 차감`
         })
     }
 
