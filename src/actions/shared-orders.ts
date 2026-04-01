@@ -294,14 +294,14 @@ export async function updateSharedOrder(orderId: string, data: CreateOrderData):
 
 /** 내가 등록한 오더 목록 */
 export async function getMySharedOrders() {
-    const { supabase, companyId } = await getAuthCompany()
+    const { companyId } = await getAuthCompany()
     if (!companyId) return []
 
     const adminSupabase = createAdminClient()
 
-    const { data: orders, error } = await supabase
+    const { data: orders, error } = await adminSupabase
         .from('shared_orders')
-        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, worker_name)')
+        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, worker:worker_id(name)), applicants:shared_order_applicants(company:company_id(id, name, code))')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 

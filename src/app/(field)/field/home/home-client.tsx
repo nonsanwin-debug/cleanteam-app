@@ -162,9 +162,9 @@ export function FieldHomeClient({
                                                 <div className="flex items-center gap-1.5 bg-slate-100 w-fit px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700">
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
                                                     {order.accepted_company.name}
-                                                    {order.transferred_site?.worker_name && (
+                                                    {order.transferred_site?.worker?.name && (
                                                         <span className="text-slate-500 border-l border-slate-300 ml-1 pl-1.5 font-medium">
-                                                            팀장: {order.transferred_site.worker_name}
+                                                            팀장: {order.transferred_site.worker.name}
                                                         </span>
                                                     )}
                                                 </div>
