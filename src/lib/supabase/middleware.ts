@@ -64,6 +64,13 @@ export async function updateSession(request: NextRequest) {
     // refesh session
     const { data: { user } } = await supabase.auth.getUser()
 
+    const hostname = request.headers.get('host') || ''
+
+    // 파트너 전용 도메인 접속 처리
+    if (hostname.includes('nexuspartner.kr') && request.nextUrl.pathname === '/') {
+        return NextResponse.redirect(new URL('/field/home', request.url))
+    }
+
     // Protected Routes Logic
     if (request.nextUrl.pathname.startsWith('/master')) {
         if (!user) {
