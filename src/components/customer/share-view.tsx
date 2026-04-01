@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles, Clock } from 'lucide-react'
 import { AdBanner } from '@/components/customer/ad-banner'
 
@@ -66,7 +67,7 @@ export function ShareView({ siteId }: { siteId: string }) {
             // Fetch Site
             const { data: siteData, error: siteError } = await supabase
                 .from('sites')
-                .select('*, worker:users!worker_id(name, phone)') // Join with users table
+                .select('*, worker:users!worker_id(name, phone), company:companies!company_id(name)') // Join with users and companies table
                 .eq('id', siteId)
                 .single()
 
@@ -172,12 +173,65 @@ export function ShareView({ siteId }: { siteId: string }) {
         )
     }
 
+    // 작업 시작 전(scheduled) 접근 제한 화면
+    if (site.status === 'scheduled') {
+        return (
+            <div className="min-h-screen bg-slate-50 pb-20">
+                {/* Header */}
+                <header className="bg-white border-b sticky top-0 z-10">
+                    <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
+                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="customer-grad-1-restricted" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#4F46E5" />
+                                        <stop offset="100%" stopColor="#22D3EE" />
+                                    </linearGradient>
+                                    <linearGradient id="customer-grad-2-restricted" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#22D3EE" />
+                                        <stop offset="100%" stopColor="#10B981" />
+                                    </linearGradient>
+                                    <linearGradient id="customer-grad-3-restricted" x1="0%" y1="100%" x2="0%" y2="0%">
+                                        <stop offset="0%" stopColor="#10B981" />
+                                        <stop offset="100%" stopColor="#BEF264" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="url(#customer-grad-1-restricted)" />
+                                <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="url(#customer-grad-3-restricted)" />
+                                <path d="M5.25 4.75L18.75 19.25" stroke="url(#customer-grad-2-restricted)" strokeWidth="5.5" strokeLinecap="round" />
+                            </svg>
+                            <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
+                        </Link>
+                        <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
+                            {site.name}
+                        </div>
+                    </div>
+                </header>
+
+                <main className="max-w-md mx-auto p-4 mt-8">
+                    <Card className="border-none shadow-sm overflow-hidden text-center p-8 bg-white border border-slate-100">
+                        <div className="mx-auto w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-5">
+                            <Clock className="w-7 h-7 text-slate-400" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 mb-3">작업 대기 중</h2>
+                        <p className="text-slate-600 text-[15px] leading-relaxed break-keep">
+                            <strong className="text-blue-600 font-semibold">[{site.company?.name || '담당 업체'}] [{site.worker?.name || site.worker_name || '담당 팀장'}]</strong>님의 작업 시작 처리가 되지 않아 현장 카드 열람이 제한되고 있습니다.<br/><br/>작업 시작 시 자동으로 활성화될 예정입니다.
+                        </p>
+                    </Card>
+                    <div className="mt-8">
+                        <AdBanner placement="share_above_text" />
+                    </div>
+                </main>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
                         <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="customer-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -198,7 +252,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                             <path d="M5.25 4.75L18.75 19.25" stroke="url(#customer-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
                         </svg>
                         <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
-                    </div>
+                    </Link>
                     <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                         {site.name}
                     </div>
