@@ -26,6 +26,7 @@ export function FieldProfileClient({
     const [isExchangeOpen, setIsExchangeOpen] = useState(false)
     const [exchangeAmount, setExchangeAmount] = useState('')
     const [isExchanging, setIsExchanging] = useState(false)
+    const [recipientPhone, setRecipientPhone] = useState(profile.phone || '')
 
     const handleExchange = async () => {
         const amount = parseInt(exchangeAmount) || 0
@@ -37,9 +38,13 @@ export function FieldProfileClient({
             toast.error('보유한 포인트보다 많은 금액은 교환할 수 없습니다.')
             return
         }
+        if (!recipientPhone.trim()) {
+            toast.error('선물 받을 전화번호를 입력해주세요.')
+            return
+        }
 
         setIsExchanging(true)
-        const result = await exchangeNaverPayPoints(amount)
+        const result = await exchangeNaverPayPoints(amount, recipientPhone)
         setIsExchanging(false)
 
         if (result.success) {
@@ -197,6 +202,19 @@ export function FieldProfileClient({
                                     전액
                                 </Button>
                             </div>
+                        </div>
+
+                        <div className="space-y-2 mt-2">
+                            <Label htmlFor="recipient-phone">선물 받을 전화번호</Label>
+                            <Input 
+                                id="recipient-phone"
+                                type="text"
+                                placeholder="010-0000-0000"
+                                className="font-medium"
+                                value={recipientPhone}
+                                onChange={(e) => setRecipientPhone(e.target.value)}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">이 번호로 네이버페이 쿠폰이 발송됩니다.</p>
                         </div>
                     </div>
                     

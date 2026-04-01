@@ -1,0 +1,21 @@
+﻿
+C:\Users\UserPC\Desktop\cleanteam\src\actions\shared-orders.ts
+    3:10  warning  'createClient' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   14:42  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  279:23  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  330:44  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  330:81  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  331:9   error    'applicantsGrouped' is never reassigned. Use 'const' instead                                                         prefer-const
+  331:43  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  354:31  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  419:37  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  426:61  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  428:31  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  523:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  737:17  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  954:38  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  954:81  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+??15 problems (14 errors, 1 warning)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

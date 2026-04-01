@@ -3,8 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-// 네이버페이 포인트 교환 처리 (파트너 활동 포인트 차감)
-export async function exchangeNaverPayPoints(amount: number) {
+// 네이버페이 포인트 교환 처리 (파트너 활동 포인트 차감 + 출금 요청)
+export async function exchangeNaverPayPoints(amount: number, recipientPhone: string) {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -67,10 +67,28 @@ export async function exchangeNaverPayPoints(amount: number) {
                 company_id: profile.company_id,
                 amount: -amount,
                 type: 'naver_pay_exchange',
-                description: '[출금] 네이버페이 포인트 교환'
+                description: `[출금 대기] 네이버페이 포인트 교환 (수령번호: ${recipientPhone})`
             })
             
-
+        // Insert into withdrawal_requests for the Master UI
+        const { error: withdrawError } = await supabaseAdmin
+            .from('withdrawal_requests')
+            .insert({
+                user_id: user.id,
+                company_id: profile.company_id,
+                amount: amount,
+                status: 'pending',
+                bank_name: '네이버페이 포인트',
+                account_number: recipientPhone,
+                account_holder: profile.name
+            })
+            
+        if (withdrawError) {
+            console.error('Failed to create withdrawal request:', withdrawError)
+            // It's not a fatal error because the points were successfully deducted and logged, 
+            // but it will cause issues for master visibility. We should throw it to catch it.
+            throw withdrawError
+        }
 
         revalidatePath('/field/profile')
         return { success: true }
