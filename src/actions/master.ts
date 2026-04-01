@@ -92,7 +92,7 @@ export async function updateCompanyStatus(companyId: string, status: 'approved' 
     }
 }
 
-export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct'): Promise<ActionResponse> {
+export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct', currency: 'points' | 'cash' = 'points'): Promise<ActionResponse> {
     try {
         if (amount <= 0) {
             return { success: false, error: '올바른 금액을 입력하세요.' }
@@ -103,10 +103,10 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
 
         const adminClient = createAdminClient()
         
-        // 1. Get current company point
+        // 1. Get current company point/cash
         const { data: company, error: fetchError } = await adminClient
             .from('companies')
-            .select('points, name')
+            .select('points, cash, name')
             .eq('id', companyId)
             .single()
             
@@ -114,28 +114,30 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
             return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
         }
 
-        let newBalance = company.points || 0
+        let newBalance = currency === 'points' ? (company.points || 0) : (company.cash || 0)
         if (actionType === 'add') {
             newBalance += amount
         } else {
             newBalance -= amount
             if (newBalance < 0) {
-                return { success: false, error: '업체의 잔여 포인트보다 크게 차감할 수 없습니다.' }
+                return { success: false, error: `업체의 잔여 ${currency === 'points' ? '포인트' : '캐쉬'}보다 크게 차감할 수 없습니다.` }
             }
         }
 
-        // 2. Update company points
+        // 2. Update company points/cash
+        const updatePayload = currency === 'points' ? { points: newBalance } : { cash: newBalance }
         const { error: updateError } = await adminClient
             .from('companies')
-            .update({ points: newBalance })
+            .update(updatePayload)
             .eq('id', companyId)
 
         if (updateError) {
-            console.error('Error updating company points:', updateError)
-            return { success: false, error: '포인트 처리에 실패했습니다.' }
+            console.error('Error updating company balance:', updateError)
+            return { success: false, error: '잔액 처리에 실패했습니다.' }
         }
 
-        // 3. Log (master_logs or wallet_logs) - Optional: could insert into wallet_logs as type 'system_add' to track master movements
+        // 3. Log (master_logs or wallet_logs)
+        const logTypeName = currency === 'points' ? '포인트' : '캐쉬'
         const { error: logError } = await adminClient
             .from('wallet_logs')
             .insert({
@@ -143,7 +145,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
                 type: actionType === 'add' ? 'manual_add' : 'manual_deduct',
                 amount: amount,
                 balance_after: newBalance,
-                description: `마스터 관리자 ${actionType === 'add' ? '포인트 충전' : '포인트 환수'}`
+                description: `마스터 관리자 ${logTypeName} ${actionType === 'add' ? '충전(지급)' : '차감(환수)'}`
             })
 
         if (logError) {

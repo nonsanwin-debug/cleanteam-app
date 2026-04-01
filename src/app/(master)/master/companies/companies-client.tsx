@@ -13,12 +13,13 @@ import { createMasterNotice } from '@/actions/inquiries'
 import { RefreshCw, CheckCircle, XCircle, Plus, Minus, Building2, MessageSquarePlus, Send } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: any[] }) {
     const router = useRouter()
     const [isUpdating, setIsUpdating] = useState(false)
-    const [pointDialog, setPointDialog] = useState<{ open: boolean, companyId: string, companyName: string, actionType: 'add' | 'deduct' }>({
-        open: false, companyId: '', companyName: '', actionType: 'add'
+    const [pointDialog, setPointDialog] = useState<{ open: boolean, companyId: string, companyName: string, actionType: 'add' | 'deduct', currency: 'points' | 'cash' }>({
+        open: false, companyId: '', companyName: '', actionType: 'add', currency: 'points'
     })
     const [pointAmount, setPointAmount] = useState<string>('')
 
@@ -56,7 +57,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
         }
 
         setIsUpdating(true)
-        const result = await manageCompanyPoints(pointDialog.companyId, amount, pointDialog.actionType)
+        const result = await manageCompanyPoints(pointDialog.companyId, amount, pointDialog.actionType, pointDialog.currency)
         setIsUpdating(false)
 
         if (result.success) {
@@ -116,6 +117,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                     <th className="p-4 font-medium text-slate-500 w-[200px]">업체명</th>
                                     <th className="p-4 font-medium text-slate-500 w-[100px]">상태</th>
                                     <th className="p-4 font-medium text-slate-500 w-[150px]">잔여 포인트</th>
+                                    <th className="p-4 font-medium text-slate-500 w-[150px]">보유 캐쉬</th>
                                     <th className="p-4 font-medium text-slate-500 w-[150px]">가입일</th>
                                     <th className="p-4 font-medium text-slate-500 text-right">관리</th>
                                 </tr>
@@ -133,6 +135,9 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                         </td>
                                         <td className="p-4 font-bold text-slate-700">
                                             {company.points?.toLocaleString() || 0} P
+                                        </td>
+                                        <td className="p-4 font-bold text-emerald-600">
+                                            {company.cash?.toLocaleString() || 0} C
                                         </td>
                                         <td className="p-4 text-slate-500">
                                             {format(new Date(company.created_at), 'yyyy-MM-dd')}
@@ -153,11 +158,11 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                                 )}
                                                 {company.status === 'approved' && (
                                                     <>
-                                                        <Button size="sm" variant="outline" className="border-green-200 text-green-600 hover:bg-green-50" onClick={() => setPointDialog({ open: true, companyId: company.id, companyName: company.name, actionType: 'add' })}>
+                                                        <Button size="sm" variant="outline" className="border-green-200 text-green-600 hover:bg-green-50" onClick={() => setPointDialog({ open: true, companyId: company.id, companyName: company.name, actionType: 'add', currency: 'points' })}>
                                                             <Plus className="w-4 h-4 mr-1" />
-                                                            충전
+                                                            지급
                                                         </Button>
-                                                        <Button size="sm" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setPointDialog({ open: true, companyId: company.id, companyName: company.name, actionType: 'deduct' })}>
+                                                        <Button size="sm" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setPointDialog({ open: true, companyId: company.id, companyName: company.name, actionType: 'deduct', currency: 'points' })}>
                                                             <Minus className="w-4 h-4 mr-1" />
                                                             차감
                                                         </Button>
@@ -184,7 +189,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                 ))}
                                 {initialCompanies.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                                        <td colSpan={7} className="p-8 text-center text-slate-500">
                                             등록된 업체가 없습니다.
                                         </td>
                                     </tr>
@@ -198,13 +203,31 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
             <Dialog open={pointDialog.open} onOpenChange={(open) => !open && setPointDialog({ ...pointDialog, open: false })}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{pointDialog.actionType === 'add' ? '포인트 충전' : '포인트 차감'}</DialogTitle>
+                        <DialogTitle>{pointDialog.actionType === 'add' ? '캐쉬/포인트 지급(충전)' : '캐쉬/포인트 차감(환수)'}</DialogTitle>
                         <DialogDescription>
-                            {pointDialog.companyName} 업체에 포인트를 {pointDialog.actionType === 'add' ? '충전' : '차감'}합니다.
+                            {pointDialog.companyName} 업체에 캐쉬 또는 관리포인트를 {pointDialog.actionType === 'add' ? '지급' : '차감'}합니다.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-6 py-4">
+                        <div className="space-y-3">
+                            <Label>항목 선택</Label>
+                            <RadioGroup 
+                                value={pointDialog.currency} 
+                                onValueChange={(val: 'points' | 'cash') => setPointDialog({ ...pointDialog, currency: val })}
+                                className="flex gap-4"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="points" id="r1" />
+                                    <Label htmlFor="r1">관리포인트 (P)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="cash" id="r2" />
+                                    <Label htmlFor="r2">캐쉬 (C)</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+
                         <div className="space-y-2">
                             <Label>금액</Label>
                             <div className="relative">
@@ -215,7 +238,9 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                     className="pl-8 text-lg font-bold"
                                     placeholder="0"
                                 />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">P</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                                    {pointDialog.currency === 'points' ? 'P' : 'C'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -228,7 +253,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                             disabled={isUpdating || !pointAmount}
                         >
                             {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                            {pointDialog.actionType === 'add' ? '충전하기' : '차감하기'}
+                            {pointDialog.actionType === 'add' ? '지급하기' : '차감하기'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
