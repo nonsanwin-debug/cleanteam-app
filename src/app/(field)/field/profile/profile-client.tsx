@@ -52,7 +52,7 @@ export function FieldProfileClient({
                         </div>
                         
                         <div className="pt-12">
-                            <h2 className="text-xl font-bold text-slate-800">{profile.name} <span className="text-sm font-medium text-slate-500">부동산 대표님</span></h2>
+                            <h2 className="text-xl font-bold text-slate-800">{profile.name} <span className="text-sm font-medium text-slate-500">파트너님</span></h2>
                             
                             <div className="mt-4 space-y-3">
                                 <div className="flex items-center gap-3 text-slate-600">

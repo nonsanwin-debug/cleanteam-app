@@ -117,9 +117,9 @@ export default function PartnerLoginPage() {
                             <span className="pt-1">NEXUS</span>
                         </span>
                     </div>
-                    <CardTitle className="text-xl font-bold text-slate-800">부동산 파트너 로그인</CardTitle>
+                    <CardTitle className="text-xl font-bold text-slate-800">파트너 로그인</CardTitle>
                     <CardDescription className="text-base mt-2">
-                        NEXUS와 제휴된 부동산 중개인 전용입니다.
+                        NEXUS와 제휴된 파트너 전용입니다.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
