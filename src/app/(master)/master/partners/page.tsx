@@ -10,8 +10,8 @@ export default async function MasterPartnersPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">파트너(부동산중개) 관리</h1>
-                    <p className="text-slate-500 mt-1">NEXUS 플랫폼과 제휴된 부동산 파트너(중개인) 계정을 관리합니다.</p>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">파트너업체 관리</h1>
+                    <p className="text-slate-500 mt-1">NEXUS 플랫폼과 제휴된 부동산 파트너 업체를 관리합니다.</p>
                 </div>
             </div>
 

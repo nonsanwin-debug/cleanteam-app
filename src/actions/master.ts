@@ -34,10 +34,10 @@ export async function getMasterCompanies() {
 
     const adminClient = createAdminClient()
 
-    // 1. Fetch companies, excluding deleted ones
+    // 1. Fetch companies with their users' roles, excluding deleted ones
     const { data: companies, error } = await adminClient
         .from('companies')
-        .select('*')
+        .select('*, users(role)')
         .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
@@ -46,7 +46,16 @@ export async function getMasterCompanies() {
         return []
     }
 
-    return companies || []
+    // Filter out partner-only companies (if ANY user has role 'partner', it's a partner company)
+    const cleaningCompanies = (companies || []).filter(c => {
+        if (c.users && c.users.length > 0) {
+            const isPartnerCompany = c.users.some((u: any) => u.role === 'partner');
+            return !isPartnerCompany;
+        }
+        return true;
+    });
+
+    return cleaningCompanies
 }
 
 export async function updateCompanyStatus(companyId: string, status: 'approved' | 'rejected' | 'deleted'): Promise<ActionResponse> {
@@ -196,7 +205,7 @@ export async function getMasterPartners() {
         .from('users')
         .select(`
             id, name, phone, email, role, status, created_at, account_info, current_money, 
-            companies(name, code, status)
+            companies(id, name, code, status, points)
         `)
         .eq('role', 'partner')
         .neq('status', 'deleted')

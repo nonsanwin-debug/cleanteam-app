@@ -6,14 +6,17 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
-import { deleteUserForce } from '@/actions/master'
-import { Trash2, Building2, Search, PlusCircle, Loader2 } from 'lucide-react'
+import { deleteUserForce, manageCompanyPoints } from '@/actions/master'
+import { Trash2, Building2, Search, PlusCircle, Loader2, Plus, Minus, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogTrigger,
     DialogFooter,
     DialogClose,
@@ -33,7 +36,43 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
     const [partnerPhone, setPartnerPhone] = useState('')
     const [partnerPassword, setPartnerPassword] = useState('')
 
+    // Point Management State
+    const [pointDialog, setPointDialog] = useState<{ open: boolean, companyId: string, companyName: string, actionType: 'add' | 'deduct', currency: 'points' | 'cash' }>({
+        open: false, companyId: '', companyName: '', actionType: 'add', currency: 'points'
+    })
+    const [pointAmount, setPointAmount] = useState<string>('')
+
     const supabase = createClient()
+
+    const handlePointUpdate = async () => {
+        const amount = parseInt(pointAmount.replace(/,/g, ''))
+        if (isNaN(amount) || amount <= 0) {
+            toast.error('유효한 금액을 입력하세요.')
+            return
+        }
+
+        setIsUpdating(true)
+        const result = await manageCompanyPoints(pointDialog.companyId, amount, pointDialog.actionType, pointDialog.currency)
+        setIsUpdating(false)
+
+        if (result.success) {
+            toast.success('포인트가 처리되었습니다.')
+            setPointDialog({ ...pointDialog, open: false })
+            setPointAmount('')
+            router.refresh()
+        } else {
+            toast.error(result.error || '오류가 발생했습니다.')
+        }
+    }
+
+    const formatPoints = (amount: string) => {
+        const value = amount.replace(/[^0-9]/g, '');
+        return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    const onPointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPointAmount(formatPoints(e.target.value))
+    }
 
     const handleDeletePartner = async (userId: string, userName: string) => {
         if (!confirm(`[경고] 정말로 ${userName} 파트너를 강제 탈퇴시키겠습니까?\n이 작업은 복구할 수 없습니다.`)) return
@@ -86,6 +125,7 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
     })
 
     return (
+        <>
         <Card className="shadow-sm border-slate-200">
             <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between">
                 <div>
@@ -153,6 +193,7 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                 <th className="p-3 pl-4 font-semibold text-xs text-slate-600 w-[180px]">이름 (부동산명)</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 w-[100px]">상태</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 w-[200px]">연락처 (로그인 ID)</th>
+                                <th className="p-3 font-semibold text-xs text-slate-600 w-[150px]">보유 활동 포인트</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 w-[180px]">가입일</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 text-right">관리</th>
                             </tr>
@@ -173,18 +214,35 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                             {p.status === 'deleted' && <Badge variant="outline" className="text-red-600 bg-red-50">탈퇴</Badge>}
                                         </td>
                                         <td className="p-4 py-3 text-slate-500 text-sm">{p.phone || '-'}</td>
+                                        <td className="p-4 py-3 font-bold text-slate-700">
+                                            {p.companies?.points?.toLocaleString() || 0} P
+                                        </td>
                                         <td className="p-4 py-3 text-slate-500 text-sm">{format(new Date(p.created_at), 'yyyy-MM-dd HH:mm')}</td>
                                         <td className="p-4 py-3 text-right">
-                                            <Button 
-                                                size="sm" 
-                                                variant="outline" 
-                                                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-8 text-xs" 
-                                                onClick={() => handleDeletePartner(p.id, p.name)} 
-                                                disabled={isUpdating}
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5 mr-1" />
-                                                탈퇴
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                {p.companies?.id && (
+                                                    <>
+                                                        <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 h-8 text-xs px-2" onClick={() => setPointDialog({ open: true, companyId: p.companies.id, companyName: p.name, actionType: 'add', currency: 'points' })}>
+                                                            <Plus className="w-3.5 h-3.5 mr-1" />
+                                                            지급
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 h-8 text-xs px-2" onClick={() => setPointDialog({ open: true, companyId: p.companies.id, companyName: p.name, actionType: 'deduct', currency: 'points' })}>
+                                                            <Minus className="w-3.5 h-3.5 mr-1" />
+                                                            차감
+                                                        </Button>
+                                                    </>
+                                                )}
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline" 
+                                                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-8 text-xs" 
+                                                    onClick={() => handleDeletePartner(p.id, p.name)} 
+                                                    disabled={isUpdating}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                                    탈퇴
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -195,5 +253,46 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
 
             </CardContent>
         </Card>
+
+        {/* 포인트 관리 다이얼로그 추가 */}
+        <Dialog open={pointDialog.open} onOpenChange={(open) => !open && setPointDialog({ ...pointDialog, open: false })}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>활동 포인트 {pointDialog.actionType === 'add' ? '지급' : '차감'}</DialogTitle>
+                    <DialogDescription>
+                        {pointDialog.companyName} 파트너에게 전용 활동 포인트를 {pointDialog.actionType === 'add' ? '지급' : '차감'}합니다.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                    <div className="space-y-2">
+                        <Label>활동 포인트 금액</Label>
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                value={pointAmount}
+                                onChange={onPointChange}
+                                className="pl-8 text-lg font-bold"
+                                placeholder="0"
+                            />
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">P</span>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setPointDialog({ ...pointDialog, open: false })}>취소</Button>
+                    <Button
+                        className={pointDialog.actionType === 'add' ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-rose-600 hover:bg-rose-700 text-white'}
+                        onClick={handlePointUpdate}
+                        disabled={isUpdating || !pointAmount}
+                    >
+                        {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                        {pointDialog.actionType === 'add' ? '지급하기' : '차감하기'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        </>
     )
 }

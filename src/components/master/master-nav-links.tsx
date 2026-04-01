@@ -11,7 +11,7 @@ const NAV_ITEMS = [
     { href: '/master/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
     { href: '/master/companies', icon: Building2, label: '업체 관리', iconColor: 'text-rose-500' },
     { href: '/master/users', icon: Users, label: '이용자 관리', iconColor: 'text-emerald-500' },
-    { href: '/master/partners', icon: Building2, label: '파트너(부동산중개)', iconColor: 'text-teal-500' },
+    { href: '/master/partners', icon: Building2, label: '파트너업체', iconColor: 'text-teal-500' },
     { href: '/master/cash-requests', icon: Wallet, label: '캐쉬 충전 관리', iconColor: 'text-cyan-500' },
     { href: '/master/ads', icon: Megaphone, label: '광고 관리', iconColor: 'text-indigo-400' },
     { href: '/master/inquiries', icon: MessageSquarePlus, label: '업체 문의 관리', iconColor: 'text-purple-500', showBadge: true },
