@@ -48,6 +48,25 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [noPhotos, setNoPhotos] = useState(false)
     const [images, setImages] = useState<File[]>([])
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
+    const [errorField, setErrorField] = useState<string | null>(null)
+
+    const handleValidationError = (fieldId: string, message: string) => {
+        toast.error(message)
+        const applyScroll = () => {
+            const el = document.getElementById(`field-${fieldId}`)
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                setErrorField(fieldId)
+                setTimeout(() => setErrorField(null), 1500)
+            }
+        }
+        if (step !== 1) {
+            setStep(1)
+            setTimeout(applyScroll, 100)
+        } else {
+            applyScroll()
+        }
+    }
 
     const getPricePerPyeong = (type: string) => {
         if (type === '입주청소' || type === '이사청소') return 12000
@@ -122,13 +141,13 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 
     const handleSubmit = async () => {
         // Validate
-        if (!cleanType) { toast.error('청소 종류를 먼저 선택해주세요.'); return }
-        if (!residentialType) { toast.error('주거 형태를 먼저 선택해주세요.'); return }
-        if (!address.trim()) { toast.error('기본 주소를 입력해주세요.'); return }
-        if (!workDate) { toast.error('청소 날짜를 지정해주세요.'); return }
-        if (!timePreference) { toast.error('희망 청소 시간을 선택해주세요.'); return }
-        if (!areaSize) { toast.error('평수를 입력해주세요.'); return }
-        if (!customerName || !customerPhone) { toast.error('고객 정보를 입력해주세요.'); return }
+        if (!cleanType) return handleValidationError('cleanType', '청소 종류를 먼저 선택해주세요.')
+        if (!residentialType) return handleValidationError('residentialType', '주거 형태를 먼저 선택해주세요.')
+        if (!address.trim()) return handleValidationError('address', '기본 주소를 입력해주세요.')
+        if (!workDate) return handleValidationError('workDate', '청소 날짜를 지정해주세요.')
+        if (!timePreference) return handleValidationError('timePreference', '희망 청소 시간을 선택해주세요.')
+        if (!areaSize) return handleValidationError('areaSize', '평수를 입력해주세요.')
+        if (!customerName || !customerPhone) return handleValidationError('customerInfo', '고객 정보를 입력해주세요.')
 
         setIsSubmitting(true)
         
@@ -222,7 +241,7 @@ ${notes}
 
                         <div className="space-y-4">
                             <div className="space-y-4">
-                                <div className="space-y-2">
+                                <div id="field-workDate" className={`space-y-2 transition-all duration-300 ${errorField === 'workDate' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                     <Label className="text-slate-700">요청 날짜 *</Label>
                                     <Input 
                                         type="date"
@@ -232,7 +251,7 @@ ${notes}
                                         min={new Date().toISOString().split('T')[0]} // 오늘부터 선택 가능
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div id="field-timePreference" className={`space-y-2 transition-all duration-300 ${errorField === 'timePreference' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                     <Label className="text-slate-700">희망 시간 *</Label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {TIME_PREFS.map(pref => (
@@ -252,7 +271,7 @@ ${notes}
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div id="field-address" className={`space-y-2 transition-all duration-300 ${errorField === 'address' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                 <Label className="text-slate-700">기본 주소 (동/호수 제외) *</Label>
                                 <div className="flex gap-2">
                                     <Input 
@@ -282,7 +301,7 @@ ${notes}
                             </div>
                             
                             <div className="space-y-4">
-                                <div className="space-y-2">
+                                <div id="field-cleanType" className={`space-y-2 transition-all duration-300 ${errorField === 'cleanType' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                     <Label className="text-slate-700">청소 종류 *</Label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {CLEANING_TYPES.map(type => (
@@ -301,7 +320,7 @@ ${notes}
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 pb-2">
+                                <div id="field-residentialType" className={`space-y-2 pb-2 transition-all duration-300 ${errorField === 'residentialType' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                     <Label className="text-slate-700">주거 형태 *</Label>
                                     <div className="relative">
                                         <select 
@@ -349,7 +368,7 @@ ${notes}
                                     />
                                 </div>
 
-                                <div className="space-y-2">
+                                <div id="field-areaSize" className={`space-y-2 transition-all duration-300 ${errorField === 'areaSize' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                     <Label className="text-slate-700">평수 (공급면적) *</Label>
                                     <div className="relative">
                                         <Input 
@@ -423,7 +442,7 @@ ${notes}
 
                                 <div className="pt-2 pb-1 border-t border-slate-100">
                                     <h3 className="text-slate-800 font-semibold mb-3">고객 정보</h3>
-                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div id="field-customerInfo" className={`grid grid-cols-2 gap-3 mb-3 transition-all duration-300 ${errorField === 'customerInfo' ? 'animate-bounce ring-2 ring-rose-400 p-3 rounded-xl bg-rose-50/50' : ''}`}>
                                         <div className="space-y-2">
                                             <Label className="text-slate-700">고객명 *</Label>
                                             <Input 
@@ -497,14 +516,13 @@ ${notes}
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
                             onClick={() => {
-                                if (!cleanType) return toast.error('청소 종류를 선택해주세요.')
-                                if (!structureType && !residentialType) return toast.error('주거 형태를 선택해주세요.')
-                                if (!workDate) return toast.error('청소 날짜를 선택해주세요.')
-                                if (!timePreference) return toast.error('희망 청소 시간을 선택해주세요.')
-                                if (!address.trim()) return toast.error('기본 주소를 검색하여 입력해주세요.')
-                                if (!areaSize) return toast.error('평수를 입력해주세요.')
-                                if (!customerName) return toast.error('고객명을 입력해주세요.')
-                                if (!customerPhone) return toast.error('고객 연락처를 입력해주세요.')
+                                if (!workDate) return handleValidationError('workDate', '청소 날짜를 선택해주세요.')
+                                if (!timePreference) return handleValidationError('timePreference', '희망 청소 시간을 선택해주세요.')
+                                if (!address.trim()) return handleValidationError('address', '기본 주소를 검색하여 입력해주세요.')
+                                if (!cleanType) return handleValidationError('cleanType', '청소 종류를 선택해주세요.')
+                                if (!residentialType) return handleValidationError('residentialType', '주거 형태를 선택해주세요.')
+                                if (!areaSize) return handleValidationError('areaSize', '평수를 입력해주세요.')
+                                if (!customerName || !customerPhone) return handleValidationError('customerInfo', '고객 정보를 모두 입력해주세요.')
                                 
                                 setStep(2)
                             }}
