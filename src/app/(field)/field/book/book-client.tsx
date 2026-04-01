@@ -161,6 +161,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             // 2. Format region/notes
             // Admin format: "서울 강남구 30평 30만원" etc.
             let priceString = ''
+            let finalPrice: number | undefined
             if (isNegotiatedType(cleanType)) {
                 priceString = '협의'
             } else {
@@ -168,10 +169,14 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
                 const pricePerPyeong = getPricePerPyeong(cleanType)
                 const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0)
                 let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong)
+                if (calculatedPrice < 150000) {
+                    calculatedPrice = 150000
+                }
                 if (rewardType === 'discount') {
                     calculatedPrice = calculatedPrice * 0.9
                 }
                 
+                finalPrice = calculatedPrice
                 priceString = `${calculatedPrice.toLocaleString()}원`
             }
 
@@ -200,7 +205,7 @@ ${notes}
                 residential_type: residentialType,
                 structure_type: structureType || '',
                 reward_type: rewardType,
-                total_price: calculatedPrice
+                total_price: finalPrice
             })
 
             if (res.success) {
