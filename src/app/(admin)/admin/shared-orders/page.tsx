@@ -330,7 +330,7 @@ export default function SharedOrdersPage() {
                         const requiredCash = Math.floor(orderPrice * feeRate)
 
                         return (
-                            <Card key={order.id} className="overflow-hidden border-l-4 border-l-orange-400">
+                            <Card key={order.id} className={cn("overflow-hidden border-2", isDiscount ? "border-rose-400 shadow-rose-100" : "border-teal-400 shadow-teal-100")}>
                                 <CardContent className="p-4">
                                     <div className="flex flex-col gap-3 mb-3">
                                         <div className="flex items-start justify-between">
