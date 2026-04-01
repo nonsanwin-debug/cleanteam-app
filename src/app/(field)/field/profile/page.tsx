@@ -15,7 +15,7 @@ export default async function FieldProfilePage() {
 
     const { data: profile } = await supabase
         .from('users')
-        .select('name, email, phone, role')
+        .select('name, email, phone, role, company_id')
         .eq('id', user.id)
         .single()
 
@@ -29,15 +29,28 @@ export default async function FieldProfilePage() {
         order.status === 'transferred' && order.transferred_site?.status === 'completed'
     )
     
-    // Estimate transparent revenue tracking based on completed order counts
-    // For placeholder purposes: Partner commission = ~30,000 KRW per successful order
-    const estimatedRevenue = completedOrders.length * 30000
+    // Fetch actual points from company
+    let currentPoints = 0
+    if (profile?.company_id) {
+        // Use service role key to bypass RLS for points if needed or just use normal if RLS allows
+        const supabaseAdmin = await import('@supabase/ssr').then(m => m.createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )).catch(() => supabase)
+        
+        const { data: company } = await supabaseAdmin
+            .from('companies')
+            .select('points')
+            .eq('id', profile.company_id)
+            .single()
+        currentPoints = company?.points || 0
+    }
 
     return <FieldProfileClient 
         profile={{...profile, id: user.id}} 
         stats={{
             totalCompleted: completedOrders.length,
-            estimatedRevenue
+            estimatedRevenue: currentPoints
         }} 
     />
 }

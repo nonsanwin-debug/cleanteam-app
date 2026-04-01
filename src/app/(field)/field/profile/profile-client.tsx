@@ -3,8 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { User, LogOut, Phone, Mail, Award, Info } from 'lucide-react'
+import { User, LogOut, Phone, Mail, Award, Info, Loader2 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { exchangeNaverPayPoints } from '@/actions/points'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -19,6 +23,34 @@ export function FieldProfileClient({
     const router = useRouter()
     const supabase = createClient()
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+    const [isExchangeOpen, setIsExchangeOpen] = useState(false)
+    const [exchangeAmount, setExchangeAmount] = useState('')
+    const [isExchanging, setIsExchanging] = useState(false)
+
+    const handleExchange = async () => {
+        const amount = parseInt(exchangeAmount) || 0
+        if (amount <= 0) {
+            toast.error('교환할 금액을 올바르게 입력해주세요.')
+            return
+        }
+        if (amount > stats.estimatedRevenue) {
+            toast.error('보유한 포인트보다 많은 금액은 교환할 수 없습니다.')
+            return
+        }
+
+        setIsExchanging(true)
+        const result = await exchangeNaverPayPoints(amount)
+        setIsExchanging(false)
+
+        if (result.success) {
+            toast.success(`${amount.toLocaleString()} P 네이버페이 교환 신청이 완료되었습니다!`)
+            setIsExchangeOpen(false)
+            setExchangeAmount('')
+            // UI state refresh will be handled automatically by revalidatePath in the action
+        } else {
+            toast.error('교환 실패', { description: result.error })
+        }
+    }
 
     const handleLogout = async () => {
         setIsLoggingOut(true)
@@ -103,9 +135,13 @@ export function FieldProfileClient({
                             </div>
                         </div>
                         
-                        <p className="text-xs text-slate-400 text-center px-4 leading-relaxed">
-                            실제 정산 금액은 청소 규모 및 특이사항에 따라 달라질 수 있으며, 매월 말일 일괄 정산됩니다.
-                        </p>
+                        <Button 
+                            className="w-full mt-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-sm h-11 font-bold text-base transition-colors"
+                            onClick={() => setIsExchangeOpen(true)}
+                            disabled={stats.estimatedRevenue <= 0}
+                        >
+                            네이버페이 포인트로 교환
+                        </Button>
                     </CardContent>
                 </Card>
 
@@ -123,6 +159,58 @@ export function FieldProfileClient({
                 </div>
 
             </main>
+
+            {/* 네이버페이 포인트 교환 다이얼로그 */}
+            <Dialog open={isExchangeOpen} onOpenChange={setIsExchangeOpen}>
+                <DialogContent className="sm:max-w-md w-[95%]">
+                    <DialogHeader>
+                        <DialogTitle>네이버페이 포인트 교환</DialogTitle>
+                        <DialogDescription>
+                            보유하신 파트너즈 활동 포인트를 네이버페이 포인트로 교환 신청합니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <span className="text-sm text-slate-500 font-medium">현재 보유 포인트</span>
+                            <span className="text-lg font-bold text-teal-700">{stats.estimatedRevenue.toLocaleString()} P</span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="exchange-amount">교환할 포인트</Label>
+                            <div className="relative">
+                                <Input 
+                                    id="exchange-amount"
+                                    type="number"
+                                    placeholder="0"
+                                    className="pr-20 font-bold"
+                                    value={exchangeAmount}
+                                    onChange={(e) => setExchangeAmount(e.target.value)}
+                                />
+                                <Button 
+                                    type="button"
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="absolute right-1 top-1 h-7 text-xs font-semibold text-teal-600 hover:bg-teal-50"
+                                    onClick={() => setExchangeAmount(stats.estimatedRevenue.toString())}
+                                >
+                                    전액
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        <Button variant="outline" onClick={() => setIsExchangeOpen(false)} disabled={isExchanging} className="w-full sm:w-auto">
+                            취소
+                        </Button>
+                        <Button onClick={handleExchange} disabled={isExchanging || !exchangeAmount} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white">
+                            {isExchanging ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            교환 신청
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
