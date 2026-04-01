@@ -144,9 +144,22 @@ export default async function AdminLayout({
                     </Link>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-primary break-keep">{displayName}님 반갑습니다</p>
-                        <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md mt-2">
-                           <span>잔여 포인트</span>
-                           <span>{companyPoints?.toLocaleString() || 0} P</span>
+                        <div className="flex flex-col gap-1.5 mt-2">
+                            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md">
+                               <span>관리포인트</span>
+                               <span>{companyPoints?.toLocaleString() || 0} P</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-emerald-50 text-emerald-800 font-bold rounded-md border border-emerald-100/50 shadow-sm">
+                               <div className="flex items-center gap-1.5">
+                                   <span>캐쉬</span>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                   <span>0 C</span>
+                                   <Link href="/admin/recharge" className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-sm hover:bg-emerald-700 transition-colors shadow-sm tracking-tight font-medium">
+                                       캐쉬충전
+                                   </Link>
+                               </div>
+                            </div>
                         </div>
                     </div>
                 </div>
