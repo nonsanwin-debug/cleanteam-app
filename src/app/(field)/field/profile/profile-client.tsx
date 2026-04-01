@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, LogOut, Phone, Mail, Award, Info } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -81,11 +82,23 @@ export function FieldProfileClient({
                                 <span className="text-2xl font-extrabold text-teal-700">{stats.totalCompleted}건</span>
                             </div>
                             <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center border border-slate-100">
-                                <span className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
-                                    누적 리워드 <Info className="w-3 h-3 text-slate-400" />
-                                </span>
+                                <div className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
+                                    NEXUS 파트너즈 활동 포인트 
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button className="focus:outline-none ml-0.5">
+                                                <Info className="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent side="top" className="w-72 text-xs text-slate-700 leading-relaxed shadow-md border-slate-200">
+                                            예약 현장 완료 시 총 견적금액의 10%를 <br />
+                                            <span className="font-semibold text-teal-600">파트너즈 활동 포인트</span>로 지급합니다<br />
+                                            활동포인트는 네이버페이로 교환가능합니다
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
                                 <span className="text-2xl font-extrabold text-slate-800">
-                                    {stats.estimatedRevenue.toLocaleString()}원
+                                    {stats.estimatedRevenue.toLocaleString()} P
                                 </span>
                             </div>
                         </div>
