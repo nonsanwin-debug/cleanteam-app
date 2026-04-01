@@ -43,7 +43,7 @@ export async function requestCashRecharge(amount: number, method: string) {
     }
 }
 
-// 2. 캐쉬 -> 포인트 전환 (비율 1:1, 즉 1캐쉬 = 1포인트)
+// 2. 캐쉬 -> 포인트 전환 (비율 1:1000, 즉 1캐쉬 = 1000포인트)
 export async function convertCashToPoints(amount: number) {
     try {
         const supabase = await createClient()
@@ -81,14 +81,15 @@ export async function convertCashToPoints(amount: number) {
         // Transaction simulation: deduct cash, add points
         const { error } = await supabase.rpc('convert_cash_to_points', {
             p_company_id: profile.company_id,
-            p_amount: amount
+            p_amount: amount,
+            p_rate: 1000
         })
 
         if (error) {
             console.error('convert_cash_to_points RPC not found, falling back to manual update. Error:', error)
             // Fallback if RPC doesn't exist
             const newCash = (company.cash || 0) - amount
-            const newPoints = (company.points || 0) + amount
+            const newPoints = (company.points || 0) + (amount * 1000)
 
             const { error: updateError } = await supabase
                 .from('companies')

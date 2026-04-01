@@ -92,7 +92,8 @@ export function RechargeClient({ currentCash, currentPoints, requests }: Props) 
         setIsConverting(false)
 
         if (res.success) {
-            toast.success('포인트 전환 완료!', { description: `${amount.toLocaleString()} 캐쉬가 관리포인트로 전환되었습니다.` })
+            const addedPoints = amount * 1000
+            toast.success('포인트 전환 완료!', { description: `${amount.toLocaleString()} 캐쉬가 ${addedPoints.toLocaleString()} 관리포인트로 전환되었습니다.` })
             setConvertAmount('')
         } else {
             toast.error('오류 발생', { description: res.error })
@@ -150,7 +151,7 @@ export function RechargeClient({ currentCash, currentPoints, requests }: Props) 
                 </CardHeader>
                 <CardContent className="pt-5 space-y-4">
                     <p className="text-sm text-slate-500">
-                        충전된 캐쉬를 사용하여 오더 수수료를 결제하기 위한 <strong>관리포인트</strong>로 전환합니다. (전환 비율: 1 캐쉬 = 1 관리포인트)
+                        충전된 캐쉬를 사용하여 오더 수수료를 결제하기 위한 <strong>관리포인트</strong>로 전환합니다. (전환 비율: 1 캐쉬 = 1,000 관리포인트)
                     </p>
                     <div className="flex items-center gap-3">
                         <div className="relative flex-1 max-w-xs">
