@@ -261,6 +261,27 @@ export function ShareView({ siteId }: { siteId: string }) {
                             <strong className="text-blue-600 font-semibold">[{site.company?.name || '담당 업체'}] [{site.worker?.name || site.worker_name || '담당 팀장'}]</strong>님의 작업 시작 처리가 되지 않아 현장 카드 열람이 제한되고 있습니다.<br/><br/>작업 시작 시 자동으로 활성화될 예정입니다.
                         </p>
                     </Card>
+
+                    {(site.worker?.phone || site.worker_phone) && (
+                        <div className="mt-6 px-1">
+                            <h3 className="text-center text-[13px] font-bold text-slate-400 mb-3">담당 팀장 바로 연락하기</h3>
+                            <div className="flex gap-3">
+                                <a href={`tel:${site.worker?.phone || site.worker_phone}`} className="flex flex-col items-center justify-center bg-white shadow-sm border border-slate-100 rounded-xl py-3.5 px-2 flex-1 hover:bg-slate-50 transition-colors">
+                                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                                        <Phone className="w-4 h-4 text-blue-600" />
+                                    </div>
+                                    <span className="text-[13px] font-bold text-slate-700">전화 걸기</span>
+                                </a>
+                                <a href={`sms:${site.worker?.phone || site.worker_phone}`} className="flex flex-col items-center justify-center bg-white shadow-sm border border-slate-100 rounded-xl py-3.5 px-2 flex-1 hover:bg-slate-50 transition-colors">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
+                                        <MessageSquare className="w-4 h-4 text-emerald-600" />
+                                    </div>
+                                    <span className="text-[13px] font-bold text-slate-700">문자 보내기</span>
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="mt-8">
                         <AdBanner placement="share_above_text" />
                     </div>
