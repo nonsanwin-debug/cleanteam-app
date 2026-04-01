@@ -171,8 +171,13 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
                 if (calculatedPrice < 150000) {
                     calculatedPrice = 150000
                 }
+                
+                if (rewardType === 'discount') {
+                    calculatedPrice = calculatedPrice * 0.9
+                }
+                
                 const calculatedPriceManwon = calculatedPrice / 10000
-                priceString = `${calculatedPriceManwon}만원`
+                priceString = `${Number(calculatedPriceManwon.toFixed(2))}만원`
             }
 
             const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${priceString}`
