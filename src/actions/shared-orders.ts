@@ -244,7 +244,6 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
-            total_price: data.total_price || null,
             parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address || data.reward_type
                 ? {
                     ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),
