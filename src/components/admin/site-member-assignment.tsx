@@ -406,15 +406,20 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                                     }
 
                                                                     if (tags.length > 0) {
+                                                                        const visibleTags = tags.filter(t => !t.replace(/\s/g, '').includes('오더공유:'));
+                                                                        if (visibleTags.length === 0 && !remainder) return null;
+                                                                        
                                                                         return (
                                                                             <div key={i} className="flex items-start gap-1.5">
-                                                                                <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
-                                                                                    {tags.map((t, idx) => (
-                                                                                        <span key={idx} className="bg-red-200/60 text-red-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm">
-                                                                                            {t}
-                                                                                        </span>
-                                                                                    ))}
-                                                                                </div>
+                                                                                {visibleTags.length > 0 && (
+                                                                                    <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
+                                                                                        {visibleTags.map((t, idx) => (
+                                                                                            <span key={idx} className="bg-red-200/60 text-red-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm">
+                                                                                                {t}
+                                                                                            </span>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
                                                                                 {remainder && <span className="flex-1 break-words mt-[3px] leading-snug">{remainder}</span>}
                                                                             </div>
                                                                         )
