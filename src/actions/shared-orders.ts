@@ -215,6 +215,7 @@ interface CreateOrderData {
     structure_type?: string
     residential_type?: string
     detail_address?: string
+    reward_type?: string
 }
 
 /** 오더 등록 */
@@ -237,12 +238,13 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
-            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address
+            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address || data.reward_type
                 ? {
                     ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),
                     ...(data.structure_type ? { structure_type: data.structure_type } : {}),
                     ...(data.residential_type ? { residential_type: data.residential_type } : {}),
-                    ...(data.detail_address ? { detail_address: data.detail_address } : {})
+                    ...(data.detail_address ? { detail_address: data.detail_address } : {}),
+                    ...(data.reward_type ? { reward_type: data.reward_type } : {})
                   }
                 : null
         })

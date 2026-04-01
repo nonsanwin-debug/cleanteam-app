@@ -33,6 +33,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const [customerName, setCustomerName] = useState('')
     const [customerPhone, setCustomerPhone] = useState('')
     const [useMyInfo, setUseMyInfo] = useState(false)
+    const [rewardType, setRewardType] = useState<'points' | 'discount'>('points')
     
     const [workDate, setWorkDate] = useState('')
     const [timePreference, setTimePreference] = useState('')
@@ -161,6 +162,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 [요청타입] ${cleanType}
 [건물상태] ${buildingCondition}
 [희망시간] ${timePreference}
+[혜택선택] ${rewardType === 'points' ? '현장 완료 후 10% 포인트 적립' : '결제 시 10% 즉시 할인 적용'}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 [상세 요청내용]
 ${notes}
@@ -178,7 +180,8 @@ ${notes}
                 customer_name: customerName,
                 is_auto_assign: isAutoAssign,
                 residential_type: residentialType,
-                structure_type: structureType || ''
+                structure_type: structureType || '',
+                reward_type: rewardType
             })
 
             if (res.success) {
@@ -378,7 +381,11 @@ ${notes}
                                                 
                                                 const baseTotal = parsedArea * basePricePerPyeong;
                                                 const conditionTotal = parsedArea * conditionAddPerPyeong;
-                                                const finalTotal = Math.max(150000, baseTotal + conditionTotal);
+                                                let finalTotal = Math.max(150000, baseTotal + conditionTotal);
+                                                
+                                                const isDiscount = rewardType === 'discount';
+                                                const discountAmount = isDiscount ? finalTotal * 0.1 : 0;
+                                                const totalAfterDiscount = finalTotal - discountAmount;
 
                                                 return (
                                                     <div className="mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
@@ -398,9 +405,15 @@ ${notes}
                                                                 <span>+{(150000 - (baseTotal + conditionTotal)).toLocaleString()}원</span>
                                                             </div>
                                                         )}
+                                                        {isDiscount && (
+                                                            <div className="flex justify-between text-sm font-semibold text-rose-500 bg-rose-50 -mx-4 px-4 py-1.5 mt-2">
+                                                                <span>10% 즉시 할인 적용</span>
+                                                                <span>-{discountAmount.toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
                                                         <div className="flex justify-between items-center text-base font-bold text-teal-700 pt-2 border-t border-slate-200 mt-2">
                                                             <span>최종 결제금액 <span className="text-xs font-normal text-teal-600/80 tracking-tight ml-1">(부가세 별도)</span></span>
-                                                            <span className="text-lg">{finalTotal.toLocaleString()}원</span>
+                                                            <span className="text-lg">{totalAfterDiscount.toLocaleString()}원</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -450,6 +463,34 @@ ${notes}
                                         />
                                         등록자(나의) 정보로 자동 채우기
                                     </label>
+                                    
+                                    <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                        <Label className="text-slate-800 font-bold mb-1 block">✨ 파트너 리워드 혜택 선택</Label>
+                                        <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${rewardType === 'points' ? 'bg-teal-50 border-teal-500' : 'bg-white border-slate-200'}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="reward-type"
+                                                className="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                                                checked={rewardType === 'points'}
+                                                onChange={() => setRewardType('points')}
+                                            />
+                                            <span className={`text-sm font-medium ${rewardType === 'points' ? 'text-teal-800' : 'text-slate-600'}`}>
+                                                현장 완료 후 10% 포인트 적립
+                                            </span>
+                                        </label>
+                                        <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${rewardType === 'discount' ? 'bg-rose-50 border-rose-400' : 'bg-white border-slate-200'}`}>
+                                            <input 
+                                                type="radio" 
+                                                name="reward-type"
+                                                className="w-4 h-4 text-rose-500 focus:ring-rose-400"
+                                                checked={rewardType === 'discount'}
+                                                onChange={() => setRewardType('discount')}
+                                            />
+                                            <span className={`text-sm font-medium ${rewardType === 'discount' ? 'text-rose-700' : 'text-slate-600'}`}>
+                                                결제 시 10% 즉시 할인 적용
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
