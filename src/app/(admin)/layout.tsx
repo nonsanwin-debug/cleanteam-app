@@ -102,8 +102,8 @@ export default async function AdminLayout({
                 )
             }
             
-            companyPoints = profile?.companies ? (Array.isArray(profile.companies) ? profile.companies[0]?.points : (profile.companies as any)?.points) : 0;
-            companyCash = profile?.companies ? (Array.isArray(profile.companies) ? profile.companies[0]?.cash : (profile.companies as any)?.cash) : 0;
+            companyPoints = company?.points || 0;
+            companyCash = company?.cash || 0;
         }
     }
 
