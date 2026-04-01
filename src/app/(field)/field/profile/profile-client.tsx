@@ -82,7 +82,7 @@ export function FieldProfileClient({
                             </div>
                             <div className="bg-slate-50 rounded-xl p-4 flex flex-col items-center justify-center border border-slate-100">
                                 <span className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
-                                    누적 리워드 (예상) <Info className="w-3 h-3 text-slate-400" />
+                                    누적 리워드 <Info className="w-3 h-3 text-slate-400" />
                                 </span>
                                 <span className="text-2xl font-extrabold text-slate-800">
                                     {stats.estimatedRevenue.toLocaleString()}원
