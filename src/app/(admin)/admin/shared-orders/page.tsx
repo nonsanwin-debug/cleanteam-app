@@ -356,11 +356,9 @@ export default function SharedOrdersPage() {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2 flex-wrap justify-end pl-2">
-                                            {orderPrice > 0 && (
-                                                <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
-                                                    수수료 {isDiscount ? '10%' : '20%'} | 필요 캐쉬 ({requiredCash.toLocaleString()} C)
-                                                </Badge>
-                                            )}
+                                            <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
+                                                수수료 {isDiscount ? '10%' : '20%'} | 필요 캐쉬 ({requiredCash.toLocaleString()} C)
+                                            </Badge>
                                             <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 shrink-0">
                                                 {order.sender_company?.name || '타업체'}
                                             </Badge>
