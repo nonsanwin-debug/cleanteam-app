@@ -94,7 +94,7 @@ export default function PartnerRegisterPage() {
                         </span>
                     </div>
                     <div>
-                        <CardTitle className="text-xl font-bold text-slate-800">부동산 파트너 회원가입</CardTitle>
+                        <CardTitle className="text-xl font-bold text-slate-800">파트너 회원가입</CardTitle>
                         <CardDescription>
                             가입 즉시 NEXUS 오더 공유 파트너십이 시작됩니다.
                         </CardDescription>
@@ -103,7 +103,7 @@ export default function PartnerRegisterPage() {
                 <CardContent>
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div className="space-y-2">
-                            <Label htmlFor="name">상호명 (부동산 이름)</Label>
+                            <Label htmlFor="name">상호명</Label>
                             <Input
                                 id="name"
                                 name="name"
