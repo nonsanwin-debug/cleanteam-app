@@ -360,10 +360,16 @@ export default function SharedOrdersPage() {
                                             </div>
                                         )}
                                         
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
-                                                수수료 {isDiscount ? '10%' : '20%'} | 필요 캐쉬 ({requiredCash.toLocaleString()} C)
-                                            </Badge>
+                                        <div className="flex flex-col items-start gap-1.5 flex-wrap">
+                                            <div className="flex items-center gap-2">
+                                                <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
+                                                    수수료 {isDiscount ? '10%' : '20%'} | 필요 캐쉬 ({requiredCash.toLocaleString()} C)
+                                                </Badge>
+                                            </div>
+                                            <div className={cn("text-xs font-semibold pl-1 leading-snug", isDiscount ? "text-rose-500" : "text-teal-600")}>
+                                                오더 제공자가 {isDiscount ? '할인을' : '리워드를'} 선택 했습니다.<br/>
+                                                {isDiscount ? '잔금이 낮아지므로 수수료는 10% 입니다.' : '잔금할인이 없으므로 수수료는 20% 입니다.'}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -441,6 +447,7 @@ export default function SharedOrdersPage() {
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
                                 </div>
+                                <p className="text-red-500 text-[13px] font-bold text-center mt-3 tracking-tight">※배정이 확정되면 예약금 10%를 요청하세요 ※</p>
                             </CardContent>
                         </Card>
                     )})
