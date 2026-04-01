@@ -162,7 +162,6 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 [요청타입] ${cleanType}
 [건물상태] ${buildingCondition}
 [희망시간] ${timePreference}
-[혜택선택] ${rewardType === 'points' ? '현장 완료 후 10% 포인트 적립' : '결제 시 10% 즉시 할인 적용'}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 [상세 요청내용]
 ${notes}

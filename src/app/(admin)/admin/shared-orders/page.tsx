@@ -374,24 +374,48 @@ export default function SharedOrdersPage() {
                                                 return <div className="text-sm text-slate-600 whitespace-pre-wrap">{order.notes}</div>
                                             }
                                             
-                                            const lines = order.notes.split('\n');
-                                            return lines.map((line: string, i: number) => {
-                                                const match = line.match(/^\[(.*?)\]\s*(.*)$/);
-                                                if (match) {
-                                                    return (
-                                                        <div key={i} className="flex items-start gap-2 text-sm">
+                                            const rType = order.residential_type || parsedDetails.residential_type || '';
+                                            const sType = order.structure_type || parsedDetails.structure_type || '';
+
+                                            const lines = order.notes.split('\n').filter((l: string) => !l.startsWith('[혜택선택]'));
+                                            
+                                            return (
+                                                <>
+                                                    {rType && (
+                                                        <div className="flex items-start gap-2 text-sm">
                                                             <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
-                                                                {match[1]}
+                                                                주거 형태
                                                             </span>
-                                                            <span className="text-slate-700 flex-1 break-words">{match[2]}</span>
+                                                            <span className="text-slate-700 flex-1 break-words">{rType}</span>
                                                         </div>
-                                                    )
-                                                }
-                                                if (line.trim()) {
-                                                    return <div key={i} className="text-sm text-slate-600 pl-[5.5rem] whitespace-pre-wrap break-words">{line}</div>
-                                                }
-                                                return null;
-                                            });
+                                                    )}
+                                                    {sType && (
+                                                        <div className="flex items-start gap-2 text-sm">
+                                                            <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                구조
+                                                            </span>
+                                                            <span className="text-slate-700 flex-1 break-words">{sType}</span>
+                                                        </div>
+                                                    )}
+                                                    {lines.map((line: string, i: number) => {
+                                                        const match = line.match(/^\[(.*?)\]\s*(.*)$/);
+                                                        if (match) {
+                                                            return (
+                                                                <div key={i} className="flex items-start gap-2 text-sm">
+                                                                    <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                        {match[1]}
+                                                                    </span>
+                                                                    <span className="text-slate-700 flex-1 break-words">{match[2]}</span>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        if (line.trim()) {
+                                                            return <div key={i} className="text-sm text-slate-600 pl-[5.5rem] whitespace-pre-wrap break-words">{line}</div>
+                                                        }
+                                                        return null;
+                                                    })}
+                                                </>
+                                            );
                                         })()}
                                     </div>
                                 )}
