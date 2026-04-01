@@ -97,10 +97,6 @@ export function FieldProfileClient({
                                     <Phone className="w-4 h-4 text-teal-600" />
                                     <span className="text-sm">{profile.phone || '연락처 미등록'}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-slate-600">
-                                    <Mail className="w-4 h-4 text-teal-600" />
-                                    <span className="text-sm">{profile.email}</span>
-                                </div>
                             </div>
                         </div>
                     </CardContent>
