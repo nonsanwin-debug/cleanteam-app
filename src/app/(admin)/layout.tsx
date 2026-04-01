@@ -20,12 +20,13 @@ export default async function AdminLayout({
 
     let displayName = '관리자'
     let companyPoints = 0
+    let companyCash = 0
 
     if (user) {
         // Fetch user profile with company info in a single join
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('name, role, company_id, companies(name, code, status, points)')
+            .select('name, role, company_id, companies(name, code, status, points, cash)')
             .eq('id', user.id)
             .single()
 
@@ -49,7 +50,7 @@ export default async function AdminLayout({
                 console.warn('⚠️ Link to company exists but data not fetched. Checking RLS...')
                 const { data: directCompany } = await supabase
                     .from('companies')
-                    .select('name, code, status, points')
+                    .select('name, code, status, points, cash')
                     .eq('id', profile.company_id)
                     .single()
                 if (directCompany) company = directCompany
@@ -102,6 +103,7 @@ export default async function AdminLayout({
             }
             
             companyPoints = profile?.companies ? (Array.isArray(profile.companies) ? profile.companies[0]?.points : (profile.companies as any)?.points) : 0;
+            companyCash = profile?.companies ? (Array.isArray(profile.companies) ? profile.companies[0]?.cash : (profile.companies as any)?.cash) : 0;
         }
     }
 
@@ -154,7 +156,7 @@ export default async function AdminLayout({
                                    <span>캐쉬</span>
                                </div>
                                <div className="flex items-center gap-2">
-                                   <span>0 C</span>
+                                   <span>{companyCash?.toLocaleString() || 0} C</span>
                                    <Link href="/admin/recharge" className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-sm hover:bg-emerald-700 transition-colors shadow-sm tracking-tight font-medium">
                                        캐쉬충전
                                    </Link>
