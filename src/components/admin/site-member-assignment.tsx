@@ -383,27 +383,23 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                     {(site.special_notes || site.residential_type || site.structure_type || site.worker_notes) && (
                                         <div className="pt-2 space-y-1.5 opacity-90">
                                             {(site.special_notes || site.residential_type || site.structure_type) && (
-                                                <div className="text-xs bg-slate-50/80 text-slate-800 p-2.5 rounded border border-slate-200 flex flex-col gap-1">
-                                                    <div className="font-bold text-slate-700 flex items-center gap-1 mb-0.5">특이사항</div>
-                                                    <div className="space-y-1.5 mt-0.5">
+                                                <div className="text-xs bg-white text-slate-800 p-3 rounded-lg border border-slate-100 flex flex-col gap-1 shadow-sm">
+                                                    <div className="font-bold text-slate-700 flex items-center gap-1 mb-1">특이사항/요청내용</div>
+                                                    <div className="space-y-2 mt-0.5">
                                                         {site.residential_type && (
-                                                            <div className="flex items-start gap-1.5">
-                                                                <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
-                                                                    <span className="bg-slate-200/70 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm min-w-16">
-                                                                        주거 형태
-                                                                    </span>
-                                                                </div>
-                                                                <span className="flex-1 break-words mt-[3px] leading-snug">{site.residential_type}</span>
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-100 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 w-[5.5rem] text-center">
+                                                                    주거 형태
+                                                                </span>
+                                                                <span className="flex-1 break-words mt-[1px] leading-snug">{site.residential_type}</span>
                                                             </div>
                                                         )}
                                                         {site.structure_type && (
-                                                            <div className="flex items-start gap-1.5">
-                                                                <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
-                                                                    <span className="bg-slate-200/70 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm min-w-16">
-                                                                        구조
-                                                                    </span>
-                                                                </div>
-                                                                <span className="flex-1 break-words mt-[3px] leading-snug">{site.structure_type}</span>
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-100 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 w-[5.5rem] text-center">
+                                                                    구조
+                                                                </span>
+                                                                <span className="flex-1 break-words mt-[1px] leading-snug">{site.structure_type}</span>
                                                             </div>
                                                         )}
                                                         {(() => {
@@ -430,26 +426,24 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                                         }
 
                                                                         if (tags.length > 0) {
-                                                                            const visibleTags = tags.filter(t => !t.replace(/\s/g, '').includes('오더공유:'));
+                                                                            const visibleTags = tags.filter((t: string) => !t.replace(/\s/g, '').includes('오더공유:'));
                                                                             if (visibleTags.length === 0 && !remainder) return null;
                                                                             
                                                                             return (
-                                                                                <div key={i} className="flex items-start gap-1.5 pt-0.5">
+                                                                                <div key={i} className="flex items-start gap-2 pt-0.5">
                                                                                     {visibleTags.length > 0 && (
-                                                                                        <div className="flex flex-wrap gap-1 mt-0.5 shrink-0">
-                                                                                            {visibleTags.map((t, idx) => (
-                                                                                                <span key={idx} className="bg-slate-200/70 text-slate-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center justify-center whitespace-nowrap shadow-sm">
-                                                                                                    {t}
-                                                                                                </span>
-                                                                                            ))}
-                                                                                        </div>
+                                                                                        visibleTags.map((t, idx) => (
+                                                                                            <span key={idx} className="bg-slate-100 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 w-[5.5rem] text-center">
+                                                                                                {t}
+                                                                                            </span>
+                                                                                        ))
                                                                                     )}
-                                                                                    {remainder && <span className="flex-1 break-words mt-[3px] leading-snug text-slate-700/90">{remainder}</span>}
+                                                                                    {remainder && <span className="flex-1 break-words mt-[3px] leading-snug text-slate-700">{remainder}</span>}
                                                                                 </div>
                                                                             )
                                                                         }
                                                                         if (line.trim()) {
-                                                                            return <div key={i} className="pl-[2px] text-[11px] text-slate-600 break-words whitespace-pre-wrap">{line}</div>
+                                                                            return <div key={i} className="pl-[2px] text-[11px] text-slate-600 break-words whitespace-pre-wrap leading-relaxed">{line}</div>
                                                                         }
                                                                         return null;
                                                                     })}
@@ -460,7 +454,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 </div>
                                             )}
                                             {site.worker_notes && (
-                                                <div className="text-xs bg-blue-50 text-blue-700 p-2 rounded border border-blue-100 flex items-start">
+                                                <div className="text-xs bg-blue-50 text-blue-700 p-3 rounded-lg border border-blue-100 flex items-start shadow-sm">
                                                     <span className="font-bold mr-1.5 shrink-0">팀장메모:</span>
                                                     <span className="whitespace-pre-wrap">{site.worker_notes}</span>
                                                 </div>
