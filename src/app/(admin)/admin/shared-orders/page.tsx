@@ -368,7 +368,32 @@ export default function SharedOrdersPage() {
                                     </div>
 
                                 {order.notes && (
-                                    <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded mb-3">{order.notes}</p>
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5">
+                                        {(() => {
+                                            if (!order.notes.includes('[')) {
+                                                return <div className="text-sm text-slate-600 whitespace-pre-wrap">{order.notes}</div>
+                                            }
+                                            
+                                            const lines = order.notes.split('\n');
+                                            return lines.map((line: string, i: number) => {
+                                                const match = line.match(/^\[(.*?)\]\s*(.*)$/);
+                                                if (match) {
+                                                    return (
+                                                        <div key={i} className="flex items-start gap-2 text-sm">
+                                                            <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                {match[1]}
+                                                            </span>
+                                                            <span className="text-slate-700 flex-1 break-words">{match[2]}</span>
+                                                        </div>
+                                                    )
+                                                }
+                                                if (line.trim()) {
+                                                    return <div key={i} className="text-sm text-slate-600 pl-[5.5rem] whitespace-pre-wrap break-words">{line}</div>
+                                                }
+                                                return null;
+                                            });
+                                        })()}
+                                    </div>
                                 )}
 
                                 <div className="flex gap-2">
