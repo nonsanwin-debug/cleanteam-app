@@ -8,6 +8,21 @@ import { ActionResponse } from '@/types'
 import { sendPushToAdmins } from '@/actions/push'
 
 // ============================================
+// 오더 헬퍼: 금액 추출 기능
+// ============================================
+
+function extractOrderPrice(order: { region?: string | null, total_price?: number | null }): number {
+    let extractedPrice = 0
+    if (order.region) {
+        const priceMatch = order.region.match(/([\d.]+)만원/)
+        if (priceMatch && priceMatch[1]) {
+            extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
+        }
+    }
+    return order.total_price || extractedPrice || 0
+}
+
+// ============================================
 // 업체 관리
 // ============================================
 
@@ -313,7 +328,7 @@ export async function getMySharedOrders() {
 
     // 오픈 상태인 오더들에 대한 지원자 목록 조회
     const openOrderIds = orders.filter((o: any) => o.status === 'open').map((o: any) => o.id)
-    let applicantsGrouped: Record<string, any[]> = {}
+    const applicantsGrouped: Record<string, any[]> = {}
 
     if (openOrderIds.length > 0) {
         const { data: applicants } = await adminSupabase
@@ -451,13 +466,21 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         return { success: false, error: insertError.message }
     }
 
-    // 3. 업체명 조회
-    const { data: myCompany } = await supabase
+    // 3. 업체명 및 캐쉬 조회
+    const { data: myCompanyBase } = await supabase
         .from('companies')
-        .select('name')
+        .select('name, cash')
         .eq('id', companyId)
         .single()
-    const companyName = myCompany?.name || '업체'
+    const companyName = myCompanyBase?.name || '업체'
+    const currentCash = myCompanyBase?.cash || 0
+
+    // [캐쉬 잔액 체크 로직]
+    const orderPrice = extractOrderPrice(order)
+    const requiredCash = Math.floor(orderPrice * 0.2) // 20%
+    if (currentCash < requiredCash) {
+        return { success: false, error: `캐쉬 잔액이 부족해 요청할 수 없습니다.\n필요 캐쉬: ${requiredCash.toLocaleString()} C\n현재 잔액: ${currentCash.toLocaleString()} C` }
+    }
 
     // 4. AI 자동 배정 옵션이 켜져있다면, 첫 번째 요청자(현재 요청자)에게 즉시 배정 확정
     if (order.is_auto_assign) {
@@ -473,6 +496,21 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
             .eq('id', orderId)
 
         if (!updateError) {
+            // [캐쉬 20% 시스템 차감 로직 - 자동 배정이므로 즉시 차감]
+            if (requiredCash > 0) {
+                await adminSupabase.from('companies')
+                    .update({ cash: currentCash - requiredCash })
+                    .eq('id', companyId)
+                    
+                await adminSupabase.from('wallet_logs').insert({
+                    company_id: companyId,
+                    type: 'system_deduct',
+                    amount: requiredCash,
+                    balance_after: currentCash - requiredCash,
+                    description: `[공유오더수수료] 자동 배정 확정으로 인한 캐쉬 차감`
+                })
+            }
+
             // 무조건 현장 관리(Sites)로 자동 이관
             const parsedDetails = order.parsed_details || {}
             const orderToTransfer = {
@@ -482,7 +520,6 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
                 accepted_by: companyId,
                 status: newStatus
             }
-            // @ts-ignore
             if (typeof transferToSite === 'function') await transferToSite(orderToTransfer, companyId, supabase)
 
             // 발신 업체(중개인)에게 알림 발송 - 자동 매칭 성공
@@ -549,6 +586,22 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
         return { success: false, error: '오더를 찾을 수 없거나 이미 마감되었습니다.' }
     }
 
+    // [캐쉬 검증 추가]
+    const adminSupabase = await import('@/lib/supabase/admin').then(m => m.createAdminClient())
+    const { data: assigneeCompany } = await adminSupabase
+        .from('companies')
+        .select('cash')
+        .eq('id', assigneeCompanyId)
+        .single()
+        
+    const currentCash = assigneeCompany?.cash || 0
+    const orderPrice = extractOrderPrice(order)
+    const requiredCash = Math.floor(orderPrice * 0.2)
+
+    if (currentCash < requiredCash) {
+        return { success: false, error: `업체의 캐쉬 잔액이 부족해 확정할 수 없습니다.\n업체 잔여: ${currentCash.toLocaleString()} C\n필요 캐쉬: ${requiredCash.toLocaleString()} C` }
+    }
+
     // 2. 수락 처리 (강제로 무조건 이관)
     const newStatus = 'transferred'
 
@@ -564,6 +617,21 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
     if (updateError) {
         console.error('confirmOrderAssignee error:', updateError)
         return { success: false, error: updateError.message }
+    }
+
+    // [캐쉬 차감 (정상 배정)]
+    if (requiredCash > 0) {
+        await adminSupabase.from('companies')
+            .update({ cash: currentCash - requiredCash })
+            .eq('id', assigneeCompanyId)
+            
+        await adminSupabase.from('wallet_logs').insert({
+            company_id: assigneeCompanyId,
+            type: 'system_deduct',
+            amount: requiredCash,
+            balance_after: currentCash - requiredCash,
+            description: `[공유오더수수료] 배정 확정으로 인한 캐쉬 차감`
+        })
     }
 
     // 3. 업체 관리에 상세정보 무조건 이관 (전화번호나 주소가 미흡해도 현장 카드는 생성함)
@@ -894,16 +962,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
             .eq('id', order.company_id)
             .single()
 
-        // 금액 파싱 (예: "서울 강남구 32평 38.4만원")
-        let extractedPrice = 0
-        if (order.region) {
-            const priceMatch = order.region.match(/([\d.]+)만원/)
-            if (priceMatch && priceMatch[1]) {
-                extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
-            }
-        }
-        
-        const finalTotalPrice = order.total_price || extractedPrice || 0
+        const finalTotalPrice = extractOrderPrice(order)
         const finalBalanceAmount = order.balance_amount || finalTotalPrice
 
         const { data: site, error } = await adminSupabase

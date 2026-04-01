@@ -10,12 +10,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
     const { data, error } = await supabase
-        .from('companies')
-        .select('points, cash, name')
+        .from('shared_orders')
+        .select('*')
         .limit(1);
     
-    console.log('Data:', data);
-    console.log('Error:', error);
+    if (data && data.length > 0) {
+        fs.writeFileSync('schema.json', JSON.stringify(data[0], null, 2));
+    }
 }
 
 test();

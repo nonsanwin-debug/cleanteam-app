@@ -1,36 +1,24 @@
 {
-  "companies": [
-    "id",
-    "name",
-    "created_at",
-    "owner_id",
-    "code",
-    "sms_bank_name",
-    "sms_account_number",
-    "sms_enabled",
-    "sms_message_template",
-    "company_collection_message",
-    "sharing_enabled",
-    "company_code",
-    "promotion_page_enabled",
-    "promotion_contact_number"
-  ],
-  "users": [
-    "id",
-    "name",
-    "phone",
-    "role",
-    "company_id",
-    "status",
-    "account_info",
-    "current_money",
-    "created_at",
-    "worker_type",
-    "email",
-    "initial_password",
-    "display_color",
-    "commission_rate",
-    "sms_bank_name",
-    "sms_account_number"
-  ]
+  "id": "be4eee14-64ad-48c5-a0e6-67b02e9884e7",
+  "company_id": "27885d24-fc28-48bb-ad2b-e38764882a34",
+  "created_by": "54354887-30e1-40fd-a2e2-730883eee3a1",
+  "region": "충남 아산시 32평 44.8만원",
+  "work_date": "2026-04-01",
+  "area_size": "32평",
+  "notes": "[요청타입] 입주청소\n[건물상태] 구축\n[희망시간] 오후 청소 요망\n[자동배정] 직접선택\n[상세 요청내용]\n공동 현관 비밀번호 : \n세대 비밀번호 : \n전달 사항 :",
+  "address": "충남 아산시 배방읍 배방로201번길 10 (북수리, 아산배방금호어울림아파트)",
+  "customer_phone": "010-0000-0000",
+  "customer_name": "넥서스공인중개사",
+  "status": "transferred",
+  "accepted_by": "4d1c9dec-f40c-49a0-aede-b88624dfb150",
+  "accepted_at": "2026-04-01T06:29:29.14+00:00",
+  "transferred_site_id": "975ccb1e-3ce8-42a6-8b34-719a5aee7e65",
+  "created_at": "2026-04-01T06:29:13.795181+00:00",
+  "collection_type": null,
+  "parsed_details": {
+    "detail_address": "105동201호",
+    "structure_type": "방3화2베2",
+    "residential_type": "아파트"
+  },
+  "is_auto_assign": false
 }
