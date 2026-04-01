@@ -6,7 +6,7 @@ import { PhotoUploader } from '@/components/worker/photo-uploader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles, Clock } from 'lucide-react'
+import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles, Clock, ChevronLeft } from 'lucide-react'
 import { AdBanner } from '@/components/customer/ad-banner'
 
 export function ShareView({ siteId }: { siteId: string }) {
@@ -160,14 +160,52 @@ export function ShareView({ siteId }: { siteId: string }) {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
     }, [])
 
-    if (loading) return <div className="p-8 text-center bg-slate-50 min-h-screen">Loading...</div>
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50">
+                <header className="bg-white border-b sticky top-0 z-10">
+                    <div className="max-w-md mx-auto px-4 h-14 flex items-center relative">
+                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-1 rounded-full hover:bg-slate-100 transition-colors">
+                            <ChevronLeft className="w-5 h-5 text-slate-700" />
+                        </Link>
+                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="#4F46E5" />
+                                <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="#10B981" />
+                                <path d="M5.25 4.75L18.75 19.25" stroke="#22D3EE" strokeWidth="5.5" strokeLinecap="round" />
+                            </svg>
+                            <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
+                        </Link>
+                    </div>
+                </header>
+                <div className="p-8 text-center text-slate-500 mt-10">Loading...</div>
+            </div>
+        )
+    }
 
     if (error || !site) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <div className="text-center space-y-2">
-                    <h1 className="text-xl font-bold text-slate-900">유효하지 않은 링크입니다</h1>
-                    <p className="text-slate-500">존재하지 않는 현장이거나 삭제된 링크일 수 있습니다. (Client Error: {error})</p>
+            <div className="min-h-screen bg-slate-50">
+                <header className="bg-white border-b sticky top-0 z-10">
+                    <div className="max-w-md mx-auto px-4 h-14 flex items-center relative">
+                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-1 rounded-full hover:bg-slate-100 transition-colors">
+                            <ChevronLeft className="w-5 h-5 text-slate-700" />
+                        </Link>
+                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="#4F46E5" />
+                                <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="#10B981" />
+                                <path d="M5.25 4.75L18.75 19.25" stroke="#22D3EE" strokeWidth="5.5" strokeLinecap="round" />
+                            </svg>
+                            <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
+                        </Link>
+                    </div>
+                </header>
+                <div className="flex flex-col items-center justify-center p-4 mt-20">
+                    <div className="text-center space-y-2">
+                        <h1 className="text-xl font-bold text-slate-900">유효하지 않은 링크입니다</h1>
+                        <p className="text-slate-500">존재하지 않는 현장이거나 삭제된 링크일 수 있습니다.<br/><span className="text-xs">(Client Error: {error})</span></p>
+                    </div>
                 </div>
             </div>
         )
@@ -180,8 +218,12 @@ export function ShareView({ siteId }: { siteId: string }) {
                 {/* Header */}
                 <header className="bg-white border-b sticky top-0 z-10">
                     <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-0.5 rounded-full hover:bg-slate-100 transition-colors">
+                                <ChevronLeft className="w-5 h-5 text-slate-700" />
+                            </Link>
+                            <Link href="/" className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                                <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                     <linearGradient id="customer-grad-1-restricted" x1="0%" y1="100%" x2="0%" y2="0%">
                                         <stop offset="0%" stopColor="#4F46E5" />
@@ -202,6 +244,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                             </svg>
                             <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
                         </Link>
+                        </div>
                         <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                             {site.name}
                         </div>
@@ -231,8 +274,12 @@ export function ShareView({ siteId }: { siteId: string }) {
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                    <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-0.5 rounded-full hover:bg-slate-100 transition-colors">
+                            <ChevronLeft className="w-5 h-5 text-slate-700" />
+                        </Link>
+                        <Link href="/" className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="customer-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
                                     <stop offset="0%" stopColor="#4F46E5" />
@@ -253,6 +300,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                         </svg>
                         <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
                     </Link>
+                    </div>
                     <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                         {site.name}
                     </div>
