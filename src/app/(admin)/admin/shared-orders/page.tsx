@@ -321,9 +321,14 @@ export default function SharedOrdersPage() {
                         
                         let extractedPrice = 0
                         if (order.region) {
-                            const priceMatch = order.region.match(/([\d.]+)만원/)
-                            if (priceMatch && priceMatch[1]) {
-                                extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
+                            const manwonMatch = order.region.match(/([\d.]+)만원/)
+                            if (manwonMatch && manwonMatch[1]) {
+                                extractedPrice = Math.floor(parseFloat(manwonMatch[1]) * 10000)
+                            } else {
+                                const wonMatch = order.region.match(/([\d,]+)원/)
+                                if (wonMatch && wonMatch[1]) {
+                                    extractedPrice = parseInt(wonMatch[1].replace(/,/g, ''), 10)
+                                }
                             }
                         }
                         const orderPrice = order.total_price || extractedPrice || 0

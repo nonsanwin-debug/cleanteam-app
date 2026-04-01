@@ -14,9 +14,14 @@ import { sendPushToAdmins } from '@/actions/push'
 function extractOrderPrice(order: { region?: string | null, total_price?: number | null }): number {
     let extractedPrice = 0
     if (order.region) {
-        const priceMatch = order.region.match(/([\d.]+)만원/)
-        if (priceMatch && priceMatch[1]) {
-            extractedPrice = Math.floor(parseFloat(priceMatch[1]) * 10000)
+        const manwonMatch = order.region.match(/([\d.]+)만원/)
+        if (manwonMatch && manwonMatch[1]) {
+            extractedPrice = Math.floor(parseFloat(manwonMatch[1]) * 10000)
+        } else {
+            const wonMatch = order.region.match(/([\d,]+)원/)
+            if (wonMatch && wonMatch[1]) {
+                extractedPrice = parseInt(wonMatch[1].replace(/,/g, ''), 10)
+            }
         }
     }
     return order.total_price || extractedPrice || 0
@@ -216,6 +221,7 @@ interface CreateOrderData {
     residential_type?: string
     detail_address?: string
     reward_type?: string
+    total_price?: number
 }
 
 /** 오더 등록 */
@@ -238,6 +244,7 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
+            total_price: data.total_price || null,
             parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address || data.reward_type
                 ? {
                     ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),

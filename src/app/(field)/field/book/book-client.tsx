@@ -168,16 +168,11 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
                 const pricePerPyeong = getPricePerPyeong(cleanType)
                 const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0)
                 let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong)
-                if (calculatedPrice < 150000) {
-                    calculatedPrice = 150000
-                }
-                
                 if (rewardType === 'discount') {
                     calculatedPrice = calculatedPrice * 0.9
                 }
                 
-                const calculatedPriceManwon = calculatedPrice / 10000
-                priceString = `${Number(calculatedPriceManwon.toFixed(2))}만원`
+                priceString = `${calculatedPrice.toLocaleString()}원`
             }
 
             const shortRegion = address.split(' ').slice(0, 2).join(' ') + ` ${areaSize}평 ${priceString}`
@@ -204,7 +199,8 @@ ${notes}
                 is_auto_assign: isAutoAssign,
                 residential_type: residentialType,
                 structure_type: structureType || '',
-                reward_type: rewardType
+                reward_type: rewardType,
+                total_price: calculatedPrice
             })
 
             if (res.success) {
@@ -413,12 +409,12 @@ ${notes}
                                                 return (
                                                     <div className="mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
                                                         <div className="flex justify-between text-sm text-slate-600">
-                                                            <span>기본 단가 ({parsedArea}평 × {(basePricePerPyeong/10000)}만원)</span>
+                                                            <span>기본 단가 ({parsedArea}평 × {basePricePerPyeong.toLocaleString()}원)</span>
                                                             <span>{baseTotal.toLocaleString()}원</span>
                                                         </div>
                                                         {conditionAddPerPyeong > 0 && (
                                                             <div className="flex justify-between text-sm text-slate-600">
-                                                                <span>{buildingCondition} 할증 (+{(conditionAddPerPyeong/10000)}만원/평)</span>
+                                                                <span>{buildingCondition} 할증 (+{conditionAddPerPyeong.toLocaleString()}원/평)</span>
                                                                 <span>+{conditionTotal.toLocaleString()}원</span>
                                                             </div>
                                                         )}
