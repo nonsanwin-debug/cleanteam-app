@@ -317,7 +317,6 @@ export default function SharedOrdersPage() {
                     incomingOrders.map(order => {
                         const parsedDetails = order.parsed_details || {}
                         const isDiscount = parsedDetails.reward_type === 'discount'
-                        const feeRate = isDiscount ? 0.1 : 0.2
                         
                         let extractedPrice = 0
                         if (order.region) {
@@ -332,7 +331,7 @@ export default function SharedOrdersPage() {
                             }
                         }
                         const orderPrice = order.total_price || extractedPrice || 0
-                        const requiredCash = Math.floor(orderPrice * feeRate)
+                        const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
 
                         return (
                             <Card key={order.id} className={cn("overflow-hidden border-2", isDiscount ? "border-rose-400 shadow-rose-100" : "border-teal-400 shadow-teal-100")}>

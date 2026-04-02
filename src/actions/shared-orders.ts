@@ -487,8 +487,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     const orderPrice = extractOrderPrice(order)
     const parsedDetailsInfo = order.parsed_details || {}
     const isDiscount = parsedDetailsInfo.reward_type === 'discount'
-    const feeRate = isDiscount ? 0.1 : 0.2
-    const requiredCash = Math.floor(orderPrice * feeRate)
+    const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
 
     if (currentCash < requiredCash) {
         return { success: false, error: `캐쉬 잔액이 부족해 요청할 수 없습니다.\n필요 캐쉬: ${requiredCash.toLocaleString()} C\n현재 잔액: ${currentCash.toLocaleString()} C` }
@@ -610,8 +609,7 @@ export async function confirmOrderAssignee(orderId: string, assigneeCompanyId: s
     const orderPrice = extractOrderPrice(order)
     const parsedOrderDetails = order.parsed_details || {}
     const isDiscountSetup = parsedOrderDetails.reward_type === 'discount'
-    const dynamicFeeRate = isDiscountSetup ? 0.1 : 0.2
-    const requiredCash = Math.floor(orderPrice * dynamicFeeRate)
+    const requiredCash = isDiscountSetup ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
 
     if (currentCash < requiredCash) {
         return { success: false, error: `업체의 캐쉬 잔액이 부족해 확정할 수 없습니다.\n업체 잔여: ${currentCash.toLocaleString()} C\n필요 캐쉬: ${requiredCash.toLocaleString()} C` }
