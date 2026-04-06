@@ -17,7 +17,7 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog'
-import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Activity, EyeOff } from 'lucide-react'
+import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Activity, EyeOff, Eye } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -60,6 +60,8 @@ export default function SharedOrdersPage() {
     const [editNotes, setEditNotes] = useState('')
     const [editDate, setEditDate] = useState('')
     const [editSubmitting, setEditSubmitting] = useState(false)
+
+    const [showHidden, setShowHidden] = useState(false)
 
     const [acceptingId, setAcceptingId] = useState<string | null>(null)
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
@@ -214,6 +216,16 @@ export default function SharedOrdersPage() {
         toast.success('오더가 숨김 처리되었습니다.')
     }
 
+    function handleUnhide(orderId: string) {
+        if (!confirm('이 오더를 다시 목록에 표시하시겠습니까?')) return
+        setHiddenOrders(prev => {
+            const next = prev.filter(id => id !== orderId)
+            localStorage.setItem('adminHiddenOrders', JSON.stringify(next))
+            return next
+        })
+        toast.success('오더가 다시 목록에 표시됩니다.')
+    }
+
     function openDetailDialog(order: any) {
         setDetailOrderId(order.id)
         setDetailOpen(true)
@@ -250,40 +262,20 @@ export default function SharedOrdersPage() {
                         <Share2 className="mr-2" /> 오더 공유 센터
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        오더를 등록하거나 타 업체의 오더를 확인하세요.
+                        타 업체의 오더를 수신받고 이관을 확정합니다.
                     </p>
                 </div>
-                <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="h-4 w-4 mr-2" />
-                            오더 등록
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>오더 등록</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium">기본 정보 (지역 / 평수 / 잔금) *</label>
-                                <Input value={basicInfo} onChange={e => setBasicInfo(e.target.value)} placeholder="예: 서울 32평 32만원" className="mt-1" />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium">특이사항</label>
-                                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="예: 오후 2시 작업 가능, 스팀 청소 추가" rows={4} className="mt-1" />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild><Button variant="outline">취소</Button></DialogClose>
-                            <Button onClick={handleCreate} disabled={submitting}>
-                                {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                                등록
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <Button 
+                    variant={showHidden ? "default" : "outline"} 
+                    className={showHidden ? "bg-slate-700 hover:bg-slate-800" : "text-slate-600 bg-white"}
+                    onClick={() => setShowHidden(!showHidden)}
+                >
+                    {showHidden ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                    {showHidden ? '숨김 오더 닫기' : '숨긴 오더 보기'}
+                </Button>
+            </div>
 
+            <div className="mt-4">
                 {/* 수정 다이얼로그 */}
                 <Dialog open={editOpen} onOpenChange={setEditOpen}>
                     <DialogContent className="max-w-md">
@@ -313,16 +305,28 @@ export default function SharedOrdersPage() {
 
             {/* 오더 수신 리스트 */}
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {incomingOrders.filter(o => !hiddenOrders.includes(o.id)).length === 0 ? (
-                    <Card>
-                        <CardContent className="py-10 text-center text-muted-foreground">
-                            <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                            <p>수신된 오더가 없습니다.</p>
-                            <p className="text-xs mt-1">공유 오픈된 업체의 오더가 여기에 표시됩니다.</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    incomingOrders.filter(o => !hiddenOrders.includes(o.id)).map(order => {
+                {(() => {
+                    const displayOrders = showHidden 
+                        ? incomingOrders.filter(o => hiddenOrders.includes(o.id))
+                        : incomingOrders.filter(o => !hiddenOrders.includes(o.id));
+
+                    if (displayOrders.length === 0) {
+                        return (
+                            <Card className="col-span-1 lg:col-span-2 xl:col-span-3">
+                                <CardContent className="py-16 text-center text-muted-foreground">
+                                    {showHidden ? (
+                                        <EyeOff className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                    ) : (
+                                        <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                    )}
+                                    <p>{showHidden ? '숨김 처리된 오더가 없습니다.' : '수신된 오더가 없습니다.'}</p>
+                                    <p className="text-xs mt-1">공유 오픈된 업체의 오더가 여기에 조희됩니다.</p>
+                                </CardContent>
+                            </Card>
+                        )
+                    }
+
+                    return displayOrders.map(order => {
                         const parsedDetails = order.parsed_details || {}
                         const isDiscount = parsedDetails.reward_type === 'discount'
                         
@@ -451,20 +455,31 @@ export default function SharedOrdersPage() {
                                         )}
                                         {order.is_applied ? '배정 요청됨' : '배정 요청'}
                                     </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="text-slate-500 border-slate-200 hover:bg-slate-50"
-                                        onClick={() => handleHide(order.id)}
-                                    >
-                                        <EyeOff className="w-4 h-4 mr-2" />
-                                        숨김
-                                    </Button>
+                                    {showHidden ? (
+                                        <Button
+                                            variant="outline"
+                                            className="text-slate-700 border-slate-300 hover:bg-slate-100"
+                                            onClick={() => handleUnhide(order.id)}
+                                        >
+                                            <Eye className="w-4 h-4 mr-2" />
+                                            다시 보기
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            className="text-slate-500 border-slate-200 hover:bg-slate-50"
+                                            onClick={() => handleHide(order.id)}
+                                        >
+                                            <EyeOff className="w-4 h-4 mr-2" />
+                                            숨김
+                                        </Button>
+                                    )}
                                 </div>
-                                <p className="text-red-500 text-[13px] font-bold text-center mt-3 tracking-tight">※배정이 확정되면 예약금 10%를 요청하세요 ※</p>
+                                <p className="text-red-500 text-[13px] font-bold text-center mt-3 tracking-tight">※배정이 확정되면 시스템 상에서 즉시 {isDiscount ? "10%" : "20%"}의 캐쉬가 차감됩니다. ※</p>
                             </CardContent>
                         </Card>
-                    )})
-                )}
+                    );
+                })}
             </div>
 
             {/* 상세 정보 입력 (AI) Dialog */}
