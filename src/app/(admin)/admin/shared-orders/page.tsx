@@ -479,7 +479,7 @@ export default function SharedOrdersPage() {
                             </CardContent>
                         </Card>
                     );
-                })}
+                })()}
             </div>
 
             {/* 상세 정보 입력 (AI) Dialog */}
