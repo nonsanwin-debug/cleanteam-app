@@ -149,6 +149,14 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
             return
         }
 
+        const ua = window.navigator.userAgent.toLowerCase()
+        const isKakao = ua.includes('kakaotalk')
+        const isIOS = /ipad|iphone|ipod/.test(ua)
+
+        if (isKakao) {
+            alert('카카오톡 브라우저에서는 압축 파일 다운로드가 지원되지 않을 수 있습니다.\n\n다운로드가 되지 않는다면, 화면 우측 하단의 [⋮] 버튼을 눌러 "다른 브라우저로 열기" (Safari 또는 Chrome)를 선택하여 다시 시도해주세요.')
+        }
+
         setIsDownloading(true)
         try {
             const zip = new JSZip()
@@ -182,8 +190,21 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
             }
 
             const content = await zip.generateAsync({ type: 'blob' })
-            saveAs(content, `${siteId}_${tab}_photos.zip`)
-            toast.success(`${downloadedCount}장의 사진을 다운로드했습니다.`)
+            saveAs(content, `NEXUS_현장사진_${tab}.zip`)
+            
+            const addMsg = isIOS ? '아이폰은 사진첩이 아닌 [파일] 앱에 저장됩니다.' : '스마트폰 [다운로드] 폴더를 확인해주세요.'
+
+            toast.success(`${downloadedCount}장의 사진을 다운로드했습니다.`, {
+                description: addMsg,
+                duration: 6000
+            })
+
+            if (isIOS && !isKakao) {
+                toast.info('아이폰은 [파일] 앱에 저장됩니다.', {
+                    description: '홈 화면에서 [파일] 앱(폴더 모양)을 열어 다운로드 항목을 확인하세요.',
+                    duration: 6000
+                })
+            }
 
         } catch (error) {
             console.error('Download all error:', error)
