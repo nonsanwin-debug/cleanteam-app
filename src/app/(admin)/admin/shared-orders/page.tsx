@@ -479,7 +479,7 @@ export default function SharedOrdersPage() {
                             </CardContent>
                         </Card>
                     );
-                })}
+                });
                 })()}
             </div>
 
