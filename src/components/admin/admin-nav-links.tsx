@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus, Building2, Share2, Camera, MessageSquarePlus } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus, Building2, Share2, Camera, MessageSquarePlus, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AdminNavLinksProps {
@@ -22,7 +22,7 @@ const NAV_ITEMS = [
     { href: '/admin/as-manage', icon: AlertCircle, label: 'AS 관리', iconColor: 'text-orange-500' },
     { href: '/admin/logs', icon: LogOut, label: '정산 로그', iconRotate: true, iconColor: 'text-violet-500' },
     { href: '/admin/users', icon: Users, label: '사용자 관리', showBadge: true, iconColor: 'text-cyan-500' },
-    { href: '/admin/memos', icon: CheckSquare, label: '관리자 메모', iconColor: 'text-yellow-500' },
+    { href: '/admin/schedule', icon: CalendarDays, label: '일정 관리', iconColor: 'text-indigo-500' },
     { href: '/admin/checklists', icon: CheckSquare, label: '체크리스트 관리', iconColor: 'text-amber-500' },
     { href: '/admin/inquiries', icon: MessageSquarePlus, label: '1:1 문의 / 요청', iconColor: 'text-indigo-600', showInquiriesBadge: true },
     { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
