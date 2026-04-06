@@ -458,7 +458,26 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         return { success: false, error: '오더를 찾을 수 없거나 마감되었습니다.' }
     }
 
-    // 2. 지원 기록 추가 (shared_order_applicants)
+    // 2. 업체명 및 캐쉬 조회
+    const { data: myCompanyBase } = await supabase
+        .from('companies')
+        .select('name, cash')
+        .eq('id', companyId)
+        .single()
+    const companyName = myCompanyBase?.name || '업체'
+    const currentCash = myCompanyBase?.cash || 0
+
+    // 3. [캐쉬 잔액 사전 체크 로직]
+    const orderPrice = extractOrderPrice(order)
+    const parsedDetailsInfo = order.parsed_details || {}
+    const isDiscount = parsedDetailsInfo.reward_type === 'discount'
+    const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
+
+    if (currentCash < requiredCash) {
+        return { success: false, error: `캐쉬 잔액이 부족해 요청할 수 없습니다.\n필요 캐쉬: ${requiredCash.toLocaleString()} C\n현재 잔액: ${currentCash.toLocaleString()} C` }
+    }
+
+    // 4. 지원 기록 추가 (shared_order_applicants)
     const { error: insertError } = await adminSupabase
         .from('shared_order_applicants')
         .insert({
@@ -472,25 +491,6 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         }
         console.error('acceptOrder error:', insertError)
         return { success: false, error: insertError.message }
-    }
-
-    // 3. 업체명 및 캐쉬 조회
-    const { data: myCompanyBase } = await supabase
-        .from('companies')
-        .select('name, cash')
-        .eq('id', companyId)
-        .single()
-    const companyName = myCompanyBase?.name || '업체'
-    const currentCash = myCompanyBase?.cash || 0
-
-    // [캐쉬 잔액 체크 로직]
-    const orderPrice = extractOrderPrice(order)
-    const parsedDetailsInfo = order.parsed_details || {}
-    const isDiscount = parsedDetailsInfo.reward_type === 'discount'
-    const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
-
-    if (currentCash < requiredCash) {
-        return { success: false, error: `캐쉬 잔액이 부족해 요청할 수 없습니다.\n필요 캐쉬: ${requiredCash.toLocaleString()} C\n현재 잔액: ${currentCash.toLocaleString()} C` }
     }
 
     // 4. AI 자동 배정 옵션이 켜져있다면, 첫 번째 요청자(현재 요청자)에게 즉시 배정 확정
