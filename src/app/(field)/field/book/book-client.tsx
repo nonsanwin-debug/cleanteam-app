@@ -71,7 +71,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
     const getPricePerPyeong = (type: string) => {
         if (type === '입주청소' || type === '이사청소') return 12000
         if (type === '거주청소') return 13000
-        if (type === '사이청소') return 15000
+        if (type === '사이청소') return 12000
         return 12000
     }
     const isNegotiatedType = (type: string) => type === '상가청소' || type === '특수청소'
@@ -167,8 +167,9 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             } else {
                 const parsedArea = parseInt(areaSize, 10) || 0
                 const pricePerPyeong = getPricePerPyeong(cleanType)
-                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0)
-                let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong)
+                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0)
+                const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0
+                let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong) + addBaseFlatPrice
                 if (calculatedPrice < 150000) {
                     calculatedPrice = 150000
                 }
@@ -401,11 +402,12 @@ ${notes}
                                             (() => {
                                                 const parsedArea = parseInt(areaSize);
                                                 const basePricePerPyeong = getPricePerPyeong(cleanType);
-                                                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 3000 : 0);
+                                                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0);
+                                                const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0;
                                                 
                                                 const baseTotal = parsedArea * basePricePerPyeong;
                                                 const conditionTotal = parsedArea * conditionAddPerPyeong;
-                                                let finalTotal = Math.max(150000, baseTotal + conditionTotal);
+                                                let finalTotal = Math.max(150000, baseTotal + conditionTotal + addBaseFlatPrice);
                                                 
                                                 const isDiscount = rewardType === 'discount';
                                                 const discountAmount = isDiscount ? finalTotal * 0.1 : 0;
@@ -417,16 +419,22 @@ ${notes}
                                                             <span>기본 단가 ({parsedArea}평 × {basePricePerPyeong.toLocaleString()}원)</span>
                                                             <span>{baseTotal.toLocaleString()}원</span>
                                                         </div>
+                                                        {addBaseFlatPrice > 0 && (
+                                                            <div className="flex justify-between text-sm text-slate-600">
+                                                                <span>사이청소 추가 할증</span>
+                                                                <span>+{addBaseFlatPrice.toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
                                                         {conditionAddPerPyeong > 0 && (
                                                             <div className="flex justify-between text-sm text-slate-600">
                                                                 <span>{buildingCondition} 할증 (+{conditionAddPerPyeong.toLocaleString()}원/평)</span>
                                                                 <span>+{conditionTotal.toLocaleString()}원</span>
                                                             </div>
                                                         )}
-                                                        {finalTotal === 150000 && (baseTotal + conditionTotal) < 150000 && (
+                                                        {finalTotal === 150000 && (baseTotal + conditionTotal + addBaseFlatPrice) < 150000 && (
                                                             <div className="flex justify-between text-sm text-slate-600">
                                                                 <span>최소 정책금액 보정</span>
-                                                                <span>+{(150000 - (baseTotal + conditionTotal)).toLocaleString()}원</span>
+                                                                <span>+{(150000 - (baseTotal + conditionTotal + addBaseFlatPrice)).toLocaleString()}원</span>
                                                             </div>
                                                         )}
                                                         {isDiscount && (

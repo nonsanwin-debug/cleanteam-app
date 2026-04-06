@@ -53,7 +53,7 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const getPricePerPyeong = (type: string) => {
         if (type === '입주청소' || type === '이사청소') return 12000
         if (type === '거주청소') return 13000
-        if (type === '사이청소') return 15000
+        if (type === '사이청소') return 12000
         return 12000
     }
 
@@ -67,7 +67,7 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
 
         const conditionMatch = currentNotes.match(/\[건물상태\]\s*(.+?)\n/)
         const conditionText = conditionMatch ? conditionMatch[1].trim() : ''
-        const conditionAddPerPyeong = conditionText === '구축' ? 2000 : (conditionText === '인테리어' ? 3000 : 0)
+        const conditionAddPerPyeong = conditionText === '구축' ? 2000 : (conditionText === '인테리어' ? 4000 : 0)
 
         const baseShortRegion = editForm.region.replace(/ \d+평.*?$/, '')
         
@@ -77,7 +77,8 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
         } else if (cleanType && onlyNumbers) {
             const parsedArea = parseInt(onlyNumbers, 10) || 0
             const pricePerPyeong = getPricePerPyeong(cleanType)
-            let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong)
+            const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0
+            let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong) + addBaseFlatPrice
             if (calculatedPrice > 0 && calculatedPrice < 150000) {
                 calculatedPrice = 150000
             }
