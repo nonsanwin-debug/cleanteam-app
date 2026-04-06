@@ -17,7 +17,7 @@ import {
     DialogFooter,
     DialogClose,
 } from '@/components/ui/dialog'
-import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Activity } from 'lucide-react'
+import { Share2, Plus, Inbox, Send, Loader2, Calendar, MapPin, Ruler, CheckCircle2, AlertCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Activity, EyeOff } from 'lucide-react'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -63,6 +63,15 @@ export default function SharedOrdersPage() {
 
     const [acceptingId, setAcceptingId] = useState<string | null>(null)
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
+
+    const [hiddenOrders, setHiddenOrders] = useState<string[]>([])
+
+    useEffect(() => {
+        const stored = localStorage.getItem('adminHiddenOrders')
+        if (stored) {
+            try { setHiddenOrders(JSON.parse(stored)) } catch (e) {}
+        }
+    }, [])
 
     useEffect(() => {
         loadData()
@@ -195,15 +204,14 @@ export default function SharedOrdersPage() {
         }
     }
 
-    async function handleDelete(orderId: string) {
-        if (!confirm('이 오더를 삭제하시겠습니까? 되돌릴 수 없습니다.')) return
-        const result = await deleteSharedOrder(orderId)
-        if (result.success) {
-            toast.success('오더가 삭제되었습니다.')
-            loadData()
-        } else {
-            toast.error(result.error)
-        }
+    function handleHide(orderId: string) {
+        if (!confirm('이 오더를 목록에서 숨기시겠습니까? 로컬 브라우저에 숨김 상태가 저장됩니다.')) return
+        setHiddenOrders(prev => {
+            const next = [...prev, orderId]
+            localStorage.setItem('adminHiddenOrders', JSON.stringify(next))
+            return next
+        })
+        toast.success('오더가 숨김 처리되었습니다.')
     }
 
     function openDetailDialog(order: any) {
@@ -305,7 +313,7 @@ export default function SharedOrdersPage() {
 
             {/* 오더 수신 리스트 */}
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {incomingOrders.length === 0 ? (
+                {incomingOrders.filter(o => !hiddenOrders.includes(o.id)).length === 0 ? (
                     <Card>
                         <CardContent className="py-10 text-center text-muted-foreground">
                             <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
@@ -314,7 +322,7 @@ export default function SharedOrdersPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    incomingOrders.map(order => {
+                    incomingOrders.filter(o => !hiddenOrders.includes(o.id)).map(order => {
                         const parsedDetails = order.parsed_details || {}
                         const isDiscount = parsedDetails.reward_type === 'discount'
                         
@@ -445,10 +453,11 @@ export default function SharedOrdersPage() {
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        className="text-red-600 border-red-200 hover:bg-red-50"
-                                        onClick={() => handleDelete(order.id)}
+                                        className="text-slate-500 border-slate-200 hover:bg-slate-50"
+                                        onClick={() => handleHide(order.id)}
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <EyeOff className="w-4 h-4 mr-2" />
+                                        숨김
                                     </Button>
                                 </div>
                                 <p className="text-red-500 text-[13px] font-bold text-center mt-3 tracking-tight">※배정이 확정되면 예약금 10%를 요청하세요 ※</p>
