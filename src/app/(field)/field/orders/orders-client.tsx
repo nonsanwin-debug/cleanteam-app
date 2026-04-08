@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label'
 export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const router = useRouter()
     const [searchTerm, setSearchTerm] = useState('')
-    const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'done'>('all')
+    const [activeTab, setActiveTab] = useState<'ongoing' | 'done'>('ongoing')
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
     useEffect(() => {
@@ -152,6 +152,13 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
         const isMatchSearch = searchTarget.includes(searchTerm.toLowerCase())
 
         return isMatchTab && isMatchSearch
+    }).sort((a, b) => {
+        if (activeTab === 'ongoing') {
+            const dateA = a.work_date ? new Date(a.work_date).getTime() : Number.MAX_SAFE_INTEGER
+            const dateB = b.work_date ? new Date(b.work_date).getTime() : Number.MAX_SAFE_INTEGER
+            return dateA - dateB
+        }
+        return 0
     })
 
     return (
@@ -176,7 +183,7 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
 
                 {/* Tabs */}
                 <div className="flex bg-slate-200/50 p-1 rounded-xl">
-                    {['all', 'ongoing', 'done'].map((tab) => (
+                    {['ongoing', 'done'].map((tab) => (
                         <button
                             key={tab}
                             className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -186,7 +193,6 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                             }`}
                             onClick={() => setActiveTab(tab as any)}
                         >
-                            {tab === 'all' && '전체 목록'}
                             {tab === 'ongoing' && '진행 중'}
                             {tab === 'done' && '완료됨'}
                         </button>
