@@ -39,8 +39,15 @@ export default function FieldLayout({
                     </span>
                 </header>
 
-                <main className="flex-1 w-full bg-slate-50/50">
-                    {children}
+                <main className="flex-1 w-full bg-slate-50/50 flex flex-col">
+                    <div className="flex-1">
+                        {children}
+                    </div>
+                    
+                    {/* Legal Notice */}
+                    <div className="w-full text-center text-[10px] text-slate-400/70 py-6 mt-4">
+                        본 플랫폼은 통신판매중개자이며 서비스의 당사자가 아닙니다.
+                    </div>
                 </main>
                 
                 <FieldBottomNav />

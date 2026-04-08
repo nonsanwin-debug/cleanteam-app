@@ -187,11 +187,14 @@ export default async function AdminLayout({
                         </div>
                     </div>
                 </MobileNav>
-                <div className="p-4 md:p-6">
+                <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
                     {children}
                 </div>
 
-
+                {/* Legal Notice */}
+                <div className="py-6 text-center text-xs text-slate-400/80 border-t border-slate-200 mt-auto bg-white">
+                    본 플랫폼은 통신판매중개자이며 서비스의 당사자가 아닙니다.
+                </div>
             </main>
         </div>
     )
