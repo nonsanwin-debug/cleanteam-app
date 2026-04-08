@@ -101,7 +101,7 @@ export async function updateCompanyStatus(companyId: string, status: 'approved' 
     }
 }
 
-export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct', currency: 'points' | 'cash' = 'points'): Promise<ActionResponse> {
+export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct', currency: 'points' | 'cash' = 'points', descriptionOverride?: string): Promise<ActionResponse> {
     try {
         if (amount <= 0) {
             return { success: false, error: '올바른 금액을 입력하세요.' }
@@ -147,6 +147,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
 
         // 3. Log (master_logs or wallet_logs)
         const logTypeName = currency === 'points' ? '포인트' : '캐쉬'
+        const finalDescription = descriptionOverride || `마스터 관리자 ${logTypeName} ${actionType === 'add' ? '충전(지급)' : '차감(환수)'}`
         const { error: logError } = await adminClient
             .from('wallet_logs')
             .insert({
@@ -154,7 +155,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
                 type: actionType === 'add' ? 'manual_add' : 'manual_deduct',
                 amount: amount,
                 balance_after: newBalance,
-                description: `마스터 관리자 ${logTypeName} ${actionType === 'add' ? '충전(지급)' : '차감(환수)'}`
+                description: finalDescription
             })
 
         if (logError) {
