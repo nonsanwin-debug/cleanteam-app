@@ -72,8 +72,14 @@ export async function updateSession(request: NextRequest) {
     }
 
     // 고객 문의 전용 도메인 접속 처리 (clean.me.kr 로 들어오면 /book 페이지를 띄움)
-    if (hostname.includes('clean.me.kr') && request.nextUrl.pathname === '/') {
-        return NextResponse.rewrite(new URL('/book', request.url))
+    if (hostname.includes('clean.me.kr')) {
+        if (request.nextUrl.pathname === '/') {
+            return NextResponse.rewrite(new URL('/book', request.url))
+        }
+        if (request.nextUrl.pathname === '/manifest.json') {
+            // 설치 알림 방지를 위해 manifest 파일을 강제로 404 처리
+            return new NextResponse(null, { status: 404 })
+        }
     }
 
     // QR코드 인쇄 오류 대응: nexus.닷컴 접속 시 nexuspartner.kr 로 자동 리다이렉트

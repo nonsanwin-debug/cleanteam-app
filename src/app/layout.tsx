@@ -19,28 +19,20 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-import { headers } from 'next/headers'
-
-export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers()
-  const host = headersList.get('host') || ''
-  const isCleanDomain = host.includes('clean.me.kr')
-
-  return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'),
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'),
+  title: 'NEXUS',
+  description: '청소 현장 관리 시스템',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
     title: 'NEXUS',
-    description: '청소 현장 관리 시스템',
-    manifest: isCleanDomain ? undefined : '/manifest.json',
-    appleWebApp: isCleanDomain ? undefined : {
-      capable: true,
-      statusBarStyle: 'default',
-      title: 'NEXUS',
-    },
-    icons: {
-      icon: '/icon.png',
-      apple: '/apple-icon.png',
-    },
-  }
+  },
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({
