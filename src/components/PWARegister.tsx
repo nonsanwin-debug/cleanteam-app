@@ -5,6 +5,10 @@ import { subscribePush } from '@/lib/push-notifications'
 
 export default function PWARegister() {
     useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('clean.me.kr')) {
+            return; // 일반 고객 예약 페이지에서는 PWA 설치 및 푸시 알림을 수행하지 않음
+        }
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
                 .register('/sw.js')
