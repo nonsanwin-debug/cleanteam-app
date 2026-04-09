@@ -116,12 +116,12 @@ export function CustomerBookClient() {
     const validateStep1 = () => {
         if (!cleanType) return handleValidationError('cleanType', '청소 종류를 선택해주세요.')
         if (!structureType) return handleValidationError('structureType', '건물 형태를 선택해주세요.')
+        if (!areaSize) return handleValidationError('areaSize', '평수를 입력해주세요.')
         setStep(2)
     }
 
     const validateStep2 = () => {
         if (!address.trim()) return handleValidationError('address', '기본 주소를 입력해주세요.')
-        if (!areaSize) return handleValidationError('areaSize', '평수를 입력해주세요.')
         if (!workDate) return handleValidationError('workDate', '희망 청소 날짜를 지정해주세요.')
         if (!timePreference) return handleValidationError('timePreference', '희망 시간을 선택해주세요.')
         setStep(3)
@@ -283,22 +283,12 @@ export function CustomerBookClient() {
                                 ))}
                             </div>
                         </div>
-                    </div>
-                )}
-
-                {/* Step 2: Details */}
-                {step === 2 && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="space-y-4" id="field-address">
-                            <Label className="text-base font-bold text-slate-800">어디로 방문할까요?</Label>
-                            <div className="flex gap-2">
-                                <Input readOnly value={address} placeholder="기본 주소" className="bg-slate-50 h-12" onClick={() => setIsPostcodeOpen(true)} />
-                                <Button type="button" onClick={() => setIsPostcodeOpen(true)} className="h-12 bg-slate-800 whitespace-nowrap px-6">검색</Button>
-                            </div>
-                        </div>
 
                         <div className="space-y-4" id="field-areaSize">
-                            <Label className="text-base font-bold text-slate-800">공급 면적(평수)은 어떻게 되나요?</Label>
+                            <Label className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span className="flex-shrink-0 w-6 h-6 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center text-sm">3</span>
+                                공급 면적(평수)은 어떻게 되나요?
+                            </Label>
                             <div className="relative border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500">
                                 <Input 
                                     type="number"
@@ -312,7 +302,10 @@ export function CustomerBookClient() {
                         </div>
 
                         <div className="space-y-4" id="field-condition">
-                            <Label className="text-base font-bold text-slate-800">신축인가요 구축인가요?</Label>
+                            <Label className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span className="flex-shrink-0 w-6 h-6 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center text-sm">4</span>
+                                신축인가요 구축인가요?
+                            </Label>
                             <div className="flex gap-2">
                                 {['신축', '구축', '인테리어 후'].map(type => (
                                     <button
@@ -329,6 +322,21 @@ export function CustomerBookClient() {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Step 2: Details */}
+                {step === 2 && (
+                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                        <div className="space-y-4" id="field-address">
+                            <Label className="text-base font-bold text-slate-800">어디로 방문할까요?</Label>
+                            <div className="flex gap-2">
+                                <Input readOnly value={address} placeholder="기본 주소" className="bg-slate-50 h-12" onClick={() => setIsPostcodeOpen(true)} />
+                                <Button type="button" onClick={() => setIsPostcodeOpen(true)} className="h-12 bg-slate-800 whitespace-nowrap px-6">검색</Button>
+                            </div>
+                        </div>
+
+
 
                         <div className="space-y-4" id="field-workDate">
                             <Label className="text-base font-bold text-slate-800">희망 청소 날짜</Label>
