@@ -172,16 +172,13 @@ export function CustomerBookClient() {
                     <div className="w-20 h-20 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-2">접수가 완료되었습니다!</h2>
-                    <p className="text-slate-500 mb-8 leading-relaxed">
-                        고객님의 견적 문의가 성공적으로 접수되었습니다. 담당자가 내용을 확인 후 가장 빠른 시간 내에 연락드리겠습니다.
+                    <h2 className="text-2xl font-black text-slate-800 mb-4">접수가 완료되었습니다!</h2>
+                    <p className="text-slate-600 leading-relaxed font-medium">
+                        상담 신청이 정상적으로 완료되었습니다.<br/><br/>
+                        보내주신 소중한 정보 확인 후,<br/>
+                        담당자가 신속하게 연락드리겠습니다.<br/><br/>
+                        감사합니다.
                     </p>
-                    <Button 
-                        onClick={() => router.push('/')} 
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 rounded-xl text-lg font-bold"
-                    >
-                        메인으로 돌아가기
-                    </Button>
                 </div>
             </div>
         )
