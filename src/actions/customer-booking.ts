@@ -65,7 +65,7 @@ export async function submitCustomerInquiry(data: any): Promise<ActionResponse> 
                 }]
             };
 
-            fetch(webhookUrl, {
+            await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(embedMsg)
