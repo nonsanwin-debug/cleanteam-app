@@ -190,8 +190,8 @@ export function CustomerBookClient() {
                 <button onClick={() => step > 1 ? setStep(step - 1) : router.back()} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
                     <ChevronLeft className="w-6 h-6" />
                 </button>
-                <div className="font-bold text-slate-800 flex items-center gap-2">
-                    간편 견적 상담 <span className="text-teal-600 font-extrabold">{step}</span>/3
+                <div className="font-bold text-slate-800 flex items-center gap-2 text-base">
+                    엄선 업체 비교 견적 ({step}/3)
                 </div>
                 <div className="w-10"></div>
             </header>
@@ -210,8 +210,31 @@ export function CustomerBookClient() {
                             <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-yellow-300" /> 총 결제 금액 10% 할인 쿠폰</li>
                             <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-yellow-300" /> 전체 공간 피톤치드 무료 시공</li>
                         </ul>
+                        <div className="mt-3 bg-red-500/20 backdrop-blur-sm rounded-lg border border-red-500/30 p-2.5">
+                            <p className="text-[13px] text-yellow-100 font-bold leading-snug">
+                                🔥 <span className="text-white">이사 시즌 예약 마감 임박!</span><br/>지금 신청해야 안전한 일정 선점이 가능합니다.
+                            </p>
+                        </div>
                     </div>
                     <Tag className="absolute -right-4 -bottom-4 w-24 h-24 text-teal-400 opacity-20 rotate-[-15deg]" />
+                </div>
+
+                {/* Before & After Portfolio Section */}
+                <div className="mb-8 bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                    <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-teal-500" />
+                        확실한 디테일, 빈틈없는 클리닝
+                    </h4>
+                    <div className="flex gap-2">
+                        <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
+                            <img src="/images/inquiry/before.jpg" alt="청소 전" className="w-full h-32 object-cover" />
+                            <div className="absolute top-2 left-2 bg-slate-900/70 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Before</div>
+                        </div>
+                        <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
+                            <img src="/images/inquiry/after.jpg" alt="청소 후" className="w-full h-32 object-cover" />
+                            <div className="absolute top-2 left-2 bg-teal-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">After</div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Step 1: Clean Type & Structure */}
@@ -409,7 +432,7 @@ export function CustomerBookClient() {
                             className="w-full text-lg font-bold h-14 rounded-xl bg-teal-600 hover:bg-teal-700 shadow-md text-white" 
                             onClick={validateStep1}
                         >
-                            다음 단계로 <ChevronRight className="ml-1 w-5 h-5" />
+                            30초 만에 무료 견적 신청하기 <ChevronRight className="ml-1 w-5 h-5" />
                         </Button>
                     )}
                     {step === 2 && (
