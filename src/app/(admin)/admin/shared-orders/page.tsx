@@ -355,7 +355,7 @@ export default function SharedOrdersPage() {
                                                 <span className="font-bold text-lg leading-tight">{order.region}</span>
                                             </div>
                                             <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 shrink-0">
-                                                {order.sender_company?.name || '타업체'}
+                                                {(order.status === 'transferred' || order.status === 'completed') ? (order.sender_company?.name || '타업체') : '제휴업체 (배정 후 공개)'}
                                             </Badge>
                                         </div>
                                         
