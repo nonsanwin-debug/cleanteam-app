@@ -43,6 +43,35 @@ export async function submitCustomerInquiry(data: any): Promise<ActionResponse> 
             return { success: false, error: '접수 중 오류가 발생했습니다.' }
         }
 
+        // 디스코드 알림 발송 (웹훅 URL이 환경변수에 있을 때만 비동기 발송)
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+        if (webhookUrl) {
+            const embedMsg = {
+                embeds: [{
+                    title: "🚨 새로운 고객 예약 문의가 들어왔습니다!",
+                    color: 0x2dd4bf, // Teal-400
+                    fields: [
+                        { name: "고객명", value: payload.customer_name, inline: true },
+                        { name: "연락처", value: payload.customer_phone, inline: true },
+                        { name: "\u200B", value: "\u200B", inline: false }, // empty line
+                        { name: "청소 일정", value: `${payload.work_date} / ${payload.time_preference}`, inline: true },
+                        { name: "종류 및 건물", value: `${payload.clean_type} / ${payload.structure_type}`, inline: true },
+                        { name: "평수 및 컨디션", value: `${payload.area_size} / ${payload.building_condition}`, inline: true },
+                        { name: "현장 주소", value: `${payload.address} ${payload.detail_address}`, inline: false },
+                        { name: "전할 말씀", value: payload.notes || "없음", inline: false }
+                    ],
+                    footer: { text: "NEXUS 플랫폼 자동 알림" },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(embedMsg)
+            }).catch(e => console.error('Discord Webhook Error:', e));
+        }
+
         return { success: true }
     } catch (err: any) {
         console.error('submitCustomerInquiry exception:', err)
