@@ -227,11 +227,11 @@ export function CustomerBookClient() {
                     </h4>
                     <div className="flex gap-2">
                         <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
-                            <img src="/images/inquiry/before.jpg" alt="청소 전" className="w-full h-32 object-cover" />
+                            <img src={step === 1 ? "/images/inquiry/before.jpg" : "/images/inquiry/before_step2.jpg"} alt="청소 전" className="w-full h-32 object-cover transition-opacity duration-300" />
                             <div className="absolute top-2 left-2 bg-slate-900/70 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Before</div>
                         </div>
                         <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
-                            <img src="/images/inquiry/after.jpg" alt="청소 후" className="w-full h-32 object-cover" />
+                            <img src={step === 1 ? "/images/inquiry/after.jpg" : "/images/inquiry/after_step2.jpg"} alt="청소 후" className="w-full h-32 object-cover transition-opacity duration-300" />
                             <div className="absolute top-2 left-2 bg-teal-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">After</div>
                         </div>
                     </div>
