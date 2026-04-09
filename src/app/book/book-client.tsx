@@ -210,7 +210,7 @@ export function CustomerBookClient() {
                             <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-yellow-300" /> 총 결제 금액 10% 할인 쿠폰</li>
                             <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-yellow-300" /> 전체 공간 피톤치드 무료 시공</li>
                         </ul>
-                        <div className="mt-3 bg-red-500/20 backdrop-blur-sm rounded-lg border border-red-500/30 p-2.5">
+                        <div className="mt-3 bg-red-500/20 backdrop-blur-sm rounded-lg border border-red-500/30 p-2.5 animate-pulse">
                             <p className="text-[13px] text-yellow-100 font-bold leading-snug">
                                 🔥 <span className="text-white">이사 시즌 예약 마감 임박!</span><br/>지금 신청해야 안전한 일정 선점이 가능합니다.
                             </p>
