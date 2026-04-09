@@ -71,6 +71,11 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/field/home', request.url))
     }
 
+    // 고객 문의 전용 도메인 접속 처리 (clean.me.kr 로 들어오면 /book 페이지를 띄움)
+    if (hostname.includes('clean.me.kr') && request.nextUrl.pathname === '/') {
+        return NextResponse.rewrite(new URL('/book', request.url))
+    }
+
     // Protected Routes Logic
     if (request.nextUrl.pathname.startsWith('/master')) {
         if (!user) {
