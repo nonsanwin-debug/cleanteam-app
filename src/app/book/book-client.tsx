@@ -272,14 +272,6 @@ export function CustomerBookClient() {
                                 <Input readOnly value={address} placeholder="기본 주소" className="bg-slate-50 h-12" onClick={() => setIsPostcodeOpen(true)} />
                                 <Button type="button" onClick={() => setIsPostcodeOpen(true)} className="h-12 bg-slate-800 whitespace-nowrap px-6">검색</Button>
                             </div>
-                            {address && (
-                                <Input 
-                                    value={detailAddress} 
-                                    onChange={(e) => setDetailAddress(e.target.value)} 
-                                    placeholder="상세 주소 (동, 호수 등)" 
-                                    className="h-12 border-slate-300 focus-visible:ring-teal-500"
-                                />
-                            )}
                         </div>
 
                         <div className="space-y-4" id="field-areaSize">
