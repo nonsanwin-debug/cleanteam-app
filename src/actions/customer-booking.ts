@@ -47,6 +47,7 @@ export async function submitCustomerInquiry(data: any): Promise<ActionResponse> 
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL
         if (webhookUrl) {
             const embedMsg = {
+                content: "@everyone 🔔 새로운 문의 알림!",
                 embeds: [{
                     title: "🚨 새로운 고객 예약 문의가 들어왔습니다!",
                     color: 0x2dd4bf, // Teal-400
