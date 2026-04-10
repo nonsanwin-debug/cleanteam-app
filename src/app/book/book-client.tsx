@@ -219,23 +219,6 @@ export function CustomerBookClient() {
                     <Tag className="absolute -right-4 -bottom-4 w-24 h-24 text-teal-400 opacity-20 rotate-[-15deg]" />
                 </div>
 
-                {/* Before & After Portfolio Section */}
-                <div className="mb-8 bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-                    <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-teal-500" />
-                        확실한 디테일, 빈틈없는 클리닝
-                    </h4>
-                    <div className="flex gap-2">
-                        <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
-                            <img src={step === 1 ? "/images/inquiry/before.jpg" : step === 2 ? "/images/inquiry/before_step2.jpg" : "/images/inquiry/before_step3.jpg"} alt="청소 전" className="w-full h-32 object-cover transition-opacity duration-300" />
-                            <div className="absolute top-2 left-2 bg-slate-900/70 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Before</div>
-                        </div>
-                        <div className="flex-1 rounded-xl overflow-hidden relative border border-slate-100">
-                            <img src={step === 1 ? "/images/inquiry/after.jpg" : step === 2 ? "/images/inquiry/after_step2.jpg" : "/images/inquiry/after_step3.jpg"} alt="청소 후" className="w-full h-32 object-cover transition-opacity duration-300" />
-                            <div className="absolute top-2 left-2 bg-teal-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">After</div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Step 1: Clean Type & Structure */}
                 {step === 1 && (
