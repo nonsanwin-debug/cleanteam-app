@@ -203,7 +203,7 @@ export function CustomerBookClient() {
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-1">
                             <Sparkles className="w-4 h-4 text-yellow-300" />
-                            <span className="font-bold text-sm text-yellow-100 uppercase tracking-widest">Special Event</span>
+                            <span className="font-bold text-sm text-yellow-100 uppercase tracking-widest">NEXUS Special Event</span>
                         </div>
                         <h3 className="font-black text-lg mb-1 leading-tight">상담 예약 시 특별 혜택!</h3>
                         <ul className="text-[13px] text-teal-50 space-y-1 font-medium mt-3 font-semibold">
@@ -423,7 +423,7 @@ export function CustomerBookClient() {
                             className="w-full text-lg font-bold h-14 rounded-xl bg-teal-600 hover:bg-teal-700 shadow-md text-white" 
                             onClick={validateStep1}
                         >
-                            30초 만에 무료 견적 신청하기 <ChevronRight className="ml-1 w-5 h-5" />
+                            NEXUS 무료 견적 신청하기 <ChevronRight className="ml-1 w-5 h-5" />
                         </Button>
                     )}
                     {step === 2 && (
