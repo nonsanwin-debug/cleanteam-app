@@ -245,7 +245,7 @@ ${notes}
                     <div className="flex items-center gap-1.5 mb-3">
                         <Gift className="w-5 h-5 text-amber-500 shrink-0" />
                         <h3 className="text-[15px] font-bold text-amber-900 leading-tight">
-                            오직 {partnerName || '파트너'} 고객님께만 드리는 "비용 절감" 혜택!
+                            {partnerName || '파트너'}님께만 드리는 "비용 절감" 혜택!
                         </h3>
                     </div>
                     
