@@ -466,3 +466,36 @@ export async function getAllSharedOrders() {
 
     return data || []
 }
+
+export async function deleteSharedOrderForce(orderId: string) {
+    const { verifyMasterAccess } = await import('./master')
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminSupabase = createAdminClient()
+
+    // 1. Delete associated applicants
+    await adminSupabase.from('shared_order_applicants').delete().eq('order_id', orderId)
+    // 2. Delete notifications
+    await adminSupabase.from('shared_order_notifications').delete().eq('order_id', orderId)
+    // 3. Delete from hidden tables
+    await adminSupabase.from('hidden_shared_orders').delete().eq('order_id', orderId)
+    
+    // 4. Finally delete the order
+    const { error } = await adminSupabase
+        .from('shared_orders')
+        .delete()
+        .eq('id', orderId)
+
+    if (error) {
+        console.error('deleteSharedOrderForce error:', error)
+        return { success: false, error: '오더 삭제 중 오류가 발생했습니다.' }
+    }
+
+    const { revalidatePath } = await import('next/cache')
+    revalidatePath('/master/orders')
+    revalidatePath('/admin/shared-orders')
+
+    return { success: true }
+}

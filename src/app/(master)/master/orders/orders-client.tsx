@@ -4,13 +4,20 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { deleteSharedOrderForce } from '@/actions/master'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) {
+    const router = useRouter()
     const [searchTerm, setSearchTerm] = useState('')
+    const [isDeleting, setIsDeleting] = useState<string | null>(null)
+    const [orders, setOrders] = useState(initialOrders)
 
-    const filteredOrders = initialOrders.filter(order => {
+    const filteredOrders = orders.filter(order => {
         const term = searchTerm.toLowerCase()
         return (
             order.region?.toLowerCase().includes(term) ||
@@ -21,6 +28,26 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
             order.accepted_company?.name?.toLowerCase().includes(term)
         )
     })
+
+    const handleDelete = async (orderId: string) => {
+        if (!confirm('이 오더를 영구적으로 삭제하시겠습니까? 관련 알림 및 접수 내역 전체가 사라집니다.')) return
+
+        setIsDeleting(orderId)
+        try {
+            const result = await deleteSharedOrderForce(orderId)
+            if (result.success) {
+                toast.success('오더가 성공적으로 삭제되었습니다.')
+                setOrders(orders.filter(o => o.id !== orderId))
+                router.refresh()
+            } else {
+                toast.error(result.error || '삭제 중 오류가 발생했습니다.')
+            }
+        } catch (error) {
+            toast.error('서버와의 통신에 실패했습니다.')
+        } finally {
+            setIsDeleting(null)
+        }
+    }
 
     const getStatusBadge = (status: string, isAutoAssign: boolean = false) => {
         if (status === 'open') return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">대기중 (배정전)</Badge>
@@ -54,7 +81,16 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredOrders.map(order => (
                         <Card key={order.id} className="overflow-hidden border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md transition-all">
-                            <CardHeader className="bg-slate-50/50 pb-3 border-b border-slate-100">
+                            <CardHeader className="bg-slate-50/50 pb-3 border-b border-slate-100 relative pr-12">
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="absolute right-2 top-3 text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
+                                    onClick={() => handleDelete(order.id)}
+                                    disabled={isDeleting === order.id}
+                                >
+                                    {isDeleting === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                </Button>
                                 <div className="flex items-start justify-between">
                                     <div className="flex flex-col gap-1">
                                         <Badge variant="outline" className="w-fit text-xs border-indigo-200 text-indigo-700 bg-indigo-50">
@@ -62,7 +98,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                         </Badge>
                                         <CardTitle className="text-lg mt-1 font-bold truncate pr-3">{order.region}</CardTitle>
                                     </div>
-                                    <div className="shrink-0">
+                                    <div className="shrink-0 mt-2">
                                         {getStatusBadge(order.status, order.is_auto_assign)}
                                     </div>
                                 </div>
