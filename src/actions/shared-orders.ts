@@ -222,12 +222,42 @@ interface CreateOrderData {
     detail_address?: string
     reward_type?: string
     total_price?: number
+    used_booking_points?: number
 }
 
 /** 오더 등록 */
 export async function createSharedOrder(data: CreateOrderData): Promise<ActionResponse> {
     const { supabase, user, companyId } = await getAuthCompany()
     if (!companyId || !user) return { success: false, error: '인증 실패' }
+
+    // 예약 포인트 차감 로직
+    let finalUsedPoints = 0
+    if (data.used_booking_points && data.used_booking_points > 0) {
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const adminSupabase = createAdminClient()
+        
+        // 보유 포인트 검증
+        const { data: comp } = await adminSupabase.from('companies').select('booking_points').eq('id', companyId).single()
+        if (!comp || (comp.booking_points || 0) < data.used_booking_points) {
+            return { success: false, error: '보유한 예약 포인트가 부족합니다.' }
+        }
+        
+        finalUsedPoints = data.used_booking_points
+        
+        // 포인트 차감
+        await adminSupabase.from('companies').update({
+            booking_points: (comp.booking_points || 0) - finalUsedPoints
+        }).eq('id', companyId)
+        
+        // 로그 작성 (선택사항이나, 간단히 wallet_logs에 남기기)
+        await adminSupabase.from('wallet_logs').insert({
+            company_id: companyId,
+            type: 'manual_deduct',
+            amount: finalUsedPoints,
+            balance_after: (comp.booking_points || 0) - finalUsedPoints,
+            description: `오더 예약 시 할인 적용 차감 (-${finalUsedPoints}P)`
+        })
+    }
 
     const { error } = await supabase
         .from('shared_orders')
@@ -244,13 +274,14 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
             customer_name: data.customer_name || '',
             status: 'open',
             is_auto_assign: data.is_auto_assign || false,
-            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address || data.reward_type
+            parsed_details: (data.image_urls && data.image_urls.length > 0) || data.structure_type || data.residential_type || data.detail_address || data.reward_type || finalUsedPoints > 0
                 ? {
                     ...(data.image_urls && data.image_urls.length > 0 ? { image_urls: data.image_urls } : {}),
                     ...(data.structure_type ? { structure_type: data.structure_type } : {}),
                     ...(data.residential_type ? { residential_type: data.residential_type } : {}),
                     ...(data.detail_address ? { detail_address: data.detail_address } : {}),
-                    ...(data.reward_type ? { reward_type: data.reward_type } : {})
+                    ...(data.reward_type ? { reward_type: data.reward_type } : {}),
+                    ...(finalUsedPoints > 0 ? { used_booking_points: finalUsedPoints } : {})
                   }
                 : null
         })

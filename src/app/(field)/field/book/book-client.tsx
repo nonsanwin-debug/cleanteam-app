@@ -17,7 +17,7 @@ const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이�
 const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
 const STRUCTURE_TYPES = ['아파트', '빌라', '주택', '오피스텔', '상가', '원룸', '투룸']
 
-export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {} }: { partnerName: string, partnerPhone: string, partnerBenefits?: any }) {
+export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {}, bookingPoints = 0 }: { partnerName: string, partnerPhone: string, partnerBenefits?: any, bookingPoints?: number }) {
     const router = useRouter()
     
     const [step, setStep] = useState(1)
@@ -49,6 +49,10 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
     const [images, setImages] = useState<File[]>([])
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
     const [errorField, setErrorField] = useState<string | null>(null)
+    
+    // Booking Points State
+    const [usePoints, setUsePoints] = useState<number>(0)
+    const [pointInputStr, setPointInputStr] = useState<string>('')
 
     const handleValidationError = (fieldId: string, message: string) => {
         toast.error(message)
@@ -115,6 +119,24 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
         setImagePreviewUrls(imagePreviewUrls.filter((_, i) => i !== index))
     }
 
+    const handlePointInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const valStr = e.target.value.replace(/[^0-9]/g, '')
+        let valNum = parseInt(valStr || '0', 10)
+        
+        // Check max points holding
+        if (valNum > bookingPoints) {
+            valNum = bookingPoints
+        }
+        
+        setUsePoints(valNum)
+        setPointInputStr(valNum === 0 ? '' : valNum.toLocaleString())
+    }
+
+    const handleUseAllPoints = () => {
+        setUsePoints(bookingPoints)
+        setPointInputStr(bookingPoints === 0 ? '' : bookingPoints.toLocaleString())
+    }
+
     const uploadImages = async (): Promise<string[]> => {
         const uploadedUrls: string[] = []
         
@@ -179,6 +201,10 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
                 if (rewardType === 'discount') {
                     calculatedPrice = calculatedPrice * 0.9
                 }
+                if (usePoints > 0) {
+                    calculatedPrice -= usePoints
+                    if (calculatedPrice < 0) calculatedPrice = 0
+                }
                 
                 finalPrice = calculatedPrice
                 priceString = `${calculatedPrice.toLocaleString()}원`
@@ -192,6 +218,7 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
 [희망시간] ${timePreference}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
 ${partnerBenefits.free_phytoncide ? '\n[파트너 혜택] 전구역 피톤치드 100% 무료 시공' : ''}
+${usePoints > 0 ? `[예약 포인트 차감] -${usePoints.toLocaleString()}원` : ''}
 [상세 요청내용]
 ${notes}
             `.trim()
@@ -210,7 +237,8 @@ ${notes}
                 residential_type: residentialType,
                 structure_type: structureType || '',
                 reward_type: rewardType,
-                total_price: finalPrice
+                total_price: finalPrice,
+                used_booking_points: usePoints
             })
 
             if (res.success) {
@@ -591,6 +619,34 @@ ${notes}
                                         </label>
                                     </div>
                                 </div>
+                                
+                                {bookingPoints > 0 && (
+                                    <div className="pt-4 border-t border-slate-100" id="field-points">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-1.5 h-4 bg-teal-500 rounded-full" />
+                                            <h3 className="font-semibold text-slate-800">예약 할인 포인트 사용</h3>
+                                            <span className="text-xs text-slate-500 ml-auto font-medium">
+                                                보유 포인트: <span className="text-teal-600 font-bold">{bookingPoints.toLocaleString()}</span> P
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <Input 
+                                                    value={pointInputStr}
+                                                    onChange={handlePointInput}
+                                                    placeholder="사용할 포인트 입력"
+                                                    className="pr-8 bg-slate-50 h-12"
+                                                />
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">P</span>
+                                            </div>
+                                            <Button 
+                                                variant="outline" 
+                                                className="border-teal-200 text-teal-700 hover:bg-teal-50 h-12"
+                                                onClick={handleUseAllPoints}
+                                            >전액 사용</Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

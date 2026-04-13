@@ -101,7 +101,7 @@ export async function updateCompanyStatus(companyId: string, status: 'approved' 
     }
 }
 
-export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct', currency: 'points' | 'cash' = 'points', descriptionOverride?: string): Promise<ActionResponse> {
+export async function manageCompanyPoints(companyId: string, amount: number, actionType: 'add' | 'deduct', currency: 'points' | 'cash' | 'booking_points' = 'points', descriptionOverride?: string): Promise<ActionResponse> {
     try {
         if (amount <= 0) {
             return { success: false, error: '올바른 금액을 입력하세요.' }
@@ -115,7 +115,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
         // 1. Get current company point/cash
         const { data: company, error: fetchError } = await adminClient
             .from('companies')
-            .select('points, cash, name')
+            .select('points, cash, booking_points, name')
             .eq('id', companyId)
             .single()
             
@@ -123,18 +123,23 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
             return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
         }
 
-        let newBalance = currency === 'points' ? (company.points || 0) : (company.cash || 0)
+        let newBalance = currency === 'points' ? (company.points || 0) : (currency === 'cash' ? (company.cash || 0) : (company.booking_points || 0))
         if (actionType === 'add') {
             newBalance += amount
         } else {
             newBalance -= amount
             if (newBalance < 0) {
-                return { success: false, error: `업체의 잔여 ${currency === 'points' ? '포인트' : '캐쉬'}보다 크게 차감할 수 없습니다.` }
+                const currencyName = currency === 'points' ? '포인트' : (currency === 'booking_points' ? '예약 포인트' : '캐쉬')
+                return { success: false, error: `업체의 잔여 ${currencyName}보다 크게 차감할 수 없습니다.` }
             }
         }
 
-        // 2. Update company points/cash
-        const updatePayload = currency === 'points' ? { points: newBalance } : { cash: newBalance }
+        // 2. Update company points/cash/booking_points
+        let updatePayload = {}
+        if (currency === 'points') updatePayload = { points: newBalance }
+        else if (currency === 'cash') updatePayload = { cash: newBalance }
+        else updatePayload = { booking_points: newBalance }
+        
         const { error: updateError } = await adminClient
             .from('companies')
             .update(updatePayload)
@@ -146,7 +151,7 @@ export async function manageCompanyPoints(companyId: string, amount: number, act
         }
 
         // 3. Log (master_logs or wallet_logs)
-        const logTypeName = currency === 'points' ? '포인트' : '캐쉬'
+        const logTypeName = currency === 'points' ? '포인트' : (currency === 'booking_points' ? '예약 포인트' : '캐쉬')
         const finalDescription = descriptionOverride || `마스터 관리자 ${logTypeName} ${actionType === 'add' ? '충전(지급)' : '차감(환수)'}`
         const { error: logError } = await adminClient
             .from('wallet_logs')
@@ -206,7 +211,7 @@ export async function getMasterPartners() {
         .from('users')
         .select(`
             id, name, phone, email, role, status, created_at, account_info, current_money, 
-            companies(id, name, code, status, points, benefits)
+            companies(id, name, code, status, points, booking_points, benefits)
         `)
         .eq('role', 'partner')
         .neq('status', 'deleted')
