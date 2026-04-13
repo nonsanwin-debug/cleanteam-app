@@ -445,3 +445,24 @@ export async function hardDeleteUser(userId: string): Promise<ActionResponse> {
         return { success: false, error: '영구 삭제 중 오류가 발생했습니다.' }
     }
 }
+
+export async function getAllSharedOrders() {
+    const { verifyMasterAccess } = await import('./master')
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminSupabase = createAdminClient()
+
+    const { data, error } = await adminSupabase
+        .from('shared_orders')
+        .select('*, company:company_id(name, code), accepted_company:accepted_by(name, code)')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('getAllSharedOrders error:', error)
+        return []
+    }
+
+    return data || []
+}

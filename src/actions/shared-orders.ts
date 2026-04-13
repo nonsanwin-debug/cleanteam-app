@@ -260,6 +260,42 @@ export async function createSharedOrder(data: CreateOrderData): Promise<ActionRe
         return { success: false, error: error.message }
     }
 
+    // 디스코드 알림 발송
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+    if (webhookUrl) {
+        try {
+            const { data: comp } = await supabase.from('companies').select('name').eq('id', companyId).single()
+            const companyName = comp?.name || '알 수 없는 파트너'
+            
+            const embedMsg = {
+                content: "@here 📋 새로운 파트너 오더 등록 알림!",
+                embeds: [{
+                    title: "🔔 [오더 공유 센터] 새로운 예약이 등록되었습니다!",
+                    color: 0x4F46E5, // Indigo-600
+                    fields: [
+                        { name: "발신 업체", value: companyName, inline: true },
+                        { name: "주소/지역", value: data.address || data.region, inline: true },
+                        { name: "\u200B", value: "\u200B", inline: false },
+                        { name: "예약 일자", value: data.work_date || '미정', inline: true },
+                        { name: "고객명", value: data.customer_name || '미등록', inline: true },
+                        { name: "연락처", value: data.customer_phone || '미등록', inline: true },
+                        { name: "상세 내용", value: data.notes || "없음", inline: false }
+                    ],
+                    footer: { text: "NEXUS 시스템 오더 알림" },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(embedMsg)
+            }).catch(e => console.error('Discord Webhook Error (SharedOrder):', e));
+        } catch (err) {
+            console.error('Discord webhook exception:', err)
+        }
+    }
+
     revalidatePath('/admin/shared-orders')
     return { success: true }
 }
