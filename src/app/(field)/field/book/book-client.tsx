@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X, Gift } from 'lucide-react'
 import DaumPostcode from 'react-daum-postcode'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
@@ -17,7 +17,7 @@ const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이�
 const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
 const STRUCTURE_TYPES = ['아파트', '빌라', '주택', '오피스텔', '상가', '원룸', '투룸']
 
-export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: string, partnerPhone: string }) {
+export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {} }: { partnerName: string, partnerPhone: string, partnerBenefits?: any }) {
     const router = useRouter()
     
     const [step, setStep] = useState(1)
@@ -167,7 +167,10 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
             } else {
                 const parsedArea = parseInt(areaSize, 10) || 0
                 const pricePerPyeong = getPricePerPyeong(cleanType)
-                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0)
+                const baseConditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0)
+                const isFreeOldBuilding = buildingCondition === '구축' && partnerBenefits.free_old_building
+                const isFreeInterior = buildingCondition === '인테리어' && partnerBenefits.free_interior
+                const conditionAddPerPyeong = (isFreeOldBuilding || isFreeInterior) ? 0 : baseConditionAddPerPyeong
                 const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0
                 let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong) + addBaseFlatPrice
                 if (calculatedPrice < 150000) {
@@ -188,6 +191,7 @@ export function FieldBookClient({ partnerName, partnerPhone }: { partnerName: st
 [건물상태] ${buildingCondition}
 [희망시간] ${timePreference}
 [자동배정] ${isAutoAssign ? '넥서스 AI' : '직접선택'}
+${partnerBenefits.free_phytoncide ? '\n[파트너 혜택] 전구역 피톤치드 100% 무료 시공' : ''}
 [상세 요청내용]
 ${notes}
             `.trim()
@@ -234,6 +238,24 @@ ${notes}
                 </div>
                 <div className="w-10"></div>
             </header>
+
+            {/* 파트너 혜택 상단 배너 추가 */}
+            {(partnerBenefits.free_old_building || partnerBenefits.free_interior || partnerBenefits.free_phytoncide) && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 px-4 py-3 flex items-start gap-2.5 shadow-sm">
+                    <Gift className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <p className="text-sm font-bold text-amber-900">
+                            축하합니다! 특정 혜택 무상 지원 대상입니다.
+                        </p>
+                        <p className="text-[13px] text-amber-800/80 mt-0.5 leading-tight">
+                            {partnerBenefits.free_old_building && '구축 할증 무상, '}
+                            {partnerBenefits.free_interior && '인테리어 할증 무상, '}
+                            {partnerBenefits.free_phytoncide && '피톤치드 무상 제공, '}
+                            등 혜택이 적용됩니다.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <main className="flex-1 p-5 overflow-y-auto">
                 {/* 1. Address & Basic Info */}
@@ -349,19 +371,25 @@ ${notes}
                                 <div className="space-y-2">
                                     <Label className="text-slate-700">건물 상태 *</Label>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {['신축', '구축', '인테리어'].map(condition => (
-                                            <button
-                                                key={condition}
-                                                onClick={() => setBuildingCondition(condition)}
-                                                className={`h-11 rounded-xl border text-sm font-medium transition-all ${
-                                                    buildingCondition === condition 
-                                                    ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
-                                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                {condition}
-                                            </button>
-                                        ))}
+                                        {['신축', '구축', '인테리어'].map(condition => {
+                                            const isBenefited = (condition === '구축' && partnerBenefits.free_old_building) || (condition === '인테리어' && partnerBenefits.free_interior);
+                                            return (
+                                                <button
+                                                    key={condition}
+                                                    onClick={() => setBuildingCondition(condition)}
+                                                    className={`h-11 rounded-xl border text-sm font-medium transition-all relative ${
+                                                        buildingCondition === condition 
+                                                        ? 'bg-teal-50 border-teal-600 text-teal-700 ring-1 ring-teal-600' 
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    {condition}
+                                                    {isBenefited && (
+                                                        <span className="absolute -top-2 -right-1 text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full shadow-sm">무료혜택</span>
+                                                    )}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 </div>
 
@@ -402,11 +430,15 @@ ${notes}
                                             (() => {
                                                 const parsedArea = parseInt(areaSize);
                                                 const basePricePerPyeong = getPricePerPyeong(cleanType);
-                                                const conditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0);
+                                                const baseConditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0);
+                                                const isFreeOldBuilding = buildingCondition === '구축' && partnerBenefits.free_old_building;
+                                                const isFreeInterior = buildingCondition === '인테리어' && partnerBenefits.free_interior;
+                                                const conditionAddPerPyeong = (isFreeOldBuilding || isFreeInterior) ? 0 : baseConditionAddPerPyeong;
                                                 const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0;
                                                 
                                                 const baseTotal = parsedArea * basePricePerPyeong;
                                                 const conditionTotal = parsedArea * conditionAddPerPyeong;
+                                                const originalConditionTotal = parsedArea * baseConditionAddPerPyeong;
                                                 let finalTotal = Math.max(150000, baseTotal + conditionTotal + addBaseFlatPrice);
                                                 
                                                 const isDiscount = rewardType === 'discount';
@@ -425,16 +457,30 @@ ${notes}
                                                                 <span>+{addBaseFlatPrice.toLocaleString()}원</span>
                                                             </div>
                                                         )}
-                                                        {conditionAddPerPyeong > 0 && (
+                                                        {baseConditionAddPerPyeong > 0 && (isFreeOldBuilding || isFreeInterior) ? (
+                                                            <div className="flex justify-between text-sm text-slate-600 relative">
+                                                                <span className="text-amber-600 font-medium">✨ {buildingCondition} 할증 (전액 혜택 지원)</span>
+                                                                <div className="flex flex-col items-end gap-0.5">
+                                                                    <span className="line-through text-slate-400 text-xs">+{originalConditionTotal.toLocaleString()}원</span>
+                                                                    <span className="text-amber-600 font-bold">+0원</span>
+                                                                </div>
+                                                            </div>
+                                                        ) : conditionAddPerPyeong > 0 ? (
                                                             <div className="flex justify-between text-sm text-slate-600">
                                                                 <span>{buildingCondition} 할증 (+{conditionAddPerPyeong.toLocaleString()}원/평)</span>
                                                                 <span>+{conditionTotal.toLocaleString()}원</span>
                                                             </div>
-                                                        )}
+                                                        ) : null}
                                                         {finalTotal === 150000 && (baseTotal + conditionTotal + addBaseFlatPrice) < 150000 && (
                                                             <div className="flex justify-between text-sm text-slate-600">
                                                                 <span>최소 정책금액 보정</span>
                                                                 <span>+{(150000 - (baseTotal + conditionTotal + addBaseFlatPrice)).toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
+                                                        {partnerBenefits.free_phytoncide && (
+                                                            <div className="flex justify-between text-sm text-slate-600 items-center">
+                                                                <span className="text-amber-600 font-medium flex items-center gap-1.5"><Gift className="w-3.5 h-3.5" /> 전구역 피톤치드 시공 무상 혜택 적용</span>
+                                                                <span className="text-amber-600 font-bold">무료</span>
                                                             </div>
                                                         )}
                                                         {isDiscount && (

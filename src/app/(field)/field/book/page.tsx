@@ -14,7 +14,7 @@ export default async function FieldBookPage() {
 
     const { data: profile } = await supabase
         .from('users')
-        .select('name, phone, role')
+        .select('name, phone, role, companies(benefits)')
         .eq('id', user.id)
         .single()
 
@@ -22,5 +22,15 @@ export default async function FieldBookPage() {
         redirect('/auth/partner-login')
     }
 
-    return <FieldBookClient partnerName={profile?.name || ''} partnerPhone={profile?.phone || ''} />
+    // Extract benefits carefully just in case companies array or object format from Supabase
+    let partnerBenefits = {}
+    if (profile?.companies) {
+        if (Array.isArray(profile.companies)) {
+            partnerBenefits = profile.companies[0]?.benefits || {}
+        } else {
+            partnerBenefits = (profile.companies as any).benefits || {}
+        }
+    }
+
+    return <FieldBookClient partnerName={profile?.name || ''} partnerPhone={profile?.phone || ''} partnerBenefits={partnerBenefits} />
 }

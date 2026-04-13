@@ -92,3 +92,31 @@ export async function createPartnerAccount(
         return { success: false, error: '서버 오류가 발생했습니다.' }
     }
 }
+
+export async function updatePartnerBenefits(companyId: string, benefits: any): Promise<{ success: boolean; error?: string }> {
+    try {
+        const { verifyMasterAccess } = await import('./master')
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('companies')
+            .update({ benefits })
+            .eq('id', companyId)
+
+        if (error) {
+            console.error('Error updating partner benefits:', error)
+            return { success: false, error: '혜택 업데이트에 실패했습니다.' }
+        }
+
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath('/master/partners')
+        return { success: true }
+    } catch (error) {
+        console.error('updatePartnerBenefits error:', error)
+        return { success: false, error: '서버 오류가 발생했습니다.' }
+    }
+}

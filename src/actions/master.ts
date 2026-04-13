@@ -206,7 +206,7 @@ export async function getMasterPartners() {
         .from('users')
         .select(`
             id, name, phone, email, role, status, created_at, account_info, current_money, 
-            companies(id, name, code, status, points)
+            companies(id, name, code, status, points, benefits)
         `)
         .eq('role', 'partner')
         .neq('status', 'deleted')

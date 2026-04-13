@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 import { deleteUserForce, manageCompanyPoints } from '@/actions/master'
-import { Trash2, Building2, Search, PlusCircle, Loader2, Plus, Minus, RefreshCw } from 'lucide-react'
+import { Trash2, Building2, Search, PlusCircle, Loader2, Plus, Minus, RefreshCw, Gift } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { Switch } from '@/components/ui/switch'
 
 export function MasterPartnersClient({ initialPartners }: { initialPartners: any[] }) {
     const router = useRouter()
@@ -42,6 +43,12 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
     })
     const [pointAmount, setPointAmount] = useState<string>('')
 
+    // Benefits State
+    const [benefitsDialog, setBenefitsDialog] = useState<{ open: boolean, companyId: string, companyName: string, benefits: any }>({
+        open: false, companyId: '', companyName: '', benefits: {}
+    })
+
+
     const supabase = createClient()
 
     const handlePointUpdate = async () => {
@@ -59,6 +66,21 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
             toast.success('포인트가 처리되었습니다.')
             setPointDialog({ ...pointDialog, open: false })
             setPointAmount('')
+            router.refresh()
+        } else {
+            toast.error(result.error || '오류가 발생했습니다.')
+        }
+    }
+
+    const handleBenefitsUpdate = async () => {
+        setIsUpdating(true)
+        const { updatePartnerBenefits } = await import('@/actions/master-partner')
+        const result = await updatePartnerBenefits(benefitsDialog.companyId, benefitsDialog.benefits)
+        setIsUpdating(false)
+
+        if (result.success) {
+            toast.success('파트너 혜택이 저장되었습니다.')
+            setBenefitsDialog({ ...benefitsDialog, open: false })
             router.refresh()
         } else {
             toast.error(result.error || '오류가 발생했습니다.')
@@ -222,6 +244,10 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                             <div className="flex items-center justify-end gap-2">
                                                 {p.companies?.id && (
                                                     <>
+                                                        <Button size="sm" variant="outline" className="border-amber-200 text-amber-600 hover:bg-amber-50 h-8 text-xs px-2" onClick={() => setBenefitsDialog({ open: true, companyId: p.companies.id, companyName: p.name, benefits: p.companies.benefits || {} })}>
+                                                            <Gift className="w-3.5 h-3.5 mr-1" />
+                                                            혜택
+                                                        </Button>
                                                         <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 h-8 text-xs px-2" onClick={() => setPointDialog({ open: true, companyId: p.companies.id, companyName: p.name, actionType: 'add', currency: 'points' })}>
                                                             <Plus className="w-3.5 h-3.5 mr-1" />
                                                             지급
@@ -254,7 +280,7 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
             </CardContent>
         </Card>
 
-        {/* 포인트 관리 다이얼로그 추가 */}
+        {/* 포인트 관리 다이얼로그 */}
         <Dialog open={pointDialog.open} onOpenChange={(open) => !open && setPointDialog({ ...pointDialog, open: false })}>
             <DialogContent>
                 <DialogHeader>
@@ -293,6 +319,64 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        {/* 혜택 설정 다이얼로그 */}
+        <Dialog open={benefitsDialog.open} onOpenChange={(open) => !open && setBenefitsDialog({ ...benefitsDialog, open: false })}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                        <Gift className="w-5 h-5 text-amber-500" /> 파트너 전용 특별 혜택 설정
+                    </DialogTitle>
+                    <DialogDescription>
+                        <strong className="text-slate-800">{benefitsDialog.companyName}</strong> 파트너가 의뢰 시 무상으로 적용받을 수 있는 혜택을 설정합니다.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-5 py-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div>
+                            <Label className="text-base font-bold text-slate-800">구축 할증 무상 혜택</Label>
+                            <p className="text-sm text-slate-500 mt-1">의뢰 시 건물 상태를 구축으로 선택해도 2,000원 추가 할증이 붙지 않습니다.</p>
+                        </div>
+                        <Switch
+                            checked={!!benefitsDialog.benefits?.free_old_building}
+                            onCheckedChange={(c) => setBenefitsDialog(prev => ({ ...prev, benefits: { ...prev.benefits, free_old_building: c }}))}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div>
+                            <Label className="text-base font-bold text-slate-800">인테리어 할증 무상 혜택</Label>
+                            <p className="text-sm text-slate-500 mt-1">의뢰 시 건물 상태를 인테리어 후로 선택해도 4,000원 추가 할증이 붙지 않습니다.</p>
+                        </div>
+                        <Switch
+                            checked={!!benefitsDialog.benefits?.free_interior}
+                            onCheckedChange={(c) => setBenefitsDialog(prev => ({ ...prev, benefits: { ...prev.benefits, free_interior: c }}))}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                        <div>
+                            <Label className="text-base font-bold text-amber-900">피톤치드 100% 무상 시공</Label>
+                            <p className="text-sm text-amber-700/80 mt-1">이 혜택이 켜져있으면, 작업 현장에 전구역 피톤치드 무상 시공이 자동 포함됩니다.</p>
+                        </div>
+                        <Switch
+                            checked={!!benefitsDialog.benefits?.free_phytoncide}
+                            onCheckedChange={(c) => setBenefitsDialog(prev => ({ ...prev, benefits: { ...prev.benefits, free_phytoncide: c }}))}
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setBenefitsDialog({ ...benefitsDialog, open: false })}>취소</Button>
+                    <Button
+                        className="bg-teal-600 hover:bg-teal-700 text-white"
+                        onClick={handleBenefitsUpdate}
+                        disabled={isUpdating}
+                    >
+                        {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                        혜택 저장
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
         </>
     )
 }
+
