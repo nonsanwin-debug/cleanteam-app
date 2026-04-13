@@ -148,14 +148,17 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
         if (activeTab === 'done') isMatchTab = isDone
 
         // Search Filter
-        const searchTarget = `${order.region} ${order.address} ${order.work_date}`.toLowerCase()
+        const displayDate = order.transferred_site?.date || order.work_date || '날짜 미정'
+        const searchTarget = `${order.region} ${order.address} ${displayDate}`.toLowerCase()
         const isMatchSearch = searchTarget.includes(searchTerm.toLowerCase())
 
         return isMatchTab && isMatchSearch
     }).sort((a, b) => {
         if (activeTab === 'ongoing') {
-            const dateA = a.work_date ? new Date(a.work_date).getTime() : Number.MAX_SAFE_INTEGER
-            const dateB = b.work_date ? new Date(b.work_date).getTime() : Number.MAX_SAFE_INTEGER
+            const dateAStr = a.transferred_site?.date || a.work_date
+            const dateBStr = b.transferred_site?.date || b.work_date
+            const dateA = dateAStr ? new Date(dateAStr).getTime() : Number.MAX_SAFE_INTEGER
+            const dateB = dateBStr ? new Date(dateBStr).getTime() : Number.MAX_SAFE_INTEGER
             return dateA - dateB
         }
         return 0
@@ -262,7 +265,7 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                     {order.address || order.region}
                                                 </h3>
                                                 <div className="text-sm text-slate-500 flex flex-col gap-1.5 mt-2">
-                                                    <span>{order.work_date || '날짜 미정'} · {order.area_size}</span>
+                                                    <span>{order.transferred_site?.date || order.work_date || '날짜 미정'} · {order.area_size}</span>
                                                     {order.accepted_company && (
                                                         <div className="flex items-center gap-1.5 bg-slate-100 w-fit px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700">
                                                             <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
