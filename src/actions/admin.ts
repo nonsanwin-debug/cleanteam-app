@@ -860,7 +860,7 @@ export async function updateWorkerInfo(
         // Check if the worker belongs to the company
         const { data: worker } = await supabase
             .from('users')
-            .select('id, company_id')
+            .select('id, company_id, initial_password')
             .eq('id', workerId)
             .single()
 
@@ -871,16 +871,18 @@ export async function updateWorkerInfo(
         const adminClient = createAdminClient()
         
         let updateData: any = { phone, account_info: accountInfo }
-        if (password && password.trim()) {
-            updateData.initial_password = password.trim()
+        
+        const newPassword = password?.trim()
+        if (newPassword && newPassword !== worker.initial_password) {
+            updateData.initial_password = newPassword
             
             // Update auth user password as well
             const { error: authError } = await adminClient.auth.admin.updateUserById(workerId, {
-                password: password.trim()
+                password: newPassword
             })
             if (authError) {
                 console.error('Update worker auth password error:', authError)
-                return { success: false, error: '인증 정보(비밀번호) 업데이트 중 오류가 발생했습니다.' }
+                return { success: false, error: `비밀번호 업데이트 실패: ${authError.message}` }
             }
         }
 
