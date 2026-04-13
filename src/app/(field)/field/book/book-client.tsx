@@ -241,18 +241,39 @@ ${notes}
 
             {/* 파트너 혜택 상단 배너 추가 */}
             {(partnerBenefits.free_old_building || partnerBenefits.free_interior || partnerBenefits.free_phytoncide) && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 px-4 py-3 flex items-start gap-2.5 shadow-sm">
-                    <Gift className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                        <p className="text-sm font-bold text-amber-900">
-                            축하합니다! 특정 혜택 무상 지원 대상입니다.
-                        </p>
-                        <p className="text-[13px] text-amber-800/80 mt-0.5 leading-tight">
-                            {partnerBenefits.free_old_building && '구축 할증 무상, '}
-                            {partnerBenefits.free_interior && '인테리어 할증 무상, '}
-                            {partnerBenefits.free_phytoncide && '피톤치드 무상 제공, '}
-                            등 혜택이 적용됩니다.
-                        </p>
+                <div className="bg-gradient-to-br from-amber-50 via-orange-50/50 to-orange-100/50 border-b border-amber-200 px-4 py-4 shadow-sm">
+                    <div className="flex items-center gap-1.5 mb-3">
+                        <Gift className="w-5 h-5 text-amber-500 shrink-0" />
+                        <h3 className="text-[15px] font-bold text-amber-900 leading-tight">
+                            오직 {partnerName || '파트너'} 고객님께만 드리는 "비용 절감" 혜택!
+                        </h3>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        {partnerBenefits.free_phytoncide && (
+                            <div className="bg-white/60 border border-amber-200/60 rounded-lg p-2.5">
+                                <span className="inline-block bg-teal-100 text-teal-800 text-[10px] font-black px-1.5 py-0.5 rounded mr-1.5 mb-1">[FREE]</span>
+                                <p className="text-[13px] text-slate-800 font-semibold leading-relaxed">5만 원 상당의 피톤치드 공간 케어 무료 서비스</p>
+                            </div>
+                        )}
+                        
+                        {(partnerBenefits.free_old_building || partnerBenefits.free_interior) && (
+                            <div className="bg-white/60 border border-amber-200/60 rounded-lg p-2.5">
+                                <span className="inline-block bg-rose-100 text-rose-800 text-[10px] font-black px-1.5 py-0.5 rounded mr-1.5 mb-1">[SAVE]</span>
+                                <div className="space-y-1.5">
+                                    {partnerBenefits.free_old_building && (
+                                        <p className="text-[13px] text-slate-800 font-semibold leading-relaxed">
+                                            구축 아파트도 추가금 없이! <br/><span className="text-amber-600 font-bold">(평당 2,000원 할인 효과)</span>
+                                        </p>
+                                    )}
+                                    {partnerBenefits.free_interior && (
+                                        <p className="text-[13px] text-slate-800 font-semibold leading-relaxed">
+                                            인테리어 후 청소도 추가금 없이! <br/><span className="text-amber-600 font-bold">(평당 3,000원 할인 효과)</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -385,7 +406,7 @@ ${notes}
                                                 >
                                                     {condition}
                                                     {isBenefited && (
-                                                        <span className="absolute -top-2 -right-1 text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full shadow-sm">무료혜택</span>
+                                                        <span className="absolute -top-2 -right-1 text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full shadow-sm">할증무료</span>
                                                     )}
                                                 </button>
                                             )
