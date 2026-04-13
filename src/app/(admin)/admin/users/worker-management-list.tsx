@@ -5,11 +5,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission, adjustWorkerBalance, deleteWorker } from '@/actions/admin'
+import { updateWorkerRole, approveWorker, updateWorkerColor, updateWorkerCommission, adjustWorkerBalance, deleteWorker, updateWorkerInfo } from '@/actions/admin'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus, Trash2, Search } from 'lucide-react'
+import { User, ArrowUp, ArrowDown, Loader2, Eye, EyeOff, UserCheck, Palette, X, Percent, Check, ChevronDown, ChevronUp, Receipt, Plus, Minus, Trash2, Search, Edit2 } from 'lucide-react'
 
 const COLOR_PRESETS = [
     { name: '빨강', value: '#DC2626' },
@@ -66,6 +66,11 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
     const [adjustLoading, setAdjustLoading] = useState(false)
     const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
+    
+    // Info editing state
+    const [infoEditingId, setInfoEditingId] = useState<string | null>(null)
+    const [infoEditData, setInfoEditData] = useState({ phone: '', account: '', password: '' })
+    const [infoSaving, setInfoSaving] = useState(false)
 
     const filteredWorkers = workers.filter(worker =>
         worker.name.includes(searchTerm) ||
@@ -222,6 +227,38 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
             toast.error('삭제 중 오류가 발생했습니다.')
         } finally {
             setDeleteLoading(null)
+        }
+    }
+
+    function startInfoEdit(worker: Worker) {
+        setInfoEditingId(worker.id)
+        setInfoEditData({
+            phone: worker.phone || '',
+            account: worker.account_info || '',
+            password: worker.initial_password || ''
+        })
+    }
+
+    async function handleInfoSave(workerId: string) {
+        setInfoSaving(true)
+        try {
+            const result = await updateWorkerInfo(
+                workerId,
+                infoEditData.phone,
+                infoEditData.account,
+                infoEditData.password
+            )
+            if (result.success) {
+                toast.success('정보가 성공적으로 업데이트되었습니다.')
+                setInfoEditingId(null)
+                router.refresh()
+            } else {
+                toast.error(result.error || '수정 중 오류가 발생했습니다.')
+            }
+        } catch (e) {
+            toast.error('서버 통신 오류가 발생했습니다.')
+        } finally {
+            setInfoSaving(false)
         }
     }
 
@@ -407,6 +444,64 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                                 <Eye className="w-3.5 h-3.5 text-slate-400" />
                                             )}
                                         </Button>
+                                    </div>
+                                )}
+                                
+                                {infoEditingId === worker.id ? (
+                                    <div className="bg-slate-50 border border-indigo-100 rounded-lg p-3 space-y-3 mt-4">
+                                        <div className="flex items-center justify-between font-bold text-sm text-indigo-700 border-b border-indigo-100 pb-2">
+                                            <span>기본 정보 수정</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-600" onClick={() => setInfoEditingId(null)}>
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <label className="text-xs text-slate-500 mb-1 block">연락처</label>
+                                                <Input 
+                                                    value={infoEditData.phone}
+                                                    onChange={e => setInfoEditData({...infoEditData, phone: e.target.value})}
+                                                    className="h-8 text-sm"
+                                                    placeholder="010-0000-0000"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-500 mb-1 block">계좌번호</label>
+                                                <Input 
+                                                    value={infoEditData.account}
+                                                    onChange={e => setInfoEditData({...infoEditData, account: e.target.value})}
+                                                    className="h-8 text-sm"
+                                                    placeholder="은행명 계좌번호"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-slate-500 mb-1 block">관리용 비밀번호</label>
+                                                <Input 
+                                                    value={infoEditData.password}
+                                                    onChange={e => setInfoEditData({...infoEditData, password: e.target.value})}
+                                                    className="h-8 text-sm font-mono tracking-wider"
+                                                    placeholder="새 비밀번호 입력"
+                                                />
+                                            </div>
+                                            <Button 
+                                                className="w-full h-8 mt-2" 
+                                                onClick={() => handleInfoSave(worker.id)}
+                                                disabled={infoSaving}
+                                            >
+                                                {infoSaving ? <Loader2 className="w-4 h-4 animate-spin mr-1"/> : <Check className="w-4 h-4 mr-1"/>}
+                                                저장하기
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mt-3 text-right">
+                                        <button 
+                                            onClick={() => startInfoEdit(worker)}
+                                            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center"
+                                        >
+                                            <Edit2 className="w-3 h-3 mr-1" />
+                                            정보 수정 (연락처/계좌/비밀번호)
+                                        </button>
                                     </div>
                                 )}
                             </div>

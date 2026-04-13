@@ -846,3 +846,58 @@ export async function togglePhotoFeatured(photoId: string, isFeatured: boolean) 
         return { success: false, error: error.message || '설정 저장 중 오류가 발생했습니다.' }
     }
 }
+
+export async function updateWorkerInfo(
+    workerId: string,
+    phone: string,
+    accountInfo: string,
+    password?: string
+): Promise<ActionResponse> {
+    try {
+        const { supabase, companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '업체 정보를 찾을 수 없습니다.' }
+
+        // Check if the worker belongs to the company
+        const { data: worker } = await supabase
+            .from('users')
+            .select('id, company_id')
+            .eq('id', workerId)
+            .single()
+
+        if (!worker || worker.company_id !== companyId) {
+            return { success: false, error: '권한이 없습니다.' }
+        }
+
+        const adminClient = createAdminClient()
+        
+        let updateData: any = { phone, account_info: accountInfo }
+        if (password && password.trim()) {
+            updateData.initial_password = password.trim()
+            
+            // Update auth user password as well
+            const { error: authError } = await adminClient.auth.admin.updateUserById(workerId, {
+                password: password.trim()
+            })
+            if (authError) {
+                console.error('Update worker auth password error:', authError)
+                return { success: false, error: '인증 정보(비밀번호) 업데이트 중 오류가 발생했습니다.' }
+            }
+        }
+
+        const { error: profileError } = await adminClient
+            .from('users')
+            .update(updateData)
+            .eq('id', workerId)
+
+        if (profileError) {
+            console.error('Update worker info error:', profileError)
+            return { success: false, error: '프로필 정보 업데이트에 실패했습니다.' }
+        }
+
+        revalidatePath('/admin/users')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Update worker info unexpected error:', error)
+        return { success: false, error: error.message || '정보 업데이트 중 오류가 발생했습니다.' }
+    }
+}
