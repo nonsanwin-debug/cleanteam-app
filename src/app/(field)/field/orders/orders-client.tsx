@@ -148,15 +148,15 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
         if (activeTab === 'done') isMatchTab = isDone
 
         // Search Filter
-        const displayDate = order.transferred_site?.date || order.work_date || '날짜 미정'
+        const displayDate = order.transferred_site?.cleaning_date || order.work_date || '날짜 미정'
         const searchTarget = `${order.region} ${order.address} ${displayDate}`.toLowerCase()
         const isMatchSearch = searchTarget.includes(searchTerm.toLowerCase())
 
         return isMatchTab && isMatchSearch
     }).sort((a, b) => {
         if (activeTab === 'ongoing') {
-            const dateAStr = a.transferred_site?.date || a.work_date
-            const dateBStr = b.transferred_site?.date || b.work_date
+            const dateAStr = a.transferred_site?.cleaning_date || a.work_date
+            const dateBStr = b.transferred_site?.cleaning_date || b.work_date
             const dateA = dateAStr ? new Date(dateAStr).getTime() : Number.MAX_SAFE_INTEGER
             const dateB = dateBStr ? new Date(dateBStr).getTime() : Number.MAX_SAFE_INTEGER
             return dateA - dateB

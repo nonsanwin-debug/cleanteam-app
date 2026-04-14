@@ -391,7 +391,7 @@ export async function getMySharedOrders() {
 
     const { data: orders, error } = await adminSupabase
         .from('shared_orders')
-        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, date, worker:worker_id(name)), applicants:shared_order_applicants(company:company_id(id, name, code))')
+        .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, cleaning_date, worker:worker_id(name)), applicants:shared_order_applicants(company:company_id(id, name, code))')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
 
