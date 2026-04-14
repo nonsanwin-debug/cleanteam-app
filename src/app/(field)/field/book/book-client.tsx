@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSharedOrder } from '@/actions/shared-orders'
 import { Button } from '@/components/ui/button'
@@ -151,6 +151,14 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
         const maxAllowed = Math.max(0, basePrice - 200000);
         return Math.min(bookingPoints, maxAllowed);
     }
+
+    useEffect(() => {
+        const maxPoints = getMaxUsablePoints()
+        if (usePoints > maxPoints) {
+            setUsePoints(maxPoints)
+            setPointInputStr(maxPoints === 0 ? '' : maxPoints.toLocaleString())
+        }
+    }, [getCalculatedBasePrice(), bookingPoints, usePoints, cleanType])
 
     const handlePointInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const valStr = e.target.value.replace(/[^0-9]/g, '')
