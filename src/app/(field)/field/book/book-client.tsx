@@ -446,7 +446,12 @@ ${notes}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-slate-700">건물 상태 *</Label>
+                                    <Label className="text-slate-700 flex items-center gap-2">
+                                        건물 상태 *
+                                        <span className="text-red-500 animate-pulse text-xs font-semibold">
+                                            ( 5년내 - 신축 5년이상 구축 )
+                                        </span>
+                                    </Label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {['신축', '구축', '인테리어'].map(condition => {
                                             const isBenefited = (condition === '구축' && partnerBenefits.free_old_building) || (condition === '인테리어' && partnerBenefits.free_interior);
