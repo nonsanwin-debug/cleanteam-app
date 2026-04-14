@@ -525,7 +525,7 @@ ${notes}
                                                 
                                                 const isDiscount = rewardType === 'discount';
                                                 const discountAmount = isDiscount ? finalTotal * 0.1 : 0;
-                                                const totalAfterDiscount = finalTotal - discountAmount;
+                                                const totalAfterDiscount = Math.max(0, finalTotal - discountAmount - usePoints);
 
                                                 return (
                                                     <div className="mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
@@ -569,6 +569,12 @@ ${notes}
                                                             <div className="flex justify-between text-sm font-semibold text-rose-500 bg-rose-50 -mx-4 px-4 py-1.5 mt-2">
                                                                 <span>10% 즉시 할인 적용</span>
                                                                 <span>-{discountAmount.toLocaleString()}원</span>
+                                                            </div>
+                                                        )}
+                                                        {usePoints > 0 && (
+                                                            <div className="flex justify-between text-sm font-semibold text-teal-600 bg-teal-50 -mx-4 px-4 py-1.5 mt-2">
+                                                                <span>예약 포인트 할인 적용</span>
+                                                                <span>-{usePoints.toLocaleString()}원</span>
                                                             </div>
                                                         )}
                                                         <div className="flex justify-between items-center text-base font-bold text-teal-700 pt-2 border-t border-slate-200 mt-2">
@@ -686,30 +692,6 @@ ${notes}
                                 )}
                             </div>
                         </div>
-
-                        {getCalculatedBasePrice() > 0 && !isNegotiatedType(cleanType) && (
-                            <div className="mt-6 p-5 rounded-2xl bg-slate-800 text-white shadow-lg space-y-3">
-                                <div className="flex justify-between items-center text-slate-300 text-sm font-medium">
-                                    <span>{rewardType === 'discount' ? '기본 견적 (10% 할인 적용됨)' : '기본 견적 예상가'}</span>
-                                    <span>{getCalculatedBasePrice().toLocaleString()}원</span>
-                                </div>
-                                {usePoints > 0 && (
-                                    <div className="flex justify-between items-center text-teal-300 text-sm font-medium">
-                                        <span>예약 할인 포인트 적용</span>
-                                        <span>-{usePoints.toLocaleString()}원</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between items-center text-lg font-bold pt-3 border-t border-slate-600">
-                                    <span>예상 실 결제액</span>
-                                    <span className="text-teal-400">
-                                        {Math.max(0, getCalculatedBasePrice() - usePoints).toLocaleString()}원
-                                    </span>
-                                </div>
-                                <p className="text-xs text-slate-400 font-medium text-right">
-                                    * 위 금액은 예상가이며 부가세는 별도입니다. 현장 상태에 따라 달라질 수 있습니다.
-                                </p>
-                            </div>
-                        )}
 
                         <Button 
                             className="w-full h-14 mt-8 rounded-xl bg-teal-600 hover:bg-teal-700 text-lg shadow-md"
