@@ -119,13 +119,49 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
         setImagePreviewUrls(imagePreviewUrls.filter((_, i) => i !== index))
     }
 
+    const getCalculatedBasePrice = () => {
+        if (!cleanType || isNegotiatedType(cleanType)) return 0;
+        
+        const parsedArea = parseInt(areaSize, 10) || 0
+        const pricePerPyeong = getPricePerPyeong(cleanType)
+        const baseConditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0)
+        const isFreeOldBuilding = buildingCondition === '구축' && partnerBenefits.free_old_building
+        const isFreeInterior = buildingCondition === '인테리어' && partnerBenefits.free_interior
+        const conditionAddPerPyeong = (isFreeOldBuilding || isFreeInterior) ? 0 : baseConditionAddPerPyeong
+        const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0
+        
+        let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong) + addBaseFlatPrice
+        if (calculatedPrice < 150000) calculatedPrice = 150000
+        
+        if (rewardType === 'discount') {
+            calculatedPrice = calculatedPrice * 0.9
+        }
+        return calculatedPrice;
+    }
+
+    const getMaxUsablePoints = () => {
+        // 협의 단가의 경우 금액 산출이 안 되므로 보유 포인트 전부 사용 신청은 가능하게 열어둠 (관리자가 반려/조정)
+        if (isNegotiatedType(cleanType)) return bookingPoints;
+        
+        const basePrice = getCalculatedBasePrice();
+        // 기본 단가가 산출되지 않았을 때 (아직 폼 미작성 등)
+        if (basePrice === 0) return 0;
+        
+        // 20만원 이상일 때만 포인트 사용 가능하도록
+        const maxAllowed = Math.max(0, basePrice - 200000);
+        return Math.min(bookingPoints, maxAllowed);
+    }
+
     const handlePointInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const valStr = e.target.value.replace(/[^0-9]/g, '')
         let valNum = parseInt(valStr || '0', 10)
         
-        // Check max points holding
-        if (valNum > bookingPoints) {
-            valNum = bookingPoints
+        const maxPoints = getMaxUsablePoints()
+        if (valNum > maxPoints) {
+            valNum = maxPoints
+            if (maxPoints === 0 && getCalculatedBasePrice() < 200000 && !isNegotiatedType(cleanType)) {
+                toast.error('최종 결제 금액이 20만원 이상이어야 포인트를 사용할 수 있습니다.', { id: 'point-limit-error' })
+            }
         }
         
         setUsePoints(valNum)
@@ -133,8 +169,12 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
     }
 
     const handleUseAllPoints = () => {
-        setUsePoints(bookingPoints)
-        setPointInputStr(bookingPoints === 0 ? '' : bookingPoints.toLocaleString())
+        const maxPoints = getMaxUsablePoints()
+        if (maxPoints === 0 && getCalculatedBasePrice() < 200000 && !isNegotiatedType(cleanType)) {
+            toast.error('최종 결제 금액이 20만원 이상이어야 포인트를 사용할 수 있습니다.', { id: 'point-limit-error' })
+        }
+        setUsePoints(maxPoints)
+        setPointInputStr(maxPoints === 0 ? '' : maxPoints.toLocaleString())
     }
 
     const uploadImages = async (): Promise<string[]> => {
@@ -187,20 +227,8 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
             if (isNegotiatedType(cleanType)) {
                 priceString = '협의'
             } else {
-                const parsedArea = parseInt(areaSize, 10) || 0
-                const pricePerPyeong = getPricePerPyeong(cleanType)
-                const baseConditionAddPerPyeong = buildingCondition === '구축' ? 2000 : (buildingCondition === '인테리어' ? 4000 : 0)
-                const isFreeOldBuilding = buildingCondition === '구축' && partnerBenefits.free_old_building
-                const isFreeInterior = buildingCondition === '인테리어' && partnerBenefits.free_interior
-                const conditionAddPerPyeong = (isFreeOldBuilding || isFreeInterior) ? 0 : baseConditionAddPerPyeong
-                const addBaseFlatPrice = cleanType === '사이청소' ? 70000 : 0
-                let calculatedPrice = parsedArea * (pricePerPyeong + conditionAddPerPyeong) + addBaseFlatPrice
-                if (calculatedPrice < 150000) {
-                    calculatedPrice = 150000
-                }
-                if (rewardType === 'discount') {
-                    calculatedPrice = calculatedPrice * 0.9
-                }
+                let calculatedPrice = getCalculatedBasePrice()
+                
                 if (usePoints > 0) {
                     calculatedPrice -= usePoints
                     if (calculatedPrice < 0) calculatedPrice = 0
@@ -626,7 +654,10 @@ ${notes}
                                             <div className="w-1.5 h-4 bg-teal-500 rounded-full" />
                                             <h3 className="font-semibold text-slate-800">예약 할인 포인트 사용</h3>
                                             <span className="text-xs text-slate-500 ml-auto font-medium">
-                                                보유 포인트: <span className="text-teal-600 font-bold">{bookingPoints.toLocaleString()}</span> P
+                                                잔여: <span className="text-teal-600 font-bold">{bookingPoints.toLocaleString()}</span> P
+                                                {getMaxUsablePoints() < bookingPoints && (
+                                                    <span className="text-rose-500 ml-1">(최대 {getMaxUsablePoints().toLocaleString()}P 사용 가능)</span>
+                                                )}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -634,7 +665,8 @@ ${notes}
                                                 <Input 
                                                     value={pointInputStr}
                                                     onChange={handlePointInput}
-                                                    placeholder="사용할 포인트 입력"
+                                                    placeholder={getMaxUsablePoints() === 0 ? "결제 금액 20만원부터 사용 가능" : "사용할 포인트 입력"}
+                                                    disabled={getMaxUsablePoints() === 0}
                                                     className="pr-8 bg-slate-50 h-12"
                                                 />
                                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">P</span>
