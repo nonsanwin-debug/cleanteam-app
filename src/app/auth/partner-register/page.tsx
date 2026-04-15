@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { registerPartnerAccount } from '@/actions/auth-partner'
+import { REGIONS } from '@/lib/regions'
 
 export default function PartnerRegisterPage() {
     const router = useRouter()
@@ -16,10 +17,12 @@ export default function PartnerRegisterPage() {
     const [formData, setFormData] = useState({
         password: '',
         name: '',
-        phone: ''
+        phone: '',
+        regionProvince: '',
+        regionCity: ''
     })
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
@@ -28,10 +31,10 @@ export default function PartnerRegisterPage() {
         setLoading(true)
 
         try {
-            const { password, name, phone } = formData
+            const { password, name, phone, regionProvince, regionCity } = formData
 
-            if (!password.trim() || !name.trim() || !phone.trim()) {
-                toast.error('입력 오류', { description: '모든 항목을 입력해주세요.' })
+            if (!password.trim() || !name.trim() || !phone.trim() || !regionProvince || !regionCity) {
+                toast.error('입력 오류', { description: '지역 선택을 포함하여 모든 항목을 입력해주세요.' })
                 setLoading(false)
                 return
             }
@@ -43,7 +46,7 @@ export default function PartnerRegisterPage() {
             }
 
             // Server action to create partner + virtual company
-            const res = await registerPartnerAccount(name.trim(), phone.trim(), password.trim())
+            const res = await registerPartnerAccount(name.trim(), phone.trim(), password.trim(), regionProvince, regionCity)
 
             if (res.success) {
                 toast.success('부동산 파트너 가입이 완료되었습니다!', {
@@ -145,6 +148,44 @@ export default function PartnerRegisterPage() {
                                 placeholder="********"
                                 onChange={handleChange}
                             />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="regionProvince">지역 (도)</Label>
+                                <select 
+                                    id="regionProvince"
+                                    name="regionProvince"
+                                    required
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.regionProvince}
+                                    onChange={(e) => {
+                                        setFormData(prev => ({ ...prev, regionProvince: e.target.value, regionCity: '' }))
+                                    }}
+                                >
+                                    <option value="">시/도 선택</option>
+                                    {Object.keys(REGIONS).map((prov) => (
+                                        <option key={prov} value={prov}>{prov}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="regionCity">지역 (시/군/구)</Label>
+                                <select 
+                                    id="regionCity"
+                                    name="regionCity"
+                                    required
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.regionCity}
+                                    onChange={handleChange}
+                                    disabled={!formData.regionProvince}
+                                >
+                                    <option value="">시/군/구 선택</option>
+                                    {formData.regionProvince && (REGIONS as any)[formData.regionProvince]?.map((city: string) => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         <Button type="submit" className="w-full py-6 mt-6 bg-teal-600 hover:bg-teal-700 text-lg shadow-md h-14" disabled={loading}>

@@ -6,7 +6,9 @@ import { ActionResponse } from './master'
 export async function registerPartnerAccount(
     name: string,
     phone: string,
-    password: string
+    password: string,
+    regionProvince: string,
+    regionCity: string
 ): Promise<ActionResponse> {
     try {
         const adminClient = createAdminClient()
@@ -41,7 +43,9 @@ export async function registerPartnerAccount(
                 name: name,
                 status: 'approved',
                 code: randomCode,
-                company_code: randomCode
+                company_code: randomCode,
+                region_province: regionProvince,
+                region_city: regionCity
             })
             .select('id')
             .single()

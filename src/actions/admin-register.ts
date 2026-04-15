@@ -3,7 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function registerAdminRobust(formData: any) {
-    const { username, password, name, phone, companyName } = formData;
+    const { username, password, name, phone, companyName, regionProvince, regionCity } = formData;
     const adminClient = createAdminClient();
 
     try {
@@ -41,7 +41,9 @@ export async function registerAdminRobust(formData: any) {
                 code: code,
                 company_code: code,
                 owner_id: userId,
-                status: 'pending'
+                status: 'pending',
+                region_province: regionProvince,
+                region_city: regionCity
             })
             .select()
             .single();

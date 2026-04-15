@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { registerAdminRobust } from '@/actions/admin-register'
 import { Checkbox } from '@/components/ui/checkbox'
 import { TermsDialog } from '@/components/auth/terms-dialog'
+import { REGIONS } from '@/lib/regions'
 
 export default function AdminRegisterPage() {
     const router = useRouter()
@@ -22,12 +23,14 @@ export default function AdminRegisterPage() {
         password: '',
         name: '',
         companyName: '',
-        phone: ''
+        phone: '',
+        regionProvince: '',
+        regionCity: ''
     })
     const [agreedToTerms, setAgreedToTerms] = useState(false)
     const [isTermsOpen, setIsTermsOpen] = useState(false)
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
@@ -41,6 +44,11 @@ export default function AdminRegisterPage() {
 
         if (formData.companyName.includes(' ')) {
             toast.error('가입 불가', { description: '업체명에는 띄어쓰기를 포함할 수 없습니다.' })
+            return
+        }
+
+        if (!formData.regionProvince || !formData.regionCity) {
+            toast.error('입력 오류', { description: '지역(도/시)을 정확히 선택해주세요.' })
             return
         }
 
@@ -159,6 +167,44 @@ export default function AdminRegisterPage() {
                                 onChange={handleChange}
                             />
                             <p className="text-xs text-slate-500">* 업체 생성 시 4자리 고유 코드가 자동 발급됩니다. 가입 후 팀원들에게 코드를 공유해주세요.</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="regionProvince">지역 (도)</Label>
+                                <select 
+                                    id="regionProvince"
+                                    name="regionProvince"
+                                    required
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.regionProvince}
+                                    onChange={(e) => {
+                                        setFormData(prev => ({ ...prev, regionProvince: e.target.value, regionCity: '' }))
+                                    }}
+                                >
+                                    <option value="">시/도 선택</option>
+                                    {Object.keys(REGIONS).map((prov) => (
+                                        <option key={prov} value={prov}>{prov}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="regionCity">지역 (시/군/구)</Label>
+                                <select 
+                                    id="regionCity"
+                                    name="regionCity"
+                                    required
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.regionCity}
+                                    onChange={handleChange}
+                                    disabled={!formData.regionProvince}
+                                >
+                                    <option value="">시/군/구 선택</option>
+                                    {formData.regionProvince && (REGIONS as any)[formData.regionProvince]?.map((city: string) => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex items-center space-x-2 pt-2 pb-1">

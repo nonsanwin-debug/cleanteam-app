@@ -504,3 +504,40 @@ export async function deleteSharedOrderForce(orderId: string) {
 
     return { success: true }
 }
+
+export async function updateCompanyRegionAndBadges(
+    companyId: string, 
+    data: { 
+        region_province?: string | null, 
+        region_city?: string | null, 
+        is_national?: boolean, 
+        badge_business?: boolean, 
+        badge_excellent?: boolean, 
+        badge_aftercare?: boolean, 
+        expose_partner_orders?: boolean 
+    }
+): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('companies')
+            .update(data)
+            .eq('id', companyId)
+
+        if (error) {
+            console.error('Error updating company regions and badges:', error)
+            return { success: false, error: '업데이트에 실패했습니다.' }
+        }
+
+        const { revalidatePath } = await import('next/cache')
+        revalidatePath('/master/companies')
+        revalidatePath('/master/partners')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: '서버 오류가 발생했습니다.' }
+    }
+}

@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 import { deleteUserForce, manageCompanyPoints } from '@/actions/master'
-import { Trash2, Building2, Search, PlusCircle, Loader2, Plus, Minus, RefreshCw, Gift } from 'lucide-react'
+import { updateCompanyRegionAndBadges } from '@/actions/master'
+import { Trash2, Building2, Search, PlusCircle, Loader2, Plus, Minus, RefreshCw, Gift, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { REGIONS } from '@/lib/regions'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
     Dialog,
     DialogContent,
@@ -48,6 +51,39 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
         open: false, companyId: '', companyName: '', benefits: {}
     })
 
+    // Region & Badge Settings State
+    const [regionDialog, setRegionDialog] = useState<{ open: boolean, company: any }>({ open: false, company: null })
+    const [compData, setCompData] = useState<any>({
+        region_province: '',
+        region_city: '',
+        is_national: false,
+        expose_partner_orders: true,
+    })
+
+    const openRegionDialog = (partner: any) => {
+        if (!partner.companies) return;
+        setCompData({
+            region_province: partner.companies.region_province || '',
+            region_city: partner.companies.region_city || '',
+            is_national: partner.companies.is_national || false,
+            expose_partner_orders: partner.companies.expose_partner_orders ?? true,
+        })
+        setRegionDialog({ open: true, company: partner.companies })
+    }
+
+    const handleSaveRegionSettings = async () => {
+        if (!regionDialog.company) return
+        setIsUpdating(true)
+        const result = await updateCompanyRegionAndBadges(regionDialog.company.id, compData)
+        setIsUpdating(false)
+        if (result.success) {
+            toast.success('파트너 설정이 저장되었습니다.')
+            setRegionDialog({ open: false, company: null })
+            router.refresh()
+        } else {
+            toast.error(result.error || '오류가 발생했습니다.')
+        }
+    }
 
     const supabase = createClient()
 
@@ -233,8 +269,14 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                     <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="p-4 py-3 font-bold text-slate-900 border-l-[3px] border-l-teal-500">{p.name}</td>
                                         <td className="p-4 py-3">
-                                            {p.status === 'active' && <Badge variant="outline" className="text-green-600 bg-green-50">정상</Badge>}
-                                            {p.status === 'deleted' && <Badge variant="outline" className="text-red-600 bg-red-50">탈퇴</Badge>}
+                                            {p.status === 'active' && <Badge variant="outline" className="text-green-600 bg-green-50 mr-1">정상</Badge>}
+                                            {p.status === 'deleted' && <Badge variant="outline" className="text-red-600 bg-red-50 mr-1">탈퇴</Badge>}
+                                            {p.companies?.is_national && <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-none mr-1">전국</Badge>}
+                                            {(p.companies?.region_province || p.companies?.region_city) && (
+                                                <span className="text-xs text-slate-500 font-medium block mt-1">
+                                                    {p.companies?.region_province} {p.companies?.region_city}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="p-4 py-3 text-slate-500 text-sm">{p.phone || '-'}</td>
                                         <td className="p-4 py-3 font-bold text-slate-700">
@@ -248,6 +290,10 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                                             <div className="flex items-center justify-end gap-2">
                                                 {p.companies?.id && (
                                                     <>
+                                                        <Button size="sm" variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50 h-8 text-xs px-2" onClick={() => openRegionDialog(p)}>
+                                                            <Settings className="w-3.5 h-3.5 mr-1" />
+                                                            설정
+                                                        </Button>
                                                         <Button size="sm" variant="outline" className="border-amber-200 text-amber-600 hover:bg-amber-50 h-8 text-xs px-2" onClick={() => setBenefitsDialog({ open: true, companyId: p.companies.id, companyName: p.name, benefits: p.companies.benefits || {} })}>
                                                             <Gift className="w-3.5 h-3.5 mr-1" />
                                                             혜택
@@ -388,6 +434,82 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                     >
                         {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
                         혜택 저장
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        {/* 지역/권한 설정 다이얼로그 */}
+        <Dialog open={regionDialog.open} onOpenChange={(open) => !open && setRegionDialog({ open: false, company: null })}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>파트너 권한 및 설정</DialogTitle>
+                    <DialogDescription>
+                        해당 파트너의 지역 및 오더 노출 권한을 설정합니다.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 py-4">
+                    <section className="space-y-4">
+                        <h3 className="font-semibold text-slate-800 border-b pb-2">지역/권한 설정</h3>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="is_national_pt" checked={compData.is_national} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, is_national: !!c }))} />
+                            <Label htmlFor="is_national_pt" className="font-bold text-indigo-700">전국 지역 권한 부여 (모든 지역 오더 보기)</Label>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 opacity-100 transition-opacity" style={{ opacity: compData.is_national ? 0.5 : 1 }}>
+                            <div className="space-y-2">
+                                <Label htmlFor="rp_pt">지역 (도)</Label>
+                                <select 
+                                    id="rp_pt"
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={compData.region_province}
+                                    disabled={compData.is_national}
+                                    onChange={(e) => setCompData((p:any) => ({ ...p, region_province: e.target.value, region_city: '' }))}
+                                >
+                                    <option value="">시/도 선택</option>
+                                    {Object.keys(REGIONS).map((prov) => (
+                                        <option key={prov} value={prov}>{prov}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="rc_pt">지역 (시/군/구)</Label>
+                                <select 
+                                    id="rc_pt"
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={compData.region_city}
+                                    disabled={compData.is_national || !compData.region_province}
+                                    onChange={(e) => setCompData((p:any) => ({ ...p, region_city: e.target.value }))}
+                                >
+                                    <option value="">시/군/구 선택</option>
+                                    {compData.region_province && (REGIONS as any)[compData.region_province]?.map((city: string) => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section className="space-y-4">
+                        <h3 className="font-semibold text-slate-800 border-b pb-2">기타 설정</h3>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="epo_pt" checked={compData.expose_partner_orders} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, expose_partner_orders: !!c }))} />
+                            <Label htmlFor="epo_pt" className="font-medium text-slate-700">오더 공유 마켓(게시판) 노출 허용</Label>
+                        </div>
+                        <p className="text-xs text-slate-500 pl-6">체크박스를 해제하면 파트너가 올린 오더가 청소업체의 지역 오더 목록에 강제로 숨겨집니다.</p>
+                    </section>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setRegionDialog({ open: false, company: null })}>취소</Button>
+                    <Button
+                        className="bg-slate-800 hover:bg-slate-900 text-white"
+                        onClick={handleSaveRegionSettings}
+                        disabled={isUpdating}
+                    >
+                        {isUpdating && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                        설정 저장
                     </Button>
                 </DialogFooter>
             </DialogContent>

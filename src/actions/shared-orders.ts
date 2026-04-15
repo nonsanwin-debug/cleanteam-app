@@ -408,7 +408,7 @@ export async function getMySharedOrders() {
     if (openOrderIds.length > 0) {
         const { data: applicants } = await adminSupabase
             .from('shared_order_applicants')
-            .select('order_id, status, updated_at, company:company_id(id, name)')
+            .select('order_id, status, updated_at, company:company_id(id, name, badge_business, badge_excellent, badge_aftercare)')
             .in('order_id', openOrderIds)
 
         if (applicants) {
