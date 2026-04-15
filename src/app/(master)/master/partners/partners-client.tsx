@@ -491,14 +491,6 @@ export function MasterPartnersClient({ initialPartners }: { initialPartners: any
                         </div>
                     </section>
                     
-                    <section className="space-y-4">
-                        <h3 className="font-semibold text-slate-800 border-b pb-2">기타 설정</h3>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="epo_pt" checked={compData.expose_partner_orders} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, expose_partner_orders: !!c }))} />
-                            <Label htmlFor="epo_pt" className="font-medium text-slate-700">오더 공유 마켓(게시판) 노출 허용</Label>
-                        </div>
-                        <p className="text-xs text-slate-500 pl-6">체크박스를 해제하면 파트너가 올린 오더가 청소업체의 지역 오더 목록에 강제로 숨겨집니다.</p>
-                    </section>
                 </div>
 
                 <DialogFooter>

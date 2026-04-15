@@ -413,17 +413,14 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                             </div>
                         </section>
 
-                        {/* Partner related settings can go here if needed */}
-                        {regionDialog.company?.users?.some((u:any) => u.role === 'partner') && (
-                            <section className="space-y-4">
-                                <h3 className="font-semibold text-slate-800 border-b pb-2">파트너 설정</h3>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox id="epo" checked={compData.expose_partner_orders} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, expose_partner_orders: !!c }))} />
-                                    <Label htmlFor="epo" className="font-medium text-slate-700">관리자 페이지(오더 공유 게시판)에 오더 노출 허용</Label>
-                                </div>
-                                <p className="text-xs text-slate-500 pl-6">체크박스를 해제하면 파트너가 올린 오더가 청소업체 검색 목록에 뜨지 않습니다.</p>
-                            </section>
-                        )}
+                        <section className="space-y-4">
+                            <h3 className="font-semibold text-slate-800 border-b pb-2">기타 권한 설정</h3>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="epo" checked={compData.expose_partner_orders} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, expose_partner_orders: !!c }))} />
+                                <Label htmlFor="epo" className="font-medium text-slate-700">오더 공유 마켓(게시판) 열람 권한</Label>
+                            </div>
+                            <p className="text-xs text-slate-500 pl-6">체크 해제 시 해당 청소업체는 파트너들이 올린 공유 오더를 볼 수 없습니다.</p>
+                        </section>
                     </div>
 
                     <DialogFooter>

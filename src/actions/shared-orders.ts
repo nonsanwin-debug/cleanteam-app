@@ -439,6 +439,18 @@ export async function getIncomingOrders() {
 
     const adminSupabase = createAdminClient()
 
+    // 1. 현재 청소업체의 지역 및 오더 열람 권한 조회
+    const { data: myCompany } = await adminSupabase
+        .from('companies')
+        .select('region_province, is_national, expose_partner_orders')
+        .eq('id', companyId)
+        .single()
+
+    // 권한이 회수되었으면 빈 배열 반환
+    if (myCompany && myCompany.expose_partner_orders === false) {
+        return []
+    }
+
     // 나를 파트너로 등록하고 sharing_active인 업체 ID 가져오기
     const { data: activePartners } = await adminSupabase
         .from('company_partners')
@@ -490,8 +502,20 @@ export async function getIncomingOrders() {
     }
     if (!orders || orders.length === 0) return []
 
+    // 2. 관리자 키로 우회된 RLS 대신 애플리케이션 레벨에서 지역 필터링 적용
+    // (전국 권한이 있거나, 오더 지역 명칭에 내 업체의 도/시가 포함된 경우만 노출)
+    const filteredOrders = orders.filter((order: any) => {
+        if (!myCompany) return true; // 예외처리
+        if (myCompany.is_national) return true;
+        if (!myCompany.region_province) return false; // 지역 미설정이면 전국 아니면 못봄
+        // 오더의 region (예: 충남 아산시 32평) 이 내 도(예: 충남)를 포함하는지
+        return order.region && order.region.includes(myCompany.region_province);
+    })
+
+    if (filteredOrders.length === 0) return []
+
     // 내가 지원한(상세정보 요청한) 오더인지 확인
-    const orderIds = orders.map((o: any) => o.id)
+    const orderIds = filteredOrders.map((o: any) => o.id)
     const { data: myApplications } = await adminSupabase
         .from('shared_order_applicants')
         .select('order_id')
@@ -500,7 +524,7 @@ export async function getIncomingOrders() {
 
     const appliedOrderIds = new Set(myApplications?.map((a: any) => a.order_id) || [])
 
-    return orders.map((order: any) => ({
+    return filteredOrders.map((order: any) => ({
         ...order,
         is_applied: appliedOrderIds.has(order.id)
     }))
