@@ -180,8 +180,16 @@ export function FieldHomeClient({
                                                 <div className="space-y-2">
                                                     {order.applicants.map((app: any) => (
                                                         <div key={app.id} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-orange-200 shadow-sm">
-                                                            <div className="flex flex-col">
+                                                            <div className="flex flex-col gap-1 w-full max-w-[200px]">
                                                                 <span className="font-bold text-slate-800 text-sm">{app.name}</span>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {app.badge_business && <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-none text-[10px] px-1 py-0 h-4">영업등록증 인증</Badge>}
+                                                                    {app.badge_excellent && <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-none text-[10px] px-1 py-0 h-4">우수업체 인증</Badge>}
+                                                                    {app.badge_aftercare && <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-none text-[10px] px-1 py-0 h-4">사후관리 100% 보장</Badge>}
+                                                                    {(!app.badge_business && !app.badge_excellent && !app.badge_aftercare) && (
+                                                                        <span className="text-[10px] text-slate-400 font-medium">인증 뱃지 없음</span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             <button
                                                                 className={cn(
