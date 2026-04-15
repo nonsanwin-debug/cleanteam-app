@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 import { confirmOrderAssignee, deleteSharedOrder, updateSharedOrder } from '@/actions/shared-orders'
 import { toast } from 'sonner'
-import { Loader2, Edit, Trash2 } from 'lucide-react'
+import { Loader2, Edit, Trash2, Briefcase, Award, ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -311,10 +311,22 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                         <div key={app.id} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-orange-200 shadow-sm">
                                                             <div className="flex flex-col gap-1 w-full max-w-[200px]">
                                                                 <span className="font-bold text-slate-800 text-sm">{app.name}</span>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {app.badge_business && <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-none text-[10px] px-1 py-0 h-4">영업등록증 인증</Badge>}
-                                                                    {app.badge_excellent && <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-none text-[10px] px-1 py-0 h-4">우수업체 인증</Badge>}
-                                                                    {app.badge_aftercare && <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-none text-[10px] px-1 py-0 h-4">사후관리 100% 보장</Badge>}
+                                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                                    {app.badge_business && (
+                                                                        <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border border-blue-200 text-xs px-2 py-0.5 shadow-sm font-medium flex items-center gap-1">
+                                                                            <Briefcase className="w-3 h-3 text-blue-600" /> 영업등록
+                                                                        </Badge>
+                                                                    )}
+                                                                    {app.badge_excellent && (
+                                                                        <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border border-amber-200 text-xs px-2 py-0.5 shadow-sm font-medium flex items-center gap-1">
+                                                                            <Award className="w-3 h-3 text-amber-500" /> 우수업체
+                                                                        </Badge>
+                                                                    )}
+                                                                    {app.badge_aftercare && (
+                                                                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-xs px-2 py-0.5 shadow-sm font-medium flex items-center gap-1">
+                                                                            <ShieldCheck className="w-3 h-3 text-emerald-600" /> AS보장
+                                                                        </Badge>
+                                                                    )}
                                                                     {(!app.badge_business && !app.badge_excellent && !app.badge_aftercare) && (
                                                                         <span className="text-[10px] text-slate-400 font-medium">인증 뱃지 없음</span>
                                                                     )}
