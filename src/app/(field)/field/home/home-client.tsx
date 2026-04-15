@@ -180,7 +180,7 @@ export function FieldHomeClient({
                                                 <div className="space-y-2">
                                                     {order.applicants.map((app: any) => (
                                                         <div key={app.id} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-orange-200 shadow-sm">
-                                                            <div className="flex flex-col gap-1 w-full max-w-[200px]">
+                                                            <div className="flex flex-col gap-1 flex-1 pr-2 min-w-0">
                                                                 <span className="font-bold text-slate-800 text-sm">{app.name}</span>
                                                                 <div className="flex flex-wrap gap-1 mt-1">
                                                                     {app.badge_business && (
