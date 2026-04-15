@@ -432,6 +432,26 @@ export async function getMySharedOrders() {
     }))
 }
 
+const REGION_SHORT_NAMES: Record<string, string[]> = {
+    "서울특별시": ["서울", "서울특별시"],
+    "부산광역시": ["부산", "부산광역시"],
+    "대구광역시": ["대구", "대구광역시"],
+    "인천광역시": ["인천", "인천광역시"],
+    "광주광역시": ["광주", "광주광역시"],
+    "대전광역시": ["대전", "대전광역시"],
+    "울산광역시": ["울산", "울산광역시"],
+    "세종특별자치시": ["세종", "세종특별자치시", "세종시"],
+    "경기도": ["경기", "경기도"],
+    "강원특별자치도": ["강원", "강원도", "강원특별자치도"],
+    "충청북도": ["충북", "충청북도"],
+    "충청남도": ["충남", "충청남도"],
+    "전북특별자치도": ["전북", "전라북도", "전북특별자치도"],
+    "전라남도": ["전남", "전라남도"],
+    "경상북도": ["경북", "경상북도"],
+    "경상남도": ["경남", "경상남도"],
+    "제주특별자치도": ["제주", "제주도", "제주특별자치도"]
+};
+
 /** 수신 오더 목록 (나를 파트너로 등록한 업체의 open 오더) */
 export async function getIncomingOrders() {
     const { companyId } = await getAuthCompany()
@@ -505,11 +525,15 @@ export async function getIncomingOrders() {
     // 2. 관리자 키로 우회된 RLS 대신 애플리케이션 레벨에서 지역 필터링 적용
     // (전국 권한이 있거나, 오더 지역 명칭에 내 업체의 도/시가 포함된 경우만 노출)
     const filteredOrders = orders.filter((order: any) => {
-        if (!myCompany) return true; // 예외처리
+        if (!myCompany) return false; // 예외처리
         if (myCompany.is_national) return true;
-        if (!myCompany.region_province) return false; // 지역 미설정이면 전국 아니면 못봄
-        // 오더의 region (예: 충남 아산시 32평) 이 내 도(예: 충남)를 포함하는지
-        return order.region && order.region.includes(myCompany.region_province);
+        
+        const myProv = myCompany.region_province;
+        if (!myProv || !order.region) return false; // 지역 미설정이면 전국이 아니면 못봄
+
+        // 축약어 매핑 검사 (예: "충청남도" -> ["충남", "충청남도"])
+        const validNames = REGION_SHORT_NAMES[myProv] || [myProv];
+        return validNames.some(name => order.region.includes(name));
     })
 
     if (filteredOrders.length === 0) return []
