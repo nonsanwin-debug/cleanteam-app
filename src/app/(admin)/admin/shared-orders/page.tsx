@@ -342,7 +342,7 @@ export default function SharedOrdersPage() {
                                 }
                             }
                         }
-                        const orderPrice = order.total_price || extractedPrice || 0
+                        const orderPrice = order.total_price || extractedPrice || (parsedDetails.estimated_price ? Number(parsedDetails.estimated_price) : 0)
                         const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
 
                         return (
@@ -388,6 +388,34 @@ export default function SharedOrdersPage() {
                                             </div>
                                         </div>
                                     </div>
+
+                                {/* parsed_details 상세 정보 (고객 링크 예약) */}
+                                {parsedDetails.source === 'customer_link' && (
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5">
+                                        {[
+                                            parsedDetails.cleaning_type && { label: '청소종류', value: parsedDetails.cleaning_type },
+                                            parsedDetails.residential_type && { label: '주거형태', value: parsedDetails.residential_type },
+                                            parsedDetails.structure_type && { label: '구조', value: parsedDetails.structure_type },
+                                            parsedDetails.building_condition && { label: '건물상태', value: parsedDetails.building_condition },
+                                            parsedDetails.time_preference && { label: '희망시간', value: parsedDetails.time_preference },
+                                        ].filter(Boolean).map((item: any, i: number) => (
+                                            <div key={i} className="flex items-start gap-2 text-sm">
+                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                    {item.label}
+                                                </span>
+                                                <span className="text-slate-700 flex-1 break-words">{item.value}</span>
+                                            </div>
+                                        ))}
+                                        {orderPrice > 0 && (
+                                            <div className="flex items-start gap-2 text-sm">
+                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                    견적금액
+                                                </span>
+                                                <span className="text-slate-800 font-bold flex-1">{orderPrice.toLocaleString()}원</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {order.notes && (
                                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5">
