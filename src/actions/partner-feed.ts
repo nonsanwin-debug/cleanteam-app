@@ -102,6 +102,11 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 }
             })
             .filter(site => site.before_photos.length >= 1 && site.after_photos.length >= 1)
+            .sort((a, b) => {
+                const dateA = a.cleaning_date || '0000-00-00'
+                const dateB = b.cleaning_date || '0000-00-00'
+                return dateB.localeCompare(dateA)
+            })
     } catch (err) {
         console.error('getPartnerFeedSites unexpected error:', err)
         return []
