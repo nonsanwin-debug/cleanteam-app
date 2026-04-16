@@ -236,7 +236,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                 )}
 
                                 {/* 고객 링크 접수 — 마스터 액션 버튼 */}
-                                {order.parsed_details?.pending_master && order.status === 'open' && (
+                                {order.parsed_details?.source === 'customer_link' && order.status === 'open' && (
                                     <div className="mt-3 pt-3 border-t border-amber-200 space-y-3">
                                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                                             <p className="text-xs font-bold text-amber-800 mb-2 flex items-center gap-1">
