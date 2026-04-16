@@ -3,17 +3,20 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock } from 'lucide-react'
+import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { FeedSite } from '@/actions/partner-feed'
+import type { PartnerNotice } from '@/actions/partner-notices'
 
 export function FieldHomeClient({ 
     partnerName, 
-    feedSites 
+    feedSites,
+    notices
 }: { 
     partnerName: string
     feedSites: FeedSite[]
+    notices: PartnerNotice[]
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
@@ -73,6 +76,35 @@ export function FieldHomeClient({
                     <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-black/5 rounded-full blur-xl pointer-events-none"></div>
                 </button>
             </div>
+
+            {/* 2.5. 공지사항 */}
+            {notices.length > 0 && (
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-bold text-slate-800 flex items-center gap-1.5">
+                            <Megaphone className="w-4 h-4 text-teal-500" />
+                            공지사항
+                        </h2>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
+                        {notices.map(notice => (
+                            <div
+                                key={notice.id}
+                                className="min-w-[160px] max-w-[200px] bg-slate-50 border border-slate-200 rounded-xl p-4 snap-start shrink-0 hover:bg-slate-100 transition-colors"
+                            >
+                                <p className="text-sm font-bold text-slate-800 line-clamp-2 leading-snug">
+                                    {notice.title}
+                                </p>
+                                {notice.content && (
+                                    <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">
+                                        {notice.content}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* 3. NEXUS 진행 내역 */}
             <div className="space-y-3 pt-4">

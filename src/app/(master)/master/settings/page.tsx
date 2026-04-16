@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings, Loader2, RefreshCw, Shield, Gift, Eye, EyeOff, Search, Building2 } from "lucide-react"
+import { Settings, Loader2, RefreshCw, Shield, Gift, Eye, EyeOff, Search, Building2, Megaphone, Plus, Trash2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { getFeedSitesList, toggleFeedVisibility } from "@/actions/master-feed"
+import { getAllNotices, createNotice, toggleNotice, deleteNotice, type PartnerNotice } from "@/actions/partner-notices"
 
 type FeedSiteItem = {
     id: string
@@ -33,6 +34,13 @@ export default function MasterSettingsPage() {
     const [feedLoading, setFeedLoading] = useState(true)
     const [togglingId, setTogglingId] = useState<string | null>(null)
     const [feedSearch, setFeedSearch] = useState('')
+
+    // 공지사항 상태
+    const [notices, setNotices] = useState<PartnerNotice[]>([])
+    const [noticeLoading, setNoticeLoading] = useState(true)
+    const [newTitle, setNewTitle] = useState('')
+    const [newContent, setNewContent] = useState('')
+    const [creating, setCreating] = useState(false)
 
     const supabase = createClient()
 
@@ -68,6 +76,17 @@ export default function MasterSettingsPage() {
         loadFeedSites()
     }, [])
 
+    // 공지사항 로드
+    useEffect(() => {
+        const loadNotices = async () => {
+            setNoticeLoading(true)
+            const data = await getAllNotices()
+            setNotices(data)
+            setNoticeLoading(false)
+        }
+        loadNotices()
+    }, [])
+
     // 설정 저장
     const handleSave = async () => {
         setSaving(true)
@@ -99,6 +118,40 @@ export default function MasterSettingsPage() {
             toast.error('변경 실패')
         }
         setTogglingId(null)
+    }
+
+    // 공지 생성
+    const handleCreateNotice = async () => {
+        if (!newTitle.trim()) { toast.error('제목을 입력하세요'); return }
+        setCreating(true)
+        const result = await createNotice(newTitle.trim(), newContent.trim())
+        if (result.success) {
+            toast.success('공지 등록됨')
+            setNewTitle('')
+            setNewContent('')
+            const data = await getAllNotices()
+            setNotices(data)
+        } else {
+            toast.error('등록 실패')
+        }
+        setCreating(false)
+    }
+
+    // 공지 삭제
+    const handleDeleteNotice = async (id: string) => {
+        const result = await deleteNotice(id)
+        if (result.success) {
+            setNotices(prev => prev.filter(n => n.id !== id))
+            toast.success('삭제됨')
+        }
+    }
+
+    // 공지 활성 토글
+    const handleToggleNotice = async (id: string, current: boolean) => {
+        const result = await toggleNotice(id, !current)
+        if (result.success) {
+            setNotices(prev => prev.map(n => n.id === id ? { ...n, is_active: !current } : n))
+        }
     }
 
     const filteredFeedSites = feedSites.filter(s => {
@@ -281,6 +334,101 @@ export default function MasterSettingsPage() {
                                     <p className="text-center text-sm text-slate-400 py-6">검색 결과가 없습니다.</p>
                                 )}
                             </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* 공지사항 관리 */}
+            <Card className="shadow-sm border-slate-200">
+                <CardHeader className="bg-slate-50 border-b border-slate-100">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                        <Megaphone className="w-5 h-5 text-orange-500" />
+                        파트너 공지사항 관리
+                    </CardTitle>
+                    <CardDescription>
+                        파트너 홈 화면에 표시되는 공지사항을 등록하고 관리합니다.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                    {/* 새 공지 등록 */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                        <p className="text-sm font-bold text-slate-700">새 공지 등록</p>
+                        <input
+                            type="text"
+                            value={newTitle}
+                            onChange={e => setNewTitle(e.target.value)}
+                            placeholder="공지 제목 (필수)"
+                            className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
+                        />
+                        <textarea
+                            value={newContent}
+                            onChange={e => setNewContent(e.target.value)}
+                            placeholder="공지 내용 (선택)"
+                            rows={2}
+                            className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 resize-none"
+                        />
+                        <Button
+                            className="bg-orange-500 hover:bg-orange-600 text-white h-9 text-sm"
+                            onClick={handleCreateNotice}
+                            disabled={creating}
+                        >
+                            {creating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                            공지 등록
+                        </Button>
+                    </div>
+
+                    {/* 등록된 공지 목록 */}
+                    {noticeLoading ? (
+                        <div className="flex items-center justify-center h-[60px] text-slate-400">
+                            <Loader2 className="w-5 h-5 animate-spin mr-2" /> 불러오는 중...
+                        </div>
+                    ) : notices.length === 0 ? (
+                        <p className="text-center text-sm text-slate-400 py-4">등록된 공지가 없습니다.</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {notices.map(notice => (
+                                <div
+                                    key={notice.id}
+                                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                                        notice.is_active
+                                            ? 'bg-white border-slate-200'
+                                            : 'bg-slate-50 border-slate-100 opacity-50'
+                                    }`}
+                                >
+                                    <div className="flex-1 min-w-0 mr-3">
+                                        <p className="text-sm font-semibold text-slate-800 truncate">{notice.title}</p>
+                                        {notice.content && (
+                                            <p className="text-xs text-slate-500 truncate mt-0.5">{notice.content}</p>
+                                        )}
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            {new Date(notice.created_at).toLocaleDateString('ko-KR')}
+                                            {' · '}
+                                            <span className={notice.is_active ? 'text-emerald-600 font-medium' : 'text-slate-400'}>
+                                                {notice.is_active ? '노출 중' : '비활성'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-1.5 shrink-0">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 text-xs px-2"
+                                            onClick={() => handleToggleNotice(notice.id, notice.is_active)}
+                                        >
+                                            {notice.is_active ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 text-xs px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                                            onClick={() => handleDeleteNotice(notice.id)}
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </CardContent>
