@@ -46,19 +46,19 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
     const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
     const [errorField, setErrorField] = useState<string | null>(null)
 
-    const handleValidationError = (fieldId: string, message: string) => {
+    const handleValidationError = (fieldId: string, message: string, fieldStep: number = 1) => {
         toast.error(message)
         const applyScroll = () => {
             const el = document.getElementById(`field-${fieldId}`)
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' })
                 setErrorField(fieldId)
-                setTimeout(() => setErrorField(null), 1500)
+                setTimeout(() => setErrorField(null), 2000)
             }
         }
-        if (step !== 1) {
-            setStep(1)
-            setTimeout(applyScroll, 100)
+        if (step !== fieldStep) {
+            setStep(fieldStep)
+            setTimeout(applyScroll, 150)
         } else {
             applyScroll()
         }
@@ -141,7 +141,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
         if (!customerName) return handleValidationError('customerName', '고객 이름을 입력해주세요.')
         if (!customerPhone) return handleValidationError('customerPhone', '고객 연락처를 입력해주세요.')
         if (!cleanType) return handleValidationError('cleanType', '청소 종류를 선택해주세요.')
-        if (!workDate) return handleValidationError('workDate', '작업 희망일을 선택해주세요.')
+        if (!workDate) return handleValidationError('workDate', '작업 희망일을 선택해주세요.', 2)
 
         setIsSubmitting(true)
         try {
@@ -215,7 +215,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                 {step === 1 && (
                     <>
                         {/* 주소 */}
-                        <div id="field-address" className={`space-y-2 ${errorField === 'address' ? 'animate-pulse' : ''}`}>
+                        <div id="field-address" className={`space-y-2 ${errorField === 'address' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                             <Label className="text-sm font-bold flex items-center gap-1.5">
                                 <MapPin className="w-4 h-4 text-teal-500" />
                                 주소 <span className="text-red-500">*</span>
@@ -232,7 +232,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                         </div>
 
                         {/* 평수 */}
-                        <div id="field-areaSize" className={`space-y-2 ${errorField === 'areaSize' ? 'animate-pulse' : ''}`}>
+                        <div id="field-areaSize" className={`space-y-2 ${errorField === 'areaSize' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                             <Label className="text-sm font-bold">평수 (공급면적 기준) <span className="text-red-500">*</span></Label>
                             <div className="relative">
                                 <Input type="number" inputMode="numeric" value={areaSize} onChange={e => setAreaSize(e.target.value)} placeholder="예: 32" className="h-12 pr-10" />
@@ -243,18 +243,18 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                         {/* 고객 정보 */}
                         <div className="space-y-3 border-t border-slate-200 pt-4">
                             <h3 className="font-bold text-slate-800">고객 정보</h3>
-                            <div id="field-customerName" className={`space-y-1 ${errorField === 'customerName' ? 'animate-pulse' : ''}`}>
+                            <div id="field-customerName" className={`space-y-1 ${errorField === 'customerName' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                                 <Label className="text-sm font-bold">이름 <span className="text-red-500">*</span></Label>
                                 <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="고객 이름" className="h-12" />
                             </div>
-                            <div id="field-customerPhone" className={`space-y-1 ${errorField === 'customerPhone' ? 'animate-pulse' : ''}`}>
+                            <div id="field-customerPhone" className={`space-y-1 ${errorField === 'customerPhone' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                                 <Label className="text-sm font-bold">연락처 <span className="text-red-500">*</span></Label>
                                 <Input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="010-0000-0000" className="h-12" />
                             </div>
                         </div>
 
                         {/* 청소 종류 */}
-                        <div id="field-cleanType" className={`space-y-2 ${errorField === 'cleanType' ? 'animate-pulse' : ''}`}>
+                        <div id="field-cleanType" className={`space-y-2 ${errorField === 'cleanType' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                             <Label className="text-sm font-bold">청소 종류 <span className="text-red-500">*</span></Label>
                             <div className="grid grid-cols-3 gap-2">
                                 {CLEANING_TYPES.map(t => (
@@ -301,7 +301,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                 {step === 2 && (
                     <>
                         {/* 작업 희망일 */}
-                        <div id="field-workDate" className={`space-y-2 ${errorField === 'workDate' ? 'animate-pulse' : ''}`}>
+                        <div id="field-workDate" className={`space-y-2 ${errorField === 'workDate' ? 'animate-bounce ring-2 ring-red-400 ring-offset-2 rounded-xl' : ''}`}>
                             <Label className="text-sm font-bold flex items-center gap-1.5">
                                 <Calendar className="w-4 h-4 text-teal-500" />
                                 작업 희망일 <span className="text-red-500">*</span>
