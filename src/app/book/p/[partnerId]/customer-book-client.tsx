@@ -409,6 +409,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-slate-400">※ 실제 금액은 현장 확인 후 변동될 수 있습니다</p>
+                                    <p className="text-[10px] text-slate-400">※ 부가세 별도 금액입니다</p>
                                 </div>
                             )
                         })()}
