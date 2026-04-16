@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 
 import DaumPostcode from 'react-daum-postcode'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
+import { createCustomerOrder } from '@/actions/customer-order'
 
 const CLEANING_TYPES = ['입주청소', '이사청소', '거주청소', '사이청소', '상가청소', '특수청소']
 const TIME_PREFS = ['오전 청소 요망', '오후 청소 요망', '시간 협의']
@@ -151,7 +152,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
             const fullAddress = detailAddress ? `${address} ${detailAddress}` : address
             const estimatedPrice = getCalculatedBasePrice()
 
-            const { error } = await supabase.from('shared_orders').insert({
+            const result = await createCustomerOrder({
                 address: fullAddress,
                 area_size: areaSize,
                 customer_name: customerName,
@@ -164,14 +165,12 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                 building_condition: buildingCondition,
                 notes: notes || null,
                 photos: uploadedImageUrls.length > 0 ? uploadedImageUrls : null,
-                status: 'pending',
                 partner_id: partnerId,
                 reward_type: rewardType,
                 estimated_price: estimatedPrice > 0 ? estimatedPrice : null,
-                source: 'customer_link',
             })
 
-            if (error) throw error
+            if (!result.success) throw new Error(result.error)
 
             toast.success('예약이 성공적으로 접수되었습니다!')
             router.push('/book/p/complete')
