@@ -49,7 +49,7 @@ export async function getFeedSitesList() {
                 name: s.name,
                 address: s.address,
                 cleaning_date: s.cleaning_date,
-                hidden_from_feed: s.hidden_from_feed ?? false,
+                hidden_from_feed: s.hidden_from_feed ?? true,
                 company_name: (companyObj as any)?.name || '미지정',
                 feed_display_name: (s as any).feed_display_name || null,
             }

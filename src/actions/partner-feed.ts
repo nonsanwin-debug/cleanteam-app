@@ -45,7 +45,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 feed_display_name
             `)
             .eq('status', 'completed')
-            .or('hidden_from_feed.is.null,hidden_from_feed.eq.false')
+            .eq('hidden_from_feed', false)
             .order('cleaning_date', { ascending: false })
             .limit(200)
 
