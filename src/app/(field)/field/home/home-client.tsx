@@ -87,45 +87,47 @@ export function FieldHomeClient({
                 )}
             </div>
 
-            {/* 1.5. 정보 카드 그리드 */}
-            <div className="grid grid-cols-2 gap-3">
-                {/* 예약건수 */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="bg-blue-50 p-1.5 rounded-lg">
-                            <ClipboardList className="w-4 h-4 text-blue-500" />
+            {/* 1.5. 정보 카드 */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100">
+                    {/* 예약건수 */}
+                    <div className="flex items-center justify-between px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                            <div className="bg-blue-50 p-2 rounded-lg">
+                                <ClipboardList className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <span className="text-sm font-medium text-slate-600">예약건수</span>
                         </div>
-                        <span className="text-xs font-medium text-slate-500">예약건수</span>
+                        <p className="text-xl font-extrabold text-slate-800">
+                            {isLoggedIn ? bookingCount : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">건</span>
+                        </p>
                     </div>
-                    <p className="text-2xl font-extrabold text-slate-800">
-                        {isLoggedIn ? bookingCount : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">건</span>
-                    </p>
-                </div>
 
-                {/* 예약할인 포인트 */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="bg-emerald-50 p-1.5 rounded-lg">
-                            <Coins className="w-4 h-4 text-emerald-500" />
+                    {/* 예약할인 포인트 */}
+                    <div className="flex items-center justify-between px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                            <div className="bg-emerald-50 p-2 rounded-lg">
+                                <Coins className="w-4 h-4 text-emerald-500" />
+                            </div>
+                            <span className="text-sm font-medium text-slate-600">예약할인 포인트</span>
                         </div>
-                        <span className="text-xs font-medium text-slate-500">예약할인 포인트</span>
+                        <p className="text-xl font-extrabold text-slate-800">
+                            {isLoggedIn ? bookingPoints.toLocaleString() : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">P</span>
+                        </p>
                     </div>
-                    <p className="text-2xl font-extrabold text-slate-800">
-                        {isLoggedIn ? bookingPoints.toLocaleString() : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">P</span>
-                    </p>
-                </div>
 
-                {/* 파트너즈 활동 포인트 */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="bg-amber-50 p-1.5 rounded-lg">
-                            <Star className="w-4 h-4 text-amber-500" />
+                    {/* 활동 포인트 */}
+                    <div className="flex items-center justify-between px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                            <div className="bg-amber-50 p-2 rounded-lg">
+                                <Star className="w-4 h-4 text-amber-500" />
+                            </div>
+                            <span className="text-sm font-medium text-slate-600">활동 포인트</span>
                         </div>
-                        <span className="text-xs font-medium text-slate-500">활동 포인트</span>
+                        <p className="text-xl font-extrabold text-slate-800">
+                            {isLoggedIn ? activityPoints.toLocaleString() : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">P</span>
+                        </p>
                     </div>
-                    <p className="text-2xl font-extrabold text-slate-800">
-                        {isLoggedIn ? activityPoints.toLocaleString() : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">P</span>
-                    </p>
                 </div>
             </div>
 
