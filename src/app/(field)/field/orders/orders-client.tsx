@@ -266,6 +266,32 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                                 </h3>
                                                 <div className="text-sm text-slate-500 flex flex-col gap-1.5 mt-2">
                                                     <span>{order.transferred_site?.date || order.work_date || '날짜 미정'} · {order.area_size}</span>
+                                                    {/* parsed_details 상세 정보 */}
+                                                    {(() => {
+                                                        const pd = order.parsed_details || {}
+                                                        const tags = [pd.cleaning_type, pd.residential_type, pd.structure_type, pd.building_condition].filter(Boolean)
+                                                        return tags.length > 0 ? (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {tags.map((tag: string, i: number) => (
+                                                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">{tag}</span>
+                                                                ))}
+                                                            </div>
+                                                        ) : null
+                                                    })()}
+                                                    {/* 견적 금액 */}
+                                                    {(() => {
+                                                        const pd = order.parsed_details || {}
+                                                        const price = pd.estimated_price
+                                                        if (!price) return null
+                                                        return (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-sm font-bold text-slate-800">견적 {Number(price).toLocaleString()}원</span>
+                                                                {pd.reward_type === 'discount' && (
+                                                                    <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">10%할인</span>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })()}
                                                     {order.accepted_company && (
                                                         <div className="flex items-center gap-1.5 bg-slate-100 w-fit px-2.5 py-1 rounded-md text-xs font-semibold text-slate-700">
                                                             <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
