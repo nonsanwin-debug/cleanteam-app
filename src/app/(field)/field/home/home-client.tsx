@@ -346,8 +346,8 @@ export function FieldHomeClient({
 
                                         {/* 담당 업체명 */}
                                         {site.company_name && (
-                                            <p className="text-xs text-slate-500 pt-2 border-t border-slate-100">
-                                                해당 현장 담당 업체명 : <span className="font-semibold text-slate-700">{site.company_name}</span>
+                                            <p className="text-sm text-slate-500 pt-3 mt-1 border-t border-slate-100 font-medium">
+                                                해당 현장 담당 업체명 : <span className="font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">{site.company_name}</span>
                                             </p>
                                         )}
                                     </CardContent>
