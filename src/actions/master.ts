@@ -461,7 +461,7 @@ export async function getAllSharedOrders() {
 
     const { data, error } = await adminSupabase
         .from('shared_orders')
-        .select('*, company:company_id(name, code), accepted_company:accepted_by(name, code)')
+        .select('*, company:company_id(name, code)')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -469,7 +469,25 @@ export async function getAllSharedOrders() {
         return []
     }
 
-    return data || []
+    if (!data || data.length === 0) return []
+
+    // accepted_by 업체명 수동 조회 (FK 조인 불가 시 대비)
+    const acceptedIds = [...new Set(data.filter((o: any) => o.accepted_by).map((o: any) => o.accepted_by))]
+    let acceptedMap: Record<string, string> = {}
+    if (acceptedIds.length > 0) {
+        const { data: acceptedCompanies } = await adminSupabase
+            .from('companies')
+            .select('id, name')
+            .in('id', acceptedIds)
+        if (acceptedCompanies) {
+            acceptedCompanies.forEach((c: any) => { acceptedMap[c.id] = c.name })
+        }
+    }
+
+    return data.map((order: any) => ({
+        ...order,
+        accepted_company: order.accepted_by ? { name: acceptedMap[order.accepted_by] || null } : null
+    }))
 }
 
 export async function deleteSharedOrderForce(orderId: string) {

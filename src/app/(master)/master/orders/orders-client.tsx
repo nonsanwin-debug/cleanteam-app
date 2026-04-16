@@ -173,7 +173,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                             <CheckCircle2 className="w-4 h-4" />
                                             배정 완료
                                         </span>
-                                        <span>{order.accepted_company?.name || '업체명 미상'}</span>
+                                        <span>{order.accepted_company?.name || companies.find((c: any) => c.id === order.accepted_by)?.name || '업체명 미상'}</span>
                                     </div>
                                 )}
                                 
