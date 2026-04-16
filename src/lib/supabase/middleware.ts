@@ -82,8 +82,8 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // QR코드: nexus.닷컴 접속 시 nexuspartner.kr 루트로 리다이렉트
-    if (hostname.includes('nexus.xn--mk1bu44c')) {
+    // QR코드: nexus.닷컴/auth/partner-login 만 nexuspartner.kr 로 리다이렉트
+    if (hostname.includes('nexus.xn--mk1bu44c') && request.nextUrl.pathname === '/auth/partner-login') {
         return NextResponse.redirect('https://nexuspartner.kr/')
     }
 
