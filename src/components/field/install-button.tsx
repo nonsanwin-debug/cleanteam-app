@@ -35,8 +35,18 @@ export function InstallButton() {
         return /Chrome/i.test(ua) && !/Edge|OPR|Samsung/i.test(ua)
     }
 
+    const isIOS = () => {
+        const ua = navigator.userAgent || ''
+        return /iPhone|iPad|iPod/i.test(ua)
+    }
+
+    const isSafari = () => {
+        const ua = navigator.userAgent || ''
+        return /Safari/i.test(ua) && !/Chrome|CriOS|FxiOS/i.test(ua)
+    }
+
     const handleInstall = async () => {
-        // 1. PWA 프롬프트가 있으면 바로 설치
+        // 1. PWA 프롬프트가 있으면 바로 설치 (Android Chrome)
         if (deferredPrompt) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
@@ -47,16 +57,29 @@ export function InstallButton() {
             return
         }
 
-        // 2. 인앱브라우저 or 비Chrome → Chrome으로 열기
+        // 2. iOS 처리
+        if (isIOS()) {
+            if (isSafari()) {
+                // Safari에서 접속 중 → 가이드 표시
+                setShowGuide(true)
+            } else {
+                // iOS 인앱브라우저 → Safari로 열기
+                window.location.href = window.location.href
+                // iOS에서는 프로그래밍으로 Safari를 강제 실행할 수 없으므로 가이드 표시
+                setShowGuide(true)
+            }
+            return
+        }
+
+        // 3. Android: 인앱브라우저 or 비Chrome → Chrome으로 열기
         if (isInAppBrowser() || !isChrome()) {
             const url = window.location.href
-            // Android intent scheme으로 Chrome 강제 실행
             const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
             window.location.href = intentUrl
             return
         }
 
-        // 3. Chrome인데 프롬프트 없음 → 가이드 표시
+        // 4. Chrome인데 프롬프트 없음 → 가이드 표시
         setShowGuide(true)
     }
 
@@ -92,22 +115,40 @@ export function InstallButton() {
                             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                                 <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
                                 <div>
-                                    <p className="text-sm font-semibold text-slate-800">브라우저에서 열기</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">카카오톡 등 인앱브라우저가 아닌 <strong>Chrome</strong> 또는 <strong>Safari</strong>에서 열어주세요</p>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {isIOS() ? 'Safari에서 열기' : 'Chrome에서 열기'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {isIOS()
+                                            ? '카카오톡 등이 아닌 Safari 브라우저에서 이 페이지를 열어주세요'
+                                            : '카카오톡 등 인앱브라우저가 아닌 Chrome에서 열어주세요'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                                 <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
                                 <div>
-                                    <p className="text-sm font-semibold text-slate-800">메뉴에서 &quot;홈 화면에 추가&quot;</p>
-                                    <p className="text-xs text-slate-500 mt-0.5"><strong>⋮</strong> 또는 <strong>공유</strong> → <strong>&quot;홈 화면에 추가&quot;</strong> 선택</p>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {isIOS() ? '공유 버튼 누르기' : '메뉴에서 "홈 화면에 추가"'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {isIOS()
+                                            ? <>하단의 <strong>공유 (□↑)</strong> 버튼을 눌러주세요</>
+                                            : <><strong>⋮</strong> 메뉴 → <strong>&quot;홈 화면에 추가&quot;</strong> 선택</>}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                                 <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
                                 <div>
-                                    <p className="text-sm font-semibold text-slate-800">설치 완료!</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">홈 화면에 NEXUS 아이콘이 생성됩니다</p>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {isIOS() ? '"홈 화면에 추가" 선택' : '설치 완료!'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {isIOS()
+                                            ? '목록에서 "홈 화면에 추가"를 눌러주세요'
+                                            : '홈 화면에 NEXUS 아이콘이 생성됩니다'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
