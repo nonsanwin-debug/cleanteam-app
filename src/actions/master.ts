@@ -646,7 +646,15 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
             .eq('id', order.company_id)
             .single()
 
-        // 5. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
+        // 5. 기존에 이관된 현장이 있으면 먼저 삭제 (회수 후 재배정 시)
+        if (order.transferred_site_id) {
+            await adminClient
+                .from('sites')
+                .delete()
+                .eq('id', order.transferred_site_id)
+        }
+
+        // 6. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
         const parsedDetails = order.parsed_details || {}
         const detailAddr = parsedDetails.detail_address || ''
         const baseAddress = order.address || ''
@@ -712,12 +720,20 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
             return { success: false, error: '오더를 찾을 수 없습니다.' }
         }
 
-        // 2. 이관된 현장(site)이 있으면 삭제
+        // 2. 이관된 현장(site)이 있으면 삭제 (hard delete 시도 → 실패 시 cancelled 처리)
         if (order.transferred_site_id) {
-            await adminClient
+            const { error: delError } = await adminClient
                 .from('sites')
                 .delete()
                 .eq('id', order.transferred_site_id)
+            
+            // FK 제약 등으로 삭제 실패 시 상태만 cancelled로 변경
+            if (delError) {
+                await adminClient
+                    .from('sites')
+                    .update({ status: 'cancelled' })
+                    .eq('id', order.transferred_site_id)
+            }
         }
 
         // 3. 오더 상태를 다시 pending_master로 복원
