@@ -90,7 +90,8 @@ export function FieldHomeClient({
                         {notices.map(notice => (
                             <div
                                 key={notice.id}
-                                className="min-w-[160px] max-w-[200px] bg-slate-50 border border-slate-200 rounded-xl p-4 snap-start shrink-0 hover:bg-slate-100 transition-colors"
+                                onClick={() => router.push(`/field/notices/${notice.id}`)}
+                                className="min-w-[160px] max-w-[200px] bg-slate-50 border border-slate-200 rounded-xl p-4 snap-start shrink-0 hover:bg-slate-100 transition-colors cursor-pointer active:scale-[0.97]"
                             >
                                 <p className="text-sm font-bold text-slate-800 line-clamp-2 leading-snug">
                                     {notice.title}
