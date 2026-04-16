@@ -280,7 +280,7 @@ export function FieldHomeClient({
                                             </Badge>
                                         </div>
 
-                                        {/* 날짜 / 시간 / 업체명 */}
+                                        {/* 날짜 / 시간 */}
                                         <div className="flex items-center gap-4 text-sm text-slate-500">
                                             <span className="flex items-center gap-1">
                                                 <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
@@ -290,11 +290,6 @@ export function FieldHomeClient({
                                                 <span className="flex items-center gap-1 text-blue-600 font-medium">
                                                     <Clock className="w-3.5 h-3.5" />
                                                     {site.start_time}
-                                                </span>
-                                            )}
-                                            {site.company_name && (
-                                                <span className="flex items-center gap-1 text-slate-500 font-medium">
-                                                    <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold">{site.company_name}</span>
                                                 </span>
                                             )}
                                         </div>
@@ -347,6 +342,13 @@ export function FieldHomeClient({
                                                     </div>
                                                 )}
                                             </div>
+                                        )}
+
+                                        {/* 담당 업체명 */}
+                                        {site.company_name && (
+                                            <p className="text-xs text-slate-500 pt-2 border-t border-slate-100">
+                                                해당 현장 담당 업체명 : <span className="font-semibold text-slate-700">{site.company_name}</span>
+                                            </p>
                                         )}
                                     </CardContent>
                                 </Card>
