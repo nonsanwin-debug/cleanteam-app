@@ -83,8 +83,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // QR코드 인쇄 오류 대응: nexus.닷컴 접속 시 nexuspartner.kr 로 자동 리다이렉트
-    if (hostname.includes('nexus.xn--mk1bu44c') && request.nextUrl.pathname.includes('/auth/partner-login')) {
-        return NextResponse.redirect('https://nexuspartner.kr/auth/partner-login')
+    if (hostname.includes('nexus.xn--mk1bu44c')) {
+        return NextResponse.redirect('https://nexuspartner.kr/field/home')
     }
 
     // Protected Routes Logic
