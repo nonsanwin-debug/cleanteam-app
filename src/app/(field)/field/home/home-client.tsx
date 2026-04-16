@@ -110,7 +110,8 @@ export function FieldHomeClient({
                             return (
                                 <Card 
                                     key={site.id} 
-                                    className="overflow-hidden hover:shadow-md transition-shadow"
+                                    className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer active:scale-[0.99]"
+                                    onClick={() => router.push(`/share/${site.id}`)}
                                 >
                                     <CardContent className="p-4 space-y-3">
                                         {/* 현장명 + 상태 */}

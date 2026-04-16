@@ -29,6 +29,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
         const adminClient = createAdminClient()
 
         // 1. 전체 현장 최신 50건 조회 (업체명, 팀장명 포함)
+        // 대기(scheduled) 현장 제외, completed/in_progress만 조회
         const { data: sites, error } = await adminClient
             .from('sites')
             .select(`
@@ -42,27 +43,26 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 worker_name,
                 companies:company_id (name)
             `)
+            .in('status', ['completed', 'in_progress'])
             .order('cleaning_date', { ascending: false, nullsFirst: false })
-            .limit(50)
+            .limit(100)
 
         if (error || !sites) {
             console.error('getPartnerFeedSites error:', error)
             return []
         }
 
-        // 2. 완료된 현장의 ID 추출
-        const completedSiteIds = sites
-            .filter(s => s.status === 'completed')
-            .map(s => s.id)
+        // 2. 모든 현장 ID 추출하여 사진 조회
+        const allSiteIds = sites.map(s => s.id)
 
         // 3. 완료된 현장의 before/after 사진 조회
         let photosMap = new Map<string, { before: string[], after: string[] }>()
 
-        if (completedSiteIds.length > 0) {
+        if (allSiteIds.length > 0) {
             const { data: photos } = await adminClient
                 .from('photos')
                 .select('site_id, url, type')
-                .in('site_id', completedSiteIds)
+                .in('site_id', allSiteIds)
                 .in('type', ['before', 'after'])
                 .order('created_at', { ascending: true })
 
@@ -81,25 +81,27 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
             }
         }
 
-        // 4. 최종 결과 매핑
-        return sites.map(site => {
-            const companyObj = Array.isArray(site.companies) ? site.companies[0] : site.companies
-            const sitePhotos = photosMap.get(site.id) || { before: [], after: [] }
+        // 4. 최종 결과 매핑 — before/after 사진이 각각 3장 이상인 현장만 반환
+        return sites
+            .map(site => {
+                const companyObj = Array.isArray(site.companies) ? site.companies[0] : site.companies
+                const sitePhotos = photosMap.get(site.id) || { before: [], after: [] }
 
-            return {
-                id: site.id,
-                name: site.name,
-                address: site.address,
-                status: site.status,
-                cleaning_date: site.cleaning_date,
-                area_size: site.area_size,
-                start_time: site.start_time,
-                worker_name: site.worker_name,
-                company_name: (companyObj as any)?.name || null,
-                before_photos: sitePhotos.before,
-                after_photos: sitePhotos.after,
-            }
-        })
+                return {
+                    id: site.id,
+                    name: site.name,
+                    address: site.address,
+                    status: site.status,
+                    cleaning_date: site.cleaning_date,
+                    area_size: site.area_size,
+                    start_time: site.start_time,
+                    worker_name: site.worker_name,
+                    company_name: (companyObj as any)?.name || null,
+                    before_photos: sitePhotos.before,
+                    after_photos: sitePhotos.after,
+                }
+            })
+            .filter(site => site.before_photos.length >= 3 && site.after_photos.length >= 3)
     } catch (err) {
         console.error('getPartnerFeedSites unexpected error:', err)
         return []
