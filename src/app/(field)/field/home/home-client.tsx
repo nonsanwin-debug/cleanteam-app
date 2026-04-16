@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone } from 'lucide-react'
+import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone, Download, ClipboardList, Coins, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { FeedSite } from '@/actions/partner-feed'
@@ -13,15 +13,39 @@ export function FieldHomeClient({
     partnerName, 
     feedSites,
     notices,
-    isLoggedIn
+    isLoggedIn,
+    bookingCount,
+    bookingPoints,
+    activityPoints
 }: { 
     partnerName: string
     feedSites: FeedSite[]
     notices: PartnerNotice[]
     isLoggedIn: boolean
+    bookingCount: number
+    bookingPoints: number
+    activityPoints: number
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+    const [isAppInstalled, setIsAppInstalled] = useState(false)
+
+    // PWA Install Prompt
+    useEffect(() => {
+        const handler = (e: any) => {
+            e.preventDefault()
+            setDeferredPrompt(e)
+        }
+        window.addEventListener('beforeinstallprompt', handler)
+
+        // 이미 설치된 경우 체크
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            setIsAppInstalled(true)
+        }
+
+        return () => window.removeEventListener('beforeinstallprompt', handler)
+    }, [])
 
     useEffect(() => {
         const supabase = createClient()
@@ -70,6 +94,77 @@ export function FieldHomeClient({
                         </p>
                     </>
                 )}
+            </div>
+
+            {/* 1.5. 정보 카드 그리드 */}
+            <div className="grid grid-cols-2 gap-3">
+                {/* 예약건수 */}
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-blue-50 p-1.5 rounded-lg">
+                            <ClipboardList className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-500">예약건수</span>
+                    </div>
+                    <p className="text-2xl font-extrabold text-slate-800">
+                        {isLoggedIn ? bookingCount : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">건</span>
+                    </p>
+                </div>
+
+                {/* 예약할인 포인트 */}
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-emerald-50 p-1.5 rounded-lg">
+                            <Coins className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-500">예약할인 포인트</span>
+                    </div>
+                    <p className="text-2xl font-extrabold text-slate-800">
+                        {isLoggedIn ? bookingPoints.toLocaleString() : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">P</span>
+                    </p>
+                </div>
+
+                {/* 파트너즈 활동 포인트 */}
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-amber-50 p-1.5 rounded-lg">
+                            <Star className="w-4 h-4 text-amber-500" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-500">활동 포인트</span>
+                    </div>
+                    <p className="text-2xl font-extrabold text-slate-800">
+                        {isLoggedIn ? activityPoints.toLocaleString() : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">P</span>
+                    </p>
+                </div>
+
+                {/* 앱 설치 */}
+                <button
+                    onClick={async () => {
+                        if (isAppInstalled) { return }
+                        if (deferredPrompt) {
+                            deferredPrompt.prompt()
+                            const { outcome } = await deferredPrompt.userChoice
+                            if (outcome === 'accepted') {
+                                setIsAppInstalled(true)
+                            }
+                            setDeferredPrompt(null)
+                        } else {
+                            // iOS Safari 등 beforeinstallprompt 미지원
+                            alert('홈 화면에 추가하려면\n브라우저 메뉴 → "홈 화면에 추가"를 눌러주세요.')
+                        }
+                    }}
+                    className="bg-gradient-to-br from-teal-500 to-teal-600 border border-teal-400/30 rounded-xl p-4 shadow-sm text-left hover:from-teal-600 hover:to-teal-700 transition-all active:scale-[0.97]"
+                >
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-white/20 p-1.5 rounded-lg">
+                            <Download className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-xs font-medium text-teal-50">앱 설치</span>
+                    </div>
+                    <p className="text-sm font-bold text-white">
+                        {isAppInstalled ? '✅ 설치 완료' : '홈 화면에 추가'}
+                    </p>
+                </button>
             </div>
 
             {/* 2. Big Action Button (Booking) */}
