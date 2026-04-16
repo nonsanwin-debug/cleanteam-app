@@ -55,7 +55,7 @@ export async function createCustomerOrder(data: {
         customer_phone: data.customer_phone,
         work_date: data.work_date,
         notes: data.notes || '',
-        status: 'pending_master',
+        status: 'open',
         is_auto_assign: data.is_auto_assign,
         parsed_details: {
             cleaning_type: data.cleaning_type,
@@ -66,6 +66,7 @@ export async function createCustomerOrder(data: {
             reward_type: data.reward_type,
             estimated_price: data.estimated_price,
             source: 'customer_link',
+            pending_master: true,
             ...(data.photos && data.photos.length > 0 ? { image_urls: data.photos } : {}),
         },
     }).select('id').single()

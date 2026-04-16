@@ -544,7 +544,7 @@ export async function updateCompanyRegionAndBadges(
 
 /**
  * 마스터 — 고객 링크 오더를 공유 오더 게시판으로 전환
- * pending_master → open
+ * parsed_details.pending_master = false 로 설정
  */
 export async function releaseToSharedBoard(orderId: string): Promise<ActionResponse> {
     try {
@@ -553,11 +553,19 @@ export async function releaseToSharedBoard(orderId: string): Promise<ActionRespo
 
         const adminClient = createAdminClient()
 
+        // 현재 parsed_details를 가져와서 pending_master 플래그 제거
+        const { data: order } = await adminClient
+            .from('shared_orders')
+            .select('parsed_details')
+            .eq('id', orderId)
+            .single()
+
+        const updatedDetails = { ...(order?.parsed_details || {}), pending_master: false }
+
         const { error } = await adminClient
             .from('shared_orders')
-            .update({ status: 'open' })
+            .update({ parsed_details: updatedDetails })
             .eq('id', orderId)
-            .eq('status', 'pending_master')
 
         if (error) {
             console.error('releaseToSharedBoard error:', error)

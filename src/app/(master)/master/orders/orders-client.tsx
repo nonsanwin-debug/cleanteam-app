@@ -69,7 +69,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
         const result = await releaseToSharedBoard(orderId)
         if (result.success) {
             toast.success('공유 오더 게시판에 등록되었습니다.')
-            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'open' } : o))
+            setOrders(orders.map(o => o.id === orderId ? { ...o, parsed_details: { ...o.parsed_details, pending_master: false } } : o))
             router.refresh()
         } else {
             toast.error(result.error || '처리 실패')
@@ -86,7 +86,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
         if (result.success) {
             const company = companies.find(c => c.id === companyId)
             toast.success(`${company?.name || '업체'}에 배정되었습니다.`)
-            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'transferred', accepted_by: companyId } : o))
+            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'transferred', accepted_by: companyId, parsed_details: { ...o.parsed_details, pending_master: false } } : o))
             router.refresh()
         } else {
             toast.error(result.error || '배정 실패')
@@ -94,8 +94,8 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
         setAssigningId(null)
     }
 
-    const getStatusBadge = (status: string, isAutoAssign: boolean = false) => {
-        if (status === 'pending_master') return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 animate-pulse">⚡ 고객링크 접수 (마스터 확인 대기)</Badge>
+    const getStatusBadge = (status: string, isAutoAssign: boolean = false, parsedDetails: any = {}) => {
+        if (parsedDetails?.pending_master && status === 'open') return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 animate-pulse">⚡ 고객링크 접수 (마스터 확인 대기)</Badge>
         if (status === 'open') return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">대기중 (배정전)</Badge>
         if (status === 'accepted') return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">수락됨 (상세정보 대기)</Badge>
         if (status === 'transferred') return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">이관 완료{isAutoAssign ? ' [AI자동]' : ''}</Badge>
@@ -145,7 +145,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                         <CardTitle className="text-lg mt-1 font-bold truncate pr-3">{order.region}</CardTitle>
                                     </div>
                                     <div className="shrink-0 mt-2">
-                                        {getStatusBadge(order.status, order.is_auto_assign)}
+                                        {getStatusBadge(order.status, order.is_auto_assign, order.parsed_details)}
                                     </div>
                                 </div>
                                 <CardDescription className="flex items-center gap-1.5 mt-2">
@@ -192,7 +192,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                 )}
 
                                 {/* 고객 링크 접수 — 마스터 액션 버튼 */}
-                                {order.status === 'pending_master' && (
+                                {order.parsed_details?.pending_master && order.status === 'open' && (
                                     <div className="mt-3 pt-3 border-t border-amber-200 space-y-3">
                                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                                             <p className="text-xs font-bold text-amber-800 mb-2 flex items-center gap-1">

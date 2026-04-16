@@ -525,6 +525,9 @@ export async function getIncomingOrders() {
     // 2. 관리자 키로 우회된 RLS 대신 애플리케이션 레벨에서 지역 필터링 적용
     // (전국 권한이 있거나, 오더 지역 명칭에 내 업체의 도/시가 포함된 경우만 노출)
     const filteredOrders = orders.filter((order: any) => {
+        // 마스터 확인 대기 중인 고객 링크 오더는 업체에게 노출하지 않음
+        if (order.parsed_details?.pending_master) return false;
+
         if (!myCompany) return false; // 예외처리
         if (myCompany.is_national) return true;
         
