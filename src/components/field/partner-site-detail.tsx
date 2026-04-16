@@ -191,7 +191,8 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
                         <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                             <User className="h-4 w-4 text-slate-400" />
                             <span className="font-semibold text-slate-500">담당:</span>
-                            <span className="text-slate-700">{maskName(site.worker?.name || site.worker_name)}</span>
+                            <span className="text-slate-700 font-medium">**</span>
+                            <span className="text-[10px] text-slate-400">(내 오더탭의 상세정보에서 전체공개)</span>
                         </div>
 
                         {/* 전화/문자 버튼 → 비공개 알림 */}
@@ -214,7 +215,7 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
 
                         {/* 고객에게 전송 */}
                         <button
-                            onClick={handleShare}
+                            onClick={() => setShowAlert(true)}
                             className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-teal-50 border border-teal-200 rounded-lg text-sm font-bold text-teal-700 hover:bg-teal-100 transition-colors"
                         >
                             <Send className="w-4 h-4" />
@@ -252,11 +253,10 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
                         <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
                             <Phone className="w-6 h-6 text-slate-400" />
                         </div>
-                        <h3 className="text-base font-bold text-slate-800">현장 정보 비공개</h3>
+                        <h3 className="text-base font-bold text-slate-800">이용 안내</h3>
                         <p className="text-sm text-slate-500 leading-relaxed">
-                            해당 현장의 정보는 공개되어 있지 않습니다.<br/>
-                            <strong className="text-slate-700">내 오더</strong> 메뉴에서 내가 예약한 현장의<br/>
-                            카드를 클릭하시면 모든 기능을 이용하실 수 있습니다.
+                            <strong className="text-slate-700">내 오더</strong> 탭에서 현장을 클릭 후<br/>
+                            이용 시 이용 가능합니다.
                         </p>
                         <button
                             onClick={() => setShowAlert(false)}
