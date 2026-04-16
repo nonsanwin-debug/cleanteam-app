@@ -648,18 +648,23 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
 
         // 5. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
         const parsedDetails = order.parsed_details || {}
+        const detailAddr = parsedDetails.detail_address || ''
+        const baseAddress = order.address || ''
+        const estimatedPrice = parsedDetails.estimated_price || 0
+
         const { data: site } = await adminClient
             .from('sites')
             .insert({
                 company_id: companyId,
-                name: parsedDetails.detail_address || order.address || order.customer_name || `${order.region} 현장`,
-                address: order.address || null,
+                name: detailAddr || order.customer_name || `${order.region} 현장`,
+                address: baseAddress,
                 customer_name: order.customer_name || null,
                 customer_phone: order.customer_phone || null,
                 cleaning_date: order.work_date || null,
-                residential_type: parsedDetails.residential_type || null,
+                residential_type: parsedDetails.residential_type || parsedDetails.structure_type || null,
                 structure_type: parsedDetails.structure_type || null,
                 area_size: order.area_size || null,
+                balance_amount: estimatedPrice,
                 special_notes: `[마스터 배정: ${senderCompany?.name || '고객링크'}] ${order.notes || ''}`.trim(),
                 status: 'scheduled',
                 payment_status: 'none',

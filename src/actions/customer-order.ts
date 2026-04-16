@@ -13,6 +13,7 @@ const REGION_SHORT: Record<string, string> = {
 
 export async function createCustomerOrder(data: {
     address: string
+    detail_address: string | null
     area_size: string
     customer_name: string
     customer_phone: string
@@ -65,6 +66,7 @@ export async function createCustomerOrder(data: {
             building_condition: data.building_condition,
             reward_type: data.reward_type,
             estimated_price: data.estimated_price,
+            detail_address: data.detail_address,
             source: 'customer_link',
             pending_master: true,
             ...(data.photos && data.photos.length > 0 ? { image_urls: data.photos } : {}),

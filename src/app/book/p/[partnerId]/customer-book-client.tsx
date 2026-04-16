@@ -150,18 +150,18 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                 uploadedImageUrls = await uploadImages()
             }
 
-            const fullAddress = detailAddress ? `${address} ${detailAddress}` : address
             const estimatedPrice = getCalculatedBasePrice()
 
             const result = await createCustomerOrder({
-                address: fullAddress,
+                address: address,
+                detail_address: detailAddress || null,
                 area_size: areaSize,
                 customer_name: customerName,
                 customer_phone: customerPhone,
                 cleaning_type: cleanType,
                 work_date: workDate,
                 time_preference: timePreference || null,
-                residential_type: residentialType || null,
+                residential_type: structureType || null,
                 structure_type: structureType || null,
                 building_condition: buildingCondition,
                 notes: notes || null,
