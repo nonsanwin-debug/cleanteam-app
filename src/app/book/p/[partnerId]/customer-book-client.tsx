@@ -397,8 +397,8 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                                         )}
                                         {discountAmount > 0 && (
                                             <div className="flex justify-between text-red-500 font-medium">
-                                                <span>NEXUS 제휴파트너 {partnerName} 견적할인 10%</span>
-                                                <span>-{discountAmount.toLocaleString()}원</span>
+                                                <span className="leading-snug">NEXUS 제휴파트너<br/>{partnerName} 견적할인 10%</span>
+                                                <span className="whitespace-nowrap ml-2">-{discountAmount.toLocaleString()}원</span>
                                             </div>
                                         )}
                                     </div>
