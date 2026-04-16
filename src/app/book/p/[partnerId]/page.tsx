@@ -1,4 +1,5 @@
 import { CustomerBookClient } from './customer-book-client'
+import { getPlatformSettings } from '@/actions/platform-settings'
 
 type Props = {
     params: Promise<{ partnerId: string }>
@@ -10,5 +11,12 @@ export default async function CustomerBookPage({ params, searchParams }: Props) 
     const resolvedSearch = await searchParams
     const rewardType = resolvedSearch.r === 'discount' ? 'discount' : 'points'
     
-    return <CustomerBookClient partnerId={resolvedParams.partnerId} rewardType={rewardType} />
+    const globalSettings = await getPlatformSettings()
+
+    return <CustomerBookClient 
+        partnerId={resolvedParams.partnerId} 
+        rewardType={rewardType}
+        freeOldBuilding={!!globalSettings.global_free_old_building}
+        freeInterior={!!globalSettings.global_free_interior}
+    />
 }
