@@ -498,6 +498,24 @@ export async function deleteSharedOrderForce(orderId: string) {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const adminSupabase = createAdminClient()
 
+    // 0. 이관된 현장(site)이 있으면 함께 삭제
+    const { data: order } = await adminSupabase
+        .from('shared_orders')
+        .select('transferred_site_id')
+        .eq('id', orderId)
+        .single()
+
+    if (order?.transferred_site_id) {
+        const siteId = order.transferred_site_id
+        // FK 참조 해제
+        await adminSupabase.from('shared_orders').update({ transferred_site_id: null }).eq('id', orderId)
+        // 연관 레코드 삭제
+        await adminSupabase.from('photos').delete().eq('site_id', siteId)
+        await adminSupabase.from('checklist_submissions').delete().eq('site_id', siteId)
+        await adminSupabase.from('site_members').delete().eq('site_id', siteId)
+        await adminSupabase.from('sites').delete().eq('id', siteId)
+    }
+
     // 1. Delete associated applicants
     await adminSupabase.from('shared_order_applicants').delete().eq('order_id', orderId)
     // 2. Delete notifications
@@ -519,6 +537,7 @@ export async function deleteSharedOrderForce(orderId: string) {
     const { revalidatePath } = await import('next/cache')
     revalidatePath('/master/orders')
     revalidatePath('/admin/shared-orders')
+    revalidatePath('/admin/sites')
 
     return { success: true }
 }
