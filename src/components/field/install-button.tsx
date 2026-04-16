@@ -13,6 +13,22 @@ export function InstallButton() {
         const handler = (e: any) => {
             e.preventDefault()
             setDeferredPrompt(e)
+
+            // Chrome으로 전환되어 왔을 때 자동 설치 프롬프트
+            const params = new URLSearchParams(window.location.search)
+            if (params.get('install') === 'true') {
+                setTimeout(async () => {
+                    e.prompt()
+                    const { outcome } = await e.userChoice
+                    if (outcome === 'accepted') {
+                        setIsAppInstalled(true)
+                    }
+                    // URL에서 파라미터 제거
+                    params.delete('install')
+                    const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`
+                    window.history.replaceState({}, '', newUrl)
+                }, 500)
+            }
         }
         window.addEventListener('beforeinstallprompt', handler)
 
@@ -73,8 +89,9 @@ export function InstallButton() {
 
         // 3. Android: 인앱브라우저 or 비Chrome → Chrome으로 열기
         if (isInAppBrowser() || !isChrome()) {
-            const url = window.location.href
-            const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+            const baseUrl = window.location.origin + window.location.pathname
+            const installUrl = baseUrl + '?install=true'
+            const intentUrl = `intent://${installUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
             window.location.href = intentUrl
             return
         }
