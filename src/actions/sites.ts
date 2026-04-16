@@ -73,6 +73,7 @@ export async function getSites() {
       worker:users!worker_id (name, display_color)
     `)
         .eq('company_id', companyId)
+        .neq('status', 'cancelled')
         .order('created_at', { ascending: false })
 
     if (error) {
