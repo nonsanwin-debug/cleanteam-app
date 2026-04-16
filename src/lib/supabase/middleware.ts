@@ -82,7 +82,11 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // nexus.닷컴도 동일 앱으로 직접 접속 허용 (리다이렉트 불필요)
+    // QR코드: nexus.닷컴 접속 시 nexuspartner.kr 로 리다이렉트 (경로 유지)
+    if (hostname.includes('nexus.xn--mk1bu44c')) {
+        const path = request.nextUrl.pathname + request.nextUrl.search
+        return NextResponse.redirect(`https://nexuspartner.kr${path}`)
+    }
 
     // Protected Routes Logic
     if (request.nextUrl.pathname.startsWith('/master')) {
