@@ -25,8 +25,19 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
     useEffect(() => {
         const loadCompanies = async () => {
             const supabase = createClient()
-            const { data } = await supabase.from('companies').select('id, name').eq('status', 'approved').order('name')
-            setCompanies(data || [])
+            const { data } = await supabase
+                .from('companies')
+                .select('id, name, users(role)')
+                .eq('status', 'approved')
+                .order('name')
+            // 파트너 업체 제외 (유저 중 role='partner'가 있으면 파트너 업체)
+            const cleaningCompanies = (data || []).filter((c: any) => {
+                if (c.users && c.users.length > 0) {
+                    return !c.users.some((u: any) => u.role === 'partner')
+                }
+                return true
+            })
+            setCompanies(cleaningCompanies)
         }
         loadCompanies()
     }, [])
