@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2, Share2, Building2 } from 'lucide-react'
+import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2, Share2, Building2, Undo2 } from 'lucide-react'
 import { format } from 'date-fns'
-import { deleteSharedOrderForce, releaseToSharedBoard, assignCustomerOrder } from '@/actions/master'
+import { deleteSharedOrderForce, releaseToSharedBoard, assignCustomerOrder, revokeCustomerOrder } from '@/actions/master'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -20,6 +20,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
     const [companies, setCompanies] = useState<any[]>([])
     const [assigningId, setAssigningId] = useState<string | null>(null)
     const [releasingId, setReleasingId] = useState<string | null>(null)
+    const [revokingId, setRevokingId] = useState<string | null>(null)
     const [selectedCompany, setSelectedCompany] = useState<Record<string, string>>({})
 
     useEffect(() => {
@@ -105,6 +106,20 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
         setAssigningId(null)
     }
 
+    const handleRevoke = async (orderId: string) => {
+        if (!confirm('이 오더의 배정을 회수하시겠습니까?\n배정된 업체의 현장도 함께 삭제됩니다.')) return
+        setRevokingId(orderId)
+        const result = await revokeCustomerOrder(orderId)
+        if (result.success) {
+            toast.success('배정이 회수되었습니다.')
+            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'open', accepted_by: null, accepted_company: null, parsed_details: { ...o.parsed_details, pending_master: true } } : o))
+            router.refresh()
+        } else {
+            toast.error(result.error || '회수 실패')
+        }
+        setRevokingId(null)
+    }
+
     const getStatusBadge = (status: string, isAutoAssign: boolean = false, parsedDetails: any = {}) => {
         if (parsedDetails?.pending_master && status === 'open') return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 animate-pulse">⚡ 고객링크 접수 (마스터 확인 대기)</Badge>
         if (status === 'open') return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">대기중 (배정전)</Badge>
@@ -168,12 +183,30 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                             <CardContent className="p-4 space-y-3">
                                 {/* 배정 정보 바 */}
                                 {order.accepted_by && (
-                                    <div className="bg-emerald-50 text-emerald-800 text-sm p-2.5 rounded-md font-medium flex items-center justify-between border border-emerald-100">
-                                        <span className="flex items-center gap-1.5 text-xs font-bold">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            배정 완료
-                                        </span>
-                                        <span>{order.accepted_company?.name || companies.find((c: any) => c.id === order.accepted_by)?.name || '업체명 미상'}</span>
+                                    <div className="space-y-2">
+                                        <div className="bg-emerald-50 text-emerald-800 text-sm p-2.5 rounded-md font-medium flex items-center justify-between border border-emerald-100">
+                                            <span className="flex items-center gap-1.5 text-xs font-bold">
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                배정 완료
+                                            </span>
+                                            <span>{order.accepted_company?.name || companies.find((c: any) => c.id === order.accepted_by)?.name || '업체명 미상'}</span>
+                                        </div>
+                                        {order.parsed_details?.source === 'customer_link' && order.status === 'transferred' && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full h-8 text-xs font-semibold border-red-200 text-red-600 hover:bg-red-50"
+                                                onClick={() => handleRevoke(order.id)}
+                                                disabled={revokingId === order.id}
+                                            >
+                                                {revokingId === order.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                                                ) : (
+                                                    <Undo2 className="w-3.5 h-3.5 mr-1.5" />
+                                                )}
+                                                배정 회수
+                                            </Button>
+                                        )}
                                     </div>
                                 )}
                                 

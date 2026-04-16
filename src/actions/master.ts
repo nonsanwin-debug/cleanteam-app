@@ -690,3 +690,60 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
     }
 }
 
+/**
+ * 마스터 — 배정된 오더를 회수 (잘못 배정 시)
+ * transferred → open (pending_master: true), 생성된 현장 삭제
+ */
+export async function revokeCustomerOrder(orderId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        // 1. 오더 정보 조회
+        const { data: order, error: fetchError } = await adminClient
+            .from('shared_orders')
+            .select('*, parsed_details')
+            .eq('id', orderId)
+            .single()
+
+        if (fetchError || !order) {
+            return { success: false, error: '오더를 찾을 수 없습니다.' }
+        }
+
+        // 2. 이관된 현장(site)이 있으면 삭제
+        if (order.transferred_site_id) {
+            await adminClient
+                .from('sites')
+                .delete()
+                .eq('id', order.transferred_site_id)
+        }
+
+        // 3. 오더 상태를 다시 pending_master로 복원
+        const updatedDetails = { ...(order.parsed_details || {}), pending_master: true }
+
+        const { error } = await adminClient
+            .from('shared_orders')
+            .update({
+                status: 'open',
+                accepted_by: null,
+                accepted_at: null,
+                transferred_site_id: null,
+                parsed_details: updatedDetails
+            })
+            .eq('id', orderId)
+
+        if (error) {
+            console.error('revokeCustomerOrder error:', error)
+            return { success: false, error: '회수 실패' }
+        }
+
+        revalidatePath('/master/orders')
+        revalidatePath('/admin/shared-orders')
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (err) {
+        return { success: false, error: '서버 오류' }
+    }
+}
