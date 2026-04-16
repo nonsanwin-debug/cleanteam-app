@@ -198,7 +198,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                         )}
                         <span className="font-bold text-slate-800 text-sm">NEXUS 청소 예약</span>
                     </div>
-                    <a href="tel:1644-4354" className="text-xs text-slate-500 font-medium">대표번호 1644-4354</a>
+                    <a href="tel:1644-4354" className="text-xs text-slate-500 font-medium">1644-4354</a>
                 </div>
                 {/* Step Indicator */}
                 <div className="max-w-md mx-auto px-4 pb-2">

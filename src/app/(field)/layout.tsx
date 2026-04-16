@@ -38,6 +38,7 @@ export default function FieldLayout({
                     <span className="ml-2 text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
                         파트너스
                     </span>
+                    <a href="tel:1644-4354" className="ml-auto text-xs font-medium text-slate-500 mr-2">1644-4354</a>
                     <InstallButton />
                 </header>
 
