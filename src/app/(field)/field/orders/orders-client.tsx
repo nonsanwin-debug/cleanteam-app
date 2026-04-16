@@ -251,7 +251,7 @@ export function FieldOrdersClient({ initialOrders }: { initialOrders: any[] }) {
                                     className={`overflow-hidden transition-all ${isDone ? 'opacity-70' : ''} ${order.transferred_site?.id ? 'cursor-pointer hover:shadow-md' : ''}`}
                                     onClick={() => {
                                         if (order.transferred_site?.id) {
-                                            router.push(`/share/${order.transferred_site.id}`)
+                                            router.push(`/field/site/${order.transferred_site.id}`)
                                         }
                                     }}
                                 >
