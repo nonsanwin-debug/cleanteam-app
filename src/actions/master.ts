@@ -582,7 +582,7 @@ export async function releaseToSharedBoard(orderId: string): Promise<ActionRespo
 
 /**
  * 마스터 — 고객 링크 오더를 특정 업체에 직접 배정
- * pending_master → transferred + accepted_by 설정
+ * status → transferred, accepted_by 설정, 현장(site) 생성
  */
 export async function assignCustomerOrder(orderId: string, companyId: string): Promise<ActionResponse> {
     try {
@@ -591,11 +591,28 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
 
         const adminClient = createAdminClient()
 
+        // 1. 오더 정보 조회
+        const { data: order, error: fetchError } = await adminClient
+            .from('shared_orders')
+            .select('*')
+            .eq('id', orderId)
+            .single()
+
+        if (fetchError || !order) {
+            return { success: false, error: '오더를 찾을 수 없습니다.' }
+        }
+
+        // 2. parsed_details에서 pending_master 플래그 제거
+        const updatedDetails = { ...(order.parsed_details || {}), pending_master: false }
+
+        // 3. 오더 상태 업데이트
         const { error } = await adminClient
             .from('shared_orders')
             .update({ 
                 status: 'transferred',
-                accepted_by: companyId
+                accepted_by: companyId,
+                accepted_at: new Date().toISOString(),
+                parsed_details: updatedDetails
             })
             .eq('id', orderId)
 
@@ -604,8 +621,46 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
             return { success: false, error: '배정 실패' }
         }
 
+        // 4. 발신 업체명 조회
+        const { data: senderCompany } = await adminClient
+            .from('companies')
+            .select('name')
+            .eq('id', order.company_id)
+            .single()
+
+        // 5. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
+        const parsedDetails = order.parsed_details || {}
+        const { data: site } = await adminClient
+            .from('sites')
+            .insert({
+                company_id: companyId,
+                name: parsedDetails.detail_address || order.address || order.customer_name || `${order.region} 현장`,
+                address: order.address || null,
+                customer_name: order.customer_name || null,
+                customer_phone: order.customer_phone || null,
+                cleaning_date: order.work_date || null,
+                residential_type: parsedDetails.residential_type || null,
+                structure_type: parsedDetails.structure_type || null,
+                area_size: order.area_size || null,
+                special_notes: `[마스터 배정: ${senderCompany?.name || '고객링크'}] ${order.notes || ''}`.trim(),
+                status: 'scheduled',
+                payment_status: 'none',
+                collection_type: 'company'
+            })
+            .select('id')
+            .single()
+
+        // 6. shared_orders에 이관된 site_id 기록
+        if (site) {
+            await adminClient
+                .from('shared_orders')
+                .update({ transferred_site_id: site.id })
+                .eq('id', orderId)
+        }
+
         revalidatePath('/master/orders')
         revalidatePath('/admin/shared-orders')
+        revalidatePath('/admin/sites')
         return { success: true }
     } catch (err) {
         return { success: false, error: '서버 오류' }
