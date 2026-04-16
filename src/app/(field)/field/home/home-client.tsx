@@ -37,6 +37,7 @@ export function FieldHomeClient({
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
     const [showBookingMenu, setShowBookingMenu] = useState(false)
     const [showFeedAlert, setShowFeedAlert] = useState(false)
+    const [showCount, setShowCount] = useState(10)
 
     useEffect(() => {
         const supabase = createClient()
@@ -144,7 +145,7 @@ export function FieldHomeClient({
                     className="w-full relative overflow-hidden bg-teal-600 hover:bg-teal-700 active:bg-teal-800 transition-all text-white rounded-2xl shadow-lg border border-teal-500/20 group"
                 >
                     <div className="p-8 flex flex-col items-center justify-center gap-3 relative z-10">
-                        <div className="bg-white/20 p-3 rounded-full group-active:scale-95 transition-transform shrink-0">
+                        <div className="bg-white/20 p-3 rounded-full group-active:scale-95 transition-transform shrink-0 animate-pulse">
                             <PlusCircle className="w-10 h-10 text-white" />
                         </div>
                         <div className="text-center space-y-1">
@@ -194,7 +195,18 @@ export function FieldHomeClient({
                         <CalendarDays className="w-5 h-5 text-slate-400" />
                         NEXUS 진행 내역
                     </h2>
-                    <span className="text-xs text-slate-400 font-medium">전체 {feedSites.length}건</span>
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={showCount}
+                            onChange={e => setShowCount(Number(e.target.value))}
+                            className="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 font-medium focus:outline-none"
+                        >
+                            <option value={10}>10건</option>
+                            <option value={20}>20건</option>
+                            <option value={30}>30건</option>
+                            <option value={50}>전체 {feedSites.length}건</option>
+                        </select>
+                    </div>
                 </div>
 
                 {feedSites.length === 0 ? (
@@ -206,7 +218,7 @@ export function FieldHomeClient({
                     </Card>
                 ) : (
                     <div className="space-y-3">
-                        {feedSites.map(site => {
+                        {feedSites.slice(0, showCount).map(site => {
                             let statusText = '대기'
                             let statusColor = 'bg-blue-100 text-blue-700'
                             

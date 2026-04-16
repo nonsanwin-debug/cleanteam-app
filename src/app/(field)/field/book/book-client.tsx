@@ -147,8 +147,8 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
         // 기본 단가가 산출되지 않았을 때 (아직 폼 미작성 등)
         if (basePrice === 0) return 0;
         
-        // 20만원 이상일 때만 포인트 사용 가능하도록
-        const maxAllowed = Math.max(0, basePrice - 200000);
+        // 금액에 상관없이 최대 10%까지 포인트 사용 가능
+        const maxAllowed = Math.floor(basePrice * 0.1);
         return Math.min(bookingPoints, maxAllowed);
     }
 
@@ -167,8 +167,8 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
         const maxPoints = getMaxUsablePoints()
         if (valNum > maxPoints) {
             valNum = maxPoints
-            if (maxPoints === 0 && getCalculatedBasePrice() < 200000 && !isNegotiatedType(cleanType)) {
-                toast.error('최종 결제 금액이 20만원 이상이어야 포인트를 사용할 수 있습니다.', { id: 'point-limit-error' })
+            if (maxPoints > 0) {
+                toast.error(`포인트는 예상 금액의 최대 10%까지 사용 가능합니다. (최대 ${maxPoints.toLocaleString()}P)`, { id: 'point-limit-error' })
             }
         }
         
@@ -178,8 +178,8 @@ export function FieldBookClient({ partnerName, partnerPhone, partnerBenefits = {
 
     const handleUseAllPoints = () => {
         const maxPoints = getMaxUsablePoints()
-        if (maxPoints === 0 && getCalculatedBasePrice() < 200000 && !isNegotiatedType(cleanType)) {
-            toast.error('최종 결제 금액이 20만원 이상이어야 포인트를 사용할 수 있습니다.', { id: 'point-limit-error' })
+        if (maxPoints === 0) {
+            toast.error('예상 금액이 산출되어야 포인트를 사용할 수 있습니다.', { id: 'point-limit-error' })
         }
         setUsePoints(maxPoints)
         setPointInputStr(maxPoints === 0 ? '' : maxPoints.toLocaleString())
@@ -684,7 +684,7 @@ ${notes}
                                                 <Input 
                                                     value={pointInputStr}
                                                     onChange={handlePointInput}
-                                                    placeholder={getMaxUsablePoints() === 0 ? "결제 금액 20만원부터 사용 가능" : "사용할 포인트 입력"}
+                                                    placeholder={getMaxUsablePoints() === 0 ? "예상 금액의 최대 10% 사용 가능" : "사용할 포인트 입력"}
                                                     disabled={getMaxUsablePoints() === 0}
                                                     className="pr-8 bg-slate-50 h-12"
                                                 />
