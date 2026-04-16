@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone, Download, ClipboardList, Coins, Star } from 'lucide-react'
+import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone, ClipboardList, Coins, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { FeedSite } from '@/actions/partner-feed'
@@ -28,25 +28,6 @@ export function FieldHomeClient({
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-    const [isAppInstalled, setIsAppInstalled] = useState(false)
-    const [showInstallGuide, setShowInstallGuide] = useState(false)
-
-    // PWA Install Prompt
-    useEffect(() => {
-        const handler = (e: any) => {
-            e.preventDefault()
-            setDeferredPrompt(e)
-        }
-        window.addEventListener('beforeinstallprompt', handler)
-
-        // 이미 설치된 경우 체크
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            setIsAppInstalled(true)
-        }
-
-        return () => window.removeEventListener('beforeinstallprompt', handler)
-    }, [])
 
     useEffect(() => {
         const supabase = createClient()
@@ -137,34 +118,6 @@ export function FieldHomeClient({
                         {isLoggedIn ? activityPoints.toLocaleString() : '-'}<span className="text-sm font-medium text-slate-400 ml-0.5">P</span>
                     </p>
                 </div>
-
-                {/* 앱 설치 */}
-                <button
-                    onClick={async () => {
-                        if (isAppInstalled) { return }
-                        if (deferredPrompt) {
-                            deferredPrompt.prompt()
-                            const { outcome } = await deferredPrompt.userChoice
-                            if (outcome === 'accepted') {
-                                setIsAppInstalled(true)
-                            }
-                            setDeferredPrompt(null)
-                        } else {
-                            setShowInstallGuide(true)
-                        }
-                    }}
-                    className="bg-gradient-to-br from-teal-500 to-teal-600 border border-teal-400/30 rounded-xl p-4 shadow-sm text-left hover:from-teal-600 hover:to-teal-700 transition-all active:scale-[0.97]"
-                >
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="bg-white/20 p-1.5 rounded-lg">
-                            <Download className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-xs font-medium text-teal-50">앱 설치</span>
-                    </div>
-                    <p className="text-sm font-bold text-white">
-                        {isAppInstalled ? '✅ 설치 완료' : '홈 화면에 추가'}
-                    </p>
-                </button>
             </div>
 
             {/* 2. Big Action Button (Booking) */}
@@ -342,61 +295,7 @@ export function FieldHomeClient({
                 )}
             </div>
 
-            {/* Spacer for bottom nav */}
             <div className="h-6"></div>
-
-            {/* 앱 설치 안내 모달 */}
-            {showInstallGuide && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" onClick={() => setShowInstallGuide(false)}>
-                    <div 
-                        className="bg-white w-full max-w-md rounded-t-3xl p-6 pb-10 space-y-5 animate-in slide-in-from-bottom duration-300"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="flex justify-center">
-                            <div className="w-10 h-1 bg-slate-300 rounded-full" />
-                        </div>
-                        
-                        <div className="text-center space-y-2">
-                            <div className="bg-teal-50 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto">
-                                <Download className="w-7 h-7 text-teal-600" />
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-800">NEXUS 앱 설치하기</h3>
-                            <p className="text-sm text-slate-500">홈 화면에 추가하면 앱처럼 빠르게<br/>접속할 수 있습니다.</p>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">브라우저 메뉴 열기</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">화면 하단 또는 우측 상단의 <strong>⋮</strong> 또는 <strong>공유</strong> 버튼을 눌러주세요</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">&quot;홈 화면에 추가&quot; 선택</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">메뉴에서 <strong>&quot;홈 화면에 추가&quot;</strong> 또는 <strong>&quot;앱 설치&quot;</strong>를 눌러주세요</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">설치 완료!</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">홈 화면에 NEXUS 아이콘이 생성됩니다</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => setShowInstallGuide(false)}
-                            className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors"
-                        >
-                            확인
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

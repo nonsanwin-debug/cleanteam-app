@@ -1,4 +1,5 @@
 import { FieldBottomNav } from '@/components/field/field-nav'
+import { InstallButton } from '@/components/field/install-button'
 
 export default function FieldLayout({
     children,
@@ -37,6 +38,7 @@ export default function FieldLayout({
                     <span className="ml-2 text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
                         파트너스
                     </span>
+                    <InstallButton />
                 </header>
 
                 <main className="flex-1 w-full bg-slate-50/50 flex flex-col">
