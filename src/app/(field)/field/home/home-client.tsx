@@ -54,8 +54,16 @@ export function FieldHomeClient({
             )
             .subscribe()
 
+        // 뮨바일 뒤로가기 시 바텀시트만 닫기
+        const handlePopState = () => {
+            setShowBookingMenu(false)
+            setShowSmsModal(null)
+        }
+        window.addEventListener('popstate', handlePopState)
+
         return () => {
             supabase.removeChannel(channel)
+            window.removeEventListener('popstate', handlePopState)
         }
     }, [router])
 
@@ -155,6 +163,7 @@ export function FieldHomeClient({
                             return
                         }
                         setShowBookingMenu(true)
+                        window.history.pushState({ bookingMenu: true }, '')
                     }}
                     className="w-full relative overflow-hidden bg-teal-600 hover:bg-teal-700 active:bg-teal-800 transition-all text-white rounded-2xl shadow-lg border border-teal-500/20 group"
                 >
