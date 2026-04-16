@@ -46,9 +46,10 @@ export function InstallButton() {
         return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|SamsungBrowser.*CrossApp/i.test(ua)
     }
 
-    const isChrome = () => {
+    const isPWACapable = () => {
         const ua = navigator.userAgent || ''
-        return /Chrome/i.test(ua) && !/Edge|OPR|Samsung/i.test(ua)
+        // Chrome, Samsung Internet, Edge 등 PWA 지원 브라우저
+        return /Chrome|SamsungBrowser/i.test(ua)
     }
 
     const isIOS = () => {
@@ -88,7 +89,7 @@ export function InstallButton() {
         }
 
         // 3. Android: 인앱브라우저 or 비Chrome → Chrome으로 열기
-        if (isInAppBrowser() || !isChrome()) {
+        if (isInAppBrowser() || !isPWACapable()) {
             const baseUrl = window.location.origin + window.location.pathname
             const installUrl = baseUrl + '?install=true'
             const intentUrl = `intent://${installUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
