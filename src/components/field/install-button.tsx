@@ -65,12 +65,16 @@ export function InstallButton() {
         setShowGuide(true)
     }
 
-    const openInChrome = () => {
-        const url = window.location.origin + '/field/home?install=true'
-        // googlechrome:// 스킴으로 Chrome 실행
-        window.location.href = `googlechrome://navigate?url=${url.replace('https://', '')}`
-        // fallback: 일부 기기에서 안 되면 그냥 닫기
-        setTimeout(() => setShowGuide(false), 1000)
+    const copyUrlForChrome = async () => {
+        const url = window.location.origin + '/field/home'
+        try {
+            await navigator.clipboard.writeText(url)
+            alert('링크가 복사되었습니다!\nChrome을 열고 주소창에 붙여넣기 해주세요.')
+        } catch {
+            // clipboard API 실패 시 prompt로 fallback
+            prompt('아래 주소를 복사하여 Chrome에서 열어주세요:', url)
+        }
+        setShowGuide(false)
     }
 
     return (
@@ -134,7 +138,7 @@ export function InstallButton() {
                                     <div>
                                         <p className="text-sm font-semibold text-slate-800">Chrome 브라우저에서 열어주세요</p>
                                         <p className="text-xs text-slate-500 mt-1">카카오톡, 삼성인터넷 등에서는 앱 설치가 제한됩니다.</p>
-                                        <p className="text-xs text-slate-500 mt-1">아래 <strong>확인</strong> 버튼을 누르면 Chrome으로 연결됩니다.<br/>사이트 연결 후 <strong>앱 설치</strong>를 다시 눌러주세요.</p>
+                                        <p className="text-xs text-slate-500 mt-1">아래 버튼을 누르면 <strong>링크가 복사</strong>됩니다.<br/>Chrome을 열고 주소창에 <strong>붙여넣기</strong> 후 앱 설치를 눌러주세요.</p>
                                     </div>
                                 </div>
                             </div>
@@ -149,11 +153,11 @@ export function InstallButton() {
                             </button>
                         ) : (
                             <button
-                                onClick={openInChrome}
+                                onClick={copyUrlForChrome}
                                 className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
                             >
                                 <ExternalLink className="w-4 h-4" />
-                                Chrome으로 열기
+                                링크 복사하기
                             </button>
                         )}
                     </div>
