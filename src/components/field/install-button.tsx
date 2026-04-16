@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Download } from 'lucide-react'
 
 export function InstallButton() {
@@ -47,7 +48,7 @@ export function InstallButton() {
                 앱 설치
             </button>
 
-            {showGuide && (
+            {showGuide && createPortal(
                 <div className="fixed inset-0 bg-black/50 z-[100] flex items-end justify-center" onClick={() => setShowGuide(false)}>
                     <div
                         className="bg-white w-full max-w-md rounded-t-3xl p-6 pb-10 space-y-5"
@@ -96,7 +97,8 @@ export function InstallButton() {
                             확인
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     )
