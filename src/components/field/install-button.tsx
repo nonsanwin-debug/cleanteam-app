@@ -2,28 +2,36 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Download } from 'lucide-react'
+import { Download, ExternalLink } from 'lucide-react'
 
 export function InstallButton() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
     const [isAppInstalled, setIsAppInstalled] = useState(false)
     const [showGuide, setShowGuide] = useState(false)
 
+    const isRealChrome = () => {
+        const ua = navigator.userAgent || ''
+        return /Chrome/i.test(ua) && !/SamsungBrowser|Edge|OPR/i.test(ua)
+    }
+
+    const isIOS = () => {
+        return /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
+    }
+
     useEffect(() => {
         const handler = (e: any) => {
             e.preventDefault()
             setDeferredPrompt(e)
 
-            // Chrome으로 전환되어 왔을 때 자동 설치 프롬프트
+            // Chrome으로 전환되어 왔을 때 자동 설치
             const params = new URLSearchParams(window.location.search)
-            if (params.get('install') === 'true') {
+            if (params.get('install') === 'true' && isRealChrome()) {
                 setTimeout(async () => {
                     e.prompt()
                     const { outcome } = await e.userChoice
                     if (outcome === 'accepted') {
                         setIsAppInstalled(true)
                     }
-                    // URL에서 파라미터 제거
                     params.delete('install')
                     const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`
                     window.history.replaceState({}, '', newUrl)
@@ -41,30 +49,9 @@ export function InstallButton() {
 
     if (isAppInstalled) return null
 
-    const isInAppBrowser = () => {
-        const ua = navigator.userAgent || ''
-        return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|SamsungBrowser.*CrossApp/i.test(ua)
-    }
-
-    const isPWACapable = () => {
-        const ua = navigator.userAgent || ''
-        // Chrome, Samsung Internet, Edge 등 PWA 지원 브라우저
-        return /Chrome|SamsungBrowser/i.test(ua)
-    }
-
-    const isIOS = () => {
-        const ua = navigator.userAgent || ''
-        return /iPhone|iPad|iPod/i.test(ua)
-    }
-
-    const isSafari = () => {
-        const ua = navigator.userAgent || ''
-        return /Safari/i.test(ua) && !/Chrome|CriOS|FxiOS/i.test(ua)
-    }
-
     const handleInstall = async () => {
-        // 1. PWA 프롬프트가 있으면 바로 설치 (Chrome, Samsung Internet 등)
-        if (deferredPrompt) {
+        // Chrome에서만 네이티브 프롬프트 사용
+        if (deferredPrompt && isRealChrome()) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
             if (outcome === 'accepted') {
@@ -74,8 +61,16 @@ export function InstallButton() {
             return
         }
 
-        // 2. 프롬프트 없음 → 가이드 표시 (iOS/Android 자동 분기)
+        // 그 외 → 가이드 표시
         setShowGuide(true)
+    }
+
+    const openInChrome = () => {
+        const url = window.location.origin + '/field/home?install=true'
+        // googlechrome:// 스킴으로 Chrome 실행
+        window.location.href = `googlechrome://navigate?url=${url.replace('https://', '')}`
+        // fallback: 일부 기기에서 안 되면 그냥 닫기
+        setTimeout(() => setShowGuide(false), 1000)
     }
 
     return (
@@ -106,54 +101,61 @@ export function InstallButton() {
                             <p className="text-sm text-slate-500">홈 화면에 추가하면 앱처럼 빠르게<br />접속할 수 있습니다.</p>
                         </div>
 
-                        <div className="space-y-3">
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">
-                                        {isIOS() ? 'Safari에서 열기' : 'Chrome에서 열기'}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        {isIOS()
-                                            ? '카카오톡 등이 아닌 Safari 브라우저에서 이 페이지를 열어주세요'
-                                            : '카카오톡 등 인앱브라우저가 아닌 Chrome에서 열어주세요'}
-                                    </p>
+                        {isIOS() ? (
+                            /* iOS Safari 가이드 */
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Safari에서 열기</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">카카오톡 등이 아닌 <strong>Safari</strong> 브라우저에서 이 페이지를 열어주세요</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">공유 버튼 누르기</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">하단의 <strong>공유 (□↑)</strong> 버튼을 눌러주세요</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">&quot;홈 화면에 추가&quot; 선택</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">목록에서 &quot;홈 화면에 추가&quot;를 눌러주세요</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">
-                                        {isIOS() ? '공유 버튼 누르기' : '메뉴에서 "홈 화면에 추가"'}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        {isIOS()
-                                            ? <>하단의 <strong>공유 (□↑)</strong> 버튼을 눌러주세요</>
-                                            : <><strong>⋮</strong> 메뉴 → <strong>&quot;홈 화면에 추가&quot;</strong> 선택</>}
-                                    </p>
+                        ) : (
+                            /* Android 가이드 - Chrome으로 유도 */
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <ExternalLink className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Chrome 브라우저에서 열어주세요</p>
+                                        <p className="text-xs text-slate-500 mt-1">카카오톡, 삼성인터넷 등에서는 앱 설치가 제한됩니다.</p>
+                                        <p className="text-xs text-slate-500 mt-1">아래 <strong>확인</strong> 버튼을 누르면 Chrome으로 연결됩니다.<br/>사이트 연결 후 <strong>앱 설치</strong>를 다시 눌러주세요.</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                                <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
-                                <div>
-                                    <p className="text-sm font-semibold text-slate-800">
-                                        {isIOS() ? '"홈 화면에 추가" 선택' : '설치 완료!'}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        {isIOS()
-                                            ? '목록에서 "홈 화면에 추가"를 눌러주세요'
-                                            : '홈 화면에 NEXUS 아이콘이 생성됩니다'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        )}
 
-                        <button
-                            onClick={() => setShowGuide(false)}
-                            className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors"
-                        >
-                            확인
-                        </button>
+                        {isIOS() ? (
+                            <button
+                                onClick={() => setShowGuide(false)}
+                                className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors"
+                            >
+                                확인
+                            </button>
+                        ) : (
+                            <button
+                                onClick={openInChrome}
+                                className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                Chrome으로 열기
+                            </button>
+                        )}
                     </div>
                 </div>,
                 document.body
