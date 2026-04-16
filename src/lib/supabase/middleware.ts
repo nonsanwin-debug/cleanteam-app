@@ -107,7 +107,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (request.nextUrl.pathname.startsWith('/field')) {
-        if (!user) {
+        const publicPaths = ['/field/home', '/field/notices']
+        const isPublic = publicPaths.some(p => request.nextUrl.pathname.startsWith(p))
+        if (!user && !isPublic) {
             return NextResponse.redirect(new URL('/auth/partner-login', request.url))
         }
     }
