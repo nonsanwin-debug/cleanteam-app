@@ -173,7 +173,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
             if (!result.success) throw new Error(result.error)
 
             toast.success('예약이 성공적으로 접수되었습니다!')
-            router.push('/book/p/complete')
+            router.push(`/book/p/complete?id=${result.orderId}`)
         } catch (err: any) {
             console.error(err)
             toast.error('예약 접수에 실패했습니다. 다시 시도해주세요.')

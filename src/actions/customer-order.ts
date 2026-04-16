@@ -31,7 +31,7 @@ export async function createCustomerOrder(data: {
     // 주소에서 지역 추출 (첫 번째 단어)
     const region = data.address.split(' ')[0] || '미정'
 
-    const { error } = await supabase.from('shared_orders').insert({
+    const { data: inserted, error } = await supabase.from('shared_orders').insert({
         company_id: partner?.company_id || null,
         created_by: data.partner_id,
         region: region,
@@ -53,12 +53,12 @@ export async function createCustomerOrder(data: {
             source: 'customer_link',
             ...(data.photos && data.photos.length > 0 ? { image_urls: data.photos } : {}),
         },
-    })
+    }).select('id').single()
 
     if (error) {
         console.error('Customer order insert error:', error)
         return { success: false, error: error.message }
     }
 
-    return { success: true }
+    return { success: true, orderId: inserted?.id }
 }
