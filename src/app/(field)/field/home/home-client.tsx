@@ -40,6 +40,8 @@ export function FieldHomeClient({
     const [showBookingMenu, setShowBookingMenu] = useState(false)
     const [showFeedAlert, setShowFeedAlert] = useState(false)
     const [showCount, setShowCount] = useState(10)
+    const [showSmsModal, setShowSmsModal] = useState<'discount' | 'points' | null>(null)
+    const [smsPhone, setSmsPhone] = useState('')
 
     useEffect(() => {
         const supabase = createClient()
@@ -379,13 +381,8 @@ export function FieldHomeClient({
                         <button
                             onClick={() => {
                                 setShowBookingMenu(false)
-                                const shareUrl = `${window.location.origin}/book/p/${partnerId}?r=discount`
-                                if (navigator.share) {
-                                    navigator.share({ title: 'NEXUS 청소 예약 (10% 할인)', url: shareUrl })
-                                } else {
-                                    navigator.clipboard.writeText(shareUrl)
-                                    toast.success('10% 할인 예약 링크가 복사되었습니다!')
-                                }
+                                setSmsPhone('')
+                                setShowSmsModal('discount')
                             }}
                             className="w-full flex items-center gap-4 p-4 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors text-left"
                         >
@@ -403,13 +400,8 @@ export function FieldHomeClient({
                         <button
                             onClick={() => {
                                 setShowBookingMenu(false)
-                                const shareUrl = `${window.location.origin}/book/p/${partnerId}?r=points`
-                                if (navigator.share) {
-                                    navigator.share({ title: 'NEXUS 청소 예약 (10% 적립)', url: shareUrl })
-                                } else {
-                                    navigator.clipboard.writeText(shareUrl)
-                                    toast.success('10% 적립 예약 링크가 복사되었습니다!')
-                                }
+                                setSmsPhone('')
+                                setShowSmsModal('points')
                             }}
                             className="w-full flex items-center gap-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors text-left"
                         >
@@ -421,6 +413,71 @@ export function FieldHomeClient({
                                 <p className="text-xs text-slate-500 mt-0.5">기본가로 진행, 완료 시 파트너에게 10% 적립</p>
                                 <span className="text-[10px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded mt-1 inline-block">10% 적립</span>
                             </div>
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* 고객 링크 SMS 전송 모달 */}
+            {showSmsModal && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6" onClick={() => setShowSmsModal(null)}>
+                    <div
+                        className="bg-white w-full max-w-sm rounded-2xl p-6 space-y-4"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="text-center">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${showSmsModal === 'discount' ? 'bg-red-100' : 'bg-emerald-100'}`}>
+                                <Send className={`w-6 h-6 ${showSmsModal === 'discount' ? 'text-red-500' : 'text-emerald-500'}`} />
+                            </div>
+                            <h3 className="text-base font-bold text-slate-800 mt-3">
+                                고객 링크 전송 — {showSmsModal === 'discount' ? '10% 할인' : '10% 적립'}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1">
+                                {showSmsModal === 'discount' ? '고객이 10% 할인된 견적으로 예약합니다' : '기본가로 진행, 완료 시 10%가 적립됩니다'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">고객 전화번호</label>
+                            <input
+                                type="tel"
+                                value={smsPhone}
+                                onChange={e => setSmsPhone(e.target.value)}
+                                placeholder="010-0000-0000"
+                                className="w-full h-12 px-4 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                autoFocus
+                            />
+                        </div>
+
+                        <a
+                            href={smsPhone.replace(/[^0-9]/g, '').length >= 10
+                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS] ${showSmsModal === 'discount' ? '10% 할인' : '10% 적립'} 청소 예약 링크입니다.\n${window.location.origin}/book/p/${partnerId}?r=${showSmsModal}`)}`
+                                : '#'
+                            }
+                            onClick={(e) => {
+                                if (smsPhone.replace(/[^0-9]/g, '').length < 10) {
+                                    e.preventDefault()
+                                    toast.error('올바른 전화번호를 입력해주세요.')
+                                    return
+                                }
+                                setShowSmsModal(null)
+                            }}
+                            className={`w-full h-12 font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 ${
+                                showSmsModal === 'discount' 
+                                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                            }`}
+                        >
+                            <Send className="w-4 h-4" />
+                            링크 전송
+                        </a>
+
+                        <button
+                            onClick={() => setShowSmsModal(null)}
+                            className="w-full h-10 text-sm font-medium text-slate-500 hover:text-slate-700"
+                        >
+                            취소
                         </button>
                     </div>
                 </div>,
