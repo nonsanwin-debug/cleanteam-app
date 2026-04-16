@@ -63,7 +63,7 @@ export function InstallButton() {
     }
 
     const handleInstall = async () => {
-        // 1. PWA 프롬프트가 있으면 바로 설치 (Android Chrome)
+        // 1. PWA 프롬프트가 있으면 바로 설치 (Chrome, Samsung Internet 등)
         if (deferredPrompt) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
@@ -74,30 +74,7 @@ export function InstallButton() {
             return
         }
 
-        // 2. iOS 처리
-        if (isIOS()) {
-            if (isSafari()) {
-                // Safari에서 접속 중 → 가이드 표시
-                setShowGuide(true)
-            } else {
-                // iOS 인앱브라우저 → Safari로 열기
-                window.location.href = window.location.href
-                // iOS에서는 프로그래밍으로 Safari를 강제 실행할 수 없으므로 가이드 표시
-                setShowGuide(true)
-            }
-            return
-        }
-
-        // 3. Android: 인앱브라우저 or 비Chrome → Chrome으로 열기
-        if (isInAppBrowser() || !isPWACapable()) {
-            const baseUrl = window.location.origin + window.location.pathname
-            const installUrl = baseUrl + '?install=true'
-            const intentUrl = `intent://${installUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
-            window.location.href = intentUrl
-            return
-        }
-
-        // 4. Chrome인데 프롬프트 없음 → 가이드 표시
+        // 2. 프롬프트 없음 → 가이드 표시 (iOS/Android 자동 분기)
         setShowGuide(true)
     }
 
