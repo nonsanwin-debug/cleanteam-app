@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { FieldHomeClient } from './home-client'
 import { getPartnerFeedSites } from '@/actions/partner-feed'
 import { getActiveNotices } from '@/actions/partner-notices'
@@ -10,18 +9,20 @@ export default async function FieldHomePage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/auth/partner-login')
-    }
+    let partnerName = ''
+    let isLoggedIn = false
 
-    const { data: profile } = await supabase
-        .from('users')
-        .select('name, role')
-        .eq('id', user.id)
-        .single()
+    if (user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('name, role')
+            .eq('id', user.id)
+            .single()
 
-    if (profile?.role !== 'partner') {
-        redirect('/auth/partner-login')
+        if (profile?.role === 'partner') {
+            partnerName = profile.name
+            isLoggedIn = true
+        }
     }
 
     const [feedSites, notices] = await Promise.all([
@@ -30,8 +31,9 @@ export default async function FieldHomePage() {
     ])
 
     return <FieldHomeClient 
-        partnerName={profile.name} 
+        partnerName={partnerName}
         feedSites={feedSites}
         notices={notices}
+        isLoggedIn={isLoggedIn}
     />
 }

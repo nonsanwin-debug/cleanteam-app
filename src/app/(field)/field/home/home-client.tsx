@@ -12,11 +12,13 @@ import type { PartnerNotice } from '@/actions/partner-notices'
 export function FieldHomeClient({ 
     partnerName, 
     feedSites,
-    notices
+    notices,
+    isLoggedIn
 }: { 
     partnerName: string
     feedSites: FeedSite[]
     notices: PartnerNotice[]
+    isLoggedIn: boolean
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
@@ -47,19 +49,33 @@ export function FieldHomeClient({
             
             {/* 1. Header Area */}
             <div className="pt-2">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-800 leading-tight">
-                    반가워요, <br />
-                    <span className="text-teal-600">{partnerName}</span> 대표님!
-                </h1>
-                <p className="text-base text-slate-500 mt-2 flex items-center gap-1.5">
-                    현재 <strong className="text-teal-600 text-lg">{ongoingCount}</strong>건의 청소가 진행 중입니다.
-                </p>
+                {isLoggedIn ? (
+                    <>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-800 leading-tight">
+                            반가워요, <br />
+                            <span className="text-teal-600">{partnerName}</span> 대표님!
+                        </h1>
+                        <p className="text-base text-slate-500 mt-2 flex items-center gap-1.5">
+                            현재 <strong className="text-teal-600 text-lg">{ongoingCount}</strong>건의 청소가 진행 중입니다.
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-800 leading-tight">
+                            NEXUS 파트너센터에<br />
+                            <span className="text-teal-600">오신 것을 환영합니다!</span>
+                        </h1>
+                        <p className="text-base text-slate-500 mt-2">
+                            청소 서비스를 예약하려면 로그인이 필요합니다.
+                        </p>
+                    </>
+                )}
             </div>
 
             {/* 2. Big Action Button (Booking) */}
             <div className="pt-2">
                 <button 
-                    onClick={() => router.push('/field/book')}
+                    onClick={() => router.push(isLoggedIn ? '/field/book' : '/auth/partner-login')}
                     className="w-full relative overflow-hidden bg-teal-600 hover:bg-teal-700 active:bg-teal-800 transition-all text-white rounded-2xl shadow-lg border border-teal-500/20 group"
                 >
                     <div className="p-8 flex flex-col items-center justify-center gap-3 relative z-10">
