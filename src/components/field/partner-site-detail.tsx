@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,8 @@ function maskName(name: string | null) {
 
 export function PartnerSiteDetail({ siteId }: { siteId: string }) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const isFromOrders = searchParams.get('from') === 'orders'
     const [site, setSite] = useState<any>(null)
     const [photos, setPhotos] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -104,13 +106,15 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
         )
     }
 
-    // 주소에서 동/호 제거
-    const cleanAddress = site.address
-        ?.replace(/\d+동\s*/g, '')
-        .replace(/\d+호\s*/g, '')
-        .replace(/\d+-?\d*\s*/g, '')
-        .replace(/\s+/g, ' ')
-        .trim() || site.address
+    // 주소: 내 오더에서 진입하면 전체 주소, 피드에서 진입하면 동호수 제거
+    const cleanAddress = isFromOrders 
+        ? site.address 
+        : (site.address
+            ?.replace(/\d+동\s*/g, '')
+            .replace(/\d+호\s*/g, '')
+            .replace(/\d+-?\d*\s*/g, '')
+            .replace(/\s+/g, ' ')
+            .trim() || site.address)
 
     let statusText = '대기'
     let statusColor = 'bg-blue-500'
@@ -187,35 +191,74 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
                             )}
                         </div>
 
-                        {/* 팀장 (마스킹) */}
+                        {/* 팀장 */}
                         <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                             <User className="h-4 w-4 text-slate-400" />
                             <span className="font-semibold text-slate-500">담당:</span>
-                            <span className="text-slate-700 font-medium">**</span>
-                            <span className="text-[10px] text-slate-400">(내 오더탭의 상세정보에서 전체공개)</span>
+                            {isFromOrders ? (
+                                <span className="text-slate-700 font-medium">{site.worker?.name || site.worker_name || '미배정'} 전문가</span>
+                            ) : (
+                                <>
+                                    <span className="text-slate-700 font-medium">**</span>
+                                    <span className="text-[10px] text-slate-400">(내 오더탭의 상세정보에서 전체공개)</span>
+                                </>
+                            )}
                         </div>
 
-                        {/* 전화/문자 버튼 → 비공개 알림 */}
+                        {/* 전화/문자 버튼 */}
                         <div className="grid grid-cols-2 gap-2 pt-2">
-                            <button
-                                onClick={() => setShowAlert(true)}
-                                className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors"
-                            >
-                                <Phone className="w-4 h-4 text-blue-500" />
-                                전화 문의
-                            </button>
-                            <button
-                                onClick={() => setShowAlert(true)}
-                                className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors"
-                            >
-                                <MessageSquare className="w-4 h-4 text-emerald-500" />
-                                문자 문의
-                            </button>
+                            {isFromOrders ? (
+                                <>
+                                    <a
+                                        href={`tel:${site.worker?.phone || site.worker_phone || ''}`}
+                                        className="flex items-center justify-center gap-1.5 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                    >
+                                        <Phone className="w-4 h-4" />
+                                        전화 문의
+                                    </a>
+                                    <a
+                                        href={`sms:${site.worker?.phone || site.worker_phone || ''}`}
+                                        className="flex items-center justify-center gap-1.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                        문자 문의
+                                    </a>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => setShowAlert(true)}
+                                        className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                                    >
+                                        <Phone className="w-4 h-4 text-blue-500" />
+                                        전화 문의
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAlert(true)}
+                                        className="flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                                    >
+                                        <MessageSquare className="w-4 h-4 text-emerald-500" />
+                                        문자 문의
+                                    </button>
+                                </>
+                            )}
                         </div>
 
                         {/* 고객에게 전송 */}
                         <button
-                            onClick={() => setShowAlert(true)}
+                            onClick={() => {
+                                if (isFromOrders) {
+                                    const shareUrl = `${window.location.origin}/share/${site.id}`
+                                    if (navigator.share) {
+                                        navigator.share({ title: 'NEXUS 작업 보고서', url: shareUrl })
+                                    } else {
+                                        navigator.clipboard.writeText(shareUrl)
+                                        alert('고객 페이지 링크가 복사되었습니다!')
+                                    }
+                                } else {
+                                    setShowAlert(true)
+                                }
+                            }}
                             className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-teal-50 border border-teal-200 rounded-lg text-sm font-bold text-teal-700 hover:bg-teal-100 transition-colors"
                         >
                             <Send className="w-4 h-4" />
