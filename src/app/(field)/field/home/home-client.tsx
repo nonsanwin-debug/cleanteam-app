@@ -3,11 +3,18 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, MapPin, Building2, User, Camera, Clock, Megaphone, ClipboardList, Coins, Star } from 'lucide-react'
+import { PlusCircle, CalendarDays, Camera, Clock, Megaphone, ClipboardList, Coins, Star, Phone, MessageSquare, Send, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import type { FeedSite } from '@/actions/partner-feed'
 import type { PartnerNotice } from '@/actions/partner-notices'
+
+function maskName(name: string | null) {
+    if (!name) return '-'
+    if (name.length <= 1) return name[0] + '*'
+    return name[0] + '*'.repeat(name.length - 1)
+}
 
 export function FieldHomeClient({ 
     partnerName, 
@@ -28,6 +35,8 @@ export function FieldHomeClient({
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
+    const [showBookingMenu, setShowBookingMenu] = useState(false)
+    const [showFeedAlert, setShowFeedAlert] = useState(false)
 
     useEffect(() => {
         const supabase = createClient()
@@ -123,7 +132,13 @@ export function FieldHomeClient({
             {/* 2. Big Action Button (Booking) */}
             <div className="pt-2">
                 <button 
-                    onClick={() => router.push(isLoggedIn ? '/field/book' : '/auth/partner-login')}
+                    onClick={() => {
+                        if (!isLoggedIn) {
+                            router.push('/auth/partner-login')
+                            return
+                        }
+                        setShowBookingMenu(true)
+                    }}
                     className="w-full relative overflow-hidden bg-teal-600 hover:bg-teal-700 active:bg-teal-800 transition-all text-white rounded-2xl shadow-lg border border-teal-500/20 group"
                 >
                     <div className="p-8 flex flex-col items-center justify-center gap-3 relative z-10">
@@ -135,7 +150,6 @@ export function FieldHomeClient({
                             <p className="text-teal-50 text-sm font-medium opacity-90">10초 만에 간편하게 접수하세요</p>
                         </div>
                     </div>
-                    {/* Decorative Background Elements */}
                     <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                     <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-black/5 rounded-full blur-xl pointer-events-none"></div>
                 </button>
@@ -203,26 +217,38 @@ export function FieldHomeClient({
                             }
 
                             const hasPhotos = site.before_photos.length > 0 || site.after_photos.length > 0
+
+                            // 주소에서 동/호 제거 (예: "서울시 강남구 역삼동 123-4 ○○아파트 101동 1502호" → "서울시 강남구 역삼동 ○○아파트")
+                            const cleanAddress = site.address
+                                .replace(/\d+동\s*/g, '')
+                                .replace(/\d+호\s*/g, '')
+                                .replace(/\d+-?\d*\s*/g, '')
+                                .replace(/\s+/g, ' ')
+                                .trim()
                             
                             return (
                                 <Card 
                                     key={site.id} 
-                                    className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer active:scale-[0.99]"
-                                    onClick={() => router.push(`/share/${site.id}`)}
+                                    className="overflow-hidden hover:shadow-md transition-shadow"
                                 >
                                     <CardContent className="p-4 space-y-3">
                                         {/* 주소 + 상태 */}
                                         <div className="flex justify-between items-start">
                                             <span className="font-bold text-slate-800 pr-2 max-w-[75%] line-clamp-2 leading-snug">
-                                                {site.address}
+                                                {cleanAddress || site.address}
                                             </span>
                                             <Badge className={`font-medium shadow-none shrink-0 ${statusColor}`}>
                                                 {statusText}
                                             </Badge>
                                         </div>
 
-                                        {/* 날짜 / 평수 */}
+                                        {/* 팀장 (마스킹) / 날짜 / 평수 */}
                                         <div className="flex items-center gap-4 text-sm text-slate-500">
+                                            {site.worker_name && (
+                                                <span className="text-slate-600 font-medium">
+                                                    팀장 {maskName(site.worker_name)}
+                                                </span>
+                                            )}
                                             <span className="flex items-center gap-1">
                                                 <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
                                                 {site.cleaning_date || '날짜 미정'}
@@ -233,9 +259,49 @@ export function FieldHomeClient({
                                                     {site.start_time}
                                                 </span>
                                             )}
-                                            {site.area_size && (
-                                                <span className="text-slate-600 font-medium">{site.area_size}</span>
-                                            )}
+                                        </div>
+
+                                        {/* 전화/문자/고객전송 버튼 */}
+                                        <div className="space-y-2">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button
+                                                    onClick={() => setShowFeedAlert(true)}
+                                                    className="flex items-center justify-center gap-1.5 py-2 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
+                                                >
+                                                    <Phone className="w-3.5 h-3.5" />
+                                                    전화 문의
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowFeedAlert(true)}
+                                                    className="flex items-center justify-center gap-1.5 py-2 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    문자 문의
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    if (!isLoggedIn) {
+                                                        router.push('/auth/partner-login')
+                                                        return
+                                                    }
+                                                    // 고객에게 해당 페이지 공유
+                                                    const shareUrl = `${window.location.origin}/share/${site.id}`
+                                                    if (navigator.share) {
+                                                        navigator.share({ title: 'NEXUS 작업 보고서', url: shareUrl })
+                                                    } else {
+                                                        navigator.clipboard.writeText(shareUrl)
+                                                        alert('링크가 복사되었습니다!')
+                                                    }
+                                                }}
+                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-teal-50 border border-teal-200 rounded-lg text-xs font-bold text-teal-700 hover:bg-teal-100 transition-colors"
+                                            >
+                                                <Send className="w-3.5 h-3.5" />
+                                                고객에게 해당 페이지 전송
+                                            </button>
+                                            <p className="text-[10px] text-slate-400 text-center">
+                                                예약 유형이 고객링크 전송이면 고객에게 자동 발송됩니다
+                                            </p>
                                         </div>
 
                                         {/* 작업 전/후 사진 (완료 현장만) */}
@@ -296,6 +362,101 @@ export function FieldHomeClient({
             </div>
 
             <div className="h-6"></div>
+
+            {/* 예약 메뉴 바텀시트 */}
+            {showBookingMenu && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-end justify-center" onClick={() => setShowBookingMenu(false)}>
+                    <div
+                        className="bg-white w-full max-w-md rounded-t-3xl p-6 pb-10 space-y-4"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex justify-center">
+                            <div className="w-10 h-1 bg-slate-300 rounded-full" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 text-center">예약 방법 선택</h3>
+
+                        {/* 전화 예약 */}
+                        <a
+                            href="tel:1644-4354"
+                            className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors"
+                        >
+                            <div className="bg-blue-500 p-2.5 rounded-xl">
+                                <Phone className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">전화 예약</p>
+                                <p className="text-xs text-slate-500 mt-0.5">1644-4354</p>
+                            </div>
+                        </a>
+
+                        {/* 직접 예약 */}
+                        <button
+                            onClick={() => {
+                                setShowBookingMenu(false)
+                                router.push('/field/book')
+                            }}
+                            className="w-full flex items-center gap-4 p-4 bg-teal-50 border border-teal-200 rounded-xl hover:bg-teal-100 transition-colors text-left"
+                        >
+                            <div className="bg-teal-500 p-2.5 rounded-xl">
+                                <PlusCircle className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">직접 예약</p>
+                                <p className="text-xs text-slate-500 mt-0.5">빠르고 간편하게 직접 접수</p>
+                            </div>
+                        </button>
+
+                        {/* 고객 링크 전송 */}
+                        <button
+                            onClick={() => {
+                                setShowBookingMenu(false)
+                                router.push('/field/book?type=customer-link')
+                            }}
+                            className="w-full flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors text-left"
+                        >
+                            <div className="bg-amber-500 p-2.5 rounded-xl">
+                                <Send className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">고객 링크 전송</p>
+                                <p className="text-xs text-slate-500 mt-0.5">고객에게 예약 링크를 보내드립니다</p>
+                                <div className="flex gap-2 mt-1">
+                                    <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded">10% 할인</span>
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded">10% 적립</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* 피드 카드 비공개 알림 */}
+            {showFeedAlert && createPortal(
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-6" onClick={() => setShowFeedAlert(false)}>
+                    <div
+                        className="bg-white w-full max-w-sm rounded-2xl p-6 space-y-4 text-center"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
+                            <Phone className="w-6 h-6 text-slate-400" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-800">현장 정보 비공개</h3>
+                        <p className="text-sm text-slate-500 leading-relaxed">
+                            해당 현장의 정보는 공개되어 있지 않습니다.<br/>
+                            <strong className="text-slate-700">내 오더</strong> 메뉴에서 내가 예약한 현장의<br/>
+                            카드를 클릭하시면 모든 기능을 이용하실 수 있습니다.
+                        </p>
+                        <button
+                            onClick={() => setShowFeedAlert(false)}
+                            className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors"
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     )
 }
