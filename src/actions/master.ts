@@ -646,12 +646,13 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
             .eq('id', order.company_id)
             .single()
 
-        // 5. 기존에 이관된 현장이 있으면 cancelled 처리 (회수 후 재배정 시)
+        // 5. 기존에 이관된 현장이 있으면 삭제 (회수 후 재배정 시)
         if (order.transferred_site_id) {
-            await adminClient
-                .from('sites')
-                .update({ status: 'cancelled' })
-                .eq('id', order.transferred_site_id)
+            // 연관 레코드 먼저 삭제 (FK 제약 회피)
+            await adminClient.from('photos').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('checklist_submissions').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('site_members').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('sites').delete().eq('id', order.transferred_site_id)
         }
 
         // 6. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
@@ -736,12 +737,12 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
             }
         }
 
-        // 2. 이관된 현장(site)이 있으면 cancelled 처리
+        // 2. 이관된 현장(site)이 있으면 삭제 (연관 레코드 포함)
         if (order.transferred_site_id) {
-            await adminClient
-                .from('sites')
-                .update({ status: 'cancelled' })
-                .eq('id', order.transferred_site_id)
+            await adminClient.from('photos').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('checklist_submissions').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('site_members').delete().eq('site_id', order.transferred_site_id)
+            await adminClient.from('sites').delete().eq('id', order.transferred_site_id)
         }
 
         // 3. 오더 상태를 다시 pending_master로 복원 (transferred_site_id는 유지 — 재배정 시 정리)
@@ -753,6 +754,7 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
                 status: 'open',
                 accepted_by: null,
                 accepted_at: null,
+                transferred_site_id: null,
                 parsed_details: updatedDetails
             })
             .eq('id', orderId)
