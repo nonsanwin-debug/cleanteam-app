@@ -44,7 +44,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 companies:company_id (name)
             `)
             .in('status', ['completed', 'in_progress'])
-            .order('created_at', { ascending: false })
+            .order('cleaning_date', { ascending: false })
             .limit(200)
 
         if (error || !sites) {
