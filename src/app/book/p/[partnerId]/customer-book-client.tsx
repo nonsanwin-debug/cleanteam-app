@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, MapPin, Calendar, Camera, X, Zap } from 'lucide-react'
 import DaumPostcode from 'react-daum-postcode'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
@@ -38,6 +38,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
     const [residentialType, setResidentialType] = useState('')
     const [structureType, setStructureType] = useState('')
     const [buildingCondition, setBuildingCondition] = useState('신축')
+    const [isAutoAssign, setIsAutoAssign] = useState(true)
 
     const [notes, setNotes] = useState('공동 현관 비밀번호 : \n세대 비밀번호 : \n전달 사항 : ')
     const [noPhotos, setNoPhotos] = useState(false)
@@ -168,6 +169,7 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                 partner_id: partnerId,
                 reward_type: rewardType,
                 estimated_price: estimatedPrice > 0 ? estimatedPrice : null,
+                is_auto_assign: isAutoAssign,
             })
 
             if (!result.success) throw new Error(result.error)
@@ -285,6 +287,36 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                                     >{c}</button>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* 스마트배정 */}
+                        <div className="space-y-2">
+                            <Label className="text-sm font-bold flex items-center gap-1.5">
+                                <Zap className="w-4 h-4 text-amber-500" />
+                                스마트배정
+                            </Label>
+                            <button
+                                onClick={() => setIsAutoAssign(!isAutoAssign)}
+                                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                                    isAutoAssign 
+                                        ? 'bg-amber-50 border-amber-300' 
+                                        : 'bg-white border-slate-200'
+                                }`}
+                            >
+                                <div>
+                                    <p className={`text-sm font-bold ${isAutoAssign ? 'text-amber-700' : 'text-slate-600'}`}>
+                                        {isAutoAssign ? '⚡ 스마트배정 사용' : '스마트배정 미사용'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {isAutoAssign ? 'NEXUS AI가 검증된 업체를 자동 배정합니다' : '담당자가 직접 업체를 배정합니다'}
+                                    </p>
+                                </div>
+                                <div className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${
+                                    isAutoAssign ? 'bg-amber-400 justify-end' : 'bg-slate-300 justify-start'
+                                }`}>
+                                    <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
+                                </div>
+                            </button>
                         </div>
 
                         <Button onClick={() => setStep(2)} className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-white text-base font-bold rounded-2xl">

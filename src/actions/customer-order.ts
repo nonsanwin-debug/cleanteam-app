@@ -2,6 +2,15 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const REGION_SHORT: Record<string, string> = {
+    '서울특별시': '서울', '부산광역시': '부산', '대구광역시': '대구',
+    '인천광역시': '인천', '광주광역시': '광주', '대전광역시': '대전',
+    '울산광역시': '울산', '세종특별자치시': '세종', '경기도': '경기',
+    '강원특별자치도': '강원', '충청북도': '충북', '충청남도': '충남',
+    '전북특별자치도': '전북', '전라남도': '전남', '경상북도': '경북',
+    '경상남도': '경남', '제주특별자치도': '제주',
+}
+
 export async function createCustomerOrder(data: {
     address: string
     area_size: string
@@ -18,6 +27,7 @@ export async function createCustomerOrder(data: {
     partner_id: string
     reward_type: string
     estimated_price: number | null
+    is_auto_assign: boolean
 }) {
     const supabase = createAdminClient()
 
@@ -28,8 +38,12 @@ export async function createCustomerOrder(data: {
         .eq('id', data.partner_id)
         .single()
 
-    // 주소에서 지역 추출 (첫 번째 단어)
-    const region = data.address.split(' ')[0] || '미정'
+    // 주소에서 지역 추출 (시/도 + 시/군/구)
+    const addressParts = data.address.split(' ')
+    const province = addressParts[0] || ''
+    const city = addressParts[1] || ''
+    const shortProv = REGION_SHORT[province] || province
+    const region = city ? `${shortProv} ${city}` : shortProv
 
     const { data: inserted, error } = await supabase.from('shared_orders').insert({
         company_id: partner?.company_id || null,
@@ -42,6 +56,7 @@ export async function createCustomerOrder(data: {
         work_date: data.work_date,
         notes: data.notes || '',
         status: 'open',
+        is_auto_assign: data.is_auto_assign,
         parsed_details: {
             cleaning_type: data.cleaning_type,
             time_preference: data.time_preference,
