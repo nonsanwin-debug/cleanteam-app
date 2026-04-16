@@ -454,7 +454,6 @@ export async function getPendingApplicantCount() {
         .from('shared_order_applicants')
         .select('*', { count: 'exact', head: true })
         .in('order_id', orderIds)
-        .eq('status', 'pending')
 
     return count || 0
 }
