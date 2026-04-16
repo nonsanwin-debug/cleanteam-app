@@ -461,7 +461,7 @@ ${notes}
                                         </span>
                                     </Label>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {['신축', '구축', '인테리어'].map(condition => {
+                                        {[{label: '신축', value: '신축'}, {label: '구축', value: '구축'}, {label: '리모델링', value: '인테리어'}].map(({label, value: condition}) => {
                                             const isBenefited = (condition === '구축' && partnerBenefits.free_old_building) || (condition === '인테리어' && partnerBenefits.free_interior);
                                             return (
                                                 <button
@@ -473,7 +473,7 @@ ${notes}
                                                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                                                     }`}
                                                 >
-                                                    {condition}
+                                                    {label}
                                                     {isBenefited && (
                                                         <span className="absolute -top-2 -right-1 text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full shadow-sm">할증무료</span>
                                                     )}
