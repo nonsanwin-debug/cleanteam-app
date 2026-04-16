@@ -230,6 +230,17 @@ export async function deleteSite(id: string) {
     const supabase = await createClient()
 
     try {
+        // 현장 상태 확인 — 완료된 현장은 삭제 불가
+        const { data: siteData } = await supabase
+            .from('sites')
+            .select('status')
+            .eq('id', id)
+            .single()
+
+        if (siteData?.status === 'completed') {
+            return { success: false, error: '작업이 완료된 현장은 삭제할 수 없습니다.' }
+        }
+
         // shared_orders에서 이 현장을 참조하는지 확인 (상태 변경용)
         const { createAdminClient } = await import('@/lib/supabase/admin')
         const adminSupabase = createAdminClient()
