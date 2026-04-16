@@ -720,6 +720,22 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
             return { success: false, error: '오더를 찾을 수 없습니다.' }
         }
 
+        if (order.status === 'completed') {
+            return { success: false, error: '작업이 완료된 오더는 회수할 수 없습니다.' }
+        }
+
+        // 이관된 현장이 완료 상태인지 확인
+        if (order.transferred_site_id) {
+            const { data: site } = await adminClient
+                .from('sites')
+                .select('status')
+                .eq('id', order.transferred_site_id)
+                .single()
+            if (site?.status === 'completed') {
+                return { success: false, error: '현장 작업이 완료된 오더는 회수할 수 없습니다.' }
+            }
+        }
+
         // 2. 이관된 현장(site)이 있으면 삭제 (hard delete 시도 → 실패 시 cancelled 처리)
         if (order.transferred_site_id) {
             const { error: delError } = await adminClient
