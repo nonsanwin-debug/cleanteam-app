@@ -55,7 +55,7 @@ export async function createCustomerOrder(data: {
         customer_phone: data.customer_phone,
         work_date: data.work_date,
         notes: data.notes || '',
-        status: 'open',
+        status: 'pending_master',
         is_auto_assign: data.is_auto_assign,
         parsed_details: {
             cleaning_type: data.cleaning_type,

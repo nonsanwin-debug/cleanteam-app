@@ -289,35 +289,8 @@ export function CustomerBookClient({ partnerId, rewardType, partnerName = '', fr
                             </div>
                         </div>
 
-                        {/* 스마트배정 */}
-                        <div className="space-y-2">
-                            <Label className="text-sm font-bold flex items-center gap-1.5">
-                                <Zap className="w-4 h-4 text-amber-500" />
-                                스마트배정
-                            </Label>
-                            <button
-                                onClick={() => setIsAutoAssign(!isAutoAssign)}
-                                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                                    isAutoAssign 
-                                        ? 'bg-amber-50 border-amber-300' 
-                                        : 'bg-white border-slate-200'
-                                }`}
-                            >
-                                <div>
-                                    <p className={`text-sm font-bold ${isAutoAssign ? 'text-amber-700' : 'text-slate-600'}`}>
-                                        {isAutoAssign ? '⚡ 스마트배정 사용' : '스마트배정 미사용'}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        {isAutoAssign ? 'NEXUS AI가 검증된 업체를 자동 배정합니다' : '담당자가 직접 업체를 배정합니다'}
-                                    </p>
-                                </div>
-                                <div className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${
-                                    isAutoAssign ? 'bg-amber-400 justify-end' : 'bg-slate-300 justify-start'
-                                }`}>
-                                    <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
-                                </div>
-                            </button>
-                        </div>
+
+
 
                         <Button onClick={() => setStep(2)} className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-white text-base font-bold rounded-2xl">
                             다음 <ChevronRight className="w-5 h-5 ml-1" />

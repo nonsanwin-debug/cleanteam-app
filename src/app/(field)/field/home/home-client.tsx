@@ -478,7 +478,7 @@ export function FieldHomeClient({
 
                         <a
                             href={smsPhone.replace(/[^0-9]/g, '').length >= 10
-                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 청소업체가 고객님의 공간을 치우고\n정리하며 케어합니다.\n(스마트배정 사용 시 검증된 업체가 자동 배정 됩니다)\n\n${window.location.origin}/book/p/${partnerId}?r=${showSmsModal}`)}`
+                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 청소업체가 고객님의 공간을 치우고\n정리하며 케어합니다.\n(스마트배정을 통해 검증된 업체가 배정됩니다)\n\n${window.location.origin}/book/p/${partnerId}?r=${showSmsModal}`)}`
                                 : '#'
                             }
                             onClick={(e) => {

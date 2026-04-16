@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2 } from 'lucide-react'
+import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2, Share2, Building2 } from 'lucide-react'
 import { format } from 'date-fns'
-import { deleteSharedOrderForce } from '@/actions/master'
+import { deleteSharedOrderForce, releaseToSharedBoard, assignCustomerOrder } from '@/actions/master'
+import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -16,6 +17,19 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
     const [searchTerm, setSearchTerm] = useState('')
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [orders, setOrders] = useState(initialOrders)
+    const [companies, setCompanies] = useState<any[]>([])
+    const [assigningId, setAssigningId] = useState<string | null>(null)
+    const [releasingId, setReleasingId] = useState<string | null>(null)
+    const [selectedCompany, setSelectedCompany] = useState<Record<string, string>>({})
+
+    useEffect(() => {
+        const loadCompanies = async () => {
+            const supabase = createClient()
+            const { data } = await supabase.from('companies').select('id, name').eq('status', 'approved').order('name')
+            setCompanies(data || [])
+        }
+        loadCompanies()
+    }, [])
 
     const filteredOrders = orders.filter(order => {
         const term = searchTerm.toLowerCase()
@@ -49,7 +63,39 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
         }
     }
 
+    const handleRelease = async (orderId: string) => {
+        if (!confirm('이 오더를 공유 오더 게시판으로 내리시겠습니까?')) return
+        setReleasingId(orderId)
+        const result = await releaseToSharedBoard(orderId)
+        if (result.success) {
+            toast.success('공유 오더 게시판에 등록되었습니다.')
+            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'open' } : o))
+            router.refresh()
+        } else {
+            toast.error(result.error || '처리 실패')
+        }
+        setReleasingId(null)
+    }
+
+    const handleAssign = async (orderId: string) => {
+        const companyId = selectedCompany[orderId]
+        if (!companyId) { toast.error('업체를 선택해주세요.'); return }
+        if (!confirm('선택한 업체에 직접 배정하시겠습니까?')) return
+        setAssigningId(orderId)
+        const result = await assignCustomerOrder(orderId, companyId)
+        if (result.success) {
+            const company = companies.find(c => c.id === companyId)
+            toast.success(`${company?.name || '업체'}에 배정되었습니다.`)
+            setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'transferred', accepted_by: companyId } : o))
+            router.refresh()
+        } else {
+            toast.error(result.error || '배정 실패')
+        }
+        setAssigningId(null)
+    }
+
     const getStatusBadge = (status: string, isAutoAssign: boolean = false) => {
+        if (status === 'pending_master') return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 animate-pulse">⚡ 고객링크 접수 (마스터 확인 대기)</Badge>
         if (status === 'open') return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">대기중 (배정전)</Badge>
         if (status === 'accepted') return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">수락됨 (상세정보 대기)</Badge>
         if (status === 'transferred') return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">이관 완료{isAutoAssign ? ' [AI자동]' : ''}</Badge>
@@ -142,6 +188,51 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                 {order.notes && (
                                     <div className="mt-3 bg-slate-50 p-2.5 rounded text-xs text-slate-600 whitespace-pre-wrap border border-slate-100 max-h-[120px] overflow-y-auto">
                                         {order.notes}
+                                    </div>
+                                )}
+
+                                {/* 고객 링크 접수 — 마스터 액션 버튼 */}
+                                {order.status === 'pending_master' && (
+                                    <div className="mt-3 pt-3 border-t border-amber-200 space-y-3">
+                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                            <p className="text-xs font-bold text-amber-800 mb-2 flex items-center gap-1">
+                                                <Building2 className="w-3.5 h-3.5" />
+                                                업체 직접 배정
+                                            </p>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    className="flex-1 text-xs border border-amber-300 rounded-lg px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                                                    value={selectedCompany[order.id] || ''}
+                                                    onChange={e => setSelectedCompany(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                                >
+                                                    <option value="">업체 선택...</option>
+                                                    {companies.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                                    ))}
+                                                </select>
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-9 px-3"
+                                                    onClick={() => handleAssign(order.id)}
+                                                    disabled={assigningId === order.id || !selectedCompany[order.id]}
+                                                >
+                                                    {assigningId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : '배정'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-10 text-sm font-semibold border-blue-300 text-blue-700 hover:bg-blue-50"
+                                            onClick={() => handleRelease(order.id)}
+                                            disabled={releasingId === order.id}
+                                        >
+                                            {releasingId === order.id ? (
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            ) : (
+                                                <Share2 className="w-4 h-4 mr-2" />
+                                            )}
+                                            공유 오더 게시판으로 내리기
+                                        </Button>
                                     </div>
                                 )}
                             </CardContent>

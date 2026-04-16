@@ -541,3 +541,66 @@ export async function updateCompanyRegionAndBadges(
         return { success: false, error: '서버 오류가 발생했습니다.' }
     }
 }
+
+/**
+ * 마스터 — 고객 링크 오더를 공유 오더 게시판으로 전환
+ * pending_master → open
+ */
+export async function releaseToSharedBoard(orderId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('shared_orders')
+            .update({ status: 'open' })
+            .eq('id', orderId)
+            .eq('status', 'pending_master')
+
+        if (error) {
+            console.error('releaseToSharedBoard error:', error)
+            return { success: false, error: '상태 변경 실패' }
+        }
+
+        revalidatePath('/master/orders')
+        revalidatePath('/admin/shared-orders')
+        return { success: true }
+    } catch (err) {
+        return { success: false, error: '서버 오류' }
+    }
+}
+
+/**
+ * 마스터 — 고객 링크 오더를 특정 업체에 직접 배정
+ * pending_master → transferred + accepted_by 설정
+ */
+export async function assignCustomerOrder(orderId: string, companyId: string): Promise<ActionResponse> {
+    try {
+        const isMaster = await verifyMasterAccess()
+        if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+        const adminClient = createAdminClient()
+
+        const { error } = await adminClient
+            .from('shared_orders')
+            .update({ 
+                status: 'transferred',
+                accepted_by: companyId
+            })
+            .eq('id', orderId)
+
+        if (error) {
+            console.error('assignCustomerOrder error:', error)
+            return { success: false, error: '배정 실패' }
+        }
+
+        revalidatePath('/master/orders')
+        revalidatePath('/admin/shared-orders')
+        return { success: true }
+    } catch (err) {
+        return { success: false, error: '서버 오류' }
+    }
+}
+
