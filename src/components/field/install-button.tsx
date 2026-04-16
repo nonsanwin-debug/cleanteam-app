@@ -132,21 +132,46 @@ export function InstallButton() {
                                     </div>
                                 </div>
                             </div>
+                        ) : /SamsungBrowser/i.test(navigator.userAgent || '') ? (
+                            /* 삼성인터넷 가이드 - 홈 화면에 추가 */
+                            <div className="space-y-3">
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">하단 메뉴 (≡) 누르기</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">화면 우측 하단의 <strong>≡ 메뉴</strong> 버튼을 눌러주세요</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">&quot;현재 페이지 추가&quot; 선택</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">메뉴에서 <strong>&quot;현재 페이지 추가&quot;</strong> → <strong>&quot;홈 화면&quot;</strong>을 선택하세요</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                                    <div className="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">추가 완료!</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">홈 화면에 NEXUS 아이콘이 생성됩니다</p>
+                                    </div>
+                                </div>
+                            </div>
                         ) : (
-                            /* Android 가이드 - Chrome으로 유도 */
+                            /* 기타 Android 가이드 - Chrome으로 유도 */
                             <div className="space-y-3">
                                 <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                                     <ExternalLink className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-semibold text-slate-800">Chrome 브라우저에서 열어주세요</p>
-                                        <p className="text-xs text-slate-500 mt-1">카카오톡, 삼성인터넷 등에서는 앱 설치가 제한됩니다.</p>
+                                        <p className="text-xs text-slate-500 mt-1">카카오톡 등 인앱브라우저에서는 앱 설치가 제한됩니다.</p>
                                         <p className="text-xs text-slate-500 mt-1">아래 버튼을 누르면 <strong>링크가 복사</strong>됩니다.<br/>Chrome을 열고 주소창에 <strong>붙여넣기</strong> 후 앱 설치를 눌러주세요.</p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {isIOS() ? (
+                        {isIOS() || /SamsungBrowser/i.test(navigator.userAgent || '') ? (
                             <button
                                 onClick={() => setShowGuide(false)}
                                 className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors"
