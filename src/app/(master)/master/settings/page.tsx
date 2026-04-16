@@ -311,47 +311,80 @@ export default function MasterSettingsPage() {
                                             </p>
                                             <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                                                 <span>{site.cleaning_date || '날짜 미정'}</span>
-                                                <span className="flex items-center gap-0.5">
-                                                    <Building2 className="w-3 h-3" />
-                                                    {editingNameId === site.id ? (
-                                                        <form className="flex items-center gap-1" onSubmit={async (e) => {
-                                                            e.preventDefault()
-                                                            setSavingNameId(site.id)
-                                                            const res = await updateFeedDisplayName(site.id, editingNameValue)
-                                                            if (res.success) {
-                                                                setFeedSites(prev => prev.map(s => s.id === site.id ? { ...s, feed_display_name: editingNameValue || null } : s))
-                                                                toast.success('표시 업체명이 변경되었습니다.')
-                                                            } else {
-                                                                toast.error('변경 실패')
-                                                            }
-                                                            setSavingNameId(null)
-                                                            setEditingNameId(null)
-                                                        }}>
-                                                            <input
-                                                                autoFocus
-                                                                className="border border-slate-300 rounded px-1.5 py-0.5 text-xs w-24 focus:outline-none focus:ring-1 focus:ring-teal-400"
-                                                                value={editingNameValue}
-                                                                onChange={e => setEditingNameValue(e.target.value)}
-                                                                placeholder={site.company_name}
-                                                            />
-                                                            <button type="submit" className="text-teal-600 font-bold text-[10px]" disabled={savingNameId === site.id}>
-                                                                {savingNameId === site.id ? '···' : '저장'}
-                                                            </button>
-                                                            <button type="button" className="text-slate-400 text-[10px]" onClick={() => setEditingNameId(null)}>취소</button>
-                                                        </form>
-                                                    ) : (
+                                            </div>
+                                            {/* 업체명 편집 영역 — 별도 row로 분리 */}
+                                            <div className="mt-1.5">
+                                                {editingNameId === site.id ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                                                        <input
+                                                            autoFocus
+                                                            className="border border-teal-300 rounded px-2 py-1 text-xs w-32 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400 bg-white"
+                                                            value={editingNameValue}
+                                                            onChange={e => setEditingNameValue(e.target.value)}
+                                                            placeholder={site.company_name}
+                                                            onKeyDown={async (e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault()
+                                                                    setSavingNameId(site.id)
+                                                                    const res = await updateFeedDisplayName(site.id, editingNameValue)
+                                                                    if (res.success) {
+                                                                        setFeedSites(prev => prev.map(s => s.id === site.id ? { ...s, feed_display_name: editingNameValue || null } : s))
+                                                                        toast.success('표시 업체명이 변경되었습니다.')
+                                                                    } else {
+                                                                        toast.error('변경 실패')
+                                                                    }
+                                                                    setSavingNameId(null)
+                                                                    setEditingNameId(null)
+                                                                } else if (e.key === 'Escape') {
+                                                                    setEditingNameId(null)
+                                                                }
+                                                            }}
+                                                        />
                                                         <button
-                                                            className="hover:underline cursor-pointer"
-                                                            onClick={() => {
-                                                                setEditingNameId(site.id)
-                                                                setEditingNameValue(site.feed_display_name || '')
+                                                            type="button"
+                                                            className="text-teal-600 font-bold text-xs px-1.5 py-0.5 rounded hover:bg-teal-50 transition-colors"
+                                                            disabled={savingNameId === site.id}
+                                                            onClick={async () => {
+                                                                setSavingNameId(site.id)
+                                                                const res = await updateFeedDisplayName(site.id, editingNameValue)
+                                                                if (res.success) {
+                                                                    setFeedSites(prev => prev.map(s => s.id === site.id ? { ...s, feed_display_name: editingNameValue || null } : s))
+                                                                    toast.success('표시 업체명이 변경되었습니다.')
+                                                                } else {
+                                                                    toast.error('변경 실패')
+                                                                }
+                                                                setSavingNameId(null)
+                                                                setEditingNameId(null)
                                                             }}
                                                         >
-                                                            {site.feed_display_name || site.company_name}
-                                                            {site.feed_display_name && <span className="text-teal-500 ml-1">(수정됨)</span>}
+                                                            {savingNameId === site.id ? '···' : '저장'}
                                                         </button>
-                                                    )}
-                                                </span>
+                                                        <button
+                                                            type="button"
+                                                            className="text-slate-400 text-xs px-1.5 py-0.5 rounded hover:bg-slate-100 transition-colors"
+                                                            onClick={() => setEditingNameId(null)}
+                                                        >
+                                                            취소
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="flex items-center gap-1 text-xs text-slate-500 hover:text-teal-600 hover:bg-teal-50/50 px-1.5 py-1 -ml-1.5 rounded transition-colors cursor-pointer group"
+                                                        onClick={() => {
+                                                            setEditingNameId(site.id)
+                                                            setEditingNameValue(site.feed_display_name || '')
+                                                        }}
+                                                    >
+                                                        <Building2 className="w-3 h-3 shrink-0" />
+                                                        <span className="group-hover:underline">
+                                                            {site.feed_display_name || site.company_name}
+                                                        </span>
+                                                        {site.feed_display_name && <span className="text-teal-500 ml-0.5">(수정됨)</span>}
+                                                        <span className="text-[10px] text-slate-300 group-hover:text-teal-400 ml-1">✎</span>
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                         <Button
