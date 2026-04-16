@@ -51,8 +51,9 @@ export function InstallButton() {
 
     const handleInstall = async () => {
         // Chrome에서만 네이티브 프롬프트 사용
-        // beforeinstallprompt 지원 브라우저 (Chrome, Samsung Internet 등)
-        if (deferredPrompt) {
+        // Samsung Internet은 Play Protect 차단 → Chrome에서만 네이티브 프롬프트
+        const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent || '')
+        if (deferredPrompt && !isSamsungBrowser) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
             if (outcome === 'accepted') {
