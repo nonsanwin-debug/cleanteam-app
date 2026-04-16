@@ -58,14 +58,15 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
         // 3. 사진 조회 (30개씩 청크로 분할 — Supabase URL 길이 제한 우회)
         let photosMap = new Map<string, { before: string[], after: string[] }>()
 
-        for (let i = 0; i < allSiteIds.length; i += 30) {
-            const chunk = allSiteIds.slice(i, i + 30)
+        for (let i = 0; i < allSiteIds.length; i += 10) {
+            const chunk = allSiteIds.slice(i, i + 10)
             const { data: photos } = await adminClient
                 .from('photos')
                 .select('site_id, url, type')
                 .in('site_id', chunk)
                 .in('type', ['before', 'after'])
                 .order('created_at', { ascending: true })
+                .limit(3000)
 
             if (photos) {
                 for (const photo of photos) {
