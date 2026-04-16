@@ -1,9 +1,9 @@
 {
-  "name": "NEXUS 파트너",
+  "name": "NEXUS",
   "short_name": "NEXUS",
-  "description": "NEXUS 파트너센터 - 청소 예약 및 현장 관리",
-  "id": "/field/home",
-  "start_url": "/field/home",
+  "description": "NEXUS - 청소 예약 및 현장 관리",
+  "id": "/",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
