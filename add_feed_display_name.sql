@@ -1,0 +1,1 @@
+ALTER TABLE sites ADD COLUMN IF NOT EXISTS feed_display_name text DEFAULT NULL;

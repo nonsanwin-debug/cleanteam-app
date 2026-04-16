@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
-import { getFeedSitesList, toggleFeedVisibility } from "@/actions/master-feed"
+import { getFeedSitesList, toggleFeedVisibility, updateFeedDisplayName } from "@/actions/master-feed"
 import { getAllNotices, createNotice, toggleNotice, deleteNotice, type PartnerNotice } from "@/actions/partner-notices"
 
 type FeedSiteItem = {
@@ -19,6 +19,7 @@ type FeedSiteItem = {
     cleaning_date: string | null
     hidden_from_feed: boolean
     company_name: string
+    feed_display_name: string | null
 }
 
 export default function MasterSettingsPage() {
@@ -34,6 +35,9 @@ export default function MasterSettingsPage() {
     const [feedLoading, setFeedLoading] = useState(true)
     const [togglingId, setTogglingId] = useState<string | null>(null)
     const [feedSearch, setFeedSearch] = useState('')
+    const [editingNameId, setEditingNameId] = useState<string | null>(null)
+    const [editingNameValue, setEditingNameValue] = useState('')
+    const [savingNameId, setSavingNameId] = useState<string | null>(null)
 
     // 공지사항 상태
     const [notices, setNotices] = useState<PartnerNotice[]>([])
@@ -309,7 +313,44 @@ export default function MasterSettingsPage() {
                                                 <span>{site.cleaning_date || '날짜 미정'}</span>
                                                 <span className="flex items-center gap-0.5">
                                                     <Building2 className="w-3 h-3" />
-                                                    {site.company_name}
+                                                    {editingNameId === site.id ? (
+                                                        <form className="flex items-center gap-1" onSubmit={async (e) => {
+                                                            e.preventDefault()
+                                                            setSavingNameId(site.id)
+                                                            const res = await updateFeedDisplayName(site.id, editingNameValue)
+                                                            if (res.success) {
+                                                                setFeedSites(prev => prev.map(s => s.id === site.id ? { ...s, feed_display_name: editingNameValue || null } : s))
+                                                                toast.success('표시 업체명이 변경되었습니다.')
+                                                            } else {
+                                                                toast.error('변경 실패')
+                                                            }
+                                                            setSavingNameId(null)
+                                                            setEditingNameId(null)
+                                                        }}>
+                                                            <input
+                                                                autoFocus
+                                                                className="border border-slate-300 rounded px-1.5 py-0.5 text-xs w-24 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                                                                value={editingNameValue}
+                                                                onChange={e => setEditingNameValue(e.target.value)}
+                                                                placeholder={site.company_name}
+                                                            />
+                                                            <button type="submit" className="text-teal-600 font-bold text-[10px]" disabled={savingNameId === site.id}>
+                                                                {savingNameId === site.id ? '···' : '저장'}
+                                                            </button>
+                                                            <button type="button" className="text-slate-400 text-[10px]" onClick={() => setEditingNameId(null)}>취소</button>
+                                                        </form>
+                                                    ) : (
+                                                        <button
+                                                            className="hover:underline cursor-pointer"
+                                                            onClick={() => {
+                                                                setEditingNameId(site.id)
+                                                                setEditingNameValue(site.feed_display_name || '')
+                                                            }}
+                                                        >
+                                                            {site.feed_display_name || site.company_name}
+                                                            {site.feed_display_name && <span className="text-teal-500 ml-1">(수정됨)</span>}
+                                                        </button>
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>

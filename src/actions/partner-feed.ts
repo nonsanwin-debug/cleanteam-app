@@ -41,7 +41,8 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 area_size,
                 start_time,
                 worker_name,
-                companies:company_id (name)
+                companies:company_id (name),
+                feed_display_name
             `)
             .eq('status', 'completed')
             .or('hidden_from_feed.is.null,hidden_from_feed.eq.false')
@@ -99,7 +100,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                     area_size: site.area_size,
                     start_time: site.start_time,
                     worker_name: site.worker_name,
-                    company_name: (companyObj as any)?.name || null,
+                    company_name: (site as any).feed_display_name || (companyObj as any)?.name || null,
                     before_photos: sitePhotos.before,
                     after_photos: sitePhotos.after,
                 }

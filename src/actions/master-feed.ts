@@ -35,7 +35,7 @@ export async function getFeedSitesList() {
         const adminClient = createAdminClient()
         const { data: sites, error } = await adminClient
             .from('sites')
-            .select('id, name, address, cleaning_date, status, hidden_from_feed, companies:company_id(name)')
+            .select('id, name, address, cleaning_date, status, hidden_from_feed, feed_display_name, companies:company_id(name)')
             .eq('status', 'completed')
             .order('cleaning_date', { ascending: false })
             .limit(100)
@@ -51,10 +51,35 @@ export async function getFeedSitesList() {
                 cleaning_date: s.cleaning_date,
                 hidden_from_feed: s.hidden_from_feed ?? false,
                 company_name: (companyObj as any)?.name || '미지정',
+                feed_display_name: (s as any).feed_display_name || null,
             }
         })
     } catch (err) {
         console.error('getFeedSitesList error:', err)
         return []
+    }
+}
+
+/**
+ * 마스터용 — 피드 현장의 표시 업체명 변경
+ */
+export async function updateFeedDisplayName(siteId: string, displayName: string) {
+    try {
+        const adminClient = createAdminClient()
+        const { error } = await adminClient
+            .from('sites')
+            .update({ feed_display_name: displayName || null })
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('updateFeedDisplayName error:', error)
+            return { success: false, error: '업데이트 실패' }
+        }
+
+        revalidatePath('/master/settings')
+        return { success: true }
+    } catch (err) {
+        console.error('updateFeedDisplayName unexpected:', err)
+        return { success: false, error: '서버 오류' }
     }
 }
