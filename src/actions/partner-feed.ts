@@ -43,7 +43,8 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 worker_name,
                 companies:company_id (name)
             `)
-            .in('status', ['completed', 'in_progress'])
+            .eq('status', 'completed')
+            .or('hidden_from_feed.is.null,hidden_from_feed.eq.false')
             .order('cleaning_date', { ascending: false })
             .limit(200)
 
@@ -109,6 +110,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 const dateB = b.cleaning_date || '0000-00-00'
                 return dateB.localeCompare(dateA)
             })
+            .slice(0, 50)
     } catch (err) {
         console.error('getPartnerFeedSites unexpected error:', err)
         return []

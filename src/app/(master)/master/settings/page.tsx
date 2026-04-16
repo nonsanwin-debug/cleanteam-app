@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings, Loader2, RefreshCw, Shield, Gift } from "lucide-react"
+import { Settings, Loader2, RefreshCw, Shield, Gift, Eye, EyeOff, Search, Building2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
+import { getFeedSitesList, toggleFeedVisibility } from "@/actions/master-feed"
+
+type FeedSiteItem = {
+    id: string
+    name: string
+    address: string
+    cleaning_date: string | null
+    hidden_from_feed: boolean
+    company_name: string
+}
 
 export default function MasterSettingsPage() {
     const [loading, setLoading] = useState(true)
@@ -16,6 +27,12 @@ export default function MasterSettingsPage() {
         global_free_old_building: false,
         global_free_interior: false,
     })
+
+    // 피드 관리 상태
+    const [feedSites, setFeedSites] = useState<FeedSiteItem[]>([])
+    const [feedLoading, setFeedLoading] = useState(true)
+    const [togglingId, setTogglingId] = useState<string | null>(null)
+    const [feedSearch, setFeedSearch] = useState('')
 
     const supabase = createClient()
 
@@ -40,6 +57,17 @@ export default function MasterSettingsPage() {
         fetchSettings()
     }, [])
 
+    // 피드 현장 로드
+    useEffect(() => {
+        const loadFeedSites = async () => {
+            setFeedLoading(true)
+            const data = await getFeedSitesList()
+            setFeedSites(data)
+            setFeedLoading(false)
+        }
+        loadFeedSites()
+    }, [])
+
     // 설정 저장
     const handleSave = async () => {
         setSaving(true)
@@ -57,6 +85,27 @@ export default function MasterSettingsPage() {
             setSaving(false)
         }
     }
+
+    // 피드 토글
+    const handleToggleFeed = async (siteId: string, currentHidden: boolean) => {
+        setTogglingId(siteId)
+        const result = await toggleFeedVisibility(siteId, !currentHidden)
+        if (result.success) {
+            setFeedSites(prev => prev.map(s => 
+                s.id === siteId ? { ...s, hidden_from_feed: !currentHidden } : s
+            ))
+            toast.success(!currentHidden ? '피드에서 숨김 처리됨' : '피드에 노출됨')
+        } else {
+            toast.error('변경 실패')
+        }
+        setTogglingId(null)
+    }
+
+    const filteredFeedSites = feedSites.filter(s => {
+        if (!feedSearch) return true
+        const q = feedSearch.toLowerCase()
+        return s.address.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) || s.company_name.toLowerCase().includes(q)
+    })
 
     return (
         <div className="space-y-6">
@@ -141,6 +190,96 @@ export default function MasterSettingsPage() {
                                     {saving && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
                                     전역 설정 저장
                                 </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* 파트너 피드 현장 관리 */}
+            <Card className="shadow-sm border-slate-200">
+                <CardHeader className="bg-slate-50 border-b border-slate-100">
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                        <Eye className="w-5 h-5 text-teal-500" />
+                        파트너 피드 현장 관리
+                    </CardTitle>
+                    <CardDescription>
+                        파트너 홈 화면에 표시되는 현장을 관리합니다. 숨기기를 누르면 파트너에게 해당 현장이 보이지 않습니다.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                    {feedLoading ? (
+                        <div className="flex items-center justify-center h-[100px] text-slate-400">
+                            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                            현장 목록을 불러오는 중...
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {/* 검색 */}
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={feedSearch}
+                                    onChange={e => setFeedSearch(e.target.value)}
+                                    placeholder="주소, 현장명, 업체명 검색..."
+                                    className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
+                                />
+                            </div>
+
+                            {/* 요약 */}
+                            <div className="flex gap-3 text-xs">
+                                <Badge variant="outline" className="gap-1">
+                                    <Eye className="w-3 h-3" /> 노출: {feedSites.filter(s => !s.hidden_from_feed).length}건
+                                </Badge>
+                                <Badge variant="outline" className="gap-1 text-rose-600 border-rose-200">
+                                    <EyeOff className="w-3 h-3" /> 숨김: {feedSites.filter(s => s.hidden_from_feed).length}건
+                                </Badge>
+                            </div>
+
+                            {/* 현장 목록 */}
+                            <div className="max-h-[500px] overflow-y-auto space-y-2">
+                                {filteredFeedSites.map(site => (
+                                    <div
+                                        key={site.id}
+                                        className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                                            site.hidden_from_feed 
+                                                ? 'bg-rose-50/50 border-rose-200 opacity-60' 
+                                                : 'bg-white border-slate-200 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <div className="flex-1 min-w-0 mr-3">
+                                            <p className="text-sm font-semibold text-slate-800 truncate">
+                                                {site.address}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                                                <span>{site.cleaning_date || '날짜 미정'}</span>
+                                                <span className="flex items-center gap-0.5">
+                                                    <Building2 className="w-3 h-3" />
+                                                    {site.company_name}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant={site.hidden_from_feed ? "outline" : "destructive"}
+                                            className="shrink-0 h-8 text-xs"
+                                            disabled={togglingId === site.id}
+                                            onClick={() => handleToggleFeed(site.id, site.hidden_from_feed)}
+                                        >
+                                            {togglingId === site.id ? (
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                            ) : site.hidden_from_feed ? (
+                                                <><Eye className="w-3 h-3 mr-1" /> 노출</>
+                                            ) : (
+                                                <><EyeOff className="w-3 h-3 mr-1" /> 숨기기</>
+                                            )}
+                                        </Button>
+                                    </div>
+                                ))}
+                                {filteredFeedSites.length === 0 && (
+                                    <p className="text-center text-sm text-slate-400 py-6">검색 결과가 없습니다.</p>
+                                )}
                             </div>
                         </div>
                     )}
