@@ -198,11 +198,6 @@ export function CustomerBookClient({ partnerId, rewardType, freeOldBuilding = fa
                         )}
                         <span className="font-bold text-slate-800 text-sm">NEXUS 청소 예약</span>
                     </div>
-                    {rewardType === 'discount' ? (
-                        <span className="text-xs bg-red-100 text-red-600 font-bold px-2 py-1 rounded-full">10% 할인 적용</span>
-                    ) : (
-                        <span className="text-xs bg-emerald-100 text-emerald-600 font-bold px-2 py-1 rounded-full">10% 적립 혜택</span>
-                    )}
                 </div>
                 {/* Step Indicator */}
                 <div className="max-w-md mx-auto px-4 pb-2">
@@ -353,24 +348,70 @@ export function CustomerBookClient({ partnerId, rewardType, freeOldBuilding = fa
                             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} className="resize-none" />
                         </div>
 
-                        {/* 예상 견적 */}
-                        {getCalculatedBasePrice() > 0 && (
-                            <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
-                                <h4 className="font-bold text-slate-800">예상 견적</h4>
-                                {rewardType === 'discount' && (
-                                    <p className="text-xs text-red-500 font-medium">🎉 10% 할인이 적용된 금액입니다</p>
-                                )}
-                                {rewardType === 'points' && (
-                                    <p className="text-xs text-emerald-500 font-medium">✨ 완료 시 추천인에게 10% 적립됩니다</p>
-                                )}
-                                <p className="text-2xl font-extrabold text-slate-800">
-                                    {getCalculatedBasePrice().toLocaleString()}<span className="text-sm font-medium text-slate-400 ml-1">원</span>
-                                </p>
-                                {isNegotiatedType(cleanType) && (
-                                    <p className="text-xs text-amber-600 font-medium">* 상가/특수청소는 현장 확인 후 견적이 확정됩니다</p>
-                                )}
-                            </div>
-                        )}
+                        {/* 예상 견적 상세 */}
+                        {getCalculatedBasePrice() > 0 && (() => {
+                            const parsedArea = parseInt(areaSize, 10) || 0
+                            const pricePerPyeong = getPricePerPyeong(cleanType)
+                            const isFreeOld = buildingCondition === '구축' && freeOldBuilding
+                            const isFreeInt = buildingCondition === '인테리어' && freeInterior
+                            const condAdd = buildingCondition === '구축' ? (isFreeOld ? 0 : 2000) : (buildingCondition === '인테리어' ? (isFreeInt ? 0 : 4000) : 0)
+                            const baseTotal = parsedArea * pricePerPyeong
+                            const condTotal = parsedArea * condAdd
+                            const addFlat = cleanType === '사이청소' ? 70000 : 0
+                            let rawTotal = baseTotal + condTotal + addFlat
+                            if (rawTotal < 150000) rawTotal = 150000
+                            const finalPrice = rewardType === 'discount' ? Math.floor(rawTotal * 0.9) : rawTotal
+                            const discountAmount = rewardType === 'discount' ? rawTotal - finalPrice : 0
+
+                            return (
+                                <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                                    <h4 className="font-bold text-slate-800">예상 견적 상세</h4>
+                                    <div className="space-y-1.5 text-sm">
+                                        <div className="flex justify-between text-slate-600">
+                                            <span>{cleanType} 기본단가 ({parsedArea}평 × {pricePerPyeong.toLocaleString()}원)</span>
+                                            <span className="font-medium">{baseTotal.toLocaleString()}원</span>
+                                        </div>
+                                        {condTotal > 0 && (
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>{buildingCondition} 할증 ({parsedArea}평 × {condAdd.toLocaleString()}원)</span>
+                                                <span className="font-medium">+{condTotal.toLocaleString()}원</span>
+                                            </div>
+                                        )}
+                                        {(isFreeOld || isFreeInt) && (
+                                            <div className="flex justify-between text-teal-600">
+                                                <span>✨ {buildingCondition} 할증 무료 적용</span>
+                                                <span className="font-medium">-0원</span>
+                                            </div>
+                                        )}
+                                        {addFlat > 0 && (
+                                            <div className="flex justify-between text-slate-600">
+                                                <span>사이청소 기본 추가</span>
+                                                <span className="font-medium">+{addFlat.toLocaleString()}원</span>
+                                            </div>
+                                        )}
+                                        {rawTotal === 150000 && baseTotal + condTotal + addFlat < 150000 && (
+                                            <div className="flex justify-between text-slate-500 text-xs">
+                                                <span>최소 금액 적용</span>
+                                                <span>150,000원</span>
+                                            </div>
+                                        )}
+                                        {discountAmount > 0 && (
+                                            <div className="flex justify-between text-red-500 font-medium">
+                                                <span>파트너 특별 할인</span>
+                                                <span>-{discountAmount.toLocaleString()}원</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+                                        <span className="font-bold text-slate-700">예상 결제 금액</span>
+                                        <span className="text-2xl font-extrabold text-slate-800">
+                                            {finalPrice.toLocaleString()}<span className="text-sm font-medium text-slate-400 ml-1">원</span>
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400">※ 실제 금액은 현장 확인 후 변동될 수 있습니다</p>
+                                </div>
+                            )
+                        })()}
 
                         <Button
                             onClick={handleSubmit}
