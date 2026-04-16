@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Download, ExternalLink } from 'lucide-react'
+import { Download, ExternalLink, Phone } from 'lucide-react'
 
 export function InstallButton() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
@@ -187,6 +187,14 @@ export function InstallButton() {
                                 링크 복사하기
                             </button>
                         )}
+
+                        <a
+                            href="tel:1644-4354"
+                            className="w-full h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Phone className="w-4 h-4" />
+                            설치가 어려우신가요? 고객센터 전화연결
+                        </a>
                     </div>
                 </div>,
                 document.body
