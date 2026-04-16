@@ -648,11 +648,15 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
 
         // 5. 기존에 이관된 현장이 있으면 삭제 (회수 후 재배정 시)
         if (order.transferred_site_id) {
-            // 연관 레코드 먼저 삭제 (FK 제약 회피)
-            await adminClient.from('photos').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('checklist_submissions').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('site_members').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('sites').delete().eq('id', order.transferred_site_id)
+            const oldSiteId = order.transferred_site_id
+            // FK 참조 먼저 해제
+            await adminClient.from('shared_orders').update({ transferred_site_id: null }).eq('id', orderId)
+            // 연관 레코드 삭제
+            await adminClient.from('photos').delete().eq('site_id', oldSiteId)
+            await adminClient.from('checklist_submissions').delete().eq('site_id', oldSiteId)
+            await adminClient.from('site_members').delete().eq('site_id', oldSiteId)
+            // 사이트 삭제
+            await adminClient.from('sites').delete().eq('id', oldSiteId)
         }
 
         // 6. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
@@ -737,15 +741,20 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
             }
         }
 
-        // 2. 이관된 현장(site)이 있으면 삭제 (연관 레코드 포함)
+        // 2. 이관된 현장(site)이 있으면 삭제
         if (order.transferred_site_id) {
-            await adminClient.from('photos').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('checklist_submissions').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('site_members').delete().eq('site_id', order.transferred_site_id)
-            await adminClient.from('sites').delete().eq('id', order.transferred_site_id)
+            const oldSiteId = order.transferred_site_id
+            // FK 참조 먼저 해제
+            await adminClient.from('shared_orders').update({ transferred_site_id: null }).eq('id', orderId)
+            // 연관 레코드 삭제
+            await adminClient.from('photos').delete().eq('site_id', oldSiteId)
+            await adminClient.from('checklist_submissions').delete().eq('site_id', oldSiteId)
+            await adminClient.from('site_members').delete().eq('site_id', oldSiteId)
+            // 사이트 삭제
+            await adminClient.from('sites').delete().eq('id', oldSiteId)
         }
 
-        // 3. 오더 상태를 다시 pending_master로 복원 (transferred_site_id는 유지 — 재배정 시 정리)
+        // 3. 오더 상태를 다시 pending_master로 복원
         const updatedDetails = { ...(order.parsed_details || {}), pending_master: true }
 
         const { error } = await adminClient
