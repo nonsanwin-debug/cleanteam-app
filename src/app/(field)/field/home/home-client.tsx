@@ -18,6 +18,7 @@ function maskName(name: string | null) {
 
 export function FieldHomeClient({ 
     partnerName, 
+    partnerId,
     feedSites,
     notices,
     isLoggedIn,
@@ -26,6 +27,7 @@ export function FieldHomeClient({
     activityPoints
 }: { 
     partnerName: string
+    partnerId: string
     feedSites: FeedSite[]
     notices: PartnerNotice[]
     isLoggedIn: boolean
@@ -373,24 +375,51 @@ export function FieldHomeClient({
                             </div>
                         </button>
 
-                        {/* 고객 링크 전송 */}
+                        {/* 고객 링크 전송 - 10% 할인 */}
                         <button
                             onClick={() => {
                                 setShowBookingMenu(false)
-                                router.push('/field/book?type=customer-link')
+                                const shareUrl = `${window.location.origin}/book/p/${partnerId}?r=discount`
+                                if (navigator.share) {
+                                    navigator.share({ title: 'NEXUS 청소 예약 (10% 할인)', url: shareUrl })
+                                } else {
+                                    navigator.clipboard.writeText(shareUrl)
+                                    toast.success('10% 할인 예약 링크가 복사되었습니다!')
+                                }
                             }}
-                            className="w-full flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors text-left"
+                            className="w-full flex items-center gap-4 p-4 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors text-left"
                         >
-                            <div className="bg-amber-500 p-2.5 rounded-xl">
+                            <div className="bg-red-500 p-2.5 rounded-xl">
                                 <Send className="w-5 h-5 text-white" />
                             </div>
-                            <div>
-                                <p className="text-sm font-bold text-slate-800">고객 링크 전송</p>
-                                <p className="text-xs text-slate-500 mt-0.5">고객에게 예약 링크를 보내드립니다</p>
-                                <div className="flex gap-2 mt-1">
-                                    <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded">10% 할인</span>
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded">10% 적립</span>
-                                </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold text-slate-800">고객 링크 전송 — 10% 할인</p>
+                                <p className="text-xs text-slate-500 mt-0.5">고객이 10% 할인된 견적으로 예약</p>
+                                <span className="text-[10px] bg-red-100 text-red-600 font-bold px-1.5 py-0.5 rounded mt-1 inline-block">10% 할인</span>
+                            </div>
+                        </button>
+
+                        {/* 고객 링크 전송 - 10% 적립 */}
+                        <button
+                            onClick={() => {
+                                setShowBookingMenu(false)
+                                const shareUrl = `${window.location.origin}/book/p/${partnerId}?r=points`
+                                if (navigator.share) {
+                                    navigator.share({ title: 'NEXUS 청소 예약 (10% 적립)', url: shareUrl })
+                                } else {
+                                    navigator.clipboard.writeText(shareUrl)
+                                    toast.success('10% 적립 예약 링크가 복사되었습니다!')
+                                }
+                            }}
+                            className="w-full flex items-center gap-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors text-left"
+                        >
+                            <div className="bg-emerald-500 p-2.5 rounded-xl">
+                                <Send className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold text-slate-800">고객 링크 전송 — 10% 적립</p>
+                                <p className="text-xs text-slate-500 mt-0.5">기본가로 진행, 완료 시 파트너에게 10% 적립</p>
+                                <span className="text-[10px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded mt-1 inline-block">10% 적립</span>
                             </div>
                         </button>
                     </div>

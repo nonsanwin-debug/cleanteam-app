@@ -58,6 +58,7 @@ export default async function FieldHomePage() {
 
     return <FieldHomeClient 
         partnerName={partnerName}
+        partnerId={user?.id || ''}
         feedSites={feedSites}
         notices={notices}
         isLoggedIn={isLoggedIn}
