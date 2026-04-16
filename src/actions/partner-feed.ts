@@ -55,14 +55,15 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
         // 2. 모든 현장 ID 추출하여 사진 조회
         const allSiteIds = sites.map(s => s.id)
 
-        // 3. 완료된 현장의 before/after 사진 조회
+        // 3. 사진 조회 (30개씩 청크로 분할 — Supabase URL 길이 제한 우회)
         let photosMap = new Map<string, { before: string[], after: string[] }>()
 
-        if (allSiteIds.length > 0) {
+        for (let i = 0; i < allSiteIds.length; i += 30) {
+            const chunk = allSiteIds.slice(i, i + 30)
             const { data: photos } = await adminClient
                 .from('photos')
                 .select('site_id, url, type')
-                .in('site_id', allSiteIds)
+                .in('site_id', chunk)
                 .in('type', ['before', 'after'])
                 .order('created_at', { ascending: true })
 
