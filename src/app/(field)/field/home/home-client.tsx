@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlusCircle, CalendarDays, Camera, Clock, Megaphone, ClipboardList, Coins, Star, Phone, MessageSquare, Send, X } from 'lucide-react'
+import { PlusCircle, CalendarDays, Camera, Clock, Megaphone, ClipboardList, Coins, Star, Phone, MessageSquare, Send, X, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
@@ -42,6 +42,7 @@ export function FieldHomeClient({
     const [showCount, setShowCount] = useState(10)
     const [showSmsModal, setShowSmsModal] = useState<'discount' | 'points' | null>(null)
     const [smsPhone, setSmsPhone] = useState('')
+    const [showInfoCard, setShowInfoCard] = useState(false)
 
     useEffect(() => {
         const supabase = createClient()
@@ -94,46 +95,55 @@ export function FieldHomeClient({
 
             {/* 1.5. 정보 카드 */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="divide-y divide-slate-100">
-                    {/* 예약건수 */}
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                            <div className="bg-blue-50 p-2 rounded-lg">
-                                <ClipboardList className="w-4 h-4 text-blue-500" />
-                            </div>
-                            <span className="text-sm font-medium text-slate-600">예약건수</span>
+                {/* 헤더 - 활동 포인트 + 토글 */}
+                <button 
+                    onClick={() => setShowInfoCard(!showInfoCard)}
+                    className="w-full flex items-center justify-between px-4 py-3.5"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <div className="bg-amber-50 p-2 rounded-lg">
+                            <Star className="w-4 h-4 text-amber-500" />
                         </div>
-                        <p className="text-xl font-extrabold text-slate-800">
-                            {isLoggedIn ? bookingCount : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">건</span>
-                        </p>
+                        <span className="text-sm font-medium text-slate-600">활동 포인트</span>
                     </div>
-
-                    {/* 예약할인 포인트 */}
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                            <div className="bg-emerald-50 p-2 rounded-lg">
-                                <Coins className="w-4 h-4 text-emerald-500" />
-                            </div>
-                            <span className="text-sm font-medium text-slate-600">예약할인 포인트</span>
-                        </div>
-                        <p className="text-xl font-extrabold text-slate-800">
-                            {isLoggedIn ? bookingPoints.toLocaleString() : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">P</span>
-                        </p>
-                    </div>
-
-                    {/* 활동 포인트 */}
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                            <div className="bg-amber-50 p-2 rounded-lg">
-                                <Star className="w-4 h-4 text-amber-500" />
-                            </div>
-                            <span className="text-sm font-medium text-slate-600">활동 포인트</span>
-                        </div>
+                    <div className="flex items-center gap-2">
                         <p className="text-xl font-extrabold text-slate-800">
                             {isLoggedIn ? activityPoints.toLocaleString() : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">P</span>
                         </p>
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showInfoCard ? 'rotate-180' : ''}`} />
                     </div>
-                </div>
+                </button>
+
+                {/* 접기/펴기 영역 */}
+                {showInfoCard && (
+                    <div className="divide-y divide-slate-100 border-t border-slate-100">
+                        {/* 예약건수 */}
+                        <div className="flex items-center justify-between px-4 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                                <div className="bg-blue-50 p-2 rounded-lg">
+                                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">예약건수</span>
+                            </div>
+                            <p className="text-xl font-extrabold text-slate-800">
+                                {isLoggedIn ? bookingCount : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">건</span>
+                            </p>
+                        </div>
+
+                        {/* 예약할인 포인트 */}
+                        <div className="flex items-center justify-between px-4 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                                <div className="bg-emerald-50 p-2 rounded-lg">
+                                    <Coins className="w-4 h-4 text-emerald-500" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">예약할인 포인트</span>
+                            </div>
+                            <p className="text-xl font-extrabold text-slate-800">
+                                {isLoggedIn ? bookingPoints.toLocaleString() : '-'}<span className="text-xs font-medium text-slate-400 ml-0.5">P</span>
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* 2. Big Action Button (Booking) */}
