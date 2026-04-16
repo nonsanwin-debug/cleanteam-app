@@ -101,7 +101,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                     after_photos: sitePhotos.after,
                 }
             })
-            .filter(site => site.before_photos.length >= 3 && site.after_photos.length >= 3)
+            .filter(site => site.before_photos.length >= 1 && site.after_photos.length >= 1)
     } catch (err) {
         console.error('getPartnerFeedSites unexpected error:', err)
         return []
