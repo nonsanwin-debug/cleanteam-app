@@ -1,12 +1,19 @@
 {
-  "name": "NEXUS",
+  "name": "NEXUS 파트너",
   "short_name": "NEXUS",
-  "description": "청소 현장 관리 시스템",
-  "start_url": "/",
+  "description": "NEXUS 파트너센터 - 청소 예약 및 현장 관리",
+  "id": "/field/home",
+  "start_url": "/field/home",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#0d9488",
   "orientation": "portrait",
+  "prefer_related_applications": false,
+  "categories": ["business", "productivity"],
+  "lang": "ko",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -31,6 +38,15 @@
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "신규 예약",
+      "short_name": "예약",
+      "url": "/field/book",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
