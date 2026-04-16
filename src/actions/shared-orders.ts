@@ -432,6 +432,33 @@ export async function getMySharedOrders() {
     }))
 }
 
+/** 배정 요청이 있는 오더 건수 (파트너 내 오더 배지용) */
+export async function getPendingApplicantCount() {
+    const { companyId } = await getAuthCompany()
+    if (!companyId) return 0
+
+    const adminSupabase = createAdminClient()
+
+    // 내가 등록한 open 상태 오더 중 지원자가 있는 건수
+    const { data: openOrders } = await adminSupabase
+        .from('shared_orders')
+        .select('id')
+        .eq('company_id', companyId)
+        .eq('status', 'open')
+
+    if (!openOrders || openOrders.length === 0) return 0
+
+    const orderIds = openOrders.map(o => o.id)
+
+    const { count } = await adminSupabase
+        .from('shared_order_applicants')
+        .select('*', { count: 'exact', head: true })
+        .in('order_id', orderIds)
+        .eq('status', 'pending')
+
+    return count || 0
+}
+
 const REGION_SHORT_NAMES: Record<string, string[]> = {
     "서울특별시": ["서울", "서울특별시"],
     "부산광역시": ["부산", "부산광역시"],

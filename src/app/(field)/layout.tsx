@@ -1,11 +1,13 @@
 import { FieldBottomNav } from '@/components/field/field-nav'
 import { InstallButton } from '@/components/field/install-button'
+import { getPendingApplicantCount } from '@/actions/shared-orders'
 
-export default function FieldLayout({
+export default async function FieldLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const pendingCount = await getPendingApplicantCount()
     return (
         <div className="min-h-[100dvh] bg-slate-50 flex justify-center">
             {/* Mobile App Container Constraint */}
@@ -53,7 +55,7 @@ export default function FieldLayout({
                     </div>
                 </main>
                 
-                <FieldBottomNav />
+                <FieldBottomNav pendingOrderCount={pendingCount} />
             </div>
         </div>
     )
