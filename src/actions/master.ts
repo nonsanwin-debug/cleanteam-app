@@ -800,3 +800,70 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
         return { success: false, error: '서버 오류' }
     }
 }
+
+// 삭제된 오더/현장 조회 (마스터용)
+export async function getDeletedSites() {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
+
+    const { data, error } = await adminClient
+        .from('sites')
+        .select(`
+            *,
+            company:companies!company_id (name)
+        `)
+        .eq('is_deleted', true)
+        .order('deleted_at', { ascending: false })
+
+    if (error) {
+        console.error('getDeletedSites error:', error)
+        return []
+    }
+
+    return data || []
+}
+
+// 삭제된 현장 복원 (마스터용)
+export async function restoreDeletedSite(siteId: string) {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    const adminClient = createAdminClient()
+
+    const { error } = await adminClient
+        .from('sites')
+        .update({
+            is_deleted: false,
+            deleted_at: null,
+            deleted_by_name: null,
+            deleted_by_role: null,
+        })
+        .eq('id', siteId)
+
+    if (error) {
+        console.error('restoreDeletedSite error:', error)
+        return { success: false, error: '복원 실패' }
+    }
+
+    // 연결된 shared_order도 복원
+    const { data: linkedOrders } = await adminClient
+        .from('shared_orders')
+        .select('id')
+        .eq('transferred_site_id', siteId)
+        .eq('status', 'deleted')
+
+    if (linkedOrders && linkedOrders.length > 0) {
+        for (const order of linkedOrders) {
+            await adminClient
+                .from('shared_orders')
+                .update({ status: 'transferred' })
+                .eq('id', order.id)
+        }
+    }
+
+    revalidatePath('/master/deleted-orders')
+    revalidatePath('/admin/sites')
+    return { success: true }
+}

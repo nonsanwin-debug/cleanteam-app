@@ -74,6 +74,7 @@ export async function getSites() {
     `)
         .eq('company_id', companyId)
         .neq('status', 'cancelled')
+        .or('is_deleted.is.null,is_deleted.eq.false')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -230,10 +231,10 @@ export async function deleteSite(id: string) {
     const supabase = await createClient()
 
     try {
-        // 현장 상태 확인 — 완료된 현장은 삭제 불가
+        // 현장 상태 확인
         const { data: siteData } = await supabase
             .from('sites')
-            .select('status')
+            .select('status, company_id')
             .eq('id', id)
             .single()
 
@@ -241,53 +242,83 @@ export async function deleteSite(id: string) {
             return { success: false, error: '작업이 완료된 현장은 삭제할 수 없습니다.' }
         }
 
-        // shared_orders에서 이 현장을 참조하는지 확인 (상태 변경용)
+        // 삭제자 정보 조회
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자' }
+
+        const { data: userProfile } = await supabase
+            .from('users')
+            .select('name, role, company_id')
+            .eq('id', user.id)
+            .single()
+
+        const deleterName = userProfile?.name || '알 수 없음'
+        const deleterRole = userProfile?.role || 'admin'
+
+        // 업체명 조회
         const { createAdminClient } = await import('@/lib/supabase/admin')
         const adminSupabase = createAdminClient()
 
+        let companyName = ''
+        if (userProfile?.company_id) {
+            const { data: company } = await adminSupabase
+                .from('companies')
+                .select('name')
+                .eq('id', userProfile.company_id)
+                .single()
+            companyName = company?.name || ''
+        }
+
+        const deletedByLabel = companyName
+            ? `${companyName} - ${deleterName} (${deleterRole === 'partner' ? '파트너' : '업체'})`
+            : `${deleterName} (${deleterRole === 'partner' ? '파트너' : '업체'})`
+
+        // shared_orders에서 이 현장을 참조하는지 확인
         const { data: linkedOrders } = await adminSupabase
             .from('shared_orders')
             .select('id, company_id, region')
             .eq('transferred_site_id', id)
 
+        // soft delete 처리
+        const { error: softDelError } = await adminSupabase
+            .from('sites')
+            .update({
+                is_deleted: true,
+                deleted_at: new Date().toISOString(),
+                deleted_by_name: deletedByLabel,
+                deleted_by_role: deleterRole,
+            })
+            .eq('id', id)
+
+        if (softDelError) {
+            console.error('Soft delete error:', softDelError)
+            return { success: false, error: softDelError.message }
+        }
+
+        // linked orders의 상태 업데이트 + 알림
         if (linkedOrders && linkedOrders.length > 0) {
-            // 이관받은 오더를 삭제한 경우, 발신자에게 알림을 보내고 상태를 변경
-            const { data: { user } } = await supabase.auth.getUser()
-            const { data: userProfile } = await supabase.from('users').select('company_id').eq('id', user?.id).single()
             const myCompanyId = userProfile?.company_id
 
-            const { data: myCompany } = await adminSupabase
-                .from('companies')
-                .select('name')
-                .eq('id', myCompanyId)
-                .single()
-
             for (const order of linkedOrders) {
-                // 발신 업체의 오더 상태를 다시 'open'으로 변경하여 재배정 가능하게 만듦
+                // 오더 상태를 deleted로 표시
                 await adminSupabase
                     .from('shared_orders')
                     .update({
-                        status: 'open',
-                        accepted_by: null,
-                        transferred_site_id: null
+                        status: 'deleted',
+                        parsed_details: {
+                            ...(await adminSupabase.from('shared_orders').select('parsed_details').eq('id', order.id).single()).data?.parsed_details,
+                            deleted_by: deletedByLabel,
+                            deleted_at: new Date().toISOString(),
+                        }
                     })
                     .eq('id', order.id)
-
-                // 지원자(수신 업체)의 상태를 '반려됨'으로 변경
-                if (myCompanyId) {
-                    await adminSupabase
-                        .from('shared_order_applicants')
-                        .update({ status: 'rejected_by_receiver', updated_at: new Date().toISOString() })
-                        .eq('order_id', order.id)
-                        .eq('company_id', myCompanyId)
-                }
 
                 // 발신 업체에게 푸시 알림
                 try {
                     const { sendPushToAdmins } = await import('@/actions/push')
                     await sendPushToAdmins(order.company_id, {
-                        title: '이관된 현장 삭제 알림',
-                        body: `[${order.region}] 현장이 배정받은 업체(${myCompany?.name || '타업체'})에 의해 삭제되었습니다.`,
+                        title: '현장 삭제 알림',
+                        body: `[${order.region}] 현장이 ${deletedByLabel}에 의해 삭제되었습니다.`,
                         url: '/admin/shared-orders',
                         tag: `site-deleted-${order.id}`
                     })
@@ -295,20 +326,6 @@ export async function deleteSite(id: string) {
                     console.error('Failed to notify original sender:', pushErr)
                 }
             }
-        }
-
-        const { error, count } = await supabase
-            .from('sites')
-            .delete({ count: 'exact' })
-            .eq('id', id)
-
-        if (error) {
-            console.error('Error deleting site:', error)
-            return { success: false, error: error.message }
-        }
-
-        if (count === 0) {
-            return { success: false, error: '삭제할 현장을 찾을 수 없거나 삭제 권한이 없습니다.' }
         }
 
         revalidatePath('/admin/sites')

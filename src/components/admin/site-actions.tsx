@@ -123,10 +123,20 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
             <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            &quot;{site.name}&quot; 현장이 영구적으로 삭제됩니다.<br />
-                            관련된 사진이나 체크리스트 기록도 함께 삭제될 수 있습니다.
+                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                            <Trash2 className="w-5 h-5" />
+                            정말 삭제하시겠습니까?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-3">
+                                <p>&quot;{site.name}&quot; 현장이 삭제됩니다.</p>
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-800 text-sm space-y-1">
+                                    <p className="font-bold">⚠️ 주의사항</p>
+                                    <p>• 삭제 시 <span className="font-bold">수수료(캐쉬)를 돌려받을 수 없습니다.</span></p>
+                                    <p>• 삭제된 현장은 마스터 관리자에게 보고됩니다.</p>
+                                    <p>• 환불이 필요한 경우 마스터에게 문의하세요.</p>
+                                </div>
+                            </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
