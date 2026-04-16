@@ -25,7 +25,18 @@ export function InstallButton() {
 
     if (isAppInstalled) return null
 
+    const isInAppBrowser = () => {
+        const ua = navigator.userAgent || ''
+        return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|SamsungBrowser.*CrossApp/i.test(ua)
+    }
+
+    const isChrome = () => {
+        const ua = navigator.userAgent || ''
+        return /Chrome/i.test(ua) && !/Edge|OPR|Samsung/i.test(ua)
+    }
+
     const handleInstall = async () => {
+        // 1. PWA 프롬프트가 있으면 바로 설치
         if (deferredPrompt) {
             deferredPrompt.prompt()
             const { outcome } = await deferredPrompt.userChoice
@@ -33,9 +44,20 @@ export function InstallButton() {
                 setIsAppInstalled(true)
             }
             setDeferredPrompt(null)
-        } else {
-            setShowGuide(true)
+            return
         }
+
+        // 2. 인앱브라우저 or 비Chrome → Chrome으로 열기
+        if (isInAppBrowser() || !isChrome()) {
+            const url = window.location.href
+            // Android intent scheme으로 Chrome 강제 실행
+            const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+            window.location.href = intentUrl
+            return
+        }
+
+        // 3. Chrome인데 프롬프트 없음 → 가이드 표시
+        setShowGuide(true)
     }
 
     return (
