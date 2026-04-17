@@ -3,6 +3,7 @@ import { FieldHomeClient } from './home-client'
 import { getPartnerFeedSites } from '@/actions/partner-feed'
 import { getActiveNotices } from '@/actions/partner-notices'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getMySharedOrders } from '@/actions/shared-orders'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,10 +52,18 @@ export default async function FieldHomePage() {
         }
     }
 
-    const [feedSites, notices] = await Promise.all([
+    const [feedSites, notices, myOrders] = await Promise.all([
         getPartnerFeedSites(),
         getActiveNotices(),
+        getMySharedOrders(),
     ])
+
+    // 내 오더 진행 중 건수 (완료되지 않은 것)
+    const ongoingOrderCount = myOrders.filter((order: any) => {
+        if (order.status === 'deleted') return false
+        const isDone = order.status === 'transferred' && order.transferred_site?.status === 'completed'
+        return !isDone
+    }).length
 
     return <FieldHomeClient 
         partnerName={partnerName}
@@ -65,5 +74,6 @@ export default async function FieldHomePage() {
         bookingCount={bookingCount}
         bookingPoints={bookingPoints}
         activityPoints={activityPoints}
+        ongoingOrderCount={ongoingOrderCount}
     />
 }

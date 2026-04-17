@@ -24,7 +24,8 @@ export function FieldHomeClient({
     isLoggedIn,
     bookingCount,
     bookingPoints,
-    activityPoints
+    activityPoints,
+    ongoingOrderCount = 0
 }: { 
     partnerName: string
     partnerId: string
@@ -34,6 +35,7 @@ export function FieldHomeClient({
     bookingCount: number
     bookingPoints: number
     activityPoints: number
+    ongoingOrderCount: number
 }) {
     const router = useRouter()
     const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
@@ -71,7 +73,7 @@ export function FieldHomeClient({
         setImageErrors(prev => new Set(prev).add(url))
     }
 
-    const ongoingCount = feedSites.filter(s => s.status !== 'completed').length
+    const ongoingCount = ongoingOrderCount
 
     return (
         <div className="p-4 space-y-6">
