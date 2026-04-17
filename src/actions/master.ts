@@ -804,11 +804,12 @@ export async function revokeCustomerOrder(orderId: string): Promise<ActionRespon
 // 삭제된 오더/현장 조회 (마스터용)
 export async function getDeletedSites() {
     const isMaster = await verifyMasterAccess()
-    if (!isMaster) return []
+    if (!isMaster) return { deletedSites: [], deletedOrders: [] }
 
     const adminClient = createAdminClient()
 
-    const { data, error } = await adminClient
+    // 1. soft-deleted sites
+    const { data: sites } = await adminClient
         .from('sites')
         .select(`
             *,
@@ -817,12 +818,21 @@ export async function getDeletedSites() {
         .eq('is_deleted', true)
         .order('deleted_at', { ascending: false })
 
-    if (error) {
-        console.error('getDeletedSites error:', error)
-        return []
-    }
+    // 2. deleted shared_orders (사이트 없는 오더 포함)
+    const { data: orders } = await adminClient
+        .from('shared_orders')
+        .select(`
+            *,
+            sender_company:company_id (name),
+            accepted_company:accepted_by (name)
+        `)
+        .eq('status', 'deleted')
+        .order('created_at', { ascending: false })
 
-    return data || []
+    return {
+        deletedSites: sites || [],
+        deletedOrders: orders || []
+    }
 }
 
 // 삭제된 현장 복원 (마스터용)

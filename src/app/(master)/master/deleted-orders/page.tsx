@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 export default async function DeletedOrdersPage() {
-    const deletedSites = await getDeletedSites()
+    const { deletedSites, deletedOrders } = await getDeletedSites()
 
-    return <DeletedOrdersClient initialSites={deletedSites} />
+    return <DeletedOrdersClient initialSites={deletedSites} initialOrders={deletedOrders} />
 }

@@ -393,6 +393,7 @@ export async function getMySharedOrders() {
         .from('shared_orders')
         .select('*, accepted_company:accepted_by(name, code), transferred_site:transferred_site_id(id, status, payment_status, cleaning_date, worker:worker_id(name)), applicants:shared_order_applicants(company:company_id(id, name, code))')
         .eq('company_id', companyId)
+        .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -1024,22 +1025,46 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     }
 
     if (isSender) {
-        // 발신자는 완전 삭제 (먼저 지워야 FK 참조 에러 방지)
+        // 삭제자 정보 조회
+        const { supabase } = await getAuthCompany()
+        const { data: { user } } = await supabase.auth.getUser()
+        const { data: userProfile } = await supabase.from('users').select('name, role').eq('id', user?.id).single()
+        const { data: myCompany } = await adminSupabase.from('companies').select('name').eq('id', companyId).single()
+
+        const deletedByLabel = myCompany?.name
+            ? `${myCompany.name} - ${userProfile?.name || '알 수 없음'} (파트너)`
+            : `${userProfile?.name || '알 수 없음'} (파트너)`
+
+        // 발신자: soft delete — status를 'deleted'로 변경
         const { error } = await adminSupabase
             .from('shared_orders')
-            .delete()
+            .update({
+                status: 'deleted',
+                parsed_details: {
+                    ...order.parsed_details,
+                    deleted_by: deletedByLabel,
+                    deleted_at: new Date().toISOString(),
+                }
+            })
             .eq('id', orderId)
 
         if (error) {
             return { success: false, error: error.message }
         }
 
-        // 이미 매칭되어 이관된 현장이 존재한다면, 파트너가 취소(삭제)할 시 해당 현장도 일괄 삭제
+        // 이관된 현장이 있으면 soft delete
         if (order.transferred_site_id) {
-            const { error: siteDeleteError } = await adminSupabase.from('sites').delete().eq('id', order.transferred_site_id)
-            if (siteDeleteError) console.error("siteDeleteError:", siteDeleteError)
+            await adminSupabase
+                .from('sites')
+                .update({
+                    is_deleted: true,
+                    deleted_at: new Date().toISOString(),
+                    deleted_by_name: deletedByLabel,
+                    deleted_by_role: 'partner',
+                })
+                .eq('id', order.transferred_site_id)
             
-            // 수지가 배정된 업체에게 오더 취소 알림 통보
+            // 배정된 업체에게 오더 취소 알림
             if (order.accepted_by) {
                 try {
                     const { sendPushToAdmins } = await import('@/actions/push')
