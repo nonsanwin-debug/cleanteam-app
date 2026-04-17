@@ -924,3 +924,63 @@ export async function restoreDeletedSite(siteId: string) {
     revalidatePath('/admin/sites')
     return { success: true }
 }
+
+// 수수료 환불 (마스터용)
+export async function refundCommission(orderId: string, companyId: string, amount: number, rateLabel: string) {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    if (amount <= 0) return { success: false, error: '환불 금액이 없습니다.' }
+
+    const adminClient = createAdminClient()
+
+    // 업체 현재 캐쉬 조회
+    const { data: company } = await adminClient
+        .from('companies')
+        .select('cash, name')
+        .eq('id', companyId)
+        .single()
+
+    if (!company) return { success: false, error: '업체를 찾을 수 없습니다.' }
+
+    const newCash = (company.cash || 0) + amount
+
+    // 캐쉬 지급
+    await adminClient.from('companies')
+        .update({ cash: newCash })
+        .eq('id', companyId)
+
+    // 로그 기록
+    await adminClient.from('wallet_logs').insert({
+        company_id: companyId,
+        type: 'system_add',
+        amount: amount,
+        balance_after: newCash,
+        description: `[수수료환불 ${rateLabel}] 삭제 오더 수수료 환불 (마스터 승인)`
+    })
+
+    // 오더에 환불 기록
+    const { data: order } = await adminClient
+        .from('shared_orders')
+        .select('parsed_details')
+        .eq('id', orderId)
+        .single()
+
+    if (order) {
+        await adminClient
+            .from('shared_orders')
+            .update({
+                parsed_details: {
+                    ...(order.parsed_details || {}),
+                    refunded: true,
+                    refunded_amount: amount,
+                    refunded_rate: rateLabel,
+                    refunded_at: new Date().toISOString(),
+                }
+            })
+            .eq('id', orderId)
+    }
+
+    revalidatePath('/master/deleted-orders')
+    return { success: true }
+}
