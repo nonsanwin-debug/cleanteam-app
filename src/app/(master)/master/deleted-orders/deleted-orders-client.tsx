@@ -28,7 +28,7 @@ function calcCommission(order: any) {
 
     const isDiscount = pd.reward_type === 'discount'
     const rate20 = Math.floor(price * 0.2)
-    const rate10 = Math.round(price / 9)
+    const rate10 = Math.floor(price * 0.1)
     const actualDeducted = isDiscount ? rate10 : rate20
 
     return { price, rate10, rate20, actualDeducted, isDiscount }
