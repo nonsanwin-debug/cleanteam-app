@@ -462,6 +462,7 @@ export async function getAllSharedOrders() {
     const { data, error } = await adminSupabase
         .from('shared_orders')
         .select('*, company:company_id(name, code)')
+        .neq('status', 'deleted')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -498,35 +499,39 @@ export async function deleteSharedOrderForce(orderId: string) {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const adminSupabase = createAdminClient()
 
-    // 0. 이관된 현장(site)이 있으면 함께 삭제
+    // 오더 정보 조회
     const { data: order } = await adminSupabase
         .from('shared_orders')
-        .select('transferred_site_id')
+        .select('transferred_site_id, parsed_details')
         .eq('id', orderId)
         .single()
 
+    const deletedByLabel = '마스터 관리자 (마스터)'
+
+    // 이관된 현장이 있으면 soft delete
     if (order?.transferred_site_id) {
-        const siteId = order.transferred_site_id
-        // FK 참조 해제
-        await adminSupabase.from('shared_orders').update({ transferred_site_id: null }).eq('id', orderId)
-        // 연관 레코드 삭제
-        await adminSupabase.from('photos').delete().eq('site_id', siteId)
-        await adminSupabase.from('checklist_submissions').delete().eq('site_id', siteId)
-        await adminSupabase.from('site_members').delete().eq('site_id', siteId)
-        await adminSupabase.from('sites').delete().eq('id', siteId)
+        await adminSupabase
+            .from('sites')
+            .update({
+                is_deleted: true,
+                deleted_at: new Date().toISOString(),
+                deleted_by_name: deletedByLabel,
+                deleted_by_role: 'master',
+            })
+            .eq('id', order.transferred_site_id)
     }
 
-    // 1. Delete associated applicants
-    await adminSupabase.from('shared_order_applicants').delete().eq('order_id', orderId)
-    // 2. Delete notifications
-    await adminSupabase.from('shared_order_notifications').delete().eq('order_id', orderId)
-    // 3. Delete from hidden tables
-    await adminSupabase.from('hidden_shared_orders').delete().eq('order_id', orderId)
-    
-    // 4. Finally delete the order
+    // 오더 soft delete
     const { error } = await adminSupabase
         .from('shared_orders')
-        .delete()
+        .update({
+            status: 'deleted',
+            parsed_details: {
+                ...(order?.parsed_details || {}),
+                deleted_by: deletedByLabel,
+                deleted_at: new Date().toISOString(),
+            }
+        })
         .eq('id', orderId)
 
     if (error) {
@@ -536,6 +541,7 @@ export async function deleteSharedOrderForce(orderId: string) {
 
     const { revalidatePath } = await import('next/cache')
     revalidatePath('/master/orders')
+    revalidatePath('/master/deleted-orders')
     revalidatePath('/admin/shared-orders')
     revalidatePath('/admin/sites')
 
@@ -678,8 +684,49 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
             await adminClient.from('sites').delete().eq('id', oldSiteId)
         }
 
-        // 6. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
+        // 6. 캐쉬 차감 (스마트 배정과 동일 로직)
         const parsedDetails = order.parsed_details || {}
+        const orderPrice = parsedDetails.estimated_price || (() => {
+            // region에서 가격 추출 (extractOrderPrice 로직)
+            if (order.region) {
+                const manwonMatch = order.region.match(/([\d.]+)만원/)
+                if (manwonMatch?.[1]) return Math.floor(parseFloat(manwonMatch[1]) * 10000)
+                const wonMatch = order.region.match(/([\d,]+)원/)
+                if (wonMatch?.[1]) return parseInt(wonMatch[1].replace(/,/g, ''), 10)
+            }
+            return order.total_price || 0
+        })()
+
+        const isDiscount = parsedDetails.reward_type === 'discount'
+        const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
+
+        if (requiredCash > 0) {
+            const { data: targetCompany } = await adminClient
+                .from('companies')
+                .select('cash')
+                .eq('id', companyId)
+                .single()
+
+            const currentCash = targetCompany?.cash || 0
+
+            if (currentCash < requiredCash) {
+                return { success: false, error: `배정 업체의 캐쉬 잔액이 부족합니다.\n필요: ${requiredCash.toLocaleString()} C\n잔액: ${currentCash.toLocaleString()} C` }
+            }
+
+            await adminClient.from('companies')
+                .update({ cash: currentCash - requiredCash })
+                .eq('id', companyId)
+
+            await adminClient.from('wallet_logs').insert({
+                company_id: companyId,
+                type: 'system_deduct',
+                amount: requiredCash,
+                balance_after: currentCash - requiredCash,
+                description: `[마스터배정수수료 ${isDiscount ? '10%' : '20%'}] 고객링크 오더 배정 캐쉬 차감`
+            })
+        }
+
+        // 7. 현장(site) 생성 — worker 없이, status: scheduled (대기중)
         const detailAddr = parsedDetails.detail_address || ''
         const baseAddress = order.address || ''
         const estimatedPrice = parsedDetails.estimated_price || 0
@@ -705,7 +752,7 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
             .select('id')
             .single()
 
-        // 6. shared_orders에 이관된 site_id 기록
+        // 8. shared_orders에 이관된 site_id 기록
         if (site) {
             await adminClient
                 .from('shared_orders')
