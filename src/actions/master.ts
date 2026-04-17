@@ -698,7 +698,7 @@ export async function assignCustomerOrder(orderId: string, companyId: string): P
         })()
 
         const isDiscount = parsedDetails.reward_type === 'discount'
-        const requiredCash = isDiscount ? Math.round(orderPrice / 9) : Math.floor(orderPrice * 0.2)
+        const requiredCash = isDiscount ? Math.floor(orderPrice * 0.1) : Math.floor(orderPrice * 0.2)
 
         if (requiredCash > 0) {
             const { data: targetCompany } = await adminClient
