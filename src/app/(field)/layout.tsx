@@ -1,6 +1,24 @@
+import type { Metadata } from 'next'
 import { FieldBottomNav } from '@/components/field/field-nav'
 import { InstallButton } from '@/components/field/install-button'
 import { getPendingApplicantCount } from '@/actions/shared-orders'
+
+export const metadata: Metadata = {
+    title: 'NEXUS 파트너스',
+    description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+    openGraph: {
+        title: 'NEXUS 파트너스',
+        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+        images: [{ url: '/logos/Real-NEXUS-Logo.png', width: 1024, height: 1024, alt: 'NEXUS Logo' }],
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary',
+        title: 'NEXUS 파트너스',
+        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+        images: ['/logos/Real-NEXUS-Logo.png'],
+    },
+}
 
 export default async function FieldLayout({
     children,
