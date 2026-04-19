@@ -984,3 +984,91 @@ export async function refundCommission(orderId: string, companyId: string, amoun
     revalidatePath('/master/deleted-orders')
     return { success: true }
 }
+
+// 업체 피드 별명 사용 토글
+export async function toggleCompanyAlias(companyId: string, useAlias: boolean): Promise<ActionResponse> {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    const adminClient = createAdminClient()
+    const { error } = await adminClient
+        .from('companies')
+        .update({ use_alias_name: useAlias })
+        .eq('id', companyId)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/master/companies')
+    return { success: true }
+}
+
+// 피드 별명 목록 조회
+export async function getFeedAliasNames(): Promise<string[]> {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const adminClient = createAdminClient()
+    const { data } = await adminClient
+        .from('platform_settings')
+        .select('feed_alias_names')
+        .limit(1)
+        .single()
+
+    return data?.feed_alias_names || []
+}
+
+// 피드 별명 추가
+export async function addFeedAliasName(name: string): Promise<ActionResponse> {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    if (!name.trim()) return { success: false, error: '업체명을 입력하세요.' }
+
+    const adminClient = createAdminClient()
+
+    const { data } = await adminClient
+        .from('platform_settings')
+        .select('feed_alias_names')
+        .limit(1)
+        .single()
+
+    const current = data?.feed_alias_names || []
+    if (current.includes(name.trim())) return { success: false, error: '이미 등록된 업체명입니다.' }
+
+    const { error } = await adminClient
+        .from('platform_settings')
+        .update({ feed_alias_names: [...current, name.trim()] })
+        .not('id', 'is', null)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/master/settings')
+    return { success: true }
+}
+
+// 피드 별명 삭제
+export async function removeFeedAliasName(name: string): Promise<ActionResponse> {
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return { success: false, error: '권한이 없습니다.' }
+
+    const adminClient = createAdminClient()
+
+    const { data } = await adminClient
+        .from('platform_settings')
+        .select('feed_alias_names')
+        .limit(1)
+        .single()
+
+    const current = data?.feed_alias_names || []
+    const updated = current.filter((n: string) => n !== name)
+
+    const { error } = await adminClient
+        .from('platform_settings')
+        .update({ feed_alias_names: updated })
+        .not('id', 'is', null)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/master/settings')
+    return { success: true }
+}

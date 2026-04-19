@@ -11,6 +11,8 @@ import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { getFeedSitesList, toggleFeedVisibility, updateFeedDisplayName } from "@/actions/master-feed"
 import { getAllNotices, createNotice, toggleNotice, deleteNotice, type PartnerNotice } from "@/actions/partner-notices"
+import { getFeedAliasNames, addFeedAliasName, removeFeedAliasName } from "@/actions/master"
+import { Input } from "@/components/ui/input"
 
 type FeedSiteItem = {
     id: string
@@ -45,6 +47,12 @@ export default function MasterSettingsPage() {
     const [newTitle, setNewTitle] = useState('')
     const [newContent, setNewContent] = useState('')
     const [creating, setCreating] = useState(false)
+
+    // 별명 관리 상태
+    const [aliasNames, setAliasNames] = useState<string[]>([])
+    const [aliasLoading, setAliasLoading] = useState(true)
+    const [newAliasName, setNewAliasName] = useState('')
+    const [aliasAdding, setAliasAdding] = useState(false)
 
     const supabase = createClient()
 
@@ -89,6 +97,17 @@ export default function MasterSettingsPage() {
             setNoticeLoading(false)
         }
         loadNotices()
+    }, [])
+
+    // 별명 로드
+    useEffect(() => {
+        const loadAliasNames = async () => {
+            setAliasLoading(true)
+            const data = await getFeedAliasNames()
+            setAliasNames(data)
+            setAliasLoading(false)
+        }
+        loadAliasNames()
     }, [])
 
     // 설정 저장
@@ -502,6 +521,93 @@ export default function MasterSettingsPage() {
                                         </Button>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            {/* 피드 별명 관리 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Building2 className="w-5 h-5 text-violet-500" />
+                        피드 별명 관리
+                    </CardTitle>
+                    <CardDescription>
+                        업체 관리에서 &apos;별명&apos; 체크된 업체의 작업물이 피드에 올라갈 때 아래 목록에서 랜덤으로 업체명이 변경됩니다.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex gap-2">
+                        <Input
+                            placeholder="별명 업체명 입력..."
+                            value={newAliasName}
+                            onChange={e => setNewAliasName(e.target.value)}
+                            onKeyDown={async e => {
+                                if (e.key === 'Enter' && newAliasName.trim()) {
+                                    setAliasAdding(true)
+                                    const result = await addFeedAliasName(newAliasName.trim())
+                                    setAliasAdding(false)
+                                    if (result.success) {
+                                        setAliasNames(prev => [...prev, newAliasName.trim()])
+                                        setNewAliasName('')
+                                        toast.success('별명이 추가되었습니다.')
+                                    } else {
+                                        toast.error(result.error || '추가 실패')
+                                    }
+                                }
+                            }}
+                        />
+                        <Button
+                            size="sm"
+                            className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                            disabled={aliasAdding || !newAliasName.trim()}
+                            onClick={async () => {
+                                setAliasAdding(true)
+                                const result = await addFeedAliasName(newAliasName.trim())
+                                setAliasAdding(false)
+                                if (result.success) {
+                                    setAliasNames(prev => [...prev, newAliasName.trim()])
+                                    setNewAliasName('')
+                                    toast.success('별명이 추가되었습니다.')
+                                } else {
+                                    toast.error(result.error || '추가 실패')
+                                }
+                            }}
+                        >
+                            <Plus className="w-4 h-4 mr-1" />
+                            추가
+                        </Button>
+                    </div>
+
+                    {aliasLoading ? (
+                        <div className="text-center text-sm text-slate-400 py-4">
+                            <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1" />
+                            로딩 중...
+                        </div>
+                    ) : aliasNames.length === 0 ? (
+                        <p className="text-center text-sm text-slate-400 py-6">등록된 별명이 없습니다. 위에서 추가해주세요.</p>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {aliasNames.map(name => (
+                                <Badge key={name} variant="outline" className="py-1.5 px-3 text-sm flex items-center gap-1.5 bg-violet-50 border-violet-200 text-violet-700">
+                                    {name}
+                                    <button
+                                        className="text-violet-400 hover:text-red-500 transition-colors"
+                                        onClick={async () => {
+                                            if (!confirm(`"${name}" 별명을 삭제하시겠습니까?`)) return
+                                            const result = await removeFeedAliasName(name)
+                                            if (result.success) {
+                                                setAliasNames(prev => prev.filter(n => n !== name))
+                                                toast.success('별명이 삭제되었습니다.')
+                                            } else {
+                                                toast.error(result.error || '삭제 실패')
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </Badge>
                             ))}
                         </div>
                     )}

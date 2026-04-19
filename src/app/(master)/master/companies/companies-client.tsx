@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { format } from 'date-fns'
-import { updateCompanyStatus, manageCompanyPoints, updateCompanyRegionAndBadges } from '@/actions/master'
+import { updateCompanyStatus, manageCompanyPoints, updateCompanyRegionAndBadges, toggleCompanyAlias } from '@/actions/master'
 import { createMasterNotice } from '@/actions/inquiries'
 import { RefreshCw, CheckCircle, XCircle, Plus, Minus, Building2, MessageSquarePlus, Send, Settings, MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -153,6 +153,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                         <table className="w-full text-sm text-left align-middle border-collapse">
                             <thead>
                                 <tr className="border-b bg-slate-50/50">
+                                    <th className="p-4 font-medium text-slate-500 w-[50px] text-center">별명</th>
                                     <th className="p-4 font-medium text-slate-500 w-[120px]">코드</th>
                                     <th className="p-4 font-medium text-slate-500 w-[200px]">업체명</th>
                                     <th className="p-4 font-medium text-slate-500 w-[100px]">상태</th>
@@ -165,6 +166,16 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                             <tbody className="divide-y divide-slate-100">
                                 {initialCompanies.map((company) => (
                                     <tr key={company.id} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="p-4 text-center">
+                                            <Checkbox
+                                                checked={company.use_alias_name || false}
+                                                onCheckedChange={async (checked) => {
+                                                    const result = await toggleCompanyAlias(company.id, !!checked)
+                                                    if (result.success) router.refresh()
+                                                    else alert(result.error)
+                                                }}
+                                            />
+                                        </td>
                                         <td className="p-4 font-mono text-slate-600">{company.code || '-'}</td>
                                         <td className="p-4 font-medium text-slate-900">{company.name}</td>
                                         <td className="p-4">
@@ -237,7 +248,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                 ))}
                                 {initialCompanies.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className="p-8 text-center text-slate-500">
+                                        <td colSpan={8} className="p-8 text-center text-slate-500">
                                             등록된 업체가 없습니다.
                                         </td>
                                     </tr>

@@ -41,7 +41,8 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                 area_size,
                 start_time,
                 worker_name,
-                companies:company_id (name),
+                company_id,
+                companies:company_id (name, use_alias_name),
                 feed_display_name
             `)
             .eq('status', 'completed')
@@ -52,6 +53,33 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
         if (error || !sites) {
             console.error('getPartnerFeedSites error:', error)
             return []
+        }
+
+        // 1-1. 별명 목록 조회 (use_alias_name 적용용)
+        let aliasNames: string[] = []
+        const hasAliasCompanies = sites.some(s => {
+            const co = Array.isArray(s.companies) ? s.companies[0] : s.companies
+            return (co as any)?.use_alias_name
+        })
+        
+        if (hasAliasCompanies) {
+            const { data: settingsData } = await adminClient
+                .from('platform_settings')
+                .select('feed_alias_names')
+                .limit(1)
+                .single()
+            aliasNames = settingsData?.feed_alias_names || []
+        }
+
+        // site.id 기반으로 일관된 별명 배정 (같은 현장은 항상 같은 별명)
+        function getAliasForSite(siteId: string): string | null {
+            if (aliasNames.length === 0) return null
+            let hash = 0
+            for (let i = 0; i < siteId.length; i++) {
+                hash = ((hash << 5) - hash) + siteId.charCodeAt(i)
+                hash |= 0
+            }
+            return aliasNames[Math.abs(hash) % aliasNames.length]
         }
 
         // 2. 모든 현장 ID 추출하여 사진 조회
@@ -90,6 +118,16 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
             .map(site => {
                 const companyObj = Array.isArray(site.companies) ? site.companies[0] : site.companies
                 const sitePhotos = photosMap.get(site.id) || { before: [], after: [] }
+                const useAlias = (companyObj as any)?.use_alias_name
+
+                // 업체명 결정: feed_display_name > alias > 실제 업체명
+                let displayName = (site as any).feed_display_name || null
+                if (!displayName && useAlias) {
+                    displayName = getAliasForSite(site.id)
+                }
+                if (!displayName) {
+                    displayName = (companyObj as any)?.name || null
+                }
 
                 return {
                     id: site.id,
@@ -100,7 +138,7 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
                     area_size: site.area_size,
                     start_time: site.start_time,
                     worker_name: site.worker_name,
-                    company_name: (site as any).feed_display_name || (companyObj as any)?.name || null,
+                    company_name: displayName,
                     before_photos: sitePhotos.before,
                     after_photos: sitePhotos.after,
                 }
@@ -117,3 +155,4 @@ export async function getPartnerFeedSites(): Promise<FeedSite[]> {
         return []
     }
 }
+
