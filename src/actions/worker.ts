@@ -190,13 +190,48 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
 
 
 
-        // 2. Mark as completed
+        // 2. 별명 처리 — 업체에 use_alias_name 설정 시 랜덤 별명을 feed_display_name에 영구 저장
+        let feedDisplayName: string | null = null
+        if (site?.company_id) {
+            try {
+                const { createAdminClient } = await import('@/lib/supabase/admin')
+                const adminClient = createAdminClient()
+                
+                const { data: company } = await adminClient
+                    .from('companies')
+                    .select('use_alias_name')
+                    .eq('id', site.company_id)
+                    .single()
+
+                if (company?.use_alias_name) {
+                    const { data: settings } = await adminClient
+                        .from('platform_settings')
+                        .select('feed_alias_names')
+                        .limit(1)
+                        .single()
+
+                    const aliasNames = settings?.feed_alias_names || []
+                    if (aliasNames.length > 0) {
+                        feedDisplayName = aliasNames[Math.floor(Math.random() * aliasNames.length)]
+                    }
+                }
+            } catch (e) {
+                console.error('Alias name assignment error (non-fatal):', e)
+            }
+        }
+
+        // 3. Mark as completed
+        const updateData: any = {
+            status: 'completed',
+            completed_at: new Date().toISOString()
+        }
+        if (feedDisplayName) {
+            updateData.feed_display_name = feedDisplayName
+        }
+
         const { error } = await supabase
             .from('sites')
-            .update({
-                status: 'completed',
-                completed_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', siteId)
 
         if (error) {
