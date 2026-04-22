@@ -60,7 +60,7 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Calendar View */}
-            <Card className="lg:col-span-2 shadow-sm order-2 lg:order-1 border-slate-200">
+            <Card className="lg:col-span-2 shadow-sm border-slate-200">
                 <CardHeader className="flex flex-row items-center justify-between pb-4 bg-slate-50/50 border-b border-slate-100 rounded-t-xl">
                     <CardTitle className="text-xl flex items-center gap-2 font-extrabold text-slate-800">
                         <CalendarDays className="h-6 w-6 text-indigo-600" />
@@ -82,7 +82,7 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
                     </div>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <div className="grid grid-cols-7 gap-2 text-center font-bold text-slate-500 mb-3">
+                    <div className="grid grid-cols-7 gap-1 md:gap-2 text-center font-bold text-slate-500 mb-2 md:mb-3">
                         <div className="py-2 text-xs text-rose-500">일</div>
                         <div className="py-2 text-xs">월</div>
                         <div className="py-2 text-xs">화</div>
@@ -91,7 +91,7 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
                         <div className="py-2 text-xs">금</div>
                         <div className="py-2 text-xs text-blue-500">토</div>
                     </div>
-                    <div className="grid grid-cols-7 gap-2">
+                    <div className="grid grid-cols-7 gap-1 md:gap-2">
                         {dateRange.map((day) => {
                             const dateStr = format(day, 'yyyy-MM-dd')
                             const isCurrentMonth = isSameMonth(day, currentDate)
@@ -104,14 +104,14 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
                                     key={day.toString()}
                                     onClick={() => setSelectedDate(day)}
                                     className={`
-                                        min-h-[90px] p-2 flex flex-col items-center justify-start border rounded-xl transition-all
+                                        min-h-[44px] md:min-h-[90px] p-1 md:p-2 flex flex-col items-center justify-start border rounded-lg md:rounded-xl transition-all
                                         ${!isCurrentMonth ? 'bg-slate-50/50 text-slate-400 opacity-60' : 'bg-white hover:bg-slate-50 hover:border-slate-300'}
                                         ${isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/10' : 'border-slate-200 shadow-sm'}
                                     `}
                                 >
-                                    <div className="w-full flex justify-center items-center mb-2 mt-1">
+                                    <div className="w-full flex justify-center items-center mb-1 md:mb-2 mt-0.5 md:mt-1">
                                         <span className={`
-                                            inline-flex items-center justify-center w-7 h-7 text-[13px] rounded-full
+                                            inline-flex items-center justify-center w-6 h-6 md:w-7 md:h-7 text-[12px] md:text-[13px] rounded-full
                                             ${isToday ? 'bg-indigo-600 text-white font-extrabold shadow-md' : 'font-semibold'}
                                             ${!isToday && day.getDay() === 0 ? 'text-rose-500' : ''}
                                             ${!isToday && day.getDay() === 6 ? 'text-blue-500' : ''}
@@ -123,9 +123,9 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
                                     </div>
                                     
                                     {count > 0 && (
-                                        <div className="mt-auto w-full px-1">
-                                            <div className="bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-bold py-1 px-1.5 rounded-lg w-full flex items-center justify-center">
-                                                총 {count}건
+                                        <div className="mt-auto w-full">
+                                            <div className="bg-blue-50 border border-blue-100 text-blue-700 text-[10px] md:text-[11px] font-bold py-0.5 md:py-1 px-0.5 md:px-1.5 rounded md:rounded-lg w-full flex items-center justify-center">
+                                                {count}건
                                             </div>
                                         </div>
                                     )}
@@ -137,7 +137,7 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
             </Card>
 
             {/* Daily Schedule Panel */}
-            <Card className="shadow-sm order-1 lg:order-2 self-start sticky top-6 border-slate-200 flex flex-col h-[calc(100vh-2rem)] max-h-[850px]">
+            <Card className="shadow-sm self-start lg:sticky lg:top-6 border-slate-200 flex flex-col max-h-[400px] lg:max-h-[850px] lg:h-[calc(100vh-2rem)]">
                 <CardHeader className="pb-4 border-b bg-indigo-600 text-white rounded-t-xl shrink-0">
                     <CardTitle className="text-xl flex items-center justify-between">
                         <span>{format(selectedDate, 'M월 d일', { locale: ko })} 스케줄</span>

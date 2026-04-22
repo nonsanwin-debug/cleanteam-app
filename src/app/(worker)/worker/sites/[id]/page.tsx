@@ -62,11 +62,15 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             (payload) => {
                                 console.log('Realtime update:', payload)
 
-                                // Check if site was completed (customer submitted)
+                                // Check if site was completed (customer submitted or by another user)
                                 if (payload.eventType === 'UPDATE' && payload.new && payload.new.status === 'completed') {
-                                    console.log('Site completed, redirecting to home...')
-                                    // Redirect worker to home page
-                                    window.location.href = 'https://cleanteam-app.vercel.app/worker/home'
+                                    // 현재 사용자(팀장)가 직접 완료 처리한 경우, router.push가 이미 동작 중이므로 무시
+                                    // 다른 사람(고객 등)이 완료한 경우에만 리다이렉트
+                                    const isCurrentUserLeader = currentUserId && site?.worker_id === currentUserId
+                                    if (!isCurrentUserLeader) {
+                                        console.log('Site completed by another user, redirecting to home...')
+                                        router.push('/worker/home')
+                                    }
                                     return
                                 }
 

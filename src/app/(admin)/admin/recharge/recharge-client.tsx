@@ -203,7 +203,7 @@ export function RechargeClient({ currentCash, currentPoints, requests }: Props) 
                                                 </div>
                                             )}
                                             <span className="text-lg font-bold tracking-tight">{amt.label}</span>
-                                            <span className="text-xs opacity-70 font-medium">{amt.value.toLocaleString()} C</span>
+                                            <span className="text-xs opacity-70 font-medium">{(amt.value + amt.value * amt.bonus / 100).toLocaleString()} C</span>
                                         </button>
                                     )
                                 })}
