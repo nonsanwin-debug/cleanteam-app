@@ -34,3 +34,27 @@ CREATE POLICY "Anyone can insert chat messages" ON site_chat_messages
 
 -- Realtime 활성화
 ALTER PUBLICATION supabase_realtime ADD TABLE site_chat_messages;
+
+-- ============================================
+-- Phase 3: photos 테이블의 type 제약조건 제거 (동적 공간명 매칭 허용)
+-- ============================================
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    -- photos 테이블의 'type' 컬럼과 관련된 모든 체크 제약 조건(CHECK constraint) 찾기 및 제거
+    FOR r IN
+        SELECT con.conname
+        FROM pg_catalog.pg_constraint con
+        INNER JOIN pg_catalog.pg_class rel ON rel.oid = con.conrelid
+        INNER JOIN pg_catalog.pg_namespace nsp ON nsp.oid = connamespace
+        WHERE nsp.nspname = 'public'
+          AND rel.relname = 'photos'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) LIKE '%type%'
+    LOOP
+        EXECUTE 'ALTER TABLE photos DROP CONSTRAINT IF EXISTS ' || quote_ident(r.conname);
+        RAISE NOTICE 'Dropped constraint: %', r.conname;
+    END LOOP;
+END $$;
+
