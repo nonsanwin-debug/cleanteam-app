@@ -142,7 +142,15 @@ class UploadManager {
                     item.status = 'uploading'
                     this.notify()
 
-                    const fileName = `${batch.siteId}/${batch.type}/${uuidv4()}-${compressed.name}`
+                    // Supabase Storage 경로에서 한글 및 특수문자 에러(Invalid Key) 예방을 위해 flat 경로 사용 및 파일명 아스키 정제
+                    let safeName = compressed.name
+                        .replace(/[^\x00-\x7F]/g, '') // 비아스키(한글 등) 제거
+                        .replace(/[^a-zA-Z0-9._-]/g, '_') // 안전한 문자 외 언더스코어 대체
+                    if (!safeName || safeName.startsWith('.') || safeName.trim() === '') {
+                        safeName = `photo_${Date.now()}.jpg`
+                    }
+
+                    const fileName = `${batch.siteId}/photos/${uuidv4()}-${safeName}`
 
                     // 재시도 포함 업로드
                     let lastError: any = null
