@@ -48,6 +48,7 @@ function formatDate(dateStr: string) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
 
+
 export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId }: SiteChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
@@ -63,11 +64,72 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     const inputRef = useRef<HTMLInputElement>(null)
     
     const [unreadCount, setUnreadCount] = useState(0)
+    const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; role: string; online_at: string }>>([])
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
+
+    // 외부에서 전달된 사용자 이름 비동기 연동
+    useEffect(() => {
+        if (currentUserName) {
+            setNickname(currentUserName)
+            setHasSetNickname(true)
+        }
+    }, [currentUserName])
+
+    // Presence: 실시간 접속자 추적
+    useEffect(() => {
+        if (!isOpen || !hasSetNickname || !nickname.trim()) {
+            setOnlineUsers([])
+            return
+        }
+
+        const channel = supabase.channel(`presence_${siteId}`, {
+            config: {
+                presence: {
+                    key: `${nickname.trim()}_${currentUserRole}_${currentUserId || 'anon'}_${Math.random().toString(36).substring(2, 6)}`,
+                },
+            },
+        })
+
+        channel
+            .on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState()
+                const users: any[] = []
+                Object.keys(state).forEach((key) => {
+                    const presences = state[key] as any[]
+                    presences.forEach((p) => {
+                        if (p.name) {
+                            users.push({
+                                name: p.name,
+                                role: p.role || 'guest',
+                                online_at: p.online_at,
+                            })
+                        }
+                    })
+                })
+                // 이름과 역할 기준으로 중복 제거
+                const uniqueUsers = users.filter((u, index, self) => 
+                    index === self.findIndex((t) => t.name === u.name && t.role === u.role)
+                )
+                setOnlineUsers(uniqueUsers)
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.track({
+                        name: nickname.trim(),
+                        role: currentUserRole,
+                        online_at: new Date().toISOString(),
+                    })
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [siteId, isOpen, hasSetNickname, nickname, currentUserRole, currentUserId])
 
     // 메시지 로드
     useEffect(() => {
@@ -319,6 +381,27 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                         </div>
                     ) : (
                         <>
+                            {/* 온라인 참여자 목록 */}
+                            {onlineUsers.length > 0 && (
+                                <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                                    <span className="relative flex h-2 w-2 shrink-0">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    <span className="text-[11px] font-bold text-slate-500 shrink-0">참여 중 ({onlineUsers.length}):</span>
+                                    <div className="flex gap-1.5 text-[11px] text-slate-600">
+                                        {onlineUsers.map((user, idx) => (
+                                            <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                                                <span className="font-semibold">{user.name}</span>
+                                                <span className={`text-[9px] px-1 py-0.2 rounded font-bold scale-[0.9] ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
+                                                    {ROLE_LABELS[user.role] || '참여자'}
+                                                </span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* 메시지 목록 */}
                             <div className="h-[300px] overflow-y-auto px-4 py-3 space-y-1 bg-slate-50/50">
                                 {messages.length === 0 && (

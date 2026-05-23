@@ -283,6 +283,17 @@ export function ShareView({ siteId }: { siteId: string }) {
                         </div>
                     )}
 
+                    {/* Chat Section in scheduled view */}
+                    <div className="mt-8 border-t border-slate-200 pt-6">
+                        <h3 className="font-bold text-[15px] text-slate-800 mb-1">💬 실시간 현장 소통</h3>
+                        <p className="text-xs text-slate-500 mb-3">작업 시작 전에도 팀장님과 실시간으로 대화할 수 있습니다.</p>
+                        <SiteChat
+                            siteId={site.id}
+                            currentUserName={site.customer_name || ''}
+                            currentUserRole="customer"
+                        />
+                    </div>
+
                     <div className="mt-8">
                         <AdBanner placement="share_above_text" />
                     </div>
@@ -518,6 +529,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                 <section>
                     <SiteChat
                         siteId={site.id}
+                        currentUserName={site.customer_name || ''}
                         currentUserRole="customer"
                     />
                 </section>
