@@ -2,11 +2,10 @@
 'use client'
 
 import { useState, useRef, useEffect, TouchEvent } from 'react'
-import { deletePhoto } from '@/actions/worker'
+import { deletePhoto, updatePhotoZones } from '@/actions/worker'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { Camera, Upload, Loader2, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download, Star, Sparkles, ImagePlus } from 'lucide-react'
+import { Camera, X, ZoomIn, ChevronLeft, ChevronRight, Trash2, Download, Star, Sparkles, ImagePlus, Plus, Settings2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { togglePhotoFeatured } from '@/actions/admin'
@@ -28,14 +27,25 @@ interface PhotoUploaderProps {
     readOnly?: boolean
     canDelete?: boolean
     showFeatureToggle?: boolean
-    photoZones?: string[] // 공간별 구역 목록 (예: ["방1", "방2", "화1", "베1"])
+    photoZones?: string[]
 }
 
-export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false, showFeatureToggle = false, photoZones }: PhotoUploaderProps) {
+export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDelete = false, showFeatureToggle = false, photoZones: initialPhotoZones }: PhotoUploaderProps) {
     const router = useRouter()
     const [isDeleting, setIsDeleting] = useState(false)
     const [isDownloading, setIsDownloading] = useState(false)
     
+    // 공간별 구역 관리 (팀장이 편집 가능)
+    const [photoZones, setPhotoZones] = useState<string[]>(initialPhotoZones || [])
+    const [showZoneEditor, setShowZoneEditor] = useState(false)
+    const [zoneInput, setZoneInput] = useState('')
+    const [isSavingZones, setIsSavingZones] = useState(false)
+    
+    // props가 바뀌면 sync
+    useEffect(() => {
+        if (initialPhotoZones) setPhotoZones(initialPhotoZones)
+    }, [initialPhotoZones])
+
     // 공간별 모드 여부
     const isZoneMode = photoZones && photoZones.length > 0
 
@@ -87,6 +97,13 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         if (!open && selectedPhotoIndex !== null) window.history.back()
     }
 
+    // selectedZone이 없으면 첫번째로 설정
+    useEffect(() => {
+        if (isZoneMode && !selectedZone && photoZones.length > 0) {
+            setSelectedZone(photoZones[0])
+        }
+    }, [photoZones, isZoneMode, selectedZone])
+
     // 현재 표시할 사진 필터링
     const currentPhotos = (() => {
         if (isZoneMode) {
@@ -109,6 +126,65 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
     // 각 구역별 사진 수
     const getZonePhotoCount = (zone: string) => {
         return existingPhotos.filter(p => p.type.startsWith(`${zone}_`)).length
+    }
+
+    // ===== 구역 관리 함수들 =====
+    const handleAddZone = (zoneName: string) => {
+        if (!zoneName.trim()) return
+        if (photoZones.includes(zoneName.trim())) {
+            toast.error('이미 존재하는 구역입니다.')
+            return
+        }
+        setPhotoZones(prev => [...prev, zoneName.trim()])
+        setZoneInput('')
+    }
+
+    const handleRemoveZone = (idx: number) => {
+        setPhotoZones(prev => {
+            const newZones = [...prev]
+            newZones.splice(idx, 1)
+            return newZones
+        })
+    }
+
+    const handleAutoGenerateZones = (structureText: string) => {
+        if (!structureText.trim()) return
+        const zones: string[] = []
+        const parts = structureText.replace(/,/g, ' ').split(/\s+/)
+        for (const part of parts) {
+            const match = part.match(/^(.+?)(\d+)$/)
+            if (match) {
+                const [, prefix, countStr] = match
+                const count = parseInt(countStr, 10)
+                for (let i = 1; i <= count; i++) {
+                    zones.push(`${prefix}${i}`)
+                }
+            }
+        }
+        if (zones.length === 0) {
+            toast.error('형식을 확인해주세요. 예: 방3 화2 베1')
+            return
+        }
+        setPhotoZones(zones)
+        toast.success(`${zones.length}개 구역이 생성되었습니다.`)
+    }
+
+    const handleSaveZones = async () => {
+        setIsSavingZones(true)
+        try {
+            const result = await updatePhotoZones(siteId, photoZones)
+            if (!result.success) throw new Error(result.error)
+            toast.success('구역 설정이 저장되었습니다.')
+            setShowZoneEditor(false)
+            if (photoZones.length > 0 && !selectedZone) {
+                setSelectedZone(photoZones[0])
+            }
+            router.refresh()
+        } catch (err: any) {
+            toast.error('저장 실패', { description: err.message })
+        } finally {
+            setIsSavingZones(false)
+        }
     }
 
     function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -235,6 +311,167 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
 
     return (
         <div className="space-y-4">
+            {/* ===== 구역 설정 안내 + 편집 (팀장용) ===== */}
+            {!readOnly && (
+                <>
+                    {/* 구역 미설정 시 안내 카드 */}
+                    {!isZoneMode && !showZoneEditor && (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <div className="bg-blue-500 text-white p-2 rounded-lg shrink-0">
+                                    <Settings2 className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-slate-800 text-sm">📸 공간별 사진 구역을 설정하세요</h4>
+                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                        구역을 설정하면 <strong>방1, 화1, 베1</strong> 등 공간별로 작업 전/중/후 사진을 분류하여 촬영할 수 있습니다.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                                onClick={() => setShowZoneEditor(true)}
+                            >
+                                <Plus className="w-4 h-4 mr-1.5" />
+                                구역 설정하기
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* 구역 편집 패널 */}
+                    {showZoneEditor && (
+                        <div className="bg-white border-2 border-blue-300 rounded-xl p-4 space-y-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                    <Settings2 className="w-4 h-4 text-blue-600" />
+                                    사진 구역 설정
+                                </h4>
+                                <button onClick={() => setShowZoneEditor(false)} className="text-slate-400 hover:text-slate-600">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* 빠른 생성: 구조 입력 */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-600">빠른 생성</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="예: 방3 화2 베1 (방3개, 화장실2개, 베란다1개)"
+                                        className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleAutoGenerateZones((e.target as HTMLInputElement).value);
+                                                (e.target as HTMLInputElement).value = ''
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-10 text-xs shrink-0"
+                                        onClick={(e) => {
+                                            const input = (e.target as HTMLElement).parentElement?.querySelector('input') as HTMLInputElement
+                                            if (input?.value) {
+                                                handleAutoGenerateZones(input.value)
+                                                input.value = ''
+                                            }
+                                        }}
+                                    >
+                                        자동 생성
+                                    </Button>
+                                </div>
+                                <p className="text-[10px] text-slate-400">
+                                    &quot;방3 화2 베1&quot; 입력 시 → 방1, 방2, 방3, 화1, 화2, 베1 자동 생성
+                                </p>
+                            </div>
+
+                            {/* 현재 구역 태그 */}
+                            {photoZones.length > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-600">현재 구역 ({photoZones.length}개)</label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {photoZones.map((zone, idx) => (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1.5 rounded-lg"
+                                            >
+                                                {zone}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveZone(idx)}
+                                                    className="hover:text-red-600 ml-0.5"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 수동 추가 */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-600">수동 추가</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="구역명 입력 (예: 거실, 주방)"
+                                        value={zoneInput}
+                                        onChange={(e) => setZoneInput(e.target.value)}
+                                        className="flex-1 h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                handleAddZone(zoneInput)
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-9 text-xs"
+                                        onClick={() => handleAddZone(zoneInput)}
+                                    >
+                                        <Plus className="w-3 h-3 mr-1" /> 추가
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* 저장 버튼 */}
+                            <Button
+                                onClick={handleSaveZones}
+                                disabled={isSavingZones}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                            >
+                                {isSavingZones ? (
+                                    <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> 저장 중...</>
+                                ) : (
+                                    <>✅ 구역 설정 저장 ({photoZones.length}개)</>
+                                )}
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* 구역 편집 버튼 (이미 설정된 경우) */}
+                    {isZoneMode && !showZoneEditor && (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setShowZoneEditor(true)}
+                                className="text-xs text-slate-400 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                            >
+                                <Settings2 className="w-3.5 h-3.5" />
+                                구역 수정
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
+
             {/* ===== 공간별 모드 ===== */}
             {isZoneMode ? (
                 <div className="space-y-3">
@@ -437,7 +674,6 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                     <div id="photo-description" className="sr-only">선택된 사진의 상세 보기 화면입니다.</div>
                     {selectedPhotoIndex !== null && currentPhotos[selectedPhotoIndex] && (
                         <div className="relative w-full h-full flex flex-col items-center justify-center">
-                            {/* Navigation Buttons */}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -456,7 +692,6 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
                             </Button>
 
-                            {/* Close Button */}
                             <Button
                                 variant="secondary"
                                 className="absolute top-4 left-4 z-50 rounded-full shadow-lg bg-white/90 hover:bg-white text-slate-800 flex items-center gap-1.5 px-3"
@@ -466,7 +701,6 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 <span className="text-sm font-bold">닫기</span>
                             </Button>
 
-                            {/* Action Buttons */}
                             <div className="absolute top-4 right-4 z-50 flex gap-2">
                                 <Button
                                     variant="secondary"

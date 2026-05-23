@@ -920,3 +920,28 @@ export async function setEstimatedEndTime(siteId: string, estimatedEndAt: string
         return { success: false, error: '예상 종료 시간 변경 중 오류가 발생했습니다.' }
     }
 }
+
+// 팀장이 직접 사진 구역 설정
+export async function updatePhotoZones(siteId: string, zones: string[]): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({ photo_zones: zones.length > 0 ? zones : null })
+            .eq('id', siteId)
+
+        if (error) {
+            console.error('updatePhotoZones error:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath(`/worker/sites/${siteId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('updatePhotoZones error:', error)
+        return { success: false, error: '구역 설정 중 오류가 발생했습니다.' }
+    }
+}
