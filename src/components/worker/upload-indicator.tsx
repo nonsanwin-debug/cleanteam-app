@@ -76,17 +76,24 @@ export function UploadIndicator() {
             {/* 개별 파일 목록 */}
             <div className="max-h-40 overflow-y-auto px-3 py-2 space-y-1">
                 {batches.flatMap(b => b.items).map(item => (
-                    <div key={item.id} className="flex items-center gap-2 text-xs py-0.5">
-                        {item.status === 'queued' && <span className="text-slate-300 shrink-0">○</span>}
-                        {item.status === 'compressing' && <Loader2 className="h-3 w-3 animate-spin text-blue-500 shrink-0" />}
-                        {item.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin text-orange-500 shrink-0" />}
-                        {item.status === 'done' && <span className="text-green-500 shrink-0">✓</span>}
-                        {item.status === 'failed' && <span className="text-red-500 shrink-0">✗</span>}
-                        <span className={`truncate ${item.status === 'failed' ? 'text-red-600' :
-                            item.status === 'done' ? 'text-green-700' : 'text-slate-500'
-                            }`}>
-                            {item.fileName}
-                        </span>
+                    <div key={item.id} className="flex flex-col text-xs py-1 border-b border-slate-50 last:border-0">
+                        <div className="flex items-center gap-2">
+                            {item.status === 'queued' && <span className="text-slate-300 shrink-0">○</span>}
+                            {item.status === 'compressing' && <Loader2 className="h-3 w-3 animate-spin text-blue-500 shrink-0" />}
+                            {item.status === 'uploading' && <Loader2 className="h-3 w-3 animate-spin text-orange-500 shrink-0" />}
+                            {item.status === 'done' && <span className="text-green-500 shrink-0">✓</span>}
+                            {item.status === 'failed' && <span className="text-red-500 shrink-0">✗</span>}
+                            <span className={`truncate flex-1 ${item.status === 'failed' ? 'text-red-600 font-medium' :
+                                item.status === 'done' ? 'text-green-700' : 'text-slate-500'
+                                }`}>
+                                {item.fileName}
+                            </span>
+                        </div>
+                        {item.status === 'failed' && item.error && (
+                            <span className="text-[10px] text-red-500 pl-5 break-words">
+                                에러: {item.error}
+                            </span>
+                        )}
                     </div>
                 ))}
             </div>
