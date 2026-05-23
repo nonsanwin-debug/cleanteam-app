@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { CalendarDays, MapPin, User, MessageSquare, Phone, Sparkles, Clock, ChevronLeft } from 'lucide-react'
 import { AdBanner } from '@/components/customer/ad-banner'
+import { SiteChat } from '@/components/chat/site-chat'
 
 export function ShareView({ siteId }: { siteId: string }) {
     const [site, setSite] = useState<any>(null)
@@ -509,6 +510,15 @@ export function ShareView({ siteId }: { siteId: string }) {
                         siteId={site.id}
                         existingPhotos={photos}
                         readOnly={true}
+                        photoZones={site.photo_zones}
+                    />
+                </section>
+
+                {/* Chat Section */}
+                <section>
+                    <SiteChat
+                        siteId={site.id}
+                        currentUserRole="customer"
                     />
                 </section>
 

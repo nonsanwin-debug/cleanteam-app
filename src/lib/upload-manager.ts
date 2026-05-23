@@ -174,7 +174,7 @@ class UploadManager {
                         .getPublicUrl(fileName)
 
                     // DB insert
-                    const result = await insertPhotoRecord(batch.siteId, publicUrl, batch.type as any)
+                    const result = await insertPhotoRecord(batch.siteId, publicUrl, batch.type)
                     if (!result.success) throw new Error(result.error || 'DB 저장 실패')
 
                     item.status = 'done'

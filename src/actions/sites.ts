@@ -59,6 +59,7 @@ export type CreateSiteDTO = {
     additional_amount?: number
     additional_description?: string
     collection_type?: 'site' | 'company'
+    photo_zones?: string[]
 }
 
 export async function getSites() {
@@ -195,7 +196,8 @@ export async function createSite(formData: CreateSiteDTO) {
                     balance_amount: formData.balance_amount || 0,
                     additional_amount: formData.additional_amount || 0,
                     additional_description: formData.additional_description || null,
-                    collection_type: formData.collection_type || 'company'
+                    collection_type: formData.collection_type || 'company',
+                    photo_zones: formData.photo_zones || null
                 }
             ])
 
@@ -467,7 +469,8 @@ export async function updateSite(id: string, formData: CreateSiteDTO) {
                 balance_amount: formData.balance_amount,
                 additional_amount: formData.additional_amount,
                 additional_description: formData.additional_description,
-                collection_type: formData.collection_type
+                collection_type: formData.collection_type,
+                photo_zones: formData.photo_zones || null
             })
             .eq('id', id)
 

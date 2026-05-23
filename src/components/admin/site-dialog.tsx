@@ -56,6 +56,7 @@ const formSchema = z.object({
     additional_amount: z.string().optional(),
     additional_description: z.string().optional(),
     collection_type: z.enum(['site', 'company']),
+    photo_zones: z.array(z.string()).optional(),
 })
 
 type Worker = {
@@ -109,6 +110,7 @@ export function SiteDialog({
     const [ampm, setAmpm] = useState<'AM' | 'PM'>('AM')
     const [hour, setHour] = useState<string>('')
     const [minute, setMinute] = useState<string>('00')
+    const [newZoneInput, setNewZoneInput] = useState('')
 
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const setOpen = controlledOnOpenChange || setInternalOpen
@@ -131,6 +133,7 @@ export function SiteDialog({
             additional_amount: initialData?.additional_amount?.toString() || '0',
             additional_description: initialData?.additional_description || '',
             collection_type: (initialData?.collection_type as "site" | "company") || 'company',
+            photo_zones: (initialData as any)?.photo_zones || [],
         },
     })
 
@@ -182,6 +185,7 @@ export function SiteDialog({
                 additional_amount: parseInt(values.additional_amount || '0'),
                 additional_description: values.additional_description,
                 collection_type: values.collection_type as 'site' | 'company',
+                photo_zones: values.photo_zones && values.photo_zones.length > 0 ? values.photo_zones : undefined,
             }
 
             let result;
@@ -510,6 +514,117 @@ export function SiteDialog({
                                         <FormControl>
                                             <Input placeholder="방3, 화장실2, 베란다 확장 등" {...field} />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* 사진 구역 설정 UI */}
+                            <FormField
+                                control={form.control}
+                                name="photo_zones"
+                                render={({ field }) => (
+                                    <FormItem className="col-span-2">
+                                        <FormLabel>📷 사진 구역 설정</FormLabel>
+                                        <div className="bg-slate-50 p-3 rounded-md border space-y-3">
+                                            {/* 자동 생성 버튼 */}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full text-xs"
+                                                onClick={() => {
+                                                    const structureType = form.getValues('structure_type') || ''
+                                                    if (!structureType.trim()) {
+                                                        toast.error('구조 필드를 먼저 입력해주세요.')
+                                                        return
+                                                    }
+                                                    // 파싱: "방3 화2 베1" → ["방1","방2","방3","화1","화2","베1"]
+                                                    const zones: string[] = []
+                                                    const parts = structureType.replace(/,/g, ' ').split(/\s+/)
+                                                    for (const part of parts) {
+                                                        const match = part.match(/^(.+?)(\d+)$/)
+                                                        if (match) {
+                                                            const [, prefix, countStr] = match
+                                                            const count = parseInt(countStr, 10)
+                                                            for (let i = 1; i <= count; i++) {
+                                                                zones.push(`${prefix}${i}`)
+                                                            }
+                                                        }
+                                                    }
+                                                    if (zones.length === 0) {
+                                                        toast.error('구조에서 구역을 파싱할 수 없습니다. 수동으로 추가해주세요.')
+                                                        return
+                                                    }
+                                                    field.onChange(zones)
+                                                    toast.success(`${zones.length}개 구역이 생성되었습니다.`)
+                                                }}
+                                            >
+                                                구조에서 자동 생성
+                                            </Button>
+
+                                            {/* 현재 구역 태그 */}
+                                            {field.value && field.value.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {field.value.map((zone: string, idx: number) => (
+                                                        <span
+                                                            key={idx}
+                                                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-md"
+                                                        >
+                                                            {zone}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newZones = [...field.value!]
+                                                                    newZones.splice(idx, 1)
+                                                                    field.onChange(newZones)
+                                                                }}
+                                                                className="hover:text-red-600"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* 수동 구역 추가 */}
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    placeholder="구역명 입력 (예: 거실)"
+                                                    value={newZoneInput}
+                                                    onChange={(e) => setNewZoneInput(e.target.value)}
+                                                    className="flex-1 h-8 text-sm"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault()
+                                                            if (newZoneInput.trim()) {
+                                                                field.onChange([...(field.value || []), newZoneInput.trim()])
+                                                                setNewZoneInput('')
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 text-xs"
+                                                    onClick={() => {
+                                                        if (newZoneInput.trim()) {
+                                                            field.onChange([...(field.value || []), newZoneInput.trim()])
+                                                            setNewZoneInput('')
+                                                        }
+                                                    }}
+                                                >
+                                                    <Plus className="w-3 h-3 mr-1" /> 추가
+                                                </Button>
+                                            </div>
+
+                                            <p className="text-[10px] text-slate-400">
+                                                설정하면 팀장이 각 구역별로 작업 전/중/후 사진을 촬영할 수 있습니다.
+                                            </p>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}

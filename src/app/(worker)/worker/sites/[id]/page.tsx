@@ -17,6 +17,7 @@ import { ChecklistForm, ChecklistFormHandle } from '@/components/worker/checklis
 import { AssignedSite, SitePhoto } from '@/types'
 import { toast } from 'sonner'
 import { useRef } from 'react'
+import { SiteChat } from '@/components/chat/site-chat'
 
 export default function WorkerSitePage({ params }: { params: Promise<{ id: string }> }) {
     const [site, setSite] = useState<AssignedSite | null>(null)
@@ -30,6 +31,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [savingAdditional, setSavingAdditional] = useState(false)
     const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string } | null>(null)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+    const [currentUserName, setCurrentUserName] = useState<string>('')
     const [isSettingTime, setIsSettingTime] = useState(false)
 
     const router = useRouter()
@@ -45,7 +47,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
                 // 현재 사용자 ID 가져오기
                 const { data: { user } } = await supabase.auth.getUser()
-                if (user) setCurrentUserId(user.id)
+                if (user) {
+                    setCurrentUserId(user.id)
+                    // 유저 이름 가져오기
+                    const { data: userData } = await supabase.from('users').select('name').eq('id', user.id).single()
+                    if (userData?.name) setCurrentUserName(userData.name)
+                }
 
                 // Setup Realtime if not already set
                 if (!channel) {
@@ -650,7 +657,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 1</span>
                     사진 기록
                 </h3>
-                <PhotoUploader siteId={site.id} existingPhotos={photos} canDelete={isLeader} />
+                <PhotoUploader siteId={site.id} existingPhotos={photos} canDelete={isLeader} photoZones={site.photo_zones} />
             </section>
 
             {/* Checklist Section */}
@@ -665,6 +672,20 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     isPhotosUploaded={photos.length > 0}
                     isLeader={isLeader}
                     ref={checklistRef}
+                />
+            </section>
+
+            {/* Chat Section */}
+            <section>
+                <h3 className="font-bold mb-2 flex items-center">
+                    <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 3</span>
+                    현장 채팅
+                </h3>
+                <SiteChat
+                    siteId={site.id}
+                    currentUserName={currentUserName}
+                    currentUserRole="leader"
+                    currentUserId={currentUserId || undefined}
                 />
             </section>
         </div>

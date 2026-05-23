@@ -20,12 +20,40 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
 
     const { site, photos, checklist } = data
 
-    // Group photos by type
-    const photosByType = {
+    // Group photos by type (legacy + zone-based)
+    const photosByType: Record<string, any[]> = {
         before: photos.filter(p => p.type === 'before'),
         during: photos.filter(p => p.type === 'during'),
         after: photos.filter(p => p.type === 'after'),
-        special: photos.filter(p => p.type === 'special')
+        special: photos.filter(p => p.type === 'special'),
+    }
+
+    // 공간별 사진 그룹 추가 (방1_before 등)
+    const zonePhotos = photos.filter(p => p.type && p.type.includes('_'))
+    const zoneGroups = new Map<string, any[]>()
+    for (const photo of zonePhotos) {
+        const zone = photo.type.split('_')[0]
+        if (!zoneGroups.has(zone)) zoneGroups.set(zone, [])
+        zoneGroups.get(zone)!.push(photo)
+    }
+
+    // 동적 탭 목록
+    const staticTabs = [
+        { value: 'all', label: `전체 (${photos.length})` },
+        { value: 'before', label: `작업 전 (${photosByType.before.length})` },
+        { value: 'during', label: `작업 중 (${photosByType.during.length})` },
+        { value: 'after', label: `작업 후 (${photosByType.after.length})` },
+        { value: 'special', label: `특이사항 (${photosByType.special.length})` },
+    ]
+    const zoneTabs = Array.from(zoneGroups.entries()).map(([zone, zPhotos]) => ({
+        value: `zone_${zone}`,
+        label: `${zone} (${zPhotos.length})`,
+    }))
+    const allTabs = [...staticTabs, ...zoneTabs]
+
+    // zone groups를 photosByType에 추가
+    for (const [zone, zPhotos] of zoneGroups) {
+        photosByType[`zone_${zone}`] = zPhotos
     }
 
     return (
@@ -277,19 +305,19 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                         <CardContent className="pt-6">
                             <Tabs defaultValue="all" className="w-full">
                                 <TabsList className="mb-4 flex w-full overflow-x-auto justify-start touch-pan-x [&::-webkit-scrollbar]:hidden">
-                                    <TabsTrigger value="all" className="shrink-0">전체 ({photos.length})</TabsTrigger>
-                                    <TabsTrigger value="before" className="shrink-0">작업 전 ({photosByType.before.length})</TabsTrigger>
-                                    <TabsTrigger value="during" className="shrink-0">작업 중 ({photosByType.during.length})</TabsTrigger>
-                                    <TabsTrigger value="after" className="shrink-0">작업 후 ({photosByType.after.length})</TabsTrigger>
-                                    <TabsTrigger value="special" className="shrink-0">특이사항 ({photosByType.special.length})</TabsTrigger>
+                                    {allTabs.map(tab => (
+                                        <TabsTrigger key={tab.value} value={tab.value} className="shrink-0">
+                                            {tab.label}
+                                        </TabsTrigger>
+                                    ))}
                                 </TabsList>
 
-                                {['all', 'before', 'during', 'after', 'special'].map((tab) => {
-                                    const currentTabPhotos = tab === 'all' ? photos : photosByType[tab as keyof typeof photosByType]
+                                {allTabs.map((tab) => {
+                                    const currentTabPhotos = tab.value === 'all' ? photos : (photosByType[tab.value] || [])
                                     const currentFeaturedCount = currentTabPhotos.filter((p: any) => p.is_featured).length
 
                                     return (
-                                        <TabsContent key={tab} value={tab}>
+                                        <TabsContent key={tab.value} value={tab.value}>
                                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                                 {currentTabPhotos
                                                     .map((photo: any) => (

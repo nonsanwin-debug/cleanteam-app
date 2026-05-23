@@ -34,6 +34,8 @@ export type AssignedSite = {
     // Payment Claim Fields
     payment_status?: 'requested' | 'paid'
     claimed_amount?: number
+    // 사진 구역 (공간별 분류)
+    photo_zones?: string[]
 }
 
 
@@ -41,7 +43,7 @@ export type SitePhoto = {
     id: string
     site_id: string
     url: string
-    type: 'before' | 'during' | 'after' | 'special'
+    type: string // 기존: 'before'|'during'|'after'|'special', 확장: '방1_before', '화1_after' 등
     created_at: string
     description?: string
 }
