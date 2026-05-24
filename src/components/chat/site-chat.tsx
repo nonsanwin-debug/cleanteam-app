@@ -360,17 +360,17 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                 <>
                     {/* 온라인 참여자 목록 */}
                     {onlineUsers.length > 0 && (
-                        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                        <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden shrink-0 w-full whitespace-nowrap">
                             <span className="relative flex h-2 w-2 shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            <span className="text-[11px] font-bold text-slate-500 shrink-0">참여 중 ({onlineUsers.length}):</span>
-                            <div className="flex gap-1.5 text-[11px] text-slate-600">
+                            <span className="text-[10px] font-bold text-slate-500 shrink-0 whitespace-nowrap">참여 중 ({onlineUsers.length}):</span>
+                            <div className="flex gap-1 text-[10px] text-slate-600 shrink-0 whitespace-nowrap items-center">
                                 {onlineUsers.map((user, idx) => (
-                                    <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
-                                        <span className="font-semibold">{user.name}</span>
-                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold scale-[0.9] ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
+                                    <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1 shrink-0 whitespace-nowrap">
+                                        <span className="font-bold text-[10px] whitespace-nowrap shrink-0">{user.name}</span>
+                                        <span className={`text-[8px] px-1 py-0.5 rounded font-bold shrink-0 whitespace-nowrap ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
                                             {ROLE_LABELS[user.role] || '참여자'}
                                         </span>
                                     </span>
