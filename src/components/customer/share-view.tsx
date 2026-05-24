@@ -445,7 +445,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                     />
                 </section>
 
-                {/* Chat Section */}
+                {/* Chat Section (Enlarged to 500px after removing bubble comments) */}
                 <section>
                     <SiteChat
                         siteId={site.id}
