@@ -277,12 +277,53 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         setZoneInput('')
     }
 
-    const handleRemoveZone = (idx: number) => {
-        setPhotoZones(prev => {
-            const newZones = [...prev]
-            newZones.splice(idx, 1)
-            return newZones
-        })
+    const handleRemoveZone = async (idx: number) => {
+        const zoneName = photoZones[idx]
+        const zonePhotos = existingPhotos.filter(p => p.type.startsWith(`${zoneName}_`))
+
+        if (zonePhotos.length > 0) {
+            const confirmed = window.confirm(
+                "사진이 들어있는 구역을 삭제 하게 되는경우 서버에서 사진이 삭제 되어 복구 할 수 없습니다"
+            )
+            if (!confirmed) return
+
+            const loadingToast = toast.loading('서버에서 사진을 삭제하는 중입니다...')
+            try {
+                // Delete all photos in the zone from Supabase storage and DB
+                const deletePromises = zonePhotos.map(photo => 
+                    deletePhoto(photo.id, photo.url, siteId)
+                )
+                const results = await Promise.all(deletePromises)
+                
+                const failed = results.filter(r => !r.success)
+                if (failed.length > 0) {
+                    const errorMsg = failed.map(f => f.error).filter(Boolean).join(', ')
+                    throw new Error(errorMsg || '일부 사진 삭제에 실패했습니다.')
+                }
+
+                // Update photo zones list in database immediately since photos are permanently deleted
+                const updatedZones = photoZones.filter((_, i) => i !== idx)
+                const result = await updatePhotoZones(siteId, updatedZones)
+                if (!result.success) throw new Error(result.error)
+
+                setPhotoZones(updatedZones)
+                if (selectedZone === zoneName) {
+                    setSelectedZone(updatedZones[0] || '')
+                }
+                toast.success('구역과 해당 구역의 모든 사진이 삭제되었습니다.', { id: loadingToast })
+                router.refresh()
+            } catch (err: any) {
+                console.error('Failed to remove zone and its photos:', err)
+                toast.error(`삭제 실패: ${err.message || '오류가 발생했습니다.'}`, { id: loadingToast })
+            }
+        } else {
+            // No photos, just remove locally. The user will save by clicking the save button.
+            setPhotoZones(prev => {
+                const newZones = [...prev]
+                newZones.splice(idx, 1)
+                return newZones
+            })
+        }
     }
 
     const handleAutoGenerateZones = (structureText: string) => {
