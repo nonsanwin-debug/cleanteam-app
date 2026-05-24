@@ -206,8 +206,11 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
 
     // 스크롤 맨 아래로
     useEffect(() => {
-        if (isOpen) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (isOpen && messagesEndRef.current) {
+            const container = messagesEndRef.current.parentElement
+            if (container) {
+                container.scrollTop = container.scrollHeight
+            }
         }
     }, [messages, isOpen])
 
