@@ -218,16 +218,14 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                     </div>
 
                     {/* 3. Live Chat Panel (Image 1 bottom part) */}
-                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[540px]">
-                        <div className="flex-1 overflow-hidden flex flex-col bg-slate-50">
-                            <SiteChat
-                                key={`chat-${currentSiteId}`}
-                                siteId={currentSiteId}
-                                currentUserName={adminName}
-                                currentUserRole="admin"
-                                currentUserId={adminId}
-                            />
-                        </div>
+                    <div className="w-full">
+                        <SiteChat
+                            key={`chat-${currentSiteId}`}
+                            siteId={currentSiteId}
+                            currentUserName={adminName}
+                            currentUserRole="admin"
+                            currentUserId={adminId}
+                        />
                     </div>
                 </div>
             ) : (
