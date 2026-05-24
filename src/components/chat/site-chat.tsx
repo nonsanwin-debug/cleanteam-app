@@ -54,7 +54,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(true)
     const [copied, setCopied] = useState(false)
     
     // 닉네임 입력 (고객/게스트용)
@@ -290,211 +290,176 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     }
 
     return (
-        <div className="mt-6">
-            {/* 채팅 열기/닫기 버튼 */}
-            <button
-                onClick={() => { setIsOpen(!isOpen); if (!isOpen) setUnreadCount(0) }}
-                className={`
-                    w-full flex items-center justify-between p-4 rounded-xl border transition-all
-                    ${isOpen
-                        ? 'bg-blue-50 border-blue-200 shadow-sm'
-                        : 'bg-white border-slate-200 hover:border-blue-200 hover:bg-blue-50/50 shadow-sm'
-                    }
-                `}
-            >
-                <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${isOpen ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                        <MessageCircle className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                        <span className="font-bold text-slate-800 text-sm">💬 현장 채팅</span>
-                        <p className="text-xs text-slate-500">팀장 · 고객 · 관계자 실시간 소통</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    {unreadCount > 0 && !isOpen && (
-                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center animate-pulse">
-                            {unreadCount}
-                        </span>
+        <div className="mt-6 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+            {/* 상단 바 */}
+            <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
+                <div className="flex gap-2 items-center w-full justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                    {currentUserRole === 'leader' && customerPhone && (
+                        <a
+                            href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
+                            className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all shrink-0 whitespace-nowrap gap-1.5"
+                        >
+                            <Phone className="w-3.5 h-3.5 shrink-0" />
+                            전화 걸기
+                        </a>
                     )}
-                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
+                        onClick={handleCopyInviteLink}
+                    >
+                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        링크 복사
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
+                        onClick={handleSmsInvite}
+                    >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        SMS 초대
+                    </Button>
                 </div>
-            </button>
+            </div>
 
-            {/* 채팅 영역 */}
-            {isOpen && (
-                <div className="mt-2 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                    {/* 상단 바 */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
-                        <div className="flex gap-2 items-center w-full justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                            {currentUserRole === 'leader' && customerPhone && (
-                                <a
-                                    href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
-                                    className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all shrink-0 whitespace-nowrap gap-1.5"
-                                >
-                                    <Phone className="w-3.5 h-3.5 shrink-0" />
-                                    전화 걸기
-                                </a>
-                            )}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
-                                onClick={handleCopyInviteLink}
-                            >
-                                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                링크 복사
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
-                                onClick={handleSmsInvite}
-                            >
-                                <UserPlus className="w-3.5 h-3.5" />
-                                SMS 초대
-                            </Button>
-                        </div>
+            {/* 닉네임 미설정 시 */}
+            {!hasSetNickname ? (
+                <div className="p-6 text-center space-y-4">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
+                        <MessageCircle className="w-6 h-6 text-blue-500" />
                     </div>
-
-                    {/* 닉네임 미설정 시 */}
-                    {!hasSetNickname ? (
-                        <div className="p-6 text-center space-y-4">
-                            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
-                                <MessageCircle className="w-6 h-6 text-blue-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-slate-800 text-sm">채팅 참여</h4>
-                                <p className="text-xs text-slate-500 mt-1">표시될 이름을 입력해주세요</p>
-                            </div>
-                            <div className="flex gap-2 max-w-[280px] mx-auto">
-                                <input
-                                    type="text"
-                                    value={nickname}
-                                    onChange={(e) => setNickname(e.target.value)}
-                                    placeholder="이름 입력"
-                                    className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSetNickname() }}
-                                    autoFocus
-                                />
-                                <Button
-                                    onClick={handleSetNickname}
-                                    disabled={!nickname.trim()}
-                                    className="h-10 px-4 bg-blue-600 hover:bg-blue-700"
-                                >
-                                    참여
-                                </Button>
+                    <div>
+                        <h4 className="font-bold text-slate-800 text-sm">채팅 참여</h4>
+                        <p className="text-xs text-slate-500 mt-1">표시될 이름을 입력해주세요</p>
+                    </div>
+                    <div className="flex gap-2 max-w-[280px] mx-auto">
+                        <input
+                            type="text"
+                            value={nickname}
+                            onChange={(e) => setNickname(e.target.value)}
+                            placeholder="이름 입력"
+                            className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSetNickname() }}
+                            autoFocus
+                        />
+                        <Button
+                            onClick={handleSetNickname}
+                            disabled={!nickname.trim()}
+                            className="h-10 px-4 bg-blue-600 hover:bg-blue-700"
+                        >
+                            참여
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    {/* 온라인 참여자 목록 */}
+                    {onlineUsers.length > 0 && (
+                        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                            <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-500 shrink-0">참여 중 ({onlineUsers.length}):</span>
+                            <div className="flex gap-1.5 text-[11px] text-slate-600">
+                                {onlineUsers.map((user, idx) => (
+                                    <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                                        <span className="font-semibold">{user.name}</span>
+                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold scale-[0.9] ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
+                                            {ROLE_LABELS[user.role] || '참여자'}
+                                        </span>
+                                    </span>
+                                ))}
                             </div>
                         </div>
-                    ) : (
-                        <>
-                            {/* 온라인 참여자 목록 */}
-                            {onlineUsers.length > 0 && (
-                                <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                                    <span className="relative flex h-2 w-2 shrink-0">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    <span className="text-[11px] font-bold text-slate-500 shrink-0">참여 중 ({onlineUsers.length}):</span>
-                                    <div className="flex gap-1.5 text-[11px] text-slate-600">
-                                        {onlineUsers.map((user, idx) => (
-                                            <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
-                                                <span className="font-semibold">{user.name}</span>
-                                                <span className={`text-[9px] px-1 py-0.2 rounded font-bold scale-[0.9] ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
-                                                    {ROLE_LABELS[user.role] || '참여자'}
-                                                </span>
+                    )}
+
+                    {/* 메시지 목록 */}
+                    <div className="h-[300px] overflow-y-auto px-4 py-3 space-y-1 bg-slate-50/50">
+                        {messages.length === 0 && (
+                            <div className="flex items-center justify-center h-full text-sm text-slate-400">
+                                아직 메시지가 없습니다
+                            </div>
+                        )}
+                        {messages.map((msg, index) => {
+                            const dateLabel = getDateLabel(msg, index)
+                            const isMine = isMyMessage(msg)
+
+                            return (
+                                <div key={msg.id}>
+                                    {/* 날짜 구분 */}
+                                    {dateLabel && (
+                                        <div className="flex items-center justify-center my-3">
+                                            <span className="text-[10px] bg-slate-200 text-slate-500 px-3 py-1 rounded-full font-medium">
+                                                {dateLabel}
                                             </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                                        </div>
+                                    )}
 
-                            {/* 메시지 목록 */}
-                            <div className="h-[300px] overflow-y-auto px-4 py-3 space-y-1 bg-slate-50/50">
-                                {messages.length === 0 && (
-                                    <div className="flex items-center justify-center h-full text-sm text-slate-400">
-                                        아직 메시지가 없습니다
-                                    </div>
-                                )}
-                                {messages.map((msg, index) => {
-                                    const dateLabel = getDateLabel(msg, index)
-                                    const isMine = isMyMessage(msg)
-
-                                    return (
-                                        <div key={msg.id}>
-                                            {/* 날짜 구분 */}
-                                            {dateLabel && (
-                                                <div className="flex items-center justify-center my-3">
-                                                    <span className="text-[10px] bg-slate-200 text-slate-500 px-3 py-1 rounded-full font-medium">
-                                                        {dateLabel}
+                                    {/* 메시지 */}
+                                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-2`}>
+                                        <div className={`max-w-[80%] ${isMine ? 'items-end' : 'items-start'}`}>
+                                            {/* 이름 + 역할 */}
+                                            {!isMine && (
+                                                <div className="flex items-center gap-1.5 mb-1 ml-1">
+                                                    <span className="text-xs font-bold text-slate-700">{msg.sender_name}</span>
+                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${ROLE_COLORS[msg.sender_role] || ROLE_COLORS.guest}`}>
+                                                        {ROLE_LABELS[msg.sender_role] || '참여자'}
                                                     </span>
                                                 </div>
                                             )}
-
-                                            {/* 메시지 */}
-                                            <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-2`}>
-                                                <div className={`max-w-[80%] ${isMine ? 'items-end' : 'items-start'}`}>
-                                                    {/* 이름 + 역할 */}
-                                                    {!isMine && (
-                                                        <div className="flex items-center gap-1.5 mb-1 ml-1">
-                                                            <span className="text-xs font-bold text-slate-700">{msg.sender_name}</span>
-                                                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${ROLE_COLORS[msg.sender_role] || ROLE_COLORS.guest}`}>
-                                                                {ROLE_LABELS[msg.sender_role] || '참여자'}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    <div className={`flex items-end gap-1.5 ${isMine ? 'flex-row-reverse' : ''}`}>
-                                                        <div className={`
-                                                            px-3 py-2 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap
-                                                            ${isMine
-                                                                ? 'bg-blue-600 text-white rounded-tr-sm'
-                                                                : 'bg-white text-slate-800 border border-slate-100 shadow-sm rounded-tl-sm'
-                                                            }
-                                                        `}>
-                                                            {msg.message}
-                                                        </div>
-                                                        <span className="text-[10px] text-slate-400 shrink-0 mb-0.5">
-                                                            {formatTime(msg.created_at)}
-                                                        </span>
-                                                    </div>
+                                            
+                                            <div className={`flex items-end gap-1.5 ${isMine ? 'flex-row-reverse' : ''}`}>
+                                                <div className={`
+                                                    px-3 py-2 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap
+                                                    ${isMine
+                                                        ? 'bg-blue-600 text-white rounded-tr-sm'
+                                                        : 'bg-white text-slate-800 border border-slate-100 shadow-sm rounded-tl-sm'
+                                                    }
+                                                `}>
+                                                    {msg.message}
                                                 </div>
+                                                <span className="text-[10px] text-slate-400 shrink-0 mb-0.5">
+                                                    {formatTime(msg.created_at)}
+                                                </span>
                                             </div>
                                         </div>
-                                    )
-                                })}
-                                <div ref={messagesEndRef} />
-                            </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                        <div ref={messagesEndRef} />
+                    </div>
 
-                            {/* 입력 영역 */}
-                            <div className="px-3 py-2.5 bg-white border-t border-slate-100">
-                                <div className="flex gap-2">
-                                    <input
-                                        ref={inputRef}
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="메시지를 입력하세요..."
-                                        className="flex-1 h-10 px-4 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                                    />
-                                    <Button
-                                        onClick={handleSend}
-                                        disabled={!newMessage.trim() || isSending}
-                                        className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0"
-                                    >
-                                        <Send className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                                <div className="text-center mt-1.5">
-                                    <span className="text-[10px] text-slate-400">
-                                        {nickname} ({ROLE_LABELS[currentUserRole] || '참여자'})로 참여 중
-                                    </span>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
+                    {/* 입력 영역 */}
+                    <div className="px-3 py-2.5 bg-white border-t border-slate-100">
+                        <div className="flex gap-2">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="메시지를 입력하세요..."
+                                className="flex-1 h-10 px-4 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+                            />
+                            <Button
+                                onClick={handleSend}
+                                disabled={!newMessage.trim() || isSending}
+                                className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0"
+                            >
+                                <Send className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="text-center mt-1.5">
+                            <span className="text-[10px] text-slate-400">
+                                {nickname} ({ROLE_LABELS[currentUserRole] || '참여자'})로 참여 중
+                            </span>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     )

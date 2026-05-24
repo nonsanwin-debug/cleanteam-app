@@ -491,41 +491,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                                 </button>
                             </div>
 
-                            {/* 빠른 생성: 구조 입력 */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-600">빠른 생성</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="예: 방3 화2 베1 (방3개, 화장실2개, 베란다1개)"
-                                        className="flex-1 h-10 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleAutoGenerateZones((e.target as HTMLInputElement).value);
-                                                (e.target as HTMLInputElement).value = ''
-                                            }
-                                        }}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-10 text-xs shrink-0"
-                                        onClick={(e) => {
-                                            const input = (e.target as HTMLElement).parentElement?.querySelector('input') as HTMLInputElement
-                                            if (input?.value) {
-                                                handleAutoGenerateZones(input.value)
-                                                input.value = ''
-                                            }
-                                        }}
-                                    >
-                                        자동 생성
-                                    </Button>
-                                </div>
-                                <p className="text-[10px] text-slate-400">
-                                    &quot;방3 화2 베1&quot; 입력 시 → 방1, 방2, 방3, 화1, 화2, 베1 자동 생성
-                                </p>
-                            </div>
+
 
                             {/* 현재 구역 태그 */}
                             {photoZones.length > 0 && (
