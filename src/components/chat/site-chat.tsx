@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { Send, UserPlus, Copy, Check, MessageCircle, ChevronDown } from 'lucide-react'
+import { Send, UserPlus, Copy, Check, MessageCircle, ChevronDown, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -22,6 +22,7 @@ interface SiteChatProps {
     currentUserName?: string
     currentUserRole?: 'leader' | 'customer' | 'guest'
     currentUserId?: string
+    customerPhone?: string
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -49,7 +50,7 @@ function formatDate(dateStr: string) {
 }
 
 
-export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId }: SiteChatProps) {
+export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId, customerPhone }: SiteChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
@@ -329,6 +330,15 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                             {messages.length > 0 ? `${messages.length}개 메시지` : '대화를 시작해보세요'}
                         </span>
                         <div className="flex gap-1.5">
+                            {currentUserRole === 'leader' && customerPhone && (
+                                <a
+                                    href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
+                                    className="h-7 px-2.5 inline-flex items-center justify-center rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 shadow-sm transition-all"
+                                >
+                                    <Phone className="w-3 h-3 mr-1" />
+                                    전화 걸기
+                                </a>
+                            )}
                             <Button
                                 variant="ghost"
                                 size="sm"

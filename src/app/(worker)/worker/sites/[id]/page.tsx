@@ -1,30 +1,48 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings, setEstimatedEndTime } from '@/actions/worker'
+import { useEffect, useState, useRef } from 'react'
+import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings, setEstimatedEndTime, completeWork } from '@/actions/worker'
+import { getChecklistForSite, saveChecklistProgress } from '@/actions/checklist-submission'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus, Minus } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus, Minus, CheckCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { WorkerSiteActions } from '@/components/worker/worker-site-actions'
 import { PhotoUploader } from '@/components/worker/photo-uploader'
-import { ChecklistForm, ChecklistFormHandle } from '@/components/worker/checklist-form'
 import { AssignedSite, SitePhoto } from '@/types'
 import { toast } from 'sonner'
-import { useRef } from 'react'
 import { SiteChat } from '@/components/chat/site-chat'
+
+const DEFAULT_TEMPLATE = {
+    title: '기본 체크리스트',
+    items: [
+        { id: 'entrance', text: '현관 (신발장, 바닥, 거울)', type: 'check' },
+        { id: 'living', text: '거실 (바닥, 창틀, 등기구)', type: 'check' },
+        { id: 'kitchen', text: '주방 (싱크대, 수납장, 후드)', type: 'check' },
+        { id: 'bathroom', text: '화장실 (변기, 세면대, 배수구)', type: 'check' },
+        { id: 'rooms', text: '방 (바닥, 창문, 붙박이장)', type: 'check' },
+        { id: 'veranda', text: '베란다/다용도실', type: 'check' },
+    ]
+}
 
 export default function WorkerSitePage({ params }: { params: Promise<{ id: string }> }) {
     const [site, setSite] = useState<AssignedSite | null>(null)
     const [photos, setPhotos] = useState<SitePhoto[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const checklistRef = useRef<ChecklistFormHandle>(null)
+    const [completedWizardStep, setCompletedWizardStep] = useState<'closed' | 'checklist' | 'settlement'>('closed')
+    const [checklistTemplate, setChecklistTemplate] = useState<any>(null)
+    const [checklistAnswers, setChecklistAnswers] = useState<Record<string, string>>({})
+    const [submittingChecklist, setSubmittingChecklist] = useState(false)
+    const [completingWork, setCompletingWork] = useState(false)
     const [editingAdditional, setEditingAdditional] = useState(false)
     const [additionalAmountVal, setAdditionalAmountVal] = useState('')
     const [additionalDescVal, setAdditionalDescVal] = useState('')
@@ -108,6 +126,25 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 console.log('📱 Client SMS Response:', JSON.stringify(smsResponse))
                 if (smsResponse.success && smsResponse.data) {
                     setSmsSettings(smsResponse.data)
+                }
+
+                // 4. Fetch Checklist Template and existing answers
+                try {
+                    const templateData = await getChecklistForSite(siteId)
+                    setChecklistTemplate(templateData || DEFAULT_TEMPLATE)
+
+                    const { data: submission } = await supabase
+                        .from('checklist_submissions')
+                        .select('data')
+                        .eq('site_id', siteId)
+                        .maybeSingle()
+
+                    if (submission?.data) {
+                        setChecklistAnswers(submission.data)
+                    }
+                } catch (err) {
+                    console.error('Failed to load checklist template/answers:', err)
+                    setChecklistTemplate(DEFAULT_TEMPLATE)
                 }
             } catch (err) {
                 console.error('Failed to fetch data:', err)
@@ -394,53 +431,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex items-center text-gray-600">
-                        <MapPin className="mr-2 h-5 w-5 text-gray-500" />
-                        <span>{site.address}</span>
-                    </div>
                     {site.description && <p className="text-gray-700">{site.description}</p>}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">담당자</p>
-                            <p className="text-gray-800">{site.manager_name || site.customer_name || '-'}</p>
-                        </div>
-                        {isLeader && (
-                            <div>
-                                <p className="text-sm font-bold text-blue-600 mb-1">고객 연락처 (해피콜용)</p>
-                                {(site.customer_phone || site.manager_phone) ? (
-                                    <div className="space-y-2">
-                                        {(site.customer_phone || site.manager_phone || '').split('/').map((phone, idx) => {
-                                            const trimmed = phone.trim()
-                                            return (
-                                                <div key={idx} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                                    <p className="text-xl font-bold text-slate-900">{trimmed}</p>
-                                                    <a
-                                                        href={`tel:${trimmed}`}
-                                                        className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold flex items-center shadow-md hover:bg-blue-700"
-                                                    >
-                                                        <Phone className="h-5 w-5 mr-2" />
-                                                        전화걸기
-                                                    </a>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                        <p className="text-xl font-bold text-slate-900">-</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">시작일</p>
-                            <p className="text-gray-800">{site.cleaning_date || (site.start_date ? new Date(site.start_date).toLocaleDateString() : '-')}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">작업 시간</p>
-                            <p className="text-gray-800">{site.start_time || '-'}</p>
-                        </div>
-                    </div>
                     {site.special_notes && (
                         <div className="pt-2 border-t mt-2">
                             <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-3 animate-pulse">
@@ -456,221 +447,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </CardContent>
             </Card>
 
-            {/* Settlement Info Card - 팀장만 표시 */}
-            {isLeader && (
-                <Card className="border-blue-200 bg-blue-50/30">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            <Wallet className="h-5 w-5 text-blue-600" />
-                            정산 정보
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between py-2 border-b">
-                            <span className="text-sm text-slate-500">잔금</span>
-                            <span className="font-bold text-lg">{(site.balance_amount || 0).toLocaleString()}원</span>
-                        </div>
-
-                        {editingAdditional ? (
-                            <div className="space-y-3 py-2 border-b">
-                                <div>
-                                    <label className="text-sm text-slate-500 block mb-1">추가금액</label>
-                                    <Input
-                                        type="number"
-                                        value={additionalAmountVal}
-                                        onChange={(e) => setAdditionalAmountVal(e.target.value)}
-                                        placeholder="추가금액 입력"
-                                        className="bg-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-sm text-slate-500 block mb-1">추가 사유</label>
-                                    <Textarea
-                                        value={additionalDescVal}
-                                        onChange={(e) => setAdditionalDescVal(e.target.value)}
-                                        placeholder="추가 작업 내용을 입력하세요"
-                                        className="bg-white resize-none"
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        size="sm"
-                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
-                                        onClick={async () => {
-                                            setSavingAdditional(true)
-                                            const result = await updateSiteAdditional(
-                                                site.id,
-                                                parseInt(additionalAmountVal) || 0,
-                                                additionalDescVal
-                                            )
-                                            setSavingAdditional(false)
-                                            if (result.success) {
-                                                toast.success('추가금이 수정되었습니다.')
-                                                setSite(prev => prev ? {
-                                                    ...prev,
-                                                    additional_amount: parseInt(additionalAmountVal) || 0,
-                                                    additional_description: additionalDescVal
-                                                } : prev)
-                                                setEditingAdditional(false)
-                                            } else {
-                                                toast.error(result.error || '수정 실패')
-                                            }
-                                        }}
-                                        disabled={savingAdditional}
-                                    >
-                                        {savingAdditional ? (
-                                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                        ) : (
-                                            <Save className="h-4 w-4 mr-1" />
-                                        )}
-                                        저장
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setEditingAdditional(false)}
-                                        disabled={savingAdditional}
-                                    >
-                                        <X className="h-4 w-4 mr-1" />
-                                        취소
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="py-2 border-b">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-slate-500">추가금</span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-bold text-lg text-blue-700">
-                                            {(site.additional_amount || 0).toLocaleString()}원
-                                        </span>
-                                        {site.status !== 'completed' && (
-                                            <button
-                                                onClick={() => {
-                                                    setAdditionalAmountVal(String(site.additional_amount || 0))
-                                                    setAdditionalDescVal(site.additional_description || '')
-                                                    setEditingAdditional(true)
-                                                }}
-                                                className="p-1 rounded hover:bg-blue-100"
-                                            >
-                                                <Pencil className="h-3.5 w-3.5 text-blue-500" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                                {site.additional_description && (
-                                    <p className="text-sm text-slate-600 mt-1 bg-white/60 p-2 rounded">
-                                        {site.additional_description}
-                                    </p>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-1">
-                            <span className="text-sm font-medium text-slate-700">총 합계 (잔금 + 추가)</span>
-                            <span className="font-bold text-xl text-green-700">
-                                {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
-                            </span>
-                        </div>
-
-                        <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4">
-                            {site.collection_type === 'site' ? (
-                                <div className="space-y-3">
-                                    <p className="font-bold text-red-600 text-lg text-center">
-                                        ⚠️ 현장 팀장 수금입니다
-                                    </p>
-                                    {smsSettings?.sms_enabled ? (
-                                        <>
-                                            <p className="text-sm text-red-600 text-center font-medium">
-                                                버튼 클릭 시 고객에게 안내문자 발송 합니다
-                                            </p>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-base py-6"
-                                                onClick={() => {
-                                                    const balance = site.balance_amount || 0
-                                                    const additional = site.additional_amount || 0
-                                                    const total = balance + additional
-                                                    const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
-                                                    const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
-                                                    const template = smsSettings?.sms_message_template || ''
-                                                    const messageBody = template
-                                                        .replace('{은행명}', bankName)
-                                                        .replace('{계좌번호}', accountNumber)
-                                                        .replace('{잔금}', balance.toLocaleString())
-                                                        .replace('{추가금}', additional.toLocaleString())
-                                                        .replace('{합계}', total.toLocaleString())
-                                                    const phone = site.customer_phone || site.manager_phone || ''
-                                                    const cleanPhone = phone.split('/')[0].trim().replace(/-/g, '')
-
-                                                    // 1. 클립보드에 복사
-                                                    try {
-                                                        navigator.clipboard.writeText(messageBody)
-                                                        toast.success('문자 내용이 클립보드에 복사되었습니다')
-                                                    } catch {
-                                                        // Fallback
-                                                        const textArea = document.createElement("textarea")
-                                                        textArea.value = messageBody
-                                                        textArea.style.position = "fixed"
-                                                        textArea.style.left = "0"
-                                                        textArea.style.top = "0"
-                                                        textArea.style.opacity = "0"
-                                                        document.body.appendChild(textArea)
-                                                        textArea.focus({ preventScroll: true })
-                                                        textArea.select()
-                                                        document.execCommand('copy')
-                                                        document.body.removeChild(textArea)
-                                                        toast.success('문자 내용이 클립보드에 복사되었습니다')
-                                                    }
-
-                                                    // 2. SMS 앱 열기
-                                                    setTimeout(() => {
-                                                        window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
-                                                    }, 300)
-                                                }}
-                                            >
-                                                <MessageSquare className="w-5 h-5 mr-2" />
-                                                📱 고객에게 수금 문자 보내기
-                                            </Button>
-                                        </>
-                                    ) : null}
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    <p className="font-bold text-red-600 text-lg text-center">
-                                        ⚠️ <span className="text-red-600">업체수금</span> 입니다
-                                    </p>
-                                    <p className="text-sm text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
-                                        {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Photo Section */}
             <section>
                 <h3 className="font-bold mb-2 flex items-center">
                     사진 기록
                 </h3>
                 <PhotoUploader siteId={site.id} existingPhotos={photos} canDelete={isLeader} photoZones={site.photo_zones} />
-            </section>
-
-            {/* Checklist Section */}
-            <section>
-                <h3 className="font-bold mb-2 flex items-center">
-                    체크리스트 및 작업 완료
-                </h3>
-                <ChecklistForm
-                    siteId={site.id}
-                    siteName={site.name}
-                    isPhotosUploaded={photos.length > 0}
-                    isLeader={isLeader}
-                    ref={checklistRef}
-                />
             </section>
 
             {/* Chat Section */}
@@ -683,8 +465,343 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     currentUserName={currentUserName}
                     currentUserRole="leader"
                     currentUserId={currentUserId || undefined}
+                    customerPhone={site.customer_phone || site.manager_phone || undefined}
                 />
             </section>
+
+            {/* 작업 완료 버튼 - 팀장 전용 및 미완료 상태에서만 표시 */}
+            {isLeader && site.status !== 'completed' && (
+                <div className="pt-4 border-t">
+                    <Button
+                        className="w-full h-14 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-xl flex items-center justify-center gap-2"
+                        onClick={() => {
+                            if (photos.length === 0) {
+                                toast.error('사진 등록을 먼저 완료해주세요.')
+                                return
+                            }
+                            setCompletedWizardStep('checklist')
+                        }}
+                    >
+                        <CheckCheck className="w-6 h-6" />
+                        작업 완료
+                    </Button>
+                </div>
+            )}
+
+            {/* Completion Dialog Wizard */}
+            <Dialog open={completedWizardStep !== 'closed'} onOpenChange={(open) => { if (!open) setCompletedWizardStep('closed') }}>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-center">
+                            {completedWizardStep === 'checklist' ? '작업 완료 체크리스트' : '정산 정보 확인 및 완료'}
+                        </DialogTitle>
+                        <DialogDescription className="text-center text-slate-500 text-sm mt-1">
+                            {completedWizardStep === 'checklist' 
+                                ? '작성하신 체크리스트 항목을 확인해주세요.' 
+                                : '최종 정산 금액과 수금 방식을 확인 후 작업을 완료합니다.'}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {completedWizardStep === 'checklist' && checklistTemplate && (
+                        <div className="space-y-6 py-4">
+                            <h4 className="font-bold text-base text-slate-800 border-b pb-2">{checklistTemplate.title}</h4>
+                            <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-1">
+                                {checklistTemplate.items?.map((item: any) => (
+                                    <div key={item.id} className="flex items-start space-x-3 pb-2 border-b border-slate-100 last:border-0">
+                                        <Checkbox
+                                            id={`modal-${item.id}`}
+                                            checked={checklistAnswers[item.id] === 'checked'}
+                                            onCheckedChange={(checked) => {
+                                                setChecklistAnswers(prev => ({ ...prev, [item.id]: checked ? 'checked' : '' }))
+                                            }}
+                                            className="mt-0.5"
+                                        />
+                                        <Label
+                                            htmlFor={`modal-${item.id}`}
+                                            className={`text-sm cursor-pointer leading-snug ${checklistAnswers[item.id] === 'checked' ? 'text-green-600 font-bold' : 'text-slate-700'}`}
+                                        >
+                                            {item.text}
+                                            {checklistAnswers[item.id] === 'checked' && (
+                                                <span className="text-xs text-green-500 ml-1">(확인완료)</span>
+                                            )}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="font-bold text-slate-800">특이사항 / 메모</Label>
+                                <Textarea
+                                    placeholder="특이사항이 있다면 적어주세요."
+                                    value={checklistAnswers['notes'] || ''}
+                                    onChange={(e) => {
+                                        setChecklistAnswers(prev => ({ ...prev, notes: e.target.value }))
+                                    }}
+                                    className="resize-none"
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setCompletedWizardStep('closed')}
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                    onClick={() => {
+                                        setCompletedWizardStep('settlement')
+                                    }}
+                                >
+                                    정산 정보 확인
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {completedWizardStep === 'settlement' && (
+                        <div className="space-y-6 py-4">
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4">
+                                <div className="flex items-center justify-between py-1 border-b border-slate-200">
+                                    <span className="text-sm text-slate-500">잔금</span>
+                                    <span className="font-bold text-slate-800">{(site.balance_amount || 0).toLocaleString()}원</span>
+                                </div>
+
+                                {editingAdditional ? (
+                                    <div className="space-y-3 py-1 border-b border-slate-200">
+                                        <div>
+                                            <label className="text-xs text-slate-500 block mb-1 font-medium">추가금액</label>
+                                            <Input
+                                                type="number"
+                                                value={additionalAmountVal}
+                                                onChange={(e) => setAdditionalAmountVal(e.target.value)}
+                                                placeholder="추가금액 입력"
+                                                className="bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-slate-500 block mb-1 font-medium">추가 사유</label>
+                                            <Textarea
+                                                value={additionalDescVal}
+                                                onChange={(e) => setAdditionalDescVal(e.target.value)}
+                                                placeholder="추가 작업 내용을 입력하세요"
+                                                className="bg-white resize-none text-xs"
+                                                rows={2}
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                                onClick={async () => {
+                                                    setSavingAdditional(true)
+                                                    const result = await updateSiteAdditional(
+                                                        site.id,
+                                                        parseInt(additionalAmountVal) || 0,
+                                                        additionalDescVal
+                                                    )
+                                                    setSavingAdditional(false)
+                                                    if (result.success) {
+                                                        toast.success('추가금이 수정되었습니다.')
+                                                        setSite(prev => prev ? {
+                                                            ...prev,
+                                                            additional_amount: parseInt(additionalAmountVal) || 0,
+                                                            additional_description: additionalDescVal
+                                                        } : prev)
+                                                        setEditingAdditional(false)
+                                                    } else {
+                                                        toast.error(result.error || '수정 실패')
+                                                    }
+                                                }}
+                                                disabled={savingAdditional}
+                                            >
+                                                {savingAdditional ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                                ) : (
+                                                    <Save className="h-4 w-4 mr-1" />
+                                                )}
+                                                저장
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setEditingAdditional(false)}
+                                                disabled={savingAdditional}
+                                            >
+                                                <X className="h-4 w-4 mr-1" />
+                                                취소
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-1 border-b border-slate-200">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-slate-500">추가금</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-blue-700">
+                                                    {(site.additional_amount || 0).toLocaleString()}원
+                                                </span>
+                                                <button
+                                                    onClick={() => {
+                                                        setAdditionalAmountVal(String(site.additional_amount || 0))
+                                                        setAdditionalDescVal(site.additional_description || '')
+                                                        setEditingAdditional(true)
+                                                    }}
+                                                    className="p-1 rounded hover:bg-slate-200"
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5 text-blue-500" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {site.additional_description && (
+                                            <p className="text-xs text-slate-600 mt-1 bg-white/80 p-2 rounded">
+                                                {site.additional_description}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between pt-1">
+                                    <span className="text-sm font-bold text-slate-700">총 합계 (잔금 + 추가)</span>
+                                    <span className="font-bold text-lg text-green-700">
+                                        {((site.balance_amount || 0) + (site.additional_amount || 0)).toLocaleString()}원
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                                {site.collection_type === 'site' ? (
+                                    <div className="space-y-3">
+                                        <p className="font-bold text-red-600 text-sm text-center">
+                                            ⚠️ 현장 팀장 수금입니다
+                                        </p>
+                                        {smsSettings?.sms_enabled ? (
+                                            <>
+                                                <p className="text-xs text-red-600 text-center font-medium">
+                                                    버튼 클릭 시 고객에게 안내문자 발송 합니다
+                                                </p>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full border-red-300 bg-white hover:bg-red-50 text-red-700 font-bold text-sm py-4 h-auto"
+                                                    onClick={() => {
+                                                        const balance = site.balance_amount || 0
+                                                        const additional = site.additional_amount || 0
+                                                        const total = balance + additional
+                                                        const bankName = smsSettings?.sms_bank_name || '(은행 미설정)'
+                                                        const accountNumber = smsSettings?.sms_account_number || '(계좌번호 미설정)'
+                                                        const template = smsSettings?.sms_message_template || ''
+                                                        const messageBody = template
+                                                            .replace('{은행명}', bankName)
+                                                            .replace('{계좌번호}', accountNumber)
+                                                            .replace('{잔금}', balance.toLocaleString())
+                                                            .replace('{추가금}', additional.toLocaleString())
+                                                            .replace('{합계}', total.toLocaleString())
+                                                        const phone = site.customer_phone || site.manager_phone || ''
+                                                        const cleanPhone = phone.split('/')[0].trim().replace(/-/g, '')
+
+                                                        // Copy to Clipboard
+                                                        try {
+                                                            navigator.clipboard.writeText(messageBody)
+                                                            toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                        } catch {
+                                                            const textArea = document.createElement("textarea")
+                                                            textArea.value = messageBody
+                                                            textArea.style.position = "fixed"
+                                                            textArea.style.left = "0"
+                                                            textArea.style.top = "0"
+                                                            textArea.style.opacity = "0"
+                                                            document.body.appendChild(textArea)
+                                                            textArea.focus({ preventScroll: true })
+                                                            textArea.select()
+                                                            document.execCommand('copy')
+                                                            document.body.removeChild(textArea)
+                                                            toast.success('문자 내용이 클립보드에 복사되었습니다')
+                                                        }
+
+                                                        // Open SMS App
+                                                        setTimeout(() => {
+                                                            window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(messageBody)}`
+                                                        }, 300)
+                                                    }}
+                                                >
+                                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                                    📱 고객에게 수금 문자 보내기
+                                                </Button>
+                                            </>
+                                        ) : null}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <p className="font-bold text-red-600 text-sm text-center">
+                                            ⚠️ 업체수금 입니다
+                                        </p>
+                                        <p className="text-xs text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
+                                            {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setCompletedWizardStep('checklist')}
+                                    disabled={submittingChecklist || completingWork}
+                                >
+                                    이전
+                                </Button>
+                                <Button
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
+                                    onClick={async () => {
+                                        setSubmittingChecklist(true)
+                                        setCompletingWork(true)
+                                        try {
+                                            // 1. Save Checklist progress
+                                            const saveRes = await saveChecklistProgress(site.id, checklistAnswers)
+                                            if (!saveRes.success) {
+                                                throw new Error(saveRes.error || '체크리스트 저장 중 오류가 발생했습니다.')
+                                            }
+
+                                            // 2. Complete Work
+                                            const completeRes = await completeWork(site.id)
+                                            if (!completeRes.success) {
+                                                throw new Error(completeRes.error || '작업 완료 처리 중 오류가 발생했습니다.')
+                                            }
+
+                                            toast.success('작업이 완료되었습니다.')
+                                            setCompletedWizardStep('closed')
+                                            router.push('/worker/home')
+                                        } catch (error: any) {
+                                            console.error('Final completion failed:', error)
+                                            toast.error(error.message || '작업 완료 처리에 실패했습니다.')
+                                        } finally {
+                                            setSubmittingChecklist(false)
+                                            setCompletingWork(false)
+                                        }
+                                    }}
+                                    disabled={submittingChecklist || completingWork}
+                                >
+                                    {(submittingChecklist || completingWork) ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            완료 중...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCheck className="h-4 w-4 mr-2" />
+                                            최종 작업 완료
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
