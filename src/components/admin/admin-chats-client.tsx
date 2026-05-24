@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { SiteChat } from '@/components/chat/site-chat'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PhotoUploader } from '@/components/worker/photo-uploader'
+import { getSitePhotos } from '@/actions/worker'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { MapPin, User, Calendar, Phone, ExternalLink, MessageCircle, Info } from 'lucide-react'
-import Link from 'next/link'
+import { MapPin, MessageCircle, Search, Loader2 } from 'lucide-react'
 
 interface AdminChatsClientProps {
     sites: any[]
@@ -15,18 +14,32 @@ interface AdminChatsClientProps {
 }
 
 export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClientProps) {
-    const [selectedTab, setSelectedTab] = useState<'all' | 'in_progress' | 'completed'>('in_progress')
+    const [searchQuery, setSearchQuery] = useState('')
     const [selectedSiteId, setSelectedSiteId] = useState<string>('')
+    const [photos, setPhotos] = useState<any[]>([])
+    const [isLoadingPhotos, setIsLoadingPhotos] = useState(false)
 
-    // Filter sites by status
+    // Filter sites based on search query
     const filteredSites = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase()
+        if (!query) {
+            // Default list: only show active/pending sites, but ensure the currently selected site is always included so it doesn't vanish
+            const activeSites = sites.filter(site => site.status !== 'completed')
+            if (selectedSiteId) {
+                const selectedSiteObj = sites.find(s => s.id === selectedSiteId)
+                if (selectedSiteObj && selectedSiteObj.status === 'completed' && !activeSites.some(s => s.id === selectedSiteId)) {
+                    activeSites.unshift(selectedSiteObj)
+                }
+            }
+            return activeSites
+        }
         return sites.filter(site => {
-            if (selectedTab === 'all') return true
-            if (selectedTab === 'in_progress') return site.status === 'in_progress' || site.status === 'pending'
-            if (selectedTab === 'completed') return site.status === 'completed'
-            return true
+            const nameMatch = site.name?.toLowerCase().includes(query)
+            const customerMatch = site.customer_name?.toLowerCase().includes(query)
+            const phoneMatch = site.customer_phone?.includes(query)
+            return nameMatch || customerMatch || phoneMatch
         })
-    }, [sites, selectedTab])
+    }, [sites, searchQuery, selectedSiteId])
 
     // Find the currently selected site
     const selectedSite = useMemo(() => {
@@ -40,6 +53,32 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
     // Ensure selected site ID is in sync
     const currentSiteId = selectedSite?.id || ''
 
+    // Fetch photos of the selected site dynamically
+    useEffect(() => {
+        if (!currentSiteId) {
+            setPhotos([])
+            return
+        }
+        
+        const fetchPhotos = async () => {
+            setIsLoadingPhotos(true)
+            try {
+                const res = await getSitePhotos(currentSiteId)
+                if (res.success && res.data) {
+                    setPhotos(res.data)
+                } else {
+                    setPhotos([])
+                }
+            } catch (err) {
+                console.error('Failed to fetch site photos:', err)
+                setPhotos([])
+            } finally {
+                setIsLoadingPhotos(false)
+            }
+        }
+        fetchPhotos()
+    }, [currentSiteId])
+
     return (
         <div className="flex flex-col gap-4 pb-10">
             {/* Header */}
@@ -49,43 +88,33 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                     실시간 현장 채팅 관제
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                    전체 청소 현장의 실시간 대화를 모니터링하고 원격 지원 및 직접 참여할 수 있습니다.
+                    현장 사진 대장과 대화 채널을 실시간 모니터링하고 지원할 수 있습니다.
                 </p>
             </div>
 
-            {/* Status Filter Tabs */}
-            <div className="flex gap-1.5 p-1 bg-slate-200/60 border border-slate-200/40 rounded-xl max-w-sm">
-                {[
-                    { value: 'all' as const, label: '전체' },
-                    { value: 'in_progress' as const, label: '진행 중' },
-                    { value: 'completed' as const, label: '완료됨' }
-                ].map(tab => (
-                    <button
-                        key={tab.value}
-                        onClick={() => {
-                            setSelectedTab(tab.value)
-                            setSelectedSiteId('') // Reset to select the first filtered site
-                        }}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            selectedTab === tab.value
-                                ? 'bg-white text-indigo-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            {/* Real-time Search Box */}
+            <div className="relative">
+                <input
+                    type="text"
+                    placeholder="현장명, 고객 성함 또는 연락처로 검색 (완료된 현장 포함)..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white shadow-sm"
+                />
+                <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
             </div>
 
             {/* Carousel / Quick Selector */}
             <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold text-slate-600">현장 선택 ({filteredSites.length}개)</span>
+                    <span className="text-xs font-bold text-slate-600">
+                        {searchQuery ? '검색 결과' : '진행 중인 현장'} ({filteredSites.length}개)
+                    </span>
                     <span className="text-[10px] text-slate-400">💡 옆으로 드래그하여 현장을 전환하세요</span>
                 </div>
                 {filteredSites.length === 0 ? (
                     <div className="py-12 text-center text-xs text-slate-400 bg-white border border-slate-200 border-dashed rounded-2xl shadow-sm">
-                        해당 상태의 활성화된 현장이 없습니다.
+                        {searchQuery ? '검색 결과가 없습니다.' : '현재 진행 중인 청소 현장이 없습니다.'}
                     </div>
                 ) : (
                     <div className="flex gap-3 overflow-x-auto pb-3 pt-1 px-1 [&::-webkit-scrollbar]:hidden touch-pan-x snap-x snap-mandatory">
@@ -145,29 +174,54 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                 )}
             </div>
 
-            {/* Main Selector Chat Panel */}
+            {/* Combined Main Command Control View */}
             {selectedSite ? (
-                <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 items-start">
-                    {/* Chat Panel - Renders FIRST on mobile using flex order-1 */}
-                    <div className="w-full lg:col-span-2 order-1 lg:order-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[540px]">
-                        <div className="bg-slate-900 px-4 py-3 flex items-center justify-between text-white shrink-0">
-                            <div className="flex flex-col text-left">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">NEXUS ADMIN CHAT CONTROL</span>
-                                <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5 mt-0.5">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                                    </span>
-                                    {selectedSite.name} 실시간 관제 중
+                <div className="space-y-4">
+                    {/* 1. Translucent Control Header (Image 2 style) */}
+                    <div className="bg-[#0B1528] px-4 py-3 rounded-2xl flex items-center justify-between text-white shadow-md">
+                        <div className="flex flex-col text-left">
+                            <span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase">NEXUS ADMIN CHAT CONTROL</span>
+                            <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5 mt-0.5">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                                 </span>
-                            </div>
-                            <span className="text-xs bg-white/10 px-2.5 py-1 rounded-full font-bold text-slate-300">
-                                {adminName} (관리자)
+                                {selectedSite.name} 실시간 관제 중
                             </span>
                         </div>
+                        <span className="text-xs bg-white/10 px-2.5 py-1 rounded-full font-bold text-slate-300">
+                            {adminName} (관리자)
+                        </span>
+                    </div>
+
+                    {/* 2. Photo Uploader (Read-only - Image 1 top part) */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                        <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                            📸 현장 사진 대장
+                        </h3>
+                        {isLoadingPhotos ? (
+                            <div className="flex items-center justify-center py-12 text-xs text-slate-400 gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                                사진 정보를 불러오는 중입니다...
+                            </div>
+                        ) : (
+                            <PhotoUploader
+                                key={`uploader-${currentSiteId}`}
+                                siteId={currentSiteId}
+                                existingPhotos={photos}
+                                readOnly={true}
+                                canDelete={false}
+                                showFeatureToggle={false}
+                                photoZones={selectedSite.photo_zones || []}
+                            />
+                        )}
+                    </div>
+
+                    {/* 3. Live Chat Panel (Image 1 bottom part) */}
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[540px]">
                         <div className="flex-1 overflow-hidden flex flex-col bg-slate-50">
                             <SiteChat
-                                key={currentSiteId}
+                                key={`chat-${currentSiteId}`}
                                 siteId={currentSiteId}
                                 currentUserName={adminName}
                                 currentUserRole="admin"
@@ -175,73 +229,12 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                             />
                         </div>
                     </div>
-
-                    {/* Selected Site details banner - Renders SECOND on mobile using flex order-2 */}
-                    <div className="w-full lg:col-span-1 order-2 lg:order-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <h3 className="text-base font-extrabold text-slate-800 tracking-tight">
-                                    {selectedSite.name}
-                                </h3>
-                                <p className="text-xs text-slate-500 mt-1 flex items-center leading-relaxed">
-                                    <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400 shrink-0" />
-                                    {selectedSite.address}
-                                </p>
-                            </div>
-                            <Link href={`/admin/sites/${selectedSite.id}`} target="_blank">
-                                <Button variant="outline" size="sm" className="h-8 px-2 text-xs font-bold gap-1 shrink-0">
-                                    상세 정보 <ExternalLink className="w-3.5 h-3.5" />
-                                </Button>
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-xs border-t pt-4 border-slate-100">
-                            <div>
-                                <span className="text-slate-400 block mb-0.5">👤 담당 팀장</span>
-                                <div className="font-bold flex items-center">
-                                    <span style={{ color: selectedSite.worker?.display_color || undefined }}>
-                                        {selectedSite.worker?.name || '미지정'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <span className="text-slate-400 block mb-0.5">📞 고객 연락처</span>
-                                <div className="font-bold">{selectedSite.customer_phone || '-'}</div>
-                            </div>
-                            <div>
-                                <span className="text-slate-400 block mb-0.5">📅 작업 일시</span>
-                                <div className="font-bold text-slate-700">
-                                    {selectedSite.cleaning_date || '-'} {selectedSite.start_time || ''}
-                                </div>
-                            </div>
-                            <div>
-                                <span className="text-slate-400 block mb-0.5">🏷️ 주거/평수</span>
-                                <div className="font-bold text-slate-700">
-                                    {selectedSite.residential_type || '-'} · {selectedSite.area_size || '-'}
-                                </div>
-                            </div>
-                        </div>
-
-                        {selectedSite.special_notes && (
-                            <div className="bg-yellow-50/80 border border-yellow-100 p-3 rounded-xl text-xs space-y-1">
-                                <span className="font-bold text-yellow-800 block">⚠️ 현장 특이사항</span>
-                                <span className="text-yellow-700 block whitespace-pre-wrap">{selectedSite.special_notes}</span>
-                            </div>
-                        )}
-                        
-                        {selectedSite.worker_notes && (
-                            <div className="bg-blue-50/80 border border-blue-100 p-3 rounded-xl text-xs space-y-1">
-                                <span className="font-bold text-blue-800 block">📝 팀장 메모</span>
-                                <span className="text-blue-700 block whitespace-pre-wrap">{selectedSite.worker_notes}</span>
-                            </div>
-                        )}
-                    </div>
                 </div>
             ) : (
                 <div className="py-20 text-center text-slate-500 bg-white border border-slate-200/50 rounded-2xl shadow-sm">
                     <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                     <p className="font-bold text-slate-700 text-base">선택된 현장이 없습니다</p>
-                    <p className="text-sm text-slate-400 mt-1">상단에서 대화할 현장을 선택해주세요.</p>
+                    <p className="text-sm text-slate-400 mt-1">상단에서 대화할 현장을 선택하거나 검색해주세요.</p>
                 </div>
             )}
         </div>
