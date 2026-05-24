@@ -329,14 +329,14 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                         <span className="text-xs font-bold text-slate-500">
                             {messages.length > 0 ? `${messages.length}개 메시지` : '대화를 시작해보세요'}
                         </span>
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 items-center">
                             {currentUserRole === 'leader' && customerPhone && (
                                 <a
                                     href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
-                                    className="h-7 px-2.5 inline-flex items-center justify-center rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 shadow-sm transition-all"
+                                    className="h-10 px-2 inline-flex flex-col items-center justify-center rounded-md text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 shadow-sm transition-all shrink-0 whitespace-nowrap"
                                 >
-                                    <Phone className="w-3 h-3 mr-1" />
-                                    전화 걸기
+                                    <Phone className="w-3.5 h-3.5 mb-0.5 shrink-0" />
+                                    <span className="leading-none">전화걸기</span>
                                 </a>
                             )}
                             <Button

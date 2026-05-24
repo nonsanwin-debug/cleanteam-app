@@ -278,6 +278,18 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </Badge>
             </div>
 
+            {/* 특이사항 경고 배너 */}
+            {site.special_notes && (
+                <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-3 animate-pulse">
+                    <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-red-500 text-xs font-bold tracking-wider animate-bounce" style={{ animationDuration: '2s' }}>⚠️ 특이사항</span>
+                    </div>
+                    <div className="text-red-600 font-bold text-sm animate-pulse" style={{
+                        textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
+                    }}>{site.special_notes}</div>
+                </div>
+            )}
+
             {/* 예상 종료 시간 설정 (팀장 전용) */}
             {isLeader && site.status !== 'completed' && (
                 <section className="">
@@ -353,99 +365,42 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 <Plus className="w-4 h-4 mr-1 text-slate-400" />2시간
                             </Button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 text-center">
+                        <p className="text-xs text-slate-500 mt-2 text-center border-b pb-3">
                             * 설정된 시간은 고객용 공유 페이지 상단에 실시간으로 표시됩니다.
                         </p>
-                    </div>
-                </section>
-            )}
 
-            {/* Address & Navigation */}
-            <Card>
-                <CardContent className="pt-4 text-sm space-y-4">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-start">
-                            <MapPin className="h-4 w-4 mr-2 text-slate-400 mt-0.5 shrink-0" />
-                            <span className="text-slate-700 font-medium break-keep">{site.address}</span>
-                        </div>
-
-
-                        <div className="flex flex-col gap-2">
-                            {isLeader && site.customer_phone ? (() => {
-                                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
-                                const link = `${baseUrl}/share/${site.id}`
-                                const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
-                                const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`
-                                return (
+                        {/* 고객전용페이지 고객에게 보내기 버튼 */}
+                        {site.customer_phone ? (() => {
+                            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
+                            const link = `${baseUrl}/share/${site.id}`
+                            const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
+                            const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`
+                            return (
                                 <a
                                     href={smsRef}
-                                    className="w-full"
+                                    className="w-full mt-3 block"
                                 >
                                     <Button
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-11"
                                     >
                                         <MessageSquare className="w-4 h-4 mr-2" />
                                         고객전용페이지 고객에게 보내기
                                     </Button>
                                 </a>
-                                )
-                            })() : isLeader ? (
-                                <Button
-                                    variant="outline"
-                                    className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
-                                    onClick={handleTriggerCopy}
-                                >
-                                    <Share2 className="w-4 h-4 mr-2" />
-                                    고객 공유 링크 (저장 & 복사)
-                                </Button>
-                            ) : null}
-
-                            <div className="mt-2">
-                                <a
-                                    href={`tmap://search?name=${encodeURIComponent(site.address)}`}
-                                    className="w-full"
-                                >
-                                    <Button size="sm" variant="outline" className="w-full h-9 text-xs border-green-500 bg-green-50 hover:bg-green-100 text-slate-900">
-                                        티맵
-                                    </Button>
-                                </a>
-                            </div>
-                        </div>
+                            )
+                        })() : (
+                            <Button
+                                variant="outline"
+                                className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 mt-3 font-bold h-11"
+                                onClick={handleTriggerCopy}
+                            >
+                                <Share2 className="w-4 h-4 mr-2" />
+                                고객 공유 링크 (저장 & 복사)
+                            </Button>
+                        )}
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Job Details Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                        <span className="text-2xl font-bold">{site.name}</span>
-                        <Badge
-                            className={`text-sm px-3 py-1 ${site.status === 'scheduled' ? 'bg-blue-100 text-blue-800' : site.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                                }`}
-                        >
-                            {site.status === 'scheduled' && '예정됨'}
-                            {site.status === 'in_progress' && '진행 중'}
-                            {site.status === 'completed' && '완료됨'}
-                        </Badge>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {site.description && <p className="text-gray-700">{site.description}</p>}
-                    {site.special_notes && (
-                        <div className="pt-2 border-t mt-2">
-                            <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-3 animate-pulse">
-                                <div className="flex items-center gap-1.5 mb-1">
-                                    <span className="text-red-500 text-xs font-bold tracking-wider animate-bounce" style={{ animationDuration: '2s' }}>⚠️ 특이사항</span>
-                                </div>
-                                <div className="text-red-600 font-bold text-sm" style={{
-                                    textShadow: '0 0 8px rgba(239, 68, 68, 0.3)'
-                                }}>{site.special_notes}</div>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                </section>
+            )}
 
             {/* Photo Section */}
             <section>
