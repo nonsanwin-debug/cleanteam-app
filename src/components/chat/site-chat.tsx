@@ -23,6 +23,7 @@ interface SiteChatProps {
     currentUserRole?: 'leader' | 'customer' | 'guest' | 'admin'
     currentUserId?: string
     customerPhone?: string
+    heightClass?: string
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -49,7 +50,7 @@ function formatDate(dateStr: string) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
 
-export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId, customerPhone }: SiteChatProps) {
+export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId, customerPhone, heightClass = 'h-[300px]' }: SiteChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
@@ -550,7 +551,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                     )}
 
                     {/* 메시지 목록 */}
-                    <div className="h-[300px] overflow-y-auto px-4 py-3 space-y-1 bg-slate-50/50">
+                    <div className={`${heightClass} overflow-y-auto px-4 py-3 space-y-1 bg-slate-50/50`}>
                         {messages.length === 0 && (
                             <div className="flex items-center justify-center h-full text-sm text-slate-400">
                                 아직 메시지가 없습니다

@@ -287,10 +287,11 @@ export function ShareView({ siteId }: { siteId: string }) {
                         <h3 className="font-bold text-[15px] text-slate-800 mb-1">💬 실시간 현장 소통</h3>
                         <p className="text-xs text-slate-500 mb-3">작업 시작 전에도 팀장님과 실시간으로 대화할 수 있습니다.</p>
                         <SiteChat
-                            siteId={site.id}
-                            currentUserName={site.customer_name || ''}
-                            currentUserRole="customer"
-                        />
+                        siteId={site.id}
+                        currentUserName={site.customer_name || ''}
+                        currentUserRole="customer"
+                        heightClass="h-[500px]"
+                    />
                     </div>
 
                     <div className="mt-8">
@@ -431,86 +432,6 @@ export function ShareView({ siteId }: { siteId: string }) {
                     </CardContent>
                 </Card>
 
-                {/* 팀장 메시지 (말풍선 스타일) */}
-                <div className="flex flex-col mb-8 mt-2 px-1">
-                    <div className="flex items-start gap-3 w-full">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm">
-                            <Sparkles className="w-5 h-5 text-blue-500" />
-                        </div>
-                        
-                        {/* Message Content */}
-                        <div className="flex flex-col flex-1 gap-1 max-w-[90%]">
-                            <span className="text-sm text-slate-500 font-medium ml-1 flex items-center gap-1.5">
-                                {site.worker?.name || site.worker_name || '담당 팀장'} 
-                                <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-sm">작업 전문가</span>
-                            </span>
-                            
-                            {(() => {
-                                const hasBeforePhotos = photos.some(p => p.type === 'before')
-                                const hasDuringPhotos = photos.some(p => p.type === 'during')
-                                const hasAfterPhotos = photos.some(p => p.type === 'after')
-                                const hasSpecialPhotos = photos.some(p => p.type === 'special')
-                                
-                                return (
-
-                            
-                            <div className={`break-keep border rounded-2xl p-4 pb-5 text-[15px] leading-[1.6] shadow-sm relative ${
-                                site.status === 'completed' ? 'bg-white border-slate-200 text-slate-800 rounded-tl-none' 
-                                : 'bg-blue-50 border-blue-100 text-slate-800 rounded-tl-none'
-                            }`}>
-                                {/* Status specific messages */}
-                                {site.status === 'completed' ? (
-                                    <>
-                                        <p className="font-bold text-blue-600 mb-2">"작업이 모두 무사히 완료되었습니다!"</p>
-                                        <p className="mb-4">
-                                            현장 팀장 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong>입니다. 모든 작업을 마치고 완료 보고 드립니다.
-                                            {hasAfterPhotos && (
-                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 후] 탭에서 깨끗해진 현장 모습을 확인해 보세요.</span>
-                                            )}
-                                            {hasSpecialPhotos && (
-                                                <span className="block mt-1">특이사항 탭에도 별도로 기록 사진을 남겨 두었으니 함께 확인 부탁드립니다.</span>
-                                            )}
-                                        </p>
-                                        <p>
-                                            작업 내용 중 궁금하신 점이나 확인이 필요한 부분이 있다면 편하게 연락 부탁드립니다. 감사합니다.
-                                        </p>
-                                    </>
-                                ) : site.status === 'in_progress' ? (
-                                    <>
-                                        <p className="font-bold text-blue-600 mb-2">"꼼꼼하게 준비하고 진행하고 있습니다! ✨"</p>
-                                        <p className="mb-4">
-                                            현재 계획된 일정에 맞춰 각 구역별 작업을 열심히 진행하고 있습니다.
-                                            {hasDuringPhotos && (
-                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 중] 탭을 누르시면 실시간으로 변하고 있는 모습을 확인하실 수 있습니다.</span>
-                                            )}
-                                        </p>
-                                        <p>
-                                            궁금하신 점은 언제든 전화나 문자로 연락 주셔도 좋습니다!<br />
-                                            작업이 끝나면 다시 반가운 소식으로 알림을 드릴게요. 안심하고 기다려 주세요!
-                                        </p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p className="font-bold text-blue-600 mb-2">"고객님, 현장에 도착했습니다! ✨"</p>
-                                        <p className="mb-4">
-                                            안녕하세요, 오늘 작업을 맡은 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong> 팀장입니다. 방금 현장에 도착하여 장비 점검을 마쳤습니다.
-                                        </p>
-                                        <p>
-                                            상태를 꼼꼼히 살피며 현장을 성심껏 관리하고 케어하겠습니다.
-                                            {hasBeforePhotos && (
-                                                <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 전] 탭을 누르시면 현재 현장 모습을 확인하실 수 있습니다.</span>
-                                            )}
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                </div>
-
                 {/* Photos (ReadOnly) */}
                 <section>
                     <h3 className="font-bold mb-2 flex items-center text-lg">
@@ -530,6 +451,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                         siteId={site.id}
                         currentUserName={site.customer_name || ''}
                         currentUserRole="customer"
+                        heightClass="h-[500px]"
                     />
                 </section>
 
