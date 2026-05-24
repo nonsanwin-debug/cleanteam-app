@@ -613,41 +613,35 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
             {/* ===== 공간별 모드 ===== */}
             {isZoneMode ? (
                 <div className="space-y-3">
-                    {/* 공간 탭 (가로 스크롤) */}
-                    <div className="relative">
-                        <div
-                            ref={zoneScrollRef}
-                            className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                        >
-                            {photoZones.map(zone => {
-                                const count = getZonePhotoCount(zone)
-                                const isActive = selectedZone === zone
-                                return (
-                                    <button
-                                        key={zone}
-                                        onClick={() => { setSelectedZone(zone); setSelectedPhotoIndex(null) }}
-                                        className={`
-                                            relative shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-all
-                                            ${isActive
-                                                ? 'bg-slate-800 text-white shadow-md scale-105'
-                                                : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                                            }
-                                        `}
-                                    >
-                                        {zone}
-                                        {count > 0 && (
-                                            <span className={`
-                                                ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1
-                                                ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}
-                                            `}>
-                                                {count}
-                                            </span>
-                                        )}
-                                    </button>
-                                )
-                            })}
-                        </div>
+                    {/* 공간 탭 (한 줄에 3개씩 그리드 배치) */}
+                    <div className="grid grid-cols-3 gap-2 w-full">
+                        {photoZones.map(zone => {
+                            const count = getZonePhotoCount(zone)
+                            const isActive = selectedZone === zone
+                            return (
+                                <button
+                                    key={zone}
+                                    onClick={() => { setSelectedZone(zone); setSelectedPhotoIndex(null) }}
+                                    className={`
+                                        relative px-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 whitespace-nowrap
+                                        ${isActive
+                                            ? 'bg-slate-800 text-white shadow-md'
+                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                        }
+                                    `}
+                                >
+                                    <span className="truncate">{zone}</span>
+                                    {count > 0 && (
+                                        <span className={`
+                                            inline-flex items-center justify-center min-w-[15px] h-[15px] rounded-full text-[9px] font-bold px-0.5 shrink-0
+                                            ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}
+                                        `}>
+                                            {count}
+                                        </span>
+                                    )}
+                                </button>
+                            )
+                        })}
                     </div>
 
                     {/* 작업 단계 선택 (전/중/후) */}
