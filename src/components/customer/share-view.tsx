@@ -18,13 +18,12 @@ export function ShareView({ siteId }: { siteId: string }) {
     const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null)
     const [isOverdue, setIsOverdue] = useState(false)
     const [randomMessage, setRandomMessage] = useState("")
-
     useEffect(() => {
         const messages = [
-            "현재 주방과 화장실의 묵은 때와 치열하게 전투 중입니다!",
-            "구석진 곳의 먼지 한 톨까지 꼼꼼하게 잡고 있습니다.",
-            "지정 구역의 오염 제거가 예정대로 순조롭게 진행 중입니다.",
-            "쾌적한 공간을 위해 마지막 땀방울을 흘리고 있습니다. 잠시만 기다려주세요!"
+            "현재 계획된 일정에 따라 각 구역별 작업을 꼼꼼하게 진행하고 있습니다.",
+            "구석진 곳까지 세심하고 안전하게 관리하고 있습니다.",
+            "지정 구역의 현장 관리가 예정대로 순조롭게 진행 중입니다.",
+            "최상의 현장 컨디션을 위해 꼼꼼하게 준비하고 진행하고 있습니다. 잠시만 기다려주세요!"
         ]
         setRandomMessage(messages[Math.floor(Math.random() * messages.length)])
     }, [])
@@ -373,7 +372,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 {isOverdue 
                                     ? "현장 정리를 마치고 대기 중입니다. 서두르지 마시고 안전하게 도착하시면 연락해 주세요!" 
                                     : isUnder30Mins 
-                                        ? "청소가 곧 완료됩니다! 현장 검수를 위해 이동해 주세요." 
+                                        ? "작업이 곧 완료됩니다! 현장 최종 확인을 위해 이동해 주세요." 
                                         : randomMessage}
                             </p>
                         </div>
@@ -479,9 +478,9 @@ export function ShareView({ siteId }: { siteId: string }) {
                                     </>
                                 ) : site.status === 'in_progress' ? (
                                     <>
-                                        <p className="font-bold text-blue-600 mb-2">"지금은 한창 깨끗해지는 중입니다! 🧹"</p>
+                                        <p className="font-bold text-blue-600 mb-2">"꼼꼼하게 준비하고 진행하고 있습니다! ✨"</p>
                                         <p className="mb-4">
-                                            현재 구역별 오염 제거 작업을 열심히 진행하고 있습니다.
+                                            현재 계획된 일정에 맞춰 각 구역별 작업을 열심히 진행하고 있습니다.
                                             {hasDuringPhotos && (
                                                 <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 중] 탭을 누르시면 실시간으로 변하고 있는 모습을 확인하실 수 있습니다.</span>
                                             )}
@@ -498,7 +497,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                             안녕하세요, 오늘 작업을 맡은 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong> 팀장입니다. 방금 현장에 도착하여 장비 점검을 마쳤습니다.
                                         </p>
                                         <p>
-                                            상태를 꼼꼼히 살피며 고객님의 소중한 공간을 정성껏 케어하겠습니다.
+                                            상태를 꼼꼼히 살피며 현장을 성심껏 관리하고 케어하겠습니다.
                                             {hasBeforePhotos && (
                                                 <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 전] 탭을 누르시면 현재 현장 모습을 확인하실 수 있습니다.</span>
                                             )}

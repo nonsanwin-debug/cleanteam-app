@@ -189,7 +189,17 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             checklistRef.current.copyLink()
         } else {
             if (!site) return
-            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
+            const getBaseUrl = () => {
+                if (typeof window !== 'undefined') {
+                    const origin = window.location.origin
+                    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
+                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                    }
+                    return origin
+                }
+                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+            }
+            const baseUrl = getBaseUrl()
             const link = `${baseUrl}/share/${site.id}`
             const copyText = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
 
@@ -371,7 +381,17 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
                         {/* 고객전용페이지 고객에게 보내기 버튼 */}
                         {site.customer_phone ? (() => {
-                            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.닷컴')
+                            const getBaseUrl = () => {
+                                if (typeof window !== 'undefined') {
+                                    const origin = window.location.origin
+                                    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
+                                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                                    }
+                                    return origin
+                                }
+                                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                            }
+                            const baseUrl = getBaseUrl()
                             const link = `${baseUrl}/share/${site.id}`
                             const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
                             const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`

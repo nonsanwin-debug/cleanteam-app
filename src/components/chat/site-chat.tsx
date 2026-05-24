@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { Send, UserPlus, Copy, Check, MessageCircle, ChevronDown, Phone } from 'lucide-react'
+import { Send, UserPlus, Copy, Check, MessageCircle, Phone, Bell, BellOff, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -49,7 +49,6 @@ function formatDate(dateStr: string) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
 
-
 export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId, customerPhone }: SiteChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
@@ -66,11 +65,27 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     
     const [unreadCount, setUnreadCount] = useState(0)
     const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; role: string; online_at: string }>>([])
+    const [participants, setParticipants] = useState<Array<{ id: string; name: string; role: string; user_id?: string }>>([])
+    
+    // 푸시 권한 유도 배너 상태
+    const [showPushBanner, setShowPushBanner] = useState(false)
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
+
+    // Capacitor 하이브리드 대응 동적 Base URL 확인
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            const origin = window.location.origin
+            if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
+                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+            }
+            return origin
+        }
+        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+    }
 
     // 외부에서 전달된 사용자 이름 비동기 연동
     useEffect(() => {
@@ -79,6 +94,99 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
             setHasSetNickname(true)
         }
     }, [currentUserName])
+
+    // 푸시 알림 허용 여부 체크 후 배너 노출 설정
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission === 'default') {
+                setShowPushBanner(true)
+            }
+        }
+    }, [])
+
+    // 참여자 정보 등록 및 업데이트 (비인증 포함 푸시 토큰 동기화)
+    const registerOrUpdateParticipant = async () => {
+        if (!hasSetNickname || !nickname.trim()) return
+        try {
+            let pushEndpoint = null
+            let pushP256dh = null
+            let pushAuth = null
+
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+                const registration = await navigator.serviceWorker.ready
+                const subscription = await registration.pushManager.getSubscription()
+                if (subscription) {
+                    const sub = subscription.toJSON()
+                    pushEndpoint = sub.endpoint || null
+                    pushP256dh = sub.keys?.p256dh || null
+                    pushAuth = sub.keys?.auth || null
+                }
+            }
+
+            await supabase
+                .from('site_chat_participants')
+                .upsert({
+                    site_id: siteId,
+                    name: nickname.trim(),
+                    role: currentUserRole,
+                    user_id: currentUserId || null,
+                    push_endpoint: pushEndpoint,
+                    push_p256dh: pushP256dh,
+                    push_auth: pushAuth,
+                    last_seen_at: new Date().toISOString()
+                }, {
+                    onConflict: 'site_id,name,role'
+                })
+        } catch (err) {
+            console.error('Participant register failed:', err)
+        }
+    }
+
+    // 닉네임 설정 완료 시 참여자 즉시 등록
+    useEffect(() => {
+        if (hasSetNickname && nickname.trim()) {
+            registerOrUpdateParticipant()
+        }
+    }, [siteId, hasSetNickname, nickname, currentUserRole, currentUserId])
+
+    // 영구 참여 대화 상대 목록 로드 및 Realtime 동기화
+    useEffect(() => {
+        if (!isOpen) return
+
+        const fetchParticipants = async () => {
+            const { data, error } = await supabase
+                .from('site_chat_participants')
+                .select('*')
+                .eq('site_id', siteId)
+                .order('created_at', { ascending: true })
+
+            if (!error && data) {
+                setParticipants(data)
+            }
+        }
+
+        fetchParticipants()
+
+        const channel = supabase
+            .channel(`participants_${siteId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'site_chat_participants',
+                    filter: `site_id=eq.${siteId}`
+                },
+                () => {
+                    fetchParticipants()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [siteId, isOpen])
 
     // Presence: 실시간 접속자 추적
     useEffect(() => {
@@ -132,7 +240,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         }
     }, [siteId, isOpen, hasSetNickname, nickname, currentUserRole, currentUserId])
 
-    // 메시지 로드
+    // 메시지 로드 및 실시간 동기화
     useEffect(() => {
         if (!isOpen) return
         
@@ -152,7 +260,6 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
 
         fetchMessages()
 
-        // Realtime 구독
         const channel = supabase
             .channel(`chat_${siteId}`)
             .on(
@@ -179,7 +286,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         }
     }, [siteId, isOpen])
 
-    // 비가시 상태에서 새 메시지 카운트 (채팅이 닫혀있을 때)
+    // 비가시 상태 새 메시지 알림 카운터
     useEffect(() => {
         if (!isOpen) {
             const channel = supabase
@@ -204,7 +311,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         }
     }, [siteId, isOpen])
 
-    // 스크롤 맨 아래로
+    // 자동 하단 스크롤
     useEffect(() => {
         if (isOpen && messagesEndRef.current) {
             const container = messagesEndRef.current.parentElement
@@ -214,11 +321,37 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         }
     }, [messages, isOpen])
 
-    // 메시지 전송
+    // 알림 허용 트리거 클릭
+    const handleRequestPushPermission = async () => {
+        try {
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+                const permission = await Notification.requestPermission()
+                if (permission === 'granted') {
+                    toast.success('푸시 알림 설정이 완료되었습니다.')
+                    if ('serviceWorker' in navigator) {
+                        const { subscribePush } = await import('@/lib/push-notifications')
+                        const success = await subscribePush()
+                        if (success) {
+                            await registerOrUpdateParticipant()
+                        }
+                    }
+                } else {
+                    toast.error('알림 권한을 허용해 주셔야 알림을 받을 수 있습니다.')
+                }
+            }
+        } catch (err) {
+            console.error('Request permission failed:', err)
+        } finally {
+            setShowPushBanner(false)
+        }
+    }
+
+    // 메시지 전송 및 백엔드 오프라인 푸시 트리거
     const handleSend = async () => {
         if (!newMessage.trim() || !nickname.trim()) return
         
         setIsSending(true)
+        const msgText = newMessage.trim()
         try {
             const { error } = await supabase
                 .from('site_chat_messages')
@@ -227,12 +360,18 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                     sender_name: nickname.trim(),
                     sender_role: currentUserRole,
                     sender_user_id: currentUserId || null,
-                    message: newMessage.trim(),
+                    message: msgText,
                 })
 
             if (error) throw error
             setNewMessage('')
             inputRef.current?.focus()
+
+            // 실시간 미접속자 목록을 추적하여 백엔드 푸시 발송
+            const onlineKeys = onlineUsers.map(ou => `${ou.name}_${ou.role}`)
+            const { sendChatPushNotification } = await import('@/actions/push')
+            sendChatPushNotification(siteId, nickname.trim(), msgText, onlineKeys).catch(() => {})
+
         } catch (err: any) {
             console.error('Chat send error:', err)
             toast.error('메시지 전송 실패')
@@ -241,15 +380,15 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         }
     }
 
-    // 초대 링크 복사
+    // 초대 링크 복사 (하이브리드 웹뷰 보안 대응)
     const handleCopyInviteLink = () => {
-        const url = `${window.location.origin}/share/${siteId}`
+        const baseUrl = getBaseUrl()
+        const url = `${baseUrl}/share/${siteId}`
         navigator.clipboard.writeText(url).then(() => {
             setCopied(true)
             toast.success('초대 링크가 복사되었습니다.')
             setTimeout(() => setCopied(false), 2000)
         }).catch(() => {
-            // fallback
             const textArea = document.createElement('textarea')
             textArea.value = url
             document.body.appendChild(textArea)
@@ -262,21 +401,22 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         })
     }
 
-    // SMS 초대
+    // SMS 초대 링크 발송
     const handleSmsInvite = () => {
-        const url = `${window.location.origin}/share/${siteId}`
+        const baseUrl = getBaseUrl()
+        const url = `${baseUrl}/share/${siteId}`
         const body = encodeURIComponent(`[NEXUS] 현장 채팅에 참여하세요!\n\n아래 링크를 눌러 현장 진행 상황을 확인하고 채팅에 참여할 수 있습니다.\n\n${url}`)
         window.location.href = `sms:?body=${body}`
     }
 
-    // 닉네임 설정
+    // 닉네임 수동 입력
     const handleSetNickname = () => {
         if (nickname.trim()) {
             setHasSetNickname(true)
         }
     }
 
-    // 날짜 구분자 체크
+    // 날짜 라벨 구성
     const getDateLabel = (msg: ChatMessage, index: number) => {
         if (index === 0) return formatDate(msg.created_at)
         const prevDate = new Date(messages[index - 1].created_at).toDateString()
@@ -285,7 +425,6 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         return null
     }
 
-    // 내 메시지 체크
     const isMyMessage = (msg: ChatMessage) => {
         if (currentUserId && msg.sender_user_id === currentUserId) return true
         if (!currentUserId && msg.sender_name === nickname && msg.sender_role === currentUserRole) return true
@@ -293,9 +432,33 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     }
 
     return (
-        <div className="mt-6 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <div className="mt-6 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
+            {/* 상단 알림 허용 커스텀 배너 */}
+            {showPushBanner && hasSetNickname && (
+                <div className="bg-blue-50 border-b border-blue-100 px-4 py-2.5 flex items-center justify-between text-xs text-blue-800 transition-all shrink-0">
+                    <div className="flex items-center gap-2">
+                        <Bell className="w-4 h-4 text-blue-600 animate-bounce shrink-0" />
+                        <span className="font-medium">화면을 닫아도 실시간 대화 알림을 받아보시겠습니까?</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            onClick={handleRequestPushPermission}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded transition-colors text-[10px]"
+                        >
+                            알림 허용
+                        </button>
+                        <button
+                            onClick={() => setShowPushBanner(false)}
+                            className="text-slate-400 hover:text-slate-600 p-0.5"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* 상단 바 */}
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
+            <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100 shrink-0">
                 <div className="flex gap-2 items-center w-full justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden">
                     {currentUserRole === 'leader' && customerPhone && (
                         <a
@@ -330,12 +493,12 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
             {/* 닉네임 미설정 시 */}
             {!hasSetNickname ? (
                 <div className="p-6 text-center space-y-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto animate-pulse">
                         <MessageCircle className="w-6 h-6 text-blue-500" />
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 text-sm">채팅 참여</h4>
-                        <p className="text-xs text-slate-500 mt-1">표시될 이름을 입력해주세요</p>
+                        <p className="text-xs text-slate-500 mt-1">대화에 사용할 이름을 입력해주세요</p>
                     </div>
                     <div className="flex gap-2 max-w-[280px] mx-auto">
                         <input
@@ -358,23 +521,30 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                 </div>
             ) : (
                 <>
-                    {/* 온라인 참여자 목록 */}
-                    {onlineUsers.length > 0 && (
-                        <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto [&::-webkit-scrollbar]:hidden shrink-0 w-full whitespace-nowrap">
-                            <span className="relative flex h-2 w-2 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-500 shrink-0 whitespace-nowrap">참여 중 ({onlineUsers.length}):</span>
-                            <div className="flex gap-1 text-[10px] text-slate-600 shrink-0 whitespace-nowrap items-center">
-                                {onlineUsers.map((user, idx) => (
-                                    <span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1 shrink-0 whitespace-nowrap">
-                                        <span className="font-bold text-[10px] whitespace-nowrap shrink-0">{user.name}</span>
-                                        <span className={`text-[8px] px-1 py-0.5 rounded font-bold shrink-0 whitespace-nowrap ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
-                                            {ROLE_LABELS[user.role] || '참여자'}
+                    {/* 영구 대화 상대 목록화 (온라인/오프라인) */}
+                    {participants.length > 0 && (
+                        <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex flex-col gap-1 shrink-0 w-full">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-slate-500 shrink-0 whitespace-nowrap">대화 상대 ({participants.length}):</span>
+                            </div>
+                            <div className="flex gap-1.5 text-[10px] text-slate-600 overflow-x-auto [&::-webkit-scrollbar]:hidden shrink-0 whitespace-nowrap items-center py-0.5">
+                                {participants.map((user, idx) => {
+                                    const isOnline = onlineUsers.some(ou => ou.name === user.name && ou.role === user.role)
+                                    return (
+                                        <span key={idx} className={`bg-white px-1.5 py-0.5 rounded border flex items-center gap-1.5 shrink-0 whitespace-nowrap shadow-sm transition-all ${isOnline ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
+                                            <span className="relative flex h-1.5 w-1.5 shrink-0">
+                                                {isOnline && (
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                )}
+                                                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                                            </span>
+                                            <span className="font-bold text-[10px] whitespace-nowrap shrink-0">{user.name}</span>
+                                            <span className={`text-[8px] px-1 py-0.5 rounded font-bold shrink-0 whitespace-nowrap ${ROLE_COLORS[user.role] || ROLE_COLORS.guest}`}>
+                                                {ROLE_LABELS[user.role] || '참여자'}
+                                            </span>
                                         </span>
-                                    </span>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
@@ -437,7 +607,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                     </div>
 
                     {/* 입력 영역 */}
-                    <div className="px-3 py-2.5 bg-white border-t border-slate-100">
+                    <div className="px-3 py-2.5 bg-white border-t border-slate-100 shrink-0">
                         <div className="flex gap-2">
                             <input
                                 ref={inputRef}
@@ -451,9 +621,9 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                             <Button
                                 onClick={handleSend}
                                 disabled={!newMessage.trim() || isSending}
-                                className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0"
+                                className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0 flex items-center justify-center"
                             >
-                                <Send className="w-4 h-4" />
+                                <Send className="w-4 h-4 text-white" />
                             </Button>
                         </div>
                         <div className="text-center mt-1.5">

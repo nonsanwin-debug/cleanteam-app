@@ -148,3 +148,108 @@ export async function sendPushToAdmins(
         console.error('sendPushToAdmins error:', error)
     }
 }
+
+// 채팅 오프라인 참여자들에게 푸시 알림 발송
+export async function sendChatPushNotification(
+    siteId: string,
+    senderName: string,
+    message: string,
+    onlineKeys: string[] // ["이름_역할", ...]
+) {
+    try {
+        const supabase = await createClient()
+
+        // 1. 해당 현장 채팅방의 영구 참여자 목록 조회
+        const { data: participants } = await supabase
+            .from('site_chat_participants')
+            .select('*')
+            .eq('site_id', siteId)
+
+        if (!participants || participants.length === 0) return
+
+        // 2. 현재 온라인이 아니고, 본인이 아닌 참여자 필터링
+        const offlineParticipants = participants.filter(p => {
+            const key = `${p.name}_${p.role}`
+            const isOnline = onlineKeys.includes(key)
+            const isSender = p.name === senderName
+            return !isOnline && !isSender
+        })
+
+        if (offlineParticipants.length === 0) return
+
+        // 3. 페이로드 구성
+        const title = `[NEXUS] ${senderName}님의 새 메시지`
+        const body = message.length > 50 ? `${message.substring(0, 50)}...` : message
+        const url = `/share/${siteId}` // 알림 클릭 시 해당 현장 공유 페이지로 유도
+
+        const pushPayload = JSON.stringify({
+            title,
+            body,
+            url,
+            tag: `chat_${siteId}`,
+            icon: '/icons/icon-192.png',
+        })
+
+        const sendPromises: Promise<any>[] = []
+
+        for (const p of offlineParticipants) {
+            // A. 자체 수신 푸시 토큰이 포함된 게스트/고객인 경우
+            if (p.push_endpoint && p.push_p256dh && p.push_auth) {
+                sendPromises.push(
+                    webpush.sendNotification(
+                        {
+                            endpoint: p.push_endpoint,
+                            keys: { p256dh: p.push_p256dh, auth: p.push_auth }
+                        },
+                        pushPayload
+                    ).catch(async (err: any) => {
+                        // 만료된 구독 토큰 자동 초기화
+                        if (err.statusCode === 410 || err.statusCode === 404) {
+                            await supabase
+                                .from('site_chat_participants')
+                                .update({
+                                    push_endpoint: null,
+                                    push_p256dh: null,
+                                    push_auth: null
+                                })
+                                .eq('id', p.id)
+                        }
+                    })
+                )
+            }
+
+            // B. user_id를 갖는 정식 회원(작업팀/관리자 등)인 경우, push_subscriptions를 매칭하여 모두 발송
+            if (p.user_id) {
+                const { data: subs } = await supabase
+                    .from('push_subscriptions')
+                    .select('endpoint, p256dh, auth')
+                    .eq('user_id', p.user_id)
+
+                if (subs && subs.length > 0) {
+                    for (const sub of subs) {
+                        sendPromises.push(
+                            webpush.sendNotification(
+                                {
+                                    endpoint: sub.endpoint,
+                                    keys: { p256dh: sub.p256dh, auth: sub.auth }
+                                },
+                                pushPayload
+                            ).catch(async (err: any) => {
+                                if (err.statusCode === 410 || err.statusCode === 404) {
+                                    await supabase
+                                        .from('push_subscriptions')
+                                        .delete()
+                                        .eq('endpoint', sub.endpoint)
+                                }
+                            })
+                        )
+                    }
+                }
+            }
+        }
+
+        await Promise.allSettled(sendPromises)
+    } catch (error) {
+        console.error('sendChatPushNotification error:', error)
+    }
+}
