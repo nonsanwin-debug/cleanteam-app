@@ -20,7 +20,7 @@ interface ChatMessage {
 interface SiteChatProps {
     siteId: string
     currentUserName?: string
-    currentUserRole?: 'leader' | 'customer' | 'guest'
+    currentUserRole?: 'leader' | 'customer' | 'guest' | 'admin'
     currentUserId?: string
     customerPhone?: string
 }

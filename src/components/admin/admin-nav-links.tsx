@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus, Building2, Share2, Camera, MessageSquarePlus, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Settings, LogOut, Users, MapPin, AlertCircle, UserPlus, Building2, Share2, Camera, MessageSquarePlus, CalendarDays, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AdminNavLinksProps {
@@ -15,6 +15,7 @@ interface AdminNavLinksProps {
 const NAV_ITEMS = [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
     { href: '/admin/sites', icon: MapPin, label: '현장 관리', iconColor: 'text-rose-500' },
+    { href: '/admin/chats', icon: MessageCircle, label: '실시간 채팅 관제', iconColor: 'text-indigo-500' },
     { href: '/admin/shared-orders', icon: Share2, label: '오더 공유 센터', iconColor: 'text-emerald-500' },
     // { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
     { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
