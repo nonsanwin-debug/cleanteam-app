@@ -325,36 +325,33 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
             {isOpen && (
                 <div className="mt-2 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
                     {/* 상단 바 */}
-                    <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-                        <span className="text-xs font-bold text-slate-500">
-                            {messages.length > 0 ? `${messages.length}개 메시지` : '대화를 시작해보세요'}
-                        </span>
-                        <div className="flex gap-1.5 items-center">
+                    <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
+                        <div className="flex gap-2 items-center w-full justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden">
                             {currentUserRole === 'leader' && customerPhone && (
                                 <a
                                     href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
-                                    className="h-10 px-2 inline-flex flex-col items-center justify-center rounded-md text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 shadow-sm transition-all shrink-0 whitespace-nowrap"
+                                    className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all shrink-0 whitespace-nowrap gap-1.5"
                                 >
-                                    <Phone className="w-3.5 h-3.5 mb-0.5 shrink-0" />
-                                    <span className="leading-none">전화걸기</span>
+                                    <Phone className="w-3.5 h-3.5 shrink-0" />
+                                    전화 걸기
                                 </a>
                             )}
                             <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="h-7 px-2.5 text-xs text-slate-600 hover:text-blue-600"
+                                className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
                                 onClick={handleCopyInviteLink}
                             >
-                                {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                                 링크 복사
                             </Button>
                             <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="h-7 px-2.5 text-xs text-slate-600 hover:text-blue-600"
+                                className="h-8 px-3 text-xs font-medium text-slate-700 border-slate-200 bg-white hover:bg-slate-50 hover:text-blue-600 shadow-sm shrink-0 whitespace-nowrap gap-1.5 [&_svg]:size-3.5"
                                 onClick={handleSmsInvite}
                             >
-                                <UserPlus className="w-3.5 h-3.5 mr-1" />
+                                <UserPlus className="w-3.5 h-3.5" />
                                 SMS 초대
                             </Button>
                         </div>
