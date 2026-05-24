@@ -128,7 +128,7 @@ export default async function AdminSitesPage(props: { searchParams: Promise<{ da
                             '지연된 현장 목록'
                         ) : isValidDate
                             ? `${format(new Date(filterDate), 'yyyy년 MM월 dd일')} 현장 목록`
-                            : '등록된 모든 청소 현장을 관리하고 팀장을 배정합니다.'}
+                            : '등록된 모든 현장을 관리하고 팀장을 배정합니다.'}
                         {selectedWorker && (
                             <span
                                 className="font-medium ml-1"

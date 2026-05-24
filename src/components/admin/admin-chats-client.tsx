@@ -114,7 +114,7 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                 </div>
                 {filteredSites.length === 0 ? (
                     <div className="py-12 text-center text-xs text-slate-400 bg-white border border-slate-200 border-dashed rounded-2xl shadow-sm">
-                        {searchQuery ? '검색 결과가 없습니다.' : '현재 진행 중인 청소 현장이 없습니다.'}
+                        {searchQuery ? '검색 결과가 없습니다.' : '현재 진행 중인 현장이 없습니다.'}
                     </div>
                 ) : (
                     <div className="flex gap-3 overflow-x-auto pb-3 pt-1 px-1 [&::-webkit-scrollbar]:hidden touch-pan-x snap-x snap-mandatory">

@@ -66,7 +66,7 @@ export default function AdminRegisterPage() {
                         관리자 회원가입 (업체 생성)
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        새로운 청소 업체를 등록하고 관리자로 시작하세요.
+                        새로운 업체를 등록하고 관리자로 시작하세요.
                     </p>
                 </div>
 
@@ -118,7 +118,7 @@ export default function AdminRegisterPage() {
                                 type="text"
                                 required
                                 className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
-                                placeholder="업체명 (예: 클린프로)"
+                                placeholder="업체명 (예: 현장케어)"
                                 onChange={handleChange}
                             />
                         </div>

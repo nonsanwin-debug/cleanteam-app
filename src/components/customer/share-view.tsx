@@ -444,7 +444,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                         <div className="flex flex-col flex-1 gap-1 max-w-[90%]">
                             <span className="text-sm text-slate-500 font-medium ml-1 flex items-center gap-1.5">
                                 {site.worker?.name || site.worker_name || '담당 팀장'} 
-                                <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-sm">청소 전문가</span>
+                                <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-sm">작업 전문가</span>
                             </span>
                             
                             {(() => {
@@ -465,7 +465,7 @@ export function ShareView({ siteId }: { siteId: string }) {
                                     <>
                                         <p className="font-bold text-blue-600 mb-2">"작업이 모두 무사히 완료되었습니다!"</p>
                                         <p className="mb-4">
-                                            청소 현장 팀장 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong>입니다. 모든 청소 작업을 마치고 완료 보고 드립니다.
+                                            현장 팀장 <strong>{site.worker?.name || site.worker_name || '미배정'}</strong>입니다. 모든 작업을 마치고 완료 보고 드립니다.
                                             {hasAfterPhotos && (
                                                 <span className="block mt-1">아래 <strong>현장 사진</strong>의 [작업 후] 탭에서 깨끗해진 현장 모습을 확인해 보세요.</span>
                                             )}

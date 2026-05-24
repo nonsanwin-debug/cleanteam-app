@@ -113,13 +113,15 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                 <span className="text-muted-foreground block mb-1">고객명</span>
                                 <div className="font-medium">{site.customer_name || '-'}</div>
                             </div>
+
                             <div>
-                                <span className="text-muted-foreground block mb-1">청소 일시</span>
+                                <span className="text-muted-foreground block mb-1">작업 일시</span>
                                 <div className="font-medium flex items-center">
                                     <Calendar className="h-3 w-3 mr-1" />
                                     {site.cleaning_date || '-'} {site.start_time}
                                 </div>
                             </div>
+
                             <div>
                                 <span className="text-muted-foreground block mb-1">연락처</span>
                                 <div className="font-medium">{site.customer_phone || '-'}</div>

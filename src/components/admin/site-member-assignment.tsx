@@ -266,7 +266,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                             <CardDescription className="flex items-center text-xs gap-2">
                                                 <span className="flex items-center">
                                                     <Calendar className="mr-1 h-3 w-3" />
-                                                    청소일: {site.cleaning_date || '-'}
+                                                    작업일: {site.cleaning_date || '-'}
                                                 </span>
                                                 {site.start_time && (
                                                     <span className="flex items-center text-blue-600 font-medium">

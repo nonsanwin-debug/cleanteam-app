@@ -430,7 +430,7 @@ export function MasterCompaniesClient({ initialCompanies }: { initialCompanies: 
                                 <Checkbox id="epo" checked={compData.expose_partner_orders} onCheckedChange={(c) => setCompData((p:any) => ({ ...p, expose_partner_orders: !!c }))} />
                                 <Label htmlFor="epo" className="font-medium text-slate-700">오더 공유 마켓(게시판) 열람 권한</Label>
                             </div>
-                            <p className="text-xs text-slate-500 pl-6">체크 해제 시 해당 청소업체는 파트너들이 올린 공유 오더를 볼 수 없습니다.</p>
+                            <p className="text-xs text-slate-500 pl-6">체크 해제 시 해당 업체는 파트너들이 올린 공유 오더를 볼 수 없습니다.</p>
                         </section>
                     </div>
 

@@ -246,7 +246,7 @@ export function SiteDialog({
                 <DialogHeader>
                     <DialogTitle>{mode === 'update' ? '현장 정보 수정 (Ver.2.0)' : '새 현장 등록 (Ver.2.0)'}</DialogTitle>
                     <DialogDescription>
-                        {mode === 'update' ? '현장 정보를 수정합니다.' : '새로 관리할 청소 현장의 정보를 입력해주세요.'}
+                        {mode === 'update' ? '현장 정보를 수정합니다.' : '새로 관리할 현장의 정보를 입력해주세요.'}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -258,7 +258,7 @@ export function SiteDialog({
                                 name="cleaning_date"
                                 render={({ field }) => (
                                     <FormItem className="col-span-2">
-                                        <FormLabel>청소 날짜</FormLabel>
+                                        <FormLabel>작업 날짜</FormLabel>
                                         <div className="bg-slate-50 p-3 rounded-md border">
                                             <div className="flex justify-between items-center mb-2">
                                                 <Button
@@ -527,42 +527,6 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>📷 사진 구역 설정</FormLabel>
                                         <div className="bg-slate-50 p-3 rounded-md border space-y-3">
-                                            {/* 자동 생성 버튼 */}
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full text-xs"
-                                                onClick={() => {
-                                                    const structureType = form.getValues('structure_type') || ''
-                                                    if (!structureType.trim()) {
-                                                        toast.error('구조 필드를 먼저 입력해주세요.')
-                                                        return
-                                                    }
-                                                    // 파싱: "방3 화2 베1" → ["방1","방2","방3","화1","화2","베1"]
-                                                    const zones: string[] = []
-                                                    const parts = structureType.replace(/,/g, ' ').split(/\s+/)
-                                                    for (const part of parts) {
-                                                        const match = part.match(/^(.+?)(\d+)$/)
-                                                        if (match) {
-                                                            const [, prefix, countStr] = match
-                                                            const count = parseInt(countStr, 10)
-                                                            for (let i = 1; i <= count; i++) {
-                                                                zones.push(`${prefix}${i}`)
-                                                            }
-                                                        }
-                                                    }
-                                                    if (zones.length === 0) {
-                                                        toast.error('구조에서 구역을 파싱할 수 없습니다. 수동으로 추가해주세요.')
-                                                        return
-                                                    }
-                                                    field.onChange(zones)
-                                                    toast.success(`${zones.length}개 구역이 생성되었습니다.`)
-                                                }}
-                                            >
-                                                구조에서 자동 생성
-                                            </Button>
-
                                             {/* 현재 구역 태그 */}
                                             {field.value && field.value.length > 0 && (
                                                 <div className="flex flex-wrap gap-1.5">

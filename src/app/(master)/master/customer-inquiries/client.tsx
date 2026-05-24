@@ -136,7 +136,7 @@ export function MasterCustomerInquiriesClient({ initialInquiries }: { initialInq
                                 <th className="p-3 pl-4 font-semibold text-xs text-slate-600 min-w-[100px]">접수일</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 min-w-[120px]">고객 정보</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 min-w-[180px]">주소 / 일정</th>
-                                <th className="p-3 font-semibold text-xs text-slate-600 min-w-[120px]">청소 종류</th>
+                                <th className="p-3 font-semibold text-xs text-slate-600 min-w-[120px]">작업 종류</th>
                                 <th className="p-3 font-semibold text-xs text-slate-600 text-center min-w-[120px]">액션</th>
                             </tr>
                         </thead>
@@ -215,7 +215,7 @@ export function MasterCustomerInquiriesClient({ initialInquiries }: { initialInq
                                     
                                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                                         <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
-                                            <Sparkles className="w-4 h-4 text-blue-500" /> 청소 정보
+                                            <Sparkles className="w-4 h-4 text-blue-500" /> 작업 정보
                                         </h4>
                                         <div className="space-y-2 text-sm font-semibold">
                                             <p className="flex justify-between"><span className="text-slate-500 font-normal">종류:</span> {viewingInquiry.clean_type}</p>

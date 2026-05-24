@@ -897,7 +897,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
                             <Sparkles className="h-8 w-8" />
                         </div>
                         <span className="font-bold text-slate-700 text-base mb-1">사진을 준비 중입니다</span>
-                        <span className="text-slate-500">꼼꼼하게 청소하고 있어요. 잠시만 기다려 주세요!</span>
+                        <span className="text-slate-500">꼼꼼하게 작업하고 있어요. 잠시만 기다려 주세요!</span>
                     </div>
                 ) : (
                     currentPhotos.map((photo, index) => (

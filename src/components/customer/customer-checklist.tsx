@@ -188,7 +188,7 @@ export function CustomerChecklist({ siteId, photos = [], onSuccess }: CustomerCh
                 <CardContent className="p-4 space-y-6">
                     <h4 className="font-bold text-lg">{template.title}</h4>
                     <p className="text-sm text-slate-500 -mt-4">
-                        청소 상태를 확인하시고 각 항목에 체크해주세요.
+                        작업 상태를 확인하시고 각 항목에 체크해주세요.
                     </p>
 
                     <div className="space-y-4">

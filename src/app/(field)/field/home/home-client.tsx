@@ -87,7 +87,7 @@ export function FieldHomeClient({
                             <span className="text-teal-600">{partnerName}</span> 대표님!
                         </h1>
                         <p className="text-base text-slate-500 mt-2 flex items-center gap-1.5">
-                            현재 <strong className="text-teal-600 text-lg">{ongoingCount}</strong>건의 청소가 진행 중입니다.
+                            현재 <strong className="text-teal-600 text-lg">{ongoingCount}</strong>건의 현장이 진행 중입니다.
                         </p>
                     </>
                 ) : (
@@ -97,7 +97,7 @@ export function FieldHomeClient({
                             <span className="text-teal-600">오신 것을 환영합니다!</span>
                         </h1>
                         <p className="text-base text-slate-500 mt-2">
-                            청소 서비스를 예약하려면 로그인이 필요합니다.
+                            현장 관리 서비스를 예약하려면 로그인이 필요합니다.
                         </p>
                     </>
                 )}
@@ -480,7 +480,7 @@ export function FieldHomeClient({
 
                         <a
                             href={smsPhone.replace(/[^0-9]/g, '').length >= 10
-                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 청소업체가 고객님의 공간을 치우고\n정리하며 케어합니다.\n(스마트배정을 통해 검증된 업체가 배정됩니다)\n\n${window.location.origin}/book/p/${partnerId}?r=${showSmsModal}`)}`
+                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 전문업체가 고객님의 현장을 관리하고\n케어합니다.\n(스마트배정을 통해 검증된 업체가 배정됩니다)\n\n${window.location.origin}/book/p/${partnerId}?r=${showSmsModal}`)}`
                                 : '#'
                             }
                             onClick={(e) => {

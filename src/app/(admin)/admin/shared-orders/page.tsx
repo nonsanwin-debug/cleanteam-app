@@ -393,7 +393,7 @@ export default function SharedOrdersPage() {
                                 {parsedDetails.source === 'customer_link' && (
                                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5">
                                         {[
-                                            parsedDetails.cleaning_type && { label: '청소종류', value: parsedDetails.cleaning_type },
+                                            parsedDetails.cleaning_type && { label: '작업종류', value: parsedDetails.cleaning_type },
                                             parsedDetails.residential_type && { label: '주거형태', value: parsedDetails.residential_type },
                                             parsedDetails.structure_type && { label: '구조', value: parsedDetails.structure_type },
                                             parsedDetails.building_condition && { label: '건물상태', value: parsedDetails.building_condition },

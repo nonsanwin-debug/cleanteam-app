@@ -26,7 +26,7 @@ interface SiteChatProps {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-    leader: '청소팀',
+    leader: '작업팀',
     customer: '고객',
     admin: '관리자',
     guest: '게스트',

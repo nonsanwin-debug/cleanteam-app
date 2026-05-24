@@ -23,7 +23,7 @@ export default async function ChecklistListPage() {
             <div>
                 <h2 className="text-3xl font-bold tracking-tight">체크리스트 관리</h2>
                 <p className="text-muted-foreground">
-                    서비스별 청소 점검 항목 템플릿을 관리합니다.
+                    서비스별 현장 점검 항목 템플릿을 관리합니다.
                 </p>
             </div>
 
@@ -35,7 +35,7 @@ export default async function ChecklistListPage() {
                     <form action={create} className="flex gap-2">
                         <div className="grid w-full items-center gap-1.5">
                             <Label htmlFor="title" className="sr-only">템플릿 제목</Label>
-                            <Input id="title" name="title" placeholder="예: 입주청소 표준, 오피스 정기관리" required />
+                            <Input id="title" name="title" placeholder="예: 입주작업 표준, 오피스 정기관리" required />
                         </div>
                         <Button type="submit">
                             <Plus className="mr-2 h-4 w-4" /> 생성

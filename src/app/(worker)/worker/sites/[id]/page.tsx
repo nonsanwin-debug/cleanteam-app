@@ -694,7 +694,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                             ⚠️ 업체수금 입니다
                                         </p>
                                         <p className="text-xs text-red-700 text-center font-medium leading-relaxed whitespace-pre-line">
-                                            {smsSettings?.company_collection_message || '청소 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
+                                            {smsSettings?.company_collection_message || '작업 종료 시 고객에게\n금액은 대표님께 직접 연락드리면 된다고 전달'}
                                         </p>
                                     </div>
                                 )}

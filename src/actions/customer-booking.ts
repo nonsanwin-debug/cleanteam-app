@@ -55,7 +55,7 @@ export async function submitCustomerInquiry(data: any): Promise<ActionResponse> 
                         { name: "고객명", value: payload.customer_name, inline: true },
                         { name: "연락처", value: payload.customer_phone, inline: true },
                         { name: "\u200B", value: "\u200B", inline: false }, // empty line
-                        { name: "청소 일정", value: `${payload.work_date} / ${payload.time_preference}`, inline: true },
+                        { name: "작업 일정", value: `${payload.work_date} / ${payload.time_preference}`, inline: true },
                         { name: "종류 및 건물", value: `${payload.clean_type} / ${payload.structure_type}`, inline: true },
                         { name: "평수 및 컨디션", value: `${payload.area_size} / ${payload.building_condition}`, inline: true },
                         { name: "현장 주소", value: `${payload.address} ${payload.detail_address}`, inline: false },

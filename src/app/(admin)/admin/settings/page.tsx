@@ -10,7 +10,7 @@ import { Settings, Save, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCompanySettings, updateCompanySettings } from '@/actions/admin'
 
-const DEFAULT_TEMPLATE = `고객님 청소는 잘 마무리 되었습니다
+const DEFAULT_TEMPLATE = `고객님 작업은 잘 마무리 되었습니다
 아래 계좌번호로 명시된 금액 입금 후
 예금주 성함과 함께 문자 부탁드리겠습니다
 
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                             value={companyCollectionMessage}
                             onChange={(e) => setCompanyCollectionMessage(e.target.value)}
                             rows={3}
-                            placeholder="예: 청소 종료 시 고객에게 금액은 대표님께 직접 연락드리면 된다고 전달"
+                            placeholder="예: 작업 종료 시 고객에게 금액은 대표님께 직접 연락드리면 된다고 전달"
                             className="text-sm"
                         />
                         <p className="text-xs text-slate-400">

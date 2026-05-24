@@ -5,17 +5,17 @@ import { getPendingApplicantCount } from '@/actions/shared-orders'
 
 export const metadata: Metadata = {
     title: 'NEXUS 파트너스',
-    description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+    description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 현장 매칭 시스템을 경험하세요',
     openGraph: {
         title: 'NEXUS 파트너스',
-        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 현장 매칭 시스템을 경험하세요',
         images: [{ url: '/og-nexus.png', width: 1200, height: 630, alt: 'NEXUS' }],
         type: 'website',
     },
     twitter: {
         card: 'summary',
         title: 'NEXUS 파트너스',
-        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 청소 매칭 시스템을 경험하세요',
+        description: '현장 배정부터 결과 확인까지 한눈에! NEXUS 파트너스와 함께 스마트한 현장 매칭 시스템을 경험하세요',
         images: ['/og-nexus.png'],
     },
 }

@@ -141,7 +141,7 @@ function ChecklistClient({ siteId }: { siteId: string }) {
                     고객 확인 서명
                 </h3>
                 <p className="text-xs text-slate-500 mb-2">
-                    위 점검 항목을 모두 확인하였으며, 청소 서비스 완료에 동의합니다.
+                    위 점검 항목을 모두 확인하였으며, 작업 완료에 동의합니다.
                 </p>
                 <SignaturePad onEnd={setSignature} />
             </section>

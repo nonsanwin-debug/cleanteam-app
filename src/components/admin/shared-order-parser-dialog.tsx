@@ -122,7 +122,7 @@ export function SharedOrderParserDialog({ orderId, open, onOpenChange }: SharedO
                             <Label htmlFor="order-text">오더 텍스트</Label>
                             <Textarea
                                 id="order-text"
-                                placeholder={`성함(숨고 닉네임) : 홍길동\n연락처 : 010-1234-5678\n주소 : 서울시 강남구...\n청소 날짜 : 2/15\n금액 : 잔금 20만원`}
+                                placeholder={`성함(숨고 닉네임) : 홍길동\n연락처 : 010-1234-5678\n주소 : 서울시 강남구...\n작업 날짜 : 2/15\n금액 : 잔금 20만원`}
                                 className="mt-1.5 min-h-[200px] font-mono text-sm"
                                 value={orderText}
                                 onChange={(e) => setOrderText(e.target.value)}
