@@ -654,7 +654,6 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             {/* Photo Section */}
             <section>
                 <h3 className="font-bold mb-2 flex items-center">
-                    <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 1</span>
                     사진 기록
                 </h3>
                 <PhotoUploader siteId={site.id} existingPhotos={photos} canDelete={isLeader} photoZones={site.photo_zones} />
@@ -663,7 +662,6 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             {/* Checklist Section */}
             <section>
                 <h3 className="font-bold mb-2 flex items-center">
-                    <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 2</span>
                     체크리스트 및 작업 완료
                 </h3>
                 <ChecklistForm
@@ -678,7 +676,6 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             {/* Chat Section */}
             <section>
                 <h3 className="font-bold mb-2 flex items-center">
-                    <span className="bg-primary/10 text-primary p-1 rounded mr-2">Step 3</span>
                     현장 채팅
                 </h3>
                 <SiteChat
