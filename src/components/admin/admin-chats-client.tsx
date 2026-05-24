@@ -23,11 +23,11 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
     const filteredSites = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
         if (!query) {
-            // Default list: only show active/pending sites, but ensure the currently selected site is always included so it doesn't vanish
-            const activeSites = sites.filter(site => site.status !== 'completed')
+            // Default list: ONLY show sites currently in progress (진행중 / 작업중)
+            const activeSites = sites.filter(site => site.status === 'in_progress')
             if (selectedSiteId) {
                 const selectedSiteObj = sites.find(s => s.id === selectedSiteId)
-                if (selectedSiteObj && selectedSiteObj.status === 'completed' && !activeSites.some(s => s.id === selectedSiteId)) {
+                if (selectedSiteObj && selectedSiteObj.status !== 'in_progress' && !activeSites.some(s => s.id === selectedSiteId)) {
                     activeSites.unshift(selectedSiteObj)
                 }
             }
