@@ -70,6 +70,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     
     // 푸시 권한 유도 배너 상태
     const [showPushBanner, setShowPushBanner] = useState(false)
+    const [pushPermissionState, setPushPermissionState] = useState<'default' | 'granted' | 'denied'>('default')
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -99,7 +100,8 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     // 푸시 알림 허용 여부 체크 후 배너 노출 설정
     useEffect(() => {
         if (typeof window !== 'undefined' && 'Notification' in window) {
-            if (Notification.permission === 'default') {
+            setPushPermissionState(Notification.permission)
+            if (Notification.permission === 'default' || Notification.permission === 'denied') {
                 setShowPushBanner(true)
             }
         }
@@ -436,18 +438,33 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         <div className="mt-6 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
             {/* 상단 알림 허용 커스텀 배너 */}
             {showPushBanner && hasSetNickname && (
-                <div className="bg-blue-50 border-b border-blue-100 px-4 py-2.5 flex items-center justify-between text-xs text-blue-800 transition-all shrink-0">
+                <div className={`${pushPermissionState === 'denied' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-blue-50 border-blue-100 text-blue-800'} border-b px-4 py-2.5 flex items-center justify-between text-xs transition-all shrink-0`}>
                     <div className="flex items-center gap-2">
-                        <Bell className="w-4 h-4 text-blue-600 animate-bounce shrink-0" />
-                        <span className="font-medium">화면을 닫아도 실시간 대화 알림을 받아보시겠습니까?</span>
+                        <Bell className={`w-4 h-4 shrink-0 ${pushPermissionState === 'denied' ? 'text-amber-600 font-bold animate-pulse' : 'text-blue-600 animate-bounce'}`} />
+                        {pushPermissionState === 'denied' ? (
+                            <span className="font-medium">실시간 대화 알림이 차단되어 있습니다. 알림을 받으시려면 주소창 왼쪽 설정에서 알림 허용으로 변경해 주세요.</span>
+                        ) : (
+                            <span className="font-medium">화면을 닫아도 실시간 대화 알림을 받아보시겠습니까?</span>
+                        )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        <button
-                            onClick={handleRequestPushPermission}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded transition-colors text-[10px]"
-                        >
-                            알림 허용
-                        </button>
+                        {pushPermissionState === 'denied' ? (
+                            <button
+                                onClick={() => {
+                                    toast.info("모바일이나 PC 브라우저 주소창 왼쪽의 자물쇠(또는 설정) 아이콘을 터치하여 알림 차단을 '허용'으로 활성화해 주시면 알림 수신이 정상 작동합니다.")
+                                }}
+                                className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded transition-colors text-[10px] whitespace-nowrap"
+                            >
+                                해제 방법
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleRequestPushPermission}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded transition-colors text-[10px] whitespace-nowrap"
+                            >
+                                알림 허용
+                            </button>
+                        )}
                         <button
                             onClick={() => setShowPushBanner(false)}
                             className="text-slate-400 hover:text-slate-600 p-0.5"
