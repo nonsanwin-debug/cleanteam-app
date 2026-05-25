@@ -71,6 +71,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     // 푸시 권한 유도 배너 상태
     const [showPushBanner, setShowPushBanner] = useState(false)
     const [pushPermissionState, setPushPermissionState] = useState<'default' | 'granted' | 'denied'>('default')
+    const [showGuideModal, setShowGuideModal] = useState(false)
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -87,6 +88,15 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
             return origin
         }
         return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+    }
+
+    // 모바일 OS 타입 판별 유틸리티 (어르신용 맞춤 안내 목적)
+    const getDeviceOS = () => {
+        if (typeof window === 'undefined') return 'unknown'
+        const ua = navigator.userAgent.toLowerCase()
+        if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) return 'ios'
+        if (ua.includes('android')) return 'android'
+        return 'pc'
     }
 
     // 외부에서 전달된 사용자 이름 비동기 연동
@@ -451,7 +461,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                         {pushPermissionState === 'denied' ? (
                             <button
                                 onClick={() => {
-                                    toast.info("모바일이나 PC 브라우저 주소창 왼쪽의 자물쇠(또는 설정) 아이콘을 터치하여 알림 차단을 '허용'으로 활성화해 주시면 알림 수신이 정상 작동합니다.")
+                                    setShowGuideModal(true)
                                 }}
                                 className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded transition-colors text-[10px] whitespace-nowrap"
                             >
@@ -651,6 +661,92 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* 알림 설정 방법 상세 안내 모달 (어르신 맞춤형 크고 쉬운 디자인) */}
+            {showGuideModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 flex flex-col gap-4">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <h3 className="font-extrabold text-base text-slate-800 flex items-center gap-2">
+                                🔔 알림 켜는 방법
+                            </h3>
+                            <button
+                                onClick={() => setShowGuideModal(false)}
+                                className="text-slate-400 hover:text-slate-600 p-1"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="text-sm text-slate-600 space-y-4">
+                            {getDeviceOS() === 'ios' ? (
+                                <>
+                                    <p className="font-bold text-slate-700 text-xs bg-slate-50 p-2 rounded-lg leading-relaxed">
+                                        아이폰(iPhone)은 아래 순서대로 해주셔야 실시간 알림을 받을 수 있습니다.
+                                    </p>
+                                    <ol className="space-y-3 text-xs leading-relaxed">
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-blue-100 text-blue-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">1</span>
+                                            <span>화면 맨 아래 중간에 있는 **공유 버튼 📤 (네모와 위 화살표 모양)**을 누르세요.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-blue-100 text-blue-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">2</span>
+                                            <span>메뉴를 아래로 내려서 **'홈 화면에 추가' ➕**를 누르세요.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-blue-100 text-blue-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">3</span>
+                                            <span>바탕화면에 새로 생긴 앱 아이콘을 눌러 들어온 뒤, 다시 **[알림 허용]**을 해주시면 됩니다.</span>
+                                        </li>
+                                    </ol>
+                                </>
+                            ) : getDeviceOS() === 'android' ? (
+                                <>
+                                    <p className="font-bold text-slate-700 text-xs bg-slate-50 p-2 rounded-lg leading-relaxed">
+                                        안드로이드(갤럭시 등) 스마트폰 알림 켜는 방법입니다.
+                                    </p>
+                                    <ol className="space-y-3 text-xs leading-relaxed">
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-100 text-amber-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">1</span>
+                                            <span>화면 맨 위 주소창 왼쪽에 있는 **자물쇠 🔒 모양** 또는 **영어 i 모양**을 누르세요.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-100 text-amber-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">2</span>
+                                            <span>**'사이트 설정'** 또는 **'권한'**을 누르세요.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-100 text-amber-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">3</span>
+                                            <span>**'알림'** 항목을 찾아 **'허용'** 또는 파란색 스위치를 켜주세요.</span>
+                                        </li>
+                                    </ol>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="font-bold text-slate-700 text-xs bg-slate-50 p-2 rounded-lg leading-relaxed">
+                                        컴퓨터(PC) 브라우저 알림 켜는 방법입니다.
+                                    </p>
+                                    <ol className="space-y-3 text-xs leading-relaxed">
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-slate-200 text-slate-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">1</span>
+                                            <span>인터넷 주소창 왼쪽에 있는 **자물쇠 🔒 모양**을 누르세요.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-slate-200 text-slate-700 font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px]">2</span>
+                                            <span>**'알림'** 항목 옆의 스위치를 켜거나 **'허용'**을 선택해 주세요.</span>
+                                        </li>
+                                    </ol>
+                                </>
+                            )}
+                        </div>
+
+                        <Button
+                            onClick={() => setShowGuideModal(false)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 rounded-xl text-xs mt-2"
+                        >
+                            확인했습니다
+                        </Button>
+                    </div>
+                </div>
             )}
         </div>
     )
