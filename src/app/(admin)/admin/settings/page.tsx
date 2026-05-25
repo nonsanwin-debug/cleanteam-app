@@ -220,6 +220,7 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
+            {/*
             <Card className="border-blue-200">
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -296,6 +297,7 @@ export default function SettingsPage() {
                     </Button>
                 </CardContent>
             </Card>
+            */}
         </div>
     )
 }
