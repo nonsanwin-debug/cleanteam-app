@@ -194,38 +194,44 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                         </span>
                     </div>
 
-                    {/* 2. Photo Uploader (Read-only - Image 1 top part) */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-                        <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
-                            📸 현장 사진 대장
-                        </h3>
-                        {isLoadingPhotos ? (
-                            <div className="flex items-center justify-center py-12 text-xs text-slate-400 gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
-                                사진 정보를 불러오는 중입니다...
+                    {/* 2 & 3. Split Desktop Layout: Left Photos Column, Right Live Chat Column */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        {/* Left Column: Photos (Read-only - spans 7/12 on large screens) */}
+                        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col min-h-[500px]">
+                            <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5 shrink-0 pb-2 border-b border-slate-100">
+                                📸 현장 사진 대장
+                            </h3>
+                            <div className="flex-1 overflow-y-auto">
+                                {isLoadingPhotos ? (
+                                    <div className="flex items-center justify-center py-20 text-xs text-slate-400 gap-2 h-full">
+                                        <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                                        사진 정보를 불러오는 중입니다...
+                                    </div>
+                                ) : (
+                                    <PhotoUploader
+                                        key={`uploader-${currentSiteId}`}
+                                        siteId={currentSiteId}
+                                        existingPhotos={photos}
+                                        readOnly={true}
+                                        canDelete={false}
+                                        showFeatureToggle={false}
+                                        photoZones={selectedSite.photo_zones || []}
+                                    />
+                                )}
                             </div>
-                        ) : (
-                            <PhotoUploader
-                                key={`uploader-${currentSiteId}`}
-                                siteId={currentSiteId}
-                                existingPhotos={photos}
-                                readOnly={true}
-                                canDelete={false}
-                                showFeatureToggle={false}
-                                photoZones={selectedSite.photo_zones || []}
-                            />
-                        )}
-                    </div>
+                        </div>
 
-                    {/* 3. Live Chat Panel (Image 1 bottom part) */}
-                    <div className="w-full">
-                        <SiteChat
-                            key={`chat-${currentSiteId}`}
-                            siteId={currentSiteId}
-                            currentUserName={adminName}
-                            currentUserRole="admin"
-                            currentUserId={adminId}
-                        />
+                        {/* Right Column: Live Chat Panel (spans 5/12 on large screens) */}
+                        <div className="lg:col-span-5 w-full flex flex-col mt-0">
+                            <SiteChat
+                                key={`chat-${currentSiteId}`}
+                                siteId={currentSiteId}
+                                currentUserName={adminName}
+                                currentUserRole="admin"
+                                currentUserId={adminId}
+                                heightClass="h-[430px]" // Enlarged height to balance with the photo uploader grid perfectly
+                            />
+                        </div>
                     </div>
                 </div>
             ) : (
