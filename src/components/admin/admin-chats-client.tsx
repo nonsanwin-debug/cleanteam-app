@@ -229,7 +229,7 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                                 currentUserName={adminName}
                                 currentUserRole="admin"
                                 currentUserId={adminId}
-                                heightClass="h-[430px]" // Enlarged height to balance with the photo uploader grid perfectly
+                                heightClass="h-[600px]" // Enlarged to 600px to perfectly balance with the left-side photos card
                             />
                         </div>
                     </div>
