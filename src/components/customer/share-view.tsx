@@ -165,17 +165,14 @@ export function ShareView({ siteId }: { siteId: string }) {
             <div className="min-h-screen bg-slate-50">
                 <header className="bg-white border-b sticky top-0 z-10">
                     <div className="max-w-md mx-auto px-4 h-14 flex items-center relative">
-                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-1 rounded-full hover:bg-slate-100 transition-colors">
-                            <ChevronLeft className="w-5 h-5 text-slate-700" />
-                        </Link>
-                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                        <div className="flex items-center gap-1.5 shrink-0 cursor-default">
                             <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="#4F46E5" />
                                 <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="#10B981" />
                                 <path d="M5.25 4.75L18.75 19.25" stroke="#22D3EE" strokeWidth="5.5" strokeLinecap="round" />
                             </svg>
                             <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
-                        </Link>
+                        </div>
                     </div>
                 </header>
                 <div className="p-8 text-center text-slate-500 mt-10">Loading...</div>
@@ -188,17 +185,14 @@ export function ShareView({ siteId }: { siteId: string }) {
             <div className="min-h-screen bg-slate-50">
                 <header className="bg-white border-b sticky top-0 z-10">
                     <div className="max-w-md mx-auto px-4 h-14 flex items-center relative">
-                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-1 rounded-full hover:bg-slate-100 transition-colors">
-                            <ChevronLeft className="w-5 h-5 text-slate-700" />
-                        </Link>
-                        <Link href="/" className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                        <div className="flex items-center gap-1.5 shrink-0 cursor-default">
                             <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="2.5" y="2" width="5.5" height="20" rx="2.75" fill="#4F46E5" />
                                 <rect x="16" y="2" width="5.5" height="20" rx="2.75" fill="#10B981" />
                                 <path d="M5.25 4.75L18.75 19.25" stroke="#22D3EE" strokeWidth="5.5" strokeLinecap="round" />
                             </svg>
                             <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
-                        </Link>
+                        </div>
                     </div>
                 </header>
                 <div className="flex flex-col items-center justify-center p-4 mt-20">
@@ -218,12 +212,8 @@ export function ShareView({ siteId }: { siteId: string }) {
                 {/* Header */}
                 <header className="bg-white border-b sticky top-0 z-10">
                     <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-0.5 rounded-full hover:bg-slate-100 transition-colors">
-                                <ChevronLeft className="w-5 h-5 text-slate-700" />
-                            </Link>
-                            <Link href="/" className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                                <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                        <div className="flex items-center gap-1.5 shrink-0 cursor-default">
+                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                     <linearGradient id="customer-grad-1-restricted" x1="0%" y1="100%" x2="0%" y2="0%">
                                         <stop offset="0%" stopColor="#4F46E5" />
@@ -243,7 +233,6 @@ export function ShareView({ siteId }: { siteId: string }) {
                                 <path d="M5.25 4.75L18.75 19.25" stroke="url(#customer-grad-2-restricted)" strokeWidth="5.5" strokeLinecap="round" />
                             </svg>
                             <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
-                        </Link>
                         </div>
                         <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                             {site.name}
@@ -307,12 +296,8 @@ export function ShareView({ siteId }: { siteId: string }) {
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between relative">
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        <Link href="/" className="flex items-center justify-center w-8 h-8 -ml-2 mr-0.5 rounded-full hover:bg-slate-100 transition-colors">
-                            <ChevronLeft className="w-5 h-5 text-slate-700" />
-                        </Link>
-                        <Link href="/" className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity">
-                            <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
+                    <div className="flex items-center gap-1.5 shrink-0 cursor-default">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-[24px] h-[24px]" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="customer-grad-1" x1="0%" y1="100%" x2="0%" y2="0%">
                                     <stop offset="0%" stopColor="#4F46E5" />
@@ -332,7 +317,6 @@ export function ShareView({ siteId }: { siteId: string }) {
                             <path d="M5.25 4.75L18.75 19.25" stroke="url(#customer-grad-2)" strokeWidth="5.5" strokeLinecap="round" />
                         </svg>
                         <h1 className="font-extrabold text-slate-800 tracking-tighter text-lg pt-0.5">NEXUS</h1>
-                    </Link>
                     </div>
                     <div className="text-sm font-bold text-slate-600 truncate flex-1 text-right ml-4">
                         {site.name}
