@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings, setEstimatedEndTime, completeWork } from '@/actions/worker'
+import { getSiteDetails, getSitePhotos, updateSiteAdditional, getCompanySmsSettings, setEstimatedEndTime, completeWork, startWork } from '@/actions/worker'
 import { getChecklistForSite, saveChecklistProgress } from '@/actions/checklist-submission'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus, Minus, CheckCheck } from 'lucide-react'
+import { MapPin, ArrowLeft, CheckSquare, Loader2, Share2, Phone, Pencil, Save, X, Wallet, MessageSquare, Clock, Plus, Minus, CheckCheck, PlayCircle } from 'lucide-react'
+
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -51,8 +52,31 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [currentUserName, setCurrentUserName] = useState<string>('')
     const [isSettingTime, setIsSettingTime] = useState(false)
+    const [startingWork, setStartingWork] = useState(false)
 
     const router = useRouter()
+
+    const handleStartWork = async () => {
+        if (!site) return
+        if (!confirm('작업을 시작하시겠습니까? (상태가 "진행 중"으로 변경됩니다)')) return
+        setStartingWork(true)
+        try {
+            const res = await startWork(site.id, 'manual-start')
+            if (res.success) {
+                toast.success('작업이 시작되었습니다.')
+                setSite({ ...site, status: 'in_progress' })
+                router.refresh()
+            } else {
+                toast.error(res.error || '작업 시작에 실패했습니다.')
+            }
+        } catch (error) {
+            console.error('Failed to start work:', error)
+            toast.error('작업 시작 중 오류가 발생했습니다.')
+        } finally {
+            setStartingWork(false)
+        }
+    }
+
 
     useEffect(() => {
         let channel: any = null
@@ -288,6 +312,34 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </Badge>
             </div>
 
+            {/* 작업 시작하기 카드 (팀장 전용 및 미시작 상태) */}
+            {isLeader && (site.status === 'scheduled' || site.status === 'pending') && (
+                <div className="bg-white border-2 border-indigo-200 rounded-lg p-5 shadow-sm bg-indigo-50/20 flex flex-col items-center justify-center text-center space-y-3.5">
+                    <div className="bg-indigo-100/80 p-3.5 rounded-full shrink-0">
+                        <PlayCircle className="w-10 h-10 text-indigo-600 animate-pulse" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-slate-800 text-base">아직 작업이 시작되지 않았습니다</h4>
+                        <p className="text-xs text-slate-500 mt-1 leading-normal">
+                            현장에 도착하셨다면 아래 [작업 시작] 버튼을 눌러 상태를 진행 중으로 전환해 주세요.
+                        </p>
+                    </div>
+                    <Button
+                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm shadow-sm transition-all"
+                        onClick={handleStartWork}
+                        disabled={startingWork}
+                    >
+                        {startingWork ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <PlayCircle className="w-5 h-5" />
+                        )}
+                        현장 작업 시작
+                    </Button>
+                </div>
+            )}
+
+
             {/* 특이사항 경고 배너 */}
             {site.special_notes && (
                 <div className="relative overflow-hidden rounded-lg border-2 border-red-400 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 p-3 animate-pulse">
@@ -444,8 +496,8 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 />
             </section>
 
-            {/* 작업 완료 버튼 - 팀장 전용 및 미완료 상태에서만 표시 */}
-            {isLeader && site.status !== 'completed' && (
+            {/* 작업 완료 버튼 - 팀장 전용 및 진행 중 상태에서만 표시 */}
+            {isLeader && site.status === 'in_progress' && (
                 <div className="pt-4 border-t">
                     <Button
                         className="w-full h-14 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-xl flex items-center justify-center gap-2"
@@ -462,6 +514,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     </Button>
                 </div>
             )}
+
 
             {/* Completion Dialog Wizard */}
             <Dialog open={completedWizardStep !== 'closed'} onOpenChange={(open) => { if (!open) setCompletedWizardStep('closed') }}>

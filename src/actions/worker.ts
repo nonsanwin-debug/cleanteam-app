@@ -945,3 +945,48 @@ export async function updatePhotoZones(siteId: string, zones: string[]): Promise
         return { success: false, error: '구역 설정 중 오류가 발생했습니다.' }
     }
 }
+
+// 사진 등록 완료 일괄 알림 발송 (팀장이 촬영 완료 클릭 시 1회 발송)
+export async function sendPhotoUploadNotification(siteId: string): Promise<ActionResponse> {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: '인증되지 않은 사용자입니다.' }
+
+        // 1. 현장명 및 업체 ID 조회
+        const { data: site, error: siteError } = await supabase
+            .from('sites')
+            .select('name, company_id')
+            .eq('id', siteId)
+            .single()
+
+        if (siteError || !site) {
+            console.error('sendPhotoUploadNotification site query error:', siteError)
+            return { success: false, error: '현장 정보를 찾을 수 없습니다.' }
+        }
+
+        // 2. 발송자(팀장) 이름 조회
+        const { data: userData } = await supabase
+            .from('users')
+            .select('name')
+            .eq('id', user.id)
+            .single()
+
+        const workerName = userData?.name || '팀장'
+
+        // 3. 업체 관리자들에게 알림 발송
+        const { sendPushToAdmins } = await import('@/actions/push')
+        await sendPushToAdmins(site.company_id, {
+            title: `📸 [사진 등록 완료] ${site.name}`,
+            body: `${workerName} 팀장이 현장 사진 촬영 및 등록을 완료했습니다.`,
+            url: `/admin/sites/${siteId}`,
+            tag: `photo-upload-${siteId}`
+        })
+
+        return { success: true }
+    } catch (error) {
+        console.error('Unexpected error in sendPhotoUploadNotification:', error)
+        return { success: false, error: '알림 전송 중 오류가 발생했습니다.' }
+    }
+}
+

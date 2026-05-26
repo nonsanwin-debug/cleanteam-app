@@ -124,6 +124,30 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         setSessionPhotos([])
     }
 
+    // 인앱 카메라 촬영 완료 핸들러 (관리자에게 푸시 알림 전송)
+    const handleInAppCameraComplete = async () => {
+        const photoCount = sessionPhotos.length
+        
+        // 1. 카메라 중지 및 모달 닫기
+        stopInAppCamera()
+
+        // 2. 이 세션에서 사진이 1장 이상 촬영되었다면 관리자에게 푸시 전송
+        if (photoCount > 0) {
+            try {
+                const { sendPhotoUploadNotification } = await import('@/actions/worker')
+                const res = await sendPhotoUploadNotification(siteId)
+                if (res.success) {
+                    toast.success('관리자에게 촬영 완료 알림이 전송되었습니다.')
+                } else {
+                    toast.error(res.error || '알림 전송 실패')
+                }
+            } catch (err) {
+                console.error('Failed to send photo upload notification:', err)
+            }
+        }
+    }
+
+
     // 사진 프레임 캡처 및 백그라운드 업로드 시작
     const capturePhoto = () => {
         if (!videoRef.current || !cameraStream) return
@@ -879,11 +903,12 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
 
                             {/* 오른쪽: 완료 버튼 */}
                             <button
-                                onClick={stopInAppCamera}
+                                onClick={handleInAppCameraComplete}
                                 className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-full px-5 py-3 shadow-md transition-all shrink-0"
                             >
                                 촬영 완료
                             </button>
+
                         </div>
                     </div>
                 </div>
