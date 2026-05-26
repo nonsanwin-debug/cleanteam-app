@@ -18,6 +18,12 @@
 * **소스 코드 라인**: 약 223 ~ 298 라인 부근
 * **숨김 처리 방식**: JSX 주석 처리 (`{/* ... */}`)
 
+### ③ 관리자 사이드바 메뉴: [팀원 등록]
+* **목적**: "사용자 관리" -> "팀원 관리" 탭에 이미 "새 팀원 추가" 버튼이 제공되고 있어 메뉴 중복성 및 군더더기를 최소화하기 위해 숨김.
+* **숨김 위치**: `src/components/admin/admin-nav-links.tsx`
+* **소스 코드 라인**: `NAV_ITEMS` 배열 내 `/admin/users/new` 항목
+* **숨김 처리 방식**: 주석 처리 (`//`)
+
 ---
 
 ## 2. 향후 기능 복구(노출) 방법
@@ -37,3 +43,14 @@
 1. [settings/page.tsx](file:///c:/Users/UserPC/Desktop/cleanteam/src/app/(admin)/admin/settings/page.tsx) 파일을 엽니다.
 2. 약 223 라인 부근에 있는 주석 시작 기호 `{/*` 와 약 298 라인 부근에 있는 주석 종료 기호 `*/}` 를 찾습니다.
 3. 해당 주석 기호(`{/*` 와 `*/}`)를 통째로 지우고 저장하면 즉시 복구됩니다.
+
+### ③ [팀원 등록] 메뉴 복구 방법
+1. [admin-nav-links.tsx](file:///c:/Users/UserPC/Desktop/cleanteam/src/components/admin/admin-nav-links.tsx) 파일을 엽니다.
+2. `NAV_ITEMS` 배열 내 아래 주석으로 처리된 라인을 찾습니다.
+   ```typescript
+   // { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
+   ```
+3. 맨 앞의 주석 기호(`// `)를 지우고 저장하면 즉시 복구됩니다.
+   ```typescript
+   { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
+   ```
