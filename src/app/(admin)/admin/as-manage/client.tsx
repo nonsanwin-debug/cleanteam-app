@@ -217,7 +217,19 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
 
     const selectedWorkerBalance = workers.find(w => w.id === formData.worker_id)?.current_money || 0
 
+    const [siteSearch, setSiteSearch] = useState('')
+    const [sitePopoverOpen, setSitePopoverOpen] = useState(false)
+
+    // Filter sites based on the search query (site.name, site.cleaning_date, site.worker.name)
+    const filteredSites = sites.filter(site => {
+        const dateStr = site.cleaning_date ? format(new Date(site.cleaning_date + 'T00:00:00'), 'M/d') : ''
+        const workerName = site.worker?.name || ''
+        const fullLabel = `${site.name} ${dateStr} ${workerName}`.toLowerCase()
+        return fullLabel.includes(siteSearch.toLowerCase())
+    })
+
     async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+
         const files = e.target.files
         if (!files || files.length === 0) return
 
@@ -297,41 +309,100 @@ function AddASDialog({ open, onOpenChange, sites, workers }: {
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="space-y-2">
                         <Label>현장 선택</Label>
-                        <Select
-                            value={formData.site_id}
-                            onValueChange={(val) => {
-                                const site = sites.find(s => s.id === val)
-                                setFormData(prev => ({
-                                    ...prev,
-                                    site_id: val,
-                                    site_name: site?.name || '',
-                                    worker_id: site?.worker_id || prev.worker_id
-                                }))
-                            }}
-                            required
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="현장 선택" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sites.map(site => {
-                                    const dateStr = site.cleaning_date
-                                        ? (() => {
-                                            const d = new Date(site.cleaning_date + 'T00:00:00')
-                                            return `${d.getMonth() + 1}/${d.getDate()}`
+                        <Popover open={sitePopoverOpen} onOpenChange={setSitePopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={sitePopoverOpen}
+                                    className="w-full justify-between font-normal text-slate-800 bg-white border border-slate-200 hover:bg-slate-50 h-10 px-3 rounded-md"
+                                >
+                                    {formData.site_id ? (
+                                        (() => {
+                                            const site = sites.find(s => s.id === formData.site_id)
+                                            const dateStr = site?.cleaning_date
+                                                ? (() => {
+                                                    const d = new Date(site.cleaning_date + 'T00:00:00')
+                                                    return `${d.getMonth() + 1}/${d.getDate()}`
+                                                })()
+                                                : ''
+                                            const workerName = site?.worker?.name || ''
+                                            return [site?.name, dateStr, workerName].filter(Boolean).join(' · ')
                                         })()
-                                        : ''
-                                    const workerName = site.worker?.name || ''
-                                    const label = [site.name, dateStr, workerName].filter(Boolean).join(' · ')
-                                    return (
-                                        <SelectItem key={site.id} value={site.id}>
-                                            {label}
-                                        </SelectItem>
-                                    )
-                                })}
-                            </SelectContent>
-                        </Select>
+                                    ) : (
+                                        <span className="text-slate-400">현장을 검색하여 선택하세요...</span>
+                                    )}
+                                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50 text-slate-400" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2 bg-white border border-slate-200 rounded-lg shadow-lg max-h-[300px] flex flex-col focus:outline-none" align="start">
+                                <div className="flex items-center border-b pb-2 mb-2 px-1">
+                                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="현장명, 날짜(M/d), 팀장명으로 검색..."
+                                        value={siteSearch}
+                                        onChange={(e) => setSiteSearch(e.target.value)}
+                                        className="w-full text-sm outline-none bg-transparent placeholder-slate-400"
+                                        autoFocus
+                                    />
+                                    {siteSearch && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setSiteSearch('')} 
+                                            className="text-xs text-slate-400 hover:text-slate-600 font-bold ml-1 px-1.5 py-0.5 rounded hover:bg-slate-100"
+                                        >
+                                            비우기
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="overflow-y-auto flex-1 max-h-[220px] space-y-1 pr-1">
+                                    {filteredSites.length === 0 ? (
+                                        <div className="text-center py-6 text-sm text-slate-400 italic">
+                                            검색 결과가 없습니다.
+                                        </div>
+                                    ) : (
+                                        filteredSites.map(site => {
+                                            const dateStr = site.cleaning_date
+                                                ? (() => {
+                                                    const d = new Date(site.cleaning_date + 'T00:00:00')
+                                                    return `${d.getMonth() + 1}/${d.getDate()}`
+                                                })()
+                                                : ''
+                                            const workerName = site.worker?.name || ''
+                                            const label = [site.name, dateStr, workerName].filter(Boolean).join(' · ')
+                                            const isSelected = formData.site_id === site.id
+
+                                            return (
+                                                <button
+                                                    key={site.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            site_id: site.id,
+                                                            site_name: site.name,
+                                                            worker_id: site.worker_id || prev.worker_id
+                                                        }))
+                                                        setSitePopoverOpen(false)
+                                                        setSiteSearch('')
+                                                    }}
+                                                    className={cn(
+                                                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-slate-50 flex items-center justify-between",
+                                                        isSelected && "bg-indigo-50 font-semibold text-indigo-700 hover:bg-indigo-100/70"
+                                                    )}
+                                                >
+                                                    <span className="truncate">{label}</span>
+                                                    {isSelected && <span className="text-indigo-600 font-bold text-xs ml-2">선택됨</span>}
+                                                </button>
+                                            )
+                                        })
+                                    )}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
+
 
                     <div className="space-y-2">
                         <Label>AS담당팀장</Label>
