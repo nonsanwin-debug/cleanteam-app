@@ -102,6 +102,8 @@ export async function updatePlatformSettings(
         }
 
         revalidatePath('/master/settings')
+        revalidatePath('/master/launch-control')
+        revalidatePath('/', 'layout')
         return { success: true }
     } catch (error) {
         console.error('updatePlatformSettings error:', error)

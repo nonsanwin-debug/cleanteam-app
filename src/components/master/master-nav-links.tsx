@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, Users, Building2, Settings, ArchiveRestore, Megaphone, MessageSquarePlus, Wallet, Gift, Share2, Trash2 } from 'lucide-react'
+import { LayoutDashboard, Users, Building2, Settings, ArchiveRestore, Megaphone, MessageSquarePlus, Wallet, Gift, Share2, Trash2, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
     { href: '/master/ads', icon: Megaphone, label: '광고 관리', iconColor: 'text-indigo-400' },
     { href: '/master/inquiries', icon: MessageSquarePlus, label: '업체 문의 관리', iconColor: 'text-purple-500', showBadge: true },
     { href: '/master/recovery', icon: ArchiveRestore, label: '휴지통 방', iconColor: 'text-amber-500' },
+    { href: '/master/launch-control', icon: EyeOff, label: '런칭 기능 제어', iconColor: 'text-rose-400' },
     { href: '/master/settings', icon: Settings, label: '플랫폼 설정', iconColor: 'text-slate-500' },
 ]
 
