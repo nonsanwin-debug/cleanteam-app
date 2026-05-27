@@ -21,6 +21,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
             .from('sites')
             .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones')
             .eq('worker_id', user.id)
+            .not('is_deleted', 'is', true)
             .order('start_time', { ascending: true, nullsFirst: false })
             .order('created_at', { ascending: true })
 
@@ -43,6 +44,7 @@ export async function getAssignedSites(): Promise<AssignedSite[]> {
                     .from('sites')
                     .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones')
                     .in('id', siteIds)
+                    .not('is_deleted', 'is', true)
                     .order('start_time', { ascending: true, nullsFirst: false })
                     .order('created_at', { ascending: true })
 
@@ -430,11 +432,11 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones, is_deleted')
             .eq('id', id)
             .single()
 
-        if (error) return { success: false, error: error.message };
+        if (error || !data || data.is_deleted === true) return { success: false, error: '현장 정보를 찾을 수 없거나 삭제되었습니다.' };
         return { success: true, data: data as AssignedSite };
     } catch (error) {
         console.error('getSiteDetails error:', error)
