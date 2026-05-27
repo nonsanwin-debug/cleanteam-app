@@ -67,6 +67,7 @@ export default function SharedOrdersPage() {
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
     const [hiddenOrders, setHiddenOrders] = useState<string[]>([])
+    const [hideWallet, setHideWallet] = useState(false)
 
     useEffect(() => {
         const stored = localStorage.getItem('adminHiddenOrders')
@@ -104,6 +105,15 @@ export default function SharedOrdersPage() {
         setIncomingOrders(incoming)
         setOutgoingOrders(outgoing)
         setNotifications(notifs)
+
+        try {
+            const { getPlatformSettings } = await import('@/actions/platform-settings')
+            const settings = await getPlatformSettings()
+            setHideWallet(settings.hide_wallet_features)
+        } catch (e) {
+            console.error('Failed to load platform settings', e)
+        }
+
         setLoading(false)
     }
 
@@ -413,7 +423,7 @@ export default function SharedOrdersPage() {
                                                     </div>
                                                 )}
                                                 
-                                                {!isDirectShare && (
+                                                {!isDirectShare && !hideWallet && (
                                                     <div className="flex flex-col items-start gap-1.5 flex-wrap">
                                                         <div className="flex items-center gap-2">
                                                             <Badge className={cn("border bg-white shadow-sm font-semibold tracking-tight", isDiscount ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-teal-200 text-teal-600 hover:bg-teal-50")}>
@@ -565,7 +575,7 @@ export default function SharedOrdersPage() {
                                                 </Button>
                                             )}
                                         </div>
-                                        {!isDirectShare && (
+                                        {!isDirectShare && !hideWallet && (
                                             <p className="text-red-500 text-[13px] font-bold text-center mt-3 tracking-tight">※배정이 확정되면 시스템 상에서 즉시 {isDiscount ? "10%" : "20%"}의 캐쉬가 차감됩니다. ※</p>
                                         )}
                                     </CardContent>
