@@ -31,8 +31,9 @@ export default async function AdminChatsPage() {
     const adminName = profile?.name || '관리자'
     const adminId = user.id
 
-    // Fetch all active sites for the admin's company
-    const sites = await getSites()
+    // Fetch all active sites for the admin's company, and exclude shared-out orders for privacy
+    const sites = (await getSites())?.filter((site) => !site.is_shared_out)
+
 
     return (
         <div className="space-y-6">
