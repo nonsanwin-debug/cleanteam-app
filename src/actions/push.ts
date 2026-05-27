@@ -101,7 +101,11 @@ export async function sendPushToUser(
                         endpoint: sub.endpoint,
                         keys: { p256dh: sub.p256dh, auth: sub.auth }
                     },
-                    pushPayload
+                    pushPayload,
+                    {
+                        TTL: 60,
+                        urgency: 'high'
+                    }
                 ).catch(async (err: any) => {
                     // 만료된 구독은 삭제
                     if (err.statusCode === 410 || err.statusCode === 404) {
@@ -115,6 +119,7 @@ export async function sendPushToUser(
                 })
             )
         )
+
 
         const sent = results.filter(r => r.status === 'fulfilled').length
         console.log(`Push sent to ${sent}/${subscriptions.length} subscriptions for user ${userId}`)
@@ -192,6 +197,17 @@ export async function sendChatPushNotification(
 
         const sendPromises: Promise<any>[] = []
 
+        // 2.5 오프라인 참여자 중 user_id가 있는 경우, 해당 user_id들의 push_subscriptions를 일괄 조회 (DB 조회 병목 방지)
+        const userIds = offlineParticipants.map(p => p.user_id).filter(Boolean) as string[]
+        let allUserSubscriptions: any[] = []
+        if (userIds.length > 0) {
+            const { data } = await supabase
+                .from('push_subscriptions')
+                .select('user_id, endpoint, p256dh, auth')
+                .in('user_id', userIds)
+            if (data) allUserSubscriptions = data
+        }
+
         for (const p of offlineParticipants) {
             // A. 자체 수신 푸시 토큰이 포함된 게스트/고객인 경우
             if (p.push_endpoint && p.push_p256dh && p.push_auth) {
@@ -201,7 +217,11 @@ export async function sendChatPushNotification(
                             endpoint: p.push_endpoint,
                             keys: { p256dh: p.push_p256dh, auth: p.push_auth }
                         },
-                        pushPayload
+                        pushPayload,
+                        {
+                            TTL: 60,
+                            urgency: 'high'
+                        }
                     ).catch(async (err: any) => {
                         // 만료된 구독 토큰 자동 초기화
                         if (err.statusCode === 410 || err.statusCode === 404) {
@@ -218,37 +238,36 @@ export async function sendChatPushNotification(
                 )
             }
 
-            // B. user_id를 갖는 정식 회원(작업팀/관리자 등)인 경우, push_subscriptions를 매칭하여 모두 발송
+            // B. user_id를 갖는 정식 회원(작업팀/관리자 등)인 경우, 메모리상의 일괄 조회 데이터에서 매칭하여 모두 발송
             if (p.user_id) {
-                const { data: subs } = await supabase
-                    .from('push_subscriptions')
-                    .select('endpoint, p256dh, auth')
-                    .eq('user_id', p.user_id)
-
-                if (subs && subs.length > 0) {
-                    for (const sub of subs) {
-                        sendPromises.push(
-                            webpush.sendNotification(
-                                {
-                                    endpoint: sub.endpoint,
-                                    keys: { p256dh: sub.p256dh, auth: sub.auth }
-                                },
-                                pushPayload
-                            ).catch(async (err: any) => {
-                                if (err.statusCode === 410 || err.statusCode === 404) {
-                                    await supabase
-                                        .from('push_subscriptions')
-                                        .delete()
-                                        .eq('endpoint', sub.endpoint)
-                                }
-                            })
-                        )
-                    }
+                const subs = allUserSubscriptions.filter(sub => sub.user_id === p.user_id)
+                for (const sub of subs) {
+                    sendPromises.push(
+                        webpush.sendNotification(
+                            {
+                                endpoint: sub.endpoint,
+                                keys: { p256dh: sub.p256dh, auth: sub.auth }
+                            },
+                            pushPayload,
+                            {
+                                TTL: 60,
+                                urgency: 'high'
+                            }
+                        ).catch(async (err: any) => {
+                            if (err.statusCode === 410 || err.statusCode === 404) {
+                                await supabase
+                                    .from('push_subscriptions')
+                                    .delete()
+                                    .eq('endpoint', sub.endpoint)
+                            }
+                        })
+                    )
                 }
             }
         }
 
         await Promise.allSettled(sendPromises)
+
     } catch (error) {
         console.error('sendChatPushNotification error:', error)
     }
