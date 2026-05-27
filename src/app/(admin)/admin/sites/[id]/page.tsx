@@ -228,7 +228,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                                         ? '체크리스트 작성 중 (중간 저장됨)'
                                         : '아직 체크리스트가 제출되지 않았습니다.'}
                                 </p>
-                                {site.status !== 'completed' && (
+                                {site.status !== 'completed' && !site.is_shared_out && (
                                     <AdminForceCompleteButton siteId={site.id} siteName={site.name} />
                                 )}
                             </div>

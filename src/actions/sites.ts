@@ -42,6 +42,12 @@ export type Site = {
     is_shared_out?: boolean
 }
 
+function maskName(name?: string) {
+    if (!name) return '';
+    return name[0] + '**';
+}
+
+
 export type CreateSiteDTO = {
     name: string
     address: string
@@ -120,10 +126,15 @@ export async function getSites() {
     const sitesWithShareFlag = data.map((site: any) => {
         const sharedInfo = sharedOrdersMap.get(site.id)
         const hasTransferredSite = sharedInfo && sharedInfo.transferred_site
+        let workerName = site.worker_name
+        if (hasTransferredSite) {
+            const rawName = sharedInfo.transferred_site.worker?.name
+            workerName = rawName ? maskName(rawName) : null
+        }
         return {
             ...site,
             status: hasTransferredSite ? sharedInfo.transferred_site.status : site.status,
-            worker_name: hasTransferredSite ? (sharedInfo.transferred_site.worker?.name || null) : site.worker_name,
+            worker_name: workerName,
             worker_id: hasTransferredSite ? sharedInfo.transferred_site.worker_id : site.worker_id,
             is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
             shared_info: sharedInfo || null
@@ -574,8 +585,40 @@ export async function forceCompleteSite(id: string) {
     const supabase = await createClient()
 
     try {
-        // Fetch current started_at to see if we need to mock it for duration calculation
-        const { data: site } = await supabase.from('sites').select('started_at').eq('id', id).single()
+        const { companyId } = await getAuthCompany()
+        if (!companyId) {
+            return { success: false, error: '인증되지 않은 사용자입니다.' }
+        }
+
+        const { data: site, error: siteErr } = await supabase
+            .from('sites')
+            .select('company_id, started_at')
+            .eq('id', id)
+            .single()
+
+        if (siteErr || !site) {
+            return { success: false, error: '현장 정보를 찾을 수 없습니다.' }
+        }
+
+        if (site.company_id !== companyId) {
+            return { success: false, error: '해당 현장에 대한 완료 처리 권한이 없습니다.' }
+        }
+
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const adminSupabase = createAdminClient()
+        const { data: sharedOrders } = await adminSupabase
+            .from('shared_orders')
+            .select('id, status, parsed_details')
+            .eq('company_id', companyId)
+            .neq('status', 'deleted')
+
+        const matchedOrder = sharedOrders?.find((so: any) => so.parsed_details?.original_site_id === id)
+        if (matchedOrder && matchedOrder.status === 'transferred') {
+            return {
+                success: false,
+                error: '오더를 공유받은 파트너 업체만 강제 작업 완료 처리가 가능합니다. 오더를 준 업체는 가능하지 않습니다.'
+            }
+        }
 
         const now = new Date().toISOString()
         const updateData: any = {
@@ -584,7 +627,7 @@ export async function forceCompleteSite(id: string) {
             updated_at: now
         }
 
-        if (!site?.started_at) {
+        if (!site.started_at) {
             updateData.started_at = now
         }
 
@@ -733,11 +776,18 @@ export async function getSiteAdminDetails(id: string) {
             .single()
 
         if (tfSite) {
+            const rawName = tfSite.worker?.name
+            const maskedWorker = tfSite.worker ? {
+                ...tfSite.worker,
+                name: rawName ? maskName(rawName) : '',
+                phone: null // Hide worker's phone number for privacy
+            } : null
+
             displaySite = {
                 ...site,
                 status: tfSite.status,
                 worker_id: tfSite.worker_id,
-                worker: tfSite.worker,
+                worker: maskedWorker,
                 estimated_end_at: tfSite.estimated_end_at,
                 cleaning_date: tfSite.cleaning_date,
                 start_time: tfSite.start_time,
