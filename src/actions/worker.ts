@@ -210,7 +210,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
                         .limit(1)
                         .single()
 
-                    const aliasNames = settings?.feed_alias_names || []
+                    const aliasNames = (settings?.feed_alias_names || []).filter((n: string) => !n.startsWith('__'))
                     if (aliasNames.length > 0) {
                         feedDisplayName = aliasNames[Math.floor(Math.random() * aliasNames.length)]
                     }

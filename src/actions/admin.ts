@@ -91,13 +91,9 @@ export async function approvePayment(siteId: string, userId: string, amount: num
         const supabase = await createClient()
 
         // 0. Fetch platform settings to check if wallet features are hidden
-        const { data: settings } = await supabase
-            .from('platform_settings')
-            .select('hide_wallet_features')
-            .limit(1)
-            .single()
-
-        const hideWallet = settings?.hide_wallet_features ?? false
+        const { getPlatformSettings } = await import('./platform-settings')
+        const settings = await getPlatformSettings()
+        const hideWallet = settings.hide_wallet_features ?? false
 
         // 1. Fetch site info (name, additional_amount, payment_status)
         const { data: site, error: siteError } = await supabase

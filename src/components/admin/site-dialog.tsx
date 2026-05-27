@@ -109,15 +109,13 @@ export function SiteDialog({
 
     useEffect(() => {
         const fetchSettings = async () => {
-            const supabase = createClient()
-            const { data } = await supabase
-                .from('platform_settings')
-                .select('hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
-                .limit(1)
-                .single()
-            if (data) {
-                setHidePhotoZoneSetup(data.hide_admin_photo_zone_setup ?? false)
-                setHideCleaningExamples(data.hide_cleaning_fee_examples ?? false)
+            try {
+                const { getPlatformSettings } = await import('@/actions/platform-settings')
+                const settings = await getPlatformSettings()
+                setHidePhotoZoneSetup(settings.hide_admin_photo_zone_setup ?? false)
+                setHideCleaningExamples(settings.hide_cleaning_fee_examples ?? false)
+            } catch (err) {
+                console.error('Failed to fetch settings:', err)
             }
         }
         fetchSettings()

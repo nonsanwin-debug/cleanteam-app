@@ -1014,7 +1014,7 @@ export async function getFeedAliasNames(): Promise<string[]> {
         .limit(1)
         .single()
 
-    return data?.feed_alias_names || []
+    return (data?.feed_alias_names || []).filter((n: string) => !n.startsWith('__'))
 }
 
 // 피드 별명 추가

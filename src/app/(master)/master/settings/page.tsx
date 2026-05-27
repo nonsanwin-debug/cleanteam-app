@@ -63,22 +63,23 @@ export default function MasterSettingsPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             setLoading(true)
-            const { data, error } = await supabase
-                .from('platform_settings')
-                .select('global_free_old_building, global_free_interior, hide_wallet_features, hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
-                .limit(1)
-                .single()
-
-            if (data) {
-                setSettings({
-                    global_free_old_building: data.global_free_old_building ?? false,
-                    global_free_interior: data.global_free_interior ?? false,
-                    hide_wallet_features: data.hide_wallet_features ?? false,
-                    hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
-                    hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
-                })
+            try {
+                const { getPlatformSettings } = await import('@/actions/platform-settings')
+                const data = await getPlatformSettings()
+                if (data) {
+                    setSettings({
+                        global_free_old_building: data.global_free_old_building ?? false,
+                        global_free_interior: data.global_free_interior ?? false,
+                        hide_wallet_features: data.hide_wallet_features ?? false,
+                        hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
+                        hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
+                    })
+                }
+            } catch (err) {
+                console.error('Failed to load settings:', err)
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
         }
         fetchSettings()
     }, [])

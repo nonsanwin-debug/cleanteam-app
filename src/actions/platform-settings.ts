@@ -29,7 +29,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('platform_settings')
-            .select('global_free_old_building, global_free_interior, hide_wallet_features, hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
+            .select('global_free_old_building, global_free_interior, feed_alias_names')
             .limit(1)
             .single()
 
@@ -38,12 +38,17 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
             return DEFAULT_SETTINGS
         }
 
+        const aliasNames: string[] = data.feed_alias_names || []
+        const hide_wallet_features = aliasNames.includes('__hide_wallet_features:true')
+        const hide_admin_photo_zone_setup = aliasNames.includes('__hide_admin_photo_zone_setup:true')
+        const hide_cleaning_fee_examples = aliasNames.includes('__hide_cleaning_fee_examples:true')
+
         return {
             global_free_old_building: data.global_free_old_building ?? false,
             global_free_interior: data.global_free_interior ?? false,
-            hide_wallet_features: data.hide_wallet_features ?? false,
-            hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
-            hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
+            hide_wallet_features,
+            hide_admin_photo_zone_setup,
+            hide_cleaning_fee_examples,
         }
     } catch {
         return DEFAULT_SETTINGS
@@ -65,15 +70,45 @@ export async function updatePlatformSettings(
         // 기존 row가 있는지 확인
         const { data: existing } = await adminClient
             .from('platform_settings')
-            .select('id')
+            .select('id, feed_alias_names, global_free_old_building, global_free_interior')
             .limit(1)
             .single()
+
+        let currentAliasNames: string[] = existing?.feed_alias_names || []
+        // Clean out existing metadata keys starting with '__'
+        currentAliasNames = currentAliasNames.filter(n => !n.startsWith('__'))
+
+        // Resolve new settings
+        const newSettingsObj = {
+            global_free_old_building: settings.global_free_old_building !== undefined 
+                ? settings.global_free_old_building 
+                : (existing?.global_free_old_building ?? false),
+            global_free_interior: settings.global_free_interior !== undefined 
+                ? settings.global_free_interior 
+                : (existing?.global_free_interior ?? false),
+        }
+
+        const hideWallet = settings.hide_wallet_features !== undefined
+            ? settings.hide_wallet_features
+            : (existing?.feed_alias_names || []).includes('__hide_wallet_features:true')
+        const hidePhoto = settings.hide_admin_photo_zone_setup !== undefined
+            ? settings.hide_admin_photo_zone_setup
+            : (existing?.feed_alias_names || []).includes('__hide_admin_photo_zone_setup:true')
+        const hideExamples = settings.hide_cleaning_fee_examples !== undefined
+            ? settings.hide_cleaning_fee_examples
+            : (existing?.feed_alias_names || []).includes('__hide_cleaning_fee_examples:true')
+
+        if (hideWallet) currentAliasNames.push('__hide_wallet_features:true')
+        if (hidePhoto) currentAliasNames.push('__hide_admin_photo_zone_setup:true')
+        if (hideExamples) currentAliasNames.push('__hide_cleaning_fee_examples:true')
 
         if (existing) {
             const { error } = await adminClient
                 .from('platform_settings')
                 .update({
-                    ...settings,
+                    global_free_old_building: newSettingsObj.global_free_old_building,
+                    global_free_interior: newSettingsObj.global_free_interior,
+                    feed_alias_names: currentAliasNames,
                     updated_at: new Date().toISOString(),
                 })
                 .eq('id', existing.id)
@@ -87,11 +122,9 @@ export async function updatePlatformSettings(
             const { error } = await adminClient
                 .from('platform_settings')
                 .insert({
-                    global_free_old_building: settings.global_free_old_building ?? false,
-                    global_free_interior: settings.global_free_interior ?? false,
-                    hide_wallet_features: settings.hide_wallet_features ?? false,
-                    hide_admin_photo_zone_setup: settings.hide_admin_photo_zone_setup ?? false,
-                    hide_cleaning_fee_examples: settings.hide_cleaning_fee_examples ?? false,
+                    global_free_old_building: newSettingsObj.global_free_old_building,
+                    global_free_interior: newSettingsObj.global_free_interior,
+                    feed_alias_names: currentAliasNames,
                     updated_at: new Date().toISOString(),
                 })
 

@@ -1,11 +1,12 @@
 
 import { Client } from 'pg';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // NEW DB (Seoul) - Pooler
 // Region: Korea (Seoul) -> aws-0-ap-northeast-2.pooler.supabase.com
-const NEW_PROJECT = "nmrhxvtcvcbcnaeonvsd";
+const NEW_PROJECT = "zfaagizkdixopldhqixv";
 const NEW_PASS = "qwas13579qwas";
-const POOLER_HOST = "aws-0-ap-northeast-2.pooler.supabase.com";
+const POOLER_HOST = "aws-0-us-east-1.pooler.supabase.com";
 const NEW_DB_URL = `postgresql://postgres.${NEW_PROJECT}:${NEW_PASS}@${POOLER_HOST}:6543/postgres?sslmode=require`;
 
 async function verify() {

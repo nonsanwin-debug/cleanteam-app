@@ -52,14 +52,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
     useEffect(() => {
         const fetchSettings = async () => {
-            const supabase = createClient()
-            const { data } = await supabase
-                .from('platform_settings')
-                .select('hide_cleaning_fee_examples')
-                .limit(1)
-                .single()
-            if (data) {
-                setHideCleaningExamples(data.hide_cleaning_fee_examples ?? false)
+            try {
+                const { getPlatformSettings } = await import('@/actions/platform-settings')
+                const settings = await getPlatformSettings()
+                setHideCleaningExamples(settings.hide_cleaning_fee_examples ?? false)
+            } catch (err) {
+                console.error('Failed to fetch settings:', err)
             }
         }
         fetchSettings()
