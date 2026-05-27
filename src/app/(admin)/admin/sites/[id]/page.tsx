@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { AdminForceCompleteButton } from "@/components/admin/admin-force-complete-button"
 import { SettlementEditForm } from "@/components/admin/settlement-edit-form"
-import { AdminPhotoDeleteButton } from "@/components/admin/admin-photo-delete-button"
-import { AdminPhotoFeatureButton } from "@/components/admin/admin-photo-feature-button"
+import { AdminPhotoViewer } from "@/components/admin/admin-photo-viewer"
 
 export default async function AdminSiteDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -20,41 +19,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
 
     const { site, photos, checklist } = data
 
-    // Group photos by type (legacy + zone-based)
-    const photosByType: Record<string, any[]> = {
-        before: photos.filter(p => p.type === 'before'),
-        during: photos.filter(p => p.type === 'during'),
-        after: photos.filter(p => p.type === 'after'),
-        special: photos.filter(p => p.type === 'special'),
-    }
 
-    // 공간별 사진 그룹 추가 (방1_before 등)
-    const zonePhotos = photos.filter(p => p.type && p.type.includes('_'))
-    const zoneGroups = new Map<string, any[]>()
-    for (const photo of zonePhotos) {
-        const zone = photo.type.split('_')[0]
-        if (!zoneGroups.has(zone)) zoneGroups.set(zone, [])
-        zoneGroups.get(zone)!.push(photo)
-    }
-
-    // 동적 탭 목록
-    const staticTabs = [
-        { value: 'all', label: `전체 (${photos.length})` },
-        { value: 'before', label: `작업 전 (${photosByType.before.length})` },
-        { value: 'during', label: `작업 중 (${photosByType.during.length})` },
-        { value: 'after', label: `작업 후 (${photosByType.after.length})` },
-        { value: 'special', label: `특이사항 (${photosByType.special.length})` },
-    ]
-    const zoneTabs = Array.from(zoneGroups.entries()).map(([zone, zPhotos]) => ({
-        value: `zone_${zone}`,
-        label: `${zone} (${zPhotos.length})`,
-    }))
-    const allTabs = [...staticTabs, ...zoneTabs]
-
-    // zone groups를 photosByType에 추가
-    for (const [zone, zPhotos] of zoneGroups) {
-        photosByType[`zone_${zone}`] = zPhotos
-    }
 
     return (
         <div className="space-y-6 pb-20">
@@ -305,52 +270,7 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                 <TabsContent value="photos" className="mt-4">
                     <Card>
                         <CardContent className="pt-6">
-                            <Tabs defaultValue="all" className="w-full">
-                                <TabsList className="mb-4 flex w-full overflow-x-auto justify-start touch-pan-x [&::-webkit-scrollbar]:hidden">
-                                    {allTabs.map(tab => (
-                                        <TabsTrigger key={tab.value} value={tab.value} className="shrink-0">
-                                            {tab.label}
-                                        </TabsTrigger>
-                                    ))}
-                                </TabsList>
-
-                                {allTabs.map((tab) => {
-                                    const currentTabPhotos = tab.value === 'all' ? photos : (photosByType[tab.value] || [])
-                                    const currentFeaturedCount = currentTabPhotos.filter((p: any) => p.is_featured).length
-
-                                    return (
-                                        <TabsContent key={tab.value} value={tab.value}>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                                {currentTabPhotos
-                                                    .map((photo: any) => (
-                                                        <div key={photo.id} className="relative aspect-square rounded-md overflow-hidden border bg-slate-100 group">
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={photo.url}
-                                                                alt={photo.type}
-                                                                className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                                                            />
-                                                            <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded uppercase flex items-center gap-1 z-30">
-                                                                {photo.type}
-                                                            </div>
-                                                            <AdminPhotoFeatureButton
-                                                                photoId={photo.id}
-                                                                isFeatured={!!photo.is_featured}
-                                                                currentFeaturedCount={currentFeaturedCount}
-                                                            />
-                                                            <AdminPhotoDeleteButton photoId={photo.id} photoUrl={photo.url} siteId={site.id} />
-                                                        </div>
-                                                    ))}
-                                                {currentTabPhotos.length === 0 && (
-                                                    <div className="col-span-full py-10 text-center text-muted-foreground">
-                                                        등록된 사진이 없습니다.
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </TabsContent>
-                                    )
-                                })}
-                            </Tabs>
+                            <AdminPhotoViewer photos={photos} siteId={site.id} />
                         </CardContent>
                     </Card>
                 </TabsContent>
