@@ -84,10 +84,13 @@ export async function getSites() {
         return []
     }
 
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminSupabase = createAdminClient()
+
     // Fetch shared orders to identify shared-out sites and metadata
-    const { data: sharedOrders } = await supabase
+    const { data: sharedOrders } = await adminSupabase
         .from('shared_orders')
-        .select('status, parsed_details, accepted_company:accepted_by(name, code)')
+        .select('status, parsed_details, accepted_by, accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
         .neq('status', 'deleted')
 
@@ -99,10 +102,14 @@ export async function getSites() {
                 const compData = Array.isArray(so.accepted_company) ? so.accepted_company[0] : so.accepted_company
                 const partnerName = compData?.name || '파트너'
                 const partnerCode = compData?.code || '????'
+                const isDirectShare = so.parsed_details?.is_direct_share === true
+                const isPendingDirect = isDirectShare && so.status === 'open' && so.accepted_by !== null
+                const isReclaimedDirect = isDirectShare && so.status === 'cancelled'
+                const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : so.status)
                 sharedOrdersMap.set(origId, {
                     partner_name: partnerName,
                     partner_code: partnerCode,
-                    status: so.status
+                    status: mappedStatus
                 })
             }
         })
@@ -691,7 +698,7 @@ export async function getSiteAdminDetails(id: string) {
     // Fetch if there is any shared order for this site ID
     const { data: sharedOrders } = await supabase
         .from('shared_orders')
-        .select('id, status, parsed_details, accepted_company:accepted_by(name, code)')
+        .select('id, status, parsed_details, accepted_by, accepted_company:accepted_by(name, code)')
         .eq('company_id', site.company_id)
         .neq('status', 'deleted')
 
@@ -701,10 +708,15 @@ export async function getSiteAdminDetails(id: string) {
         ? matchedOrder.accepted_company[0]
         : matchedOrder?.accepted_company as any
 
+    const isDirectShare = matchedOrder?.parsed_details?.is_direct_share === true
+    const isPendingDirect = isDirectShare && matchedOrder && matchedOrder.status === 'open' && matchedOrder.accepted_by !== null
+    const isReclaimedDirect = isDirectShare && matchedOrder && matchedOrder.status === 'cancelled'
+    const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : (matchedOrder ? matchedOrder.status : null))
+
     const shared_info = matchedOrder ? {
         partner_name: acceptedCompany?.name || '파트너',
         partner_code: acceptedCompany?.code || '????',
-        status: matchedOrder.status
+        status: mappedStatus
     } : null
 
     return {

@@ -427,10 +427,16 @@ export async function getMySharedOrders() {
         }
     }
 
-    return orders.map((order: any) => ({
-        ...order,
-        applicants: applicantsGrouped[order.id] || []
-    }))
+    return orders.map((order: any) => {
+        const isDirectShare = order.parsed_details?.is_direct_share === true
+        const isPendingDirect = isDirectShare && order.status === 'open' && order.accepted_by !== null
+        const isReclaimedDirect = isDirectShare && order.status === 'cancelled'
+        return {
+            ...order,
+            status: isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : order.status),
+            applicants: applicantsGrouped[order.id] || []
+        }
+    })
 }
 
 /** 배정 요청이 있는 오더 건수 (파트너 내 오더 배지용) */
@@ -534,6 +540,7 @@ export async function getIncomingOrders() {
             .select('*, sender_company:company_id(name, code)')
             .eq('status', 'open')
             .in('company_id', allSenderIds)
+            .is('accepted_by', null)
 
         if (hiddenOrderIds.length > 0) {
             openQuery = openQuery.not('id', 'in', `(${hiddenOrderIds.join(',')})`)
@@ -550,7 +557,7 @@ export async function getIncomingOrders() {
     let pendingQuery = adminSupabase
         .from('shared_orders')
         .select('*, sender_company:company_id(name, code)')
-        .eq('status', 'pending')
+        .eq('status', 'open')
         .eq('accepted_by', companyId)
 
     if (hiddenOrderIds.length > 0) {
@@ -598,10 +605,15 @@ export async function getIncomingOrders() {
 
     const appliedOrderIds = new Set(myApplications?.map((a: any) => a.order_id) || [])
 
-    return filteredOrders.map((order: any) => ({
-        ...order,
-        is_applied: appliedOrderIds.has(order.id)
-    }))
+    return filteredOrders.map((order: any) => {
+        const isDirectShare = order.parsed_details?.is_direct_share === true
+        const isPendingDirect = isDirectShare && order.status === 'open' && order.accepted_by === companyId
+        return {
+            ...order,
+            status: isPendingDirect ? 'pending' : order.status,
+            is_applied: appliedOrderIds.has(order.id)
+        }
+    })
 }
 
 /** 오더 수락 (상세정보 요청/지원 / 직접 공유 오더 수락) */
@@ -624,7 +636,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
 
     // 직접 공유 대기 중인 오더 또는 오픈된 오더가 아닌 경우 에러
     const isDirectShare = order.parsed_details?.is_direct_share === true
-    const isMyDirectShare = isDirectShare && order.accepted_by === companyId && order.status === 'pending'
+    const isMyDirectShare = isDirectShare && order.accepted_by === companyId && order.status === 'open'
     const isOpenOrder = order.status === 'open'
 
     if (!isMyDirectShare && !isOpenOrder) {
@@ -1323,7 +1335,7 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
                 address: site.address || '',
                 customer_phone: site.customer_phone || '',
                 customer_name: site.customer_name || '',
-                status: 'pending',
+                status: 'open',
                 accepted_by: partnerCompanyId,
                 parsed_details: {
                     original_site_id: siteId,
@@ -1385,14 +1397,14 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
         }
 
         // 이미 취소/회수된 오더이면 중복 차단
-        if (order.status === 'reclaimed' || order.status === 'cancelled') {
+        if (order.status === 'cancelled') {
             return { success: false, error: '이미 회수 처리된 오더입니다.' }
         }
 
-        // 2. 오더 상태를 reclaimed로 변경
+        // 2. 오더 상태를 cancelled로 변경
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
-            .update({ status: 'reclaimed', updated_at: new Date().toISOString() })
+            .update({ status: 'cancelled', updated_at: new Date().toISOString() })
             .eq('id', orderId)
 
         if (updateError) {
