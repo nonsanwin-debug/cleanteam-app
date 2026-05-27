@@ -19,8 +19,9 @@ export default async function AdminLogsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>전체 로그 (최근 내역 100건)</CardTitle>
+                    <CardTitle>전체 로그 (최근 내역 1000건)</CardTitle>
                 </CardHeader>
+
                 <CardContent>
                     <AdminLogsClient initialLogs={logs} />
                 </CardContent>

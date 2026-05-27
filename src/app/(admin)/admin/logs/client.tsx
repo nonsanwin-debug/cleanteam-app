@@ -9,8 +9,10 @@ import {
     TableCell,
     TableHead,
     TableHeader,
-    TableRow
+    TableRow,
+    TableFooter
 } from '@/components/ui/table'
+
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
@@ -34,14 +36,38 @@ interface Log {
 
 export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
     const [filterType, setFilterType] = useState<string>('all')
-    const [searchTerm, setSearchTerm] = useState('')
+    const [searchTerm1, setSearchTerm1] = useState('')
+    const [searchTerm2, setSearchTerm2] = useState('')
+    const [searchTerm3, setSearchTerm3] = useState('')
 
     const filteredLogs = initialLogs.filter(log => {
         const matchesType = filterType === 'all' || log.type === filterType
-        const matchesSearch = log.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        return matchesType && matchesSearch
+        
+        const matchesSearch1 = !searchTerm1 || 
+            log.description?.toLowerCase().includes(searchTerm1.toLowerCase()) ||
+            log.user?.name?.toLowerCase().includes(searchTerm1.toLowerCase())
+
+        const matchesSearch2 = !searchTerm2 || 
+            log.description?.toLowerCase().includes(searchTerm2.toLowerCase()) ||
+            log.user?.name?.toLowerCase().includes(searchTerm2.toLowerCase())
+
+        const matchesSearch3 = !searchTerm3 || 
+            log.description?.toLowerCase().includes(searchTerm3.toLowerCase()) ||
+            log.user?.name?.toLowerCase().includes(searchTerm3.toLowerCase())
+
+        return matchesType && matchesSearch1 && matchesSearch2 && matchesSearch3
     })
+
+    const totalEarning = filteredLogs
+        .filter(log => !['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type))
+        .reduce((sum, log) => sum + Math.abs(log.amount), 0)
+
+    const totalDeduction = filteredLogs
+        .filter(log => ['manual_deduct', 'penalty', 'withdrawal_paid', 'withdrawal_request'].includes(log.type))
+        .reduce((sum, log) => sum + Math.abs(log.amount), 0)
+
+    const netTotal = totalEarning - totalDeduction
+
 
     const getTypeBadge = (type: string) => {
         switch (type) {
@@ -59,31 +85,77 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                    <Input
-                        placeholder="작업자명 또는 내용 검색..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+            <div className="flex flex-col gap-4">
+                {/* 3단계 다중 조건 AND 검색 바 */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 block">1차 검색어</label>
+                        <Input
+                            placeholder="작업자명 또는 내용..."
+                            value={searchTerm1}
+                            onChange={(e) => setSearchTerm1(e.target.value)}
+                            className="bg-white"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 block">2차 검색어 (AND 조건)</label>
+                        <Input
+                            placeholder="추가 검색어 입력..."
+                            value={searchTerm2}
+                            onChange={(e) => setSearchTerm2(e.target.value)}
+                            className="bg-white"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 block">3차 검색어 (AND 조건)</label>
+                        <Input
+                            placeholder="추가 검색어 입력..."
+                            value={searchTerm3}
+                            onChange={(e) => setSearchTerm3(e.target.value)}
+                            className="bg-white"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 block">유형 필터</label>
+                        <Select value={filterType} onValueChange={setFilterType}>
+                            <SelectTrigger className="bg-white">
+                                <SelectValue placeholder="유형 선택" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">전체 유형</SelectItem>
+                                <SelectItem value="earning">커미션</SelectItem>
+                                <SelectItem value="commission">커미션 (신규)</SelectItem>
+                                <SelectItem value="penalty">AS차감</SelectItem>
+                                <SelectItem value="withdrawal_request">출금요청</SelectItem>
+                                <SelectItem value="withdrawal_paid">출금완료</SelectItem>
+                                <SelectItem value="withdrawal_refund">출금반려</SelectItem>
+                                <SelectItem value="manual_add">수동지급</SelectItem>
+                                <SelectItem value="manual_deduct">수동차감</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-                <div className="w-full md:w-48">
-                    <Select value={filterType} onValueChange={setFilterType}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="유형 선택" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">전체 유형</SelectItem>
-                            <SelectItem value="earning">커미션</SelectItem>
-                            <SelectItem value="commission">커미션 (신규)</SelectItem>
-                            <SelectItem value="penalty">AS차감</SelectItem>
-                            <SelectItem value="withdrawal_request">출금요청</SelectItem>
-                            <SelectItem value="withdrawal_paid">출금완료</SelectItem>
-                            <SelectItem value="withdrawal_refund">출금반려</SelectItem>
-                            <SelectItem value="manual_add">수동지급</SelectItem>
-                            <SelectItem value="manual_deduct">수동차감</SelectItem>
-                        </SelectContent>
-                    </Select>
+
+                {/* 실시간 정산 결과 요약 카드 */}
+                <div className="grid grid-cols-3 gap-4 bg-indigo-50/30 border border-indigo-100 rounded-lg p-4 text-center">
+                    <div>
+                        <span className="text-xs text-slate-500 block font-medium">총 지급/적립액</span>
+                        <span className="text-base font-bold text-green-600">
+                            +{totalEarning.toLocaleString()}원
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-xs text-slate-500 block font-medium">총 차감/출금액</span>
+                        <span className="text-base font-bold text-red-600">
+                            -{totalDeduction.toLocaleString()}원
+                        </span>
+                    </div>
+                    <div className="border-l border-indigo-100">
+                        <span className="text-xs text-slate-500 block font-medium">최종 정산 합계 (총액)</span>
+                        <span className={`text-base font-extrabold ${netTotal >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {netTotal >= 0 ? '+' : ''}{netTotal.toLocaleString()}원
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -130,6 +202,19 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
                             ))
                         )}
                     </TableBody>
+                    <TableFooter className="bg-slate-50 font-semibold border-t">
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-left font-bold text-slate-700">
+                                📊 검색 결과 요약 합계 (총액)
+                            </TableCell>
+                            <TableCell className={`text-right font-extrabold text-base ${netTotal >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                {netTotal >= 0 ? '+' : ''}{netTotal.toLocaleString()}원
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-slate-400 font-normal">
+                                {filteredLogs.length}건 검색됨
+                            </TableCell>
+                        </TableRow>
+                    </TableFooter>
                 </Table>
             </div>
         </div>

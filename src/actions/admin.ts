@@ -556,6 +556,8 @@ export async function getAdminLogs() {
         `)
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
+        .limit(1000)
+
 
     if (error) {
         console.error('Error fetching admin logs:', error)
