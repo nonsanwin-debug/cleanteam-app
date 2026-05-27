@@ -131,7 +131,7 @@ export default async function AdminLayout({
                 .from('shared_orders')
                 .select('*', { count: 'exact', head: true })
                 .eq('accepted_by', userProfile.company_id)
-                .eq('status', 'pending')
+                .eq('status', 'open')
             unreadSharedOrdersCount = count || 0
         }
     }
