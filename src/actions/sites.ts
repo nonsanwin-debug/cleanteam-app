@@ -395,7 +395,7 @@ export async function getRecentActivities() {
             created_at,
             site_id,
             user_id,
-            site:sites!inner(name, company_id),
+            site:sites!inner(name, company_id, is_deleted),
             user:users(name)
         `)
         .eq('site.company_id', companyId)
@@ -418,7 +418,12 @@ export async function getRecentActivities() {
         latestTimestamp: string
     }>()
 
-    for (const photo of (photos || [])) {
+    const validPhotos = (photos || []).filter((photo: any) => {
+        const siteData = Array.isArray(photo.site) ? photo.site[0] : photo.site
+        return !siteData || siteData.is_deleted !== true
+    })
+
+    for (const photo of validPhotos) {
         const p = photo as any
         const photoDate = (p.created_at as string).substring(0, 10)
         const key = `${p.site_id}_${p.user_id}_${photoDate}`
@@ -467,7 +472,7 @@ export async function getSiteById(id: string) {
         .eq('id', id)
         .single()
 
-    if (error) {
+    if (error || !data || data.is_deleted === true) {
         console.error('Error fetching site:', error)
         return null
     }
@@ -614,25 +619,29 @@ export async function getDashboardStats() {
             .select('*', { count: 'exact', head: true })
             .eq('company_id', companyId)
             .eq('status', 'scheduled')
-            .eq('cleaning_date', today),
+            .eq('cleaning_date', today)
+            .not('is_deleted', 'is', true),
         // 2. 진행 중
         supabase
             .from('sites')
             .select('*', { count: 'exact', head: true })
             .eq('company_id', companyId)
-            .eq('status', 'in_progress'),
+            .eq('status', 'in_progress')
+            .not('is_deleted', 'is', true),
         // 3. 완료 (오늘 일정 중 완료된 건만)
         supabase
             .from('sites')
             .select('*', { count: 'exact', head: true })
             .eq('company_id', companyId)
             .eq('status', 'completed')
-            .eq('cleaning_date', today),
+            .eq('cleaning_date', today)
+            .not('is_deleted', 'is', true),
         // 4. 활동 팀장 및 팀원 (오늘 배정된 현장 또는 현재 진행 중인 현장 참여자)
         supabase
             .from('sites')
             .select('worker_id, site_members(user_id)')
             .eq('company_id', companyId)
+            .not('is_deleted', 'is', true)
             .or(`cleaning_date.eq.${today},status.eq.in_progress`),
         // 5. 전체 팀장 수
         supabase
@@ -693,7 +702,7 @@ export async function getSiteAdminDetails(id: string) {
         checklistQuery
     ])
 
-    if (!site) return null
+    if (!site || site.is_deleted === true) return null
 
     // Fetch if there is any shared order for this site ID
     const { data: sharedOrders } = await supabase
@@ -780,6 +789,7 @@ export async function getTodayActivitySites() {
         `)
         .eq('company_id', companyId)
         .eq('cleaning_date', today)
+        .not('is_deleted', 'is', true)
         .or('status.eq.scheduled,status.eq.in_progress,status.eq.completed')
         .order('started_at', { ascending: false, nullsFirst: false })
         .limit(20)
