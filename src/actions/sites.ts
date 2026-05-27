@@ -870,7 +870,6 @@ export async function getTodayActivitySites() {
 
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 
-    // Fetch sites that are either in_progress OR completed, BUT specifically for today
     const { data, error } = await supabase
         .from('sites')
         .select(`
@@ -889,7 +888,66 @@ export async function getTodayActivitySites() {
         return []
     }
 
-    return data as (Site & { started_at?: string, completed_at?: string, updated_at?: string })[]
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminSupabase = createAdminClient()
+
+    // Fetch shared orders to identify shared-out sites and metadata
+    const { data: sharedOrders } = await adminSupabase
+        .from('shared_orders')
+        .select('status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
+        .eq('company_id', companyId)
+        .neq('status', 'deleted')
+
+    const sharedOrdersMap = new Map<string, any>()
+    if (sharedOrders) {
+        sharedOrders.forEach((so: any) => {
+            const origId = so.parsed_details?.original_site_id
+            if (origId) {
+                const compData = Array.isArray(so.accepted_company) ? so.accepted_company[0] : so.accepted_company
+                const partnerName = compData?.name || '파트너'
+                const partnerCode = compData?.code || '????'
+                const isDirectShare = so.parsed_details?.is_direct_share === true
+                const isPendingDirect = isDirectShare && so.status === 'open' && so.accepted_by !== null
+                const isReclaimedDirect = isDirectShare && so.status === 'cancelled'
+                const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : so.status)
+                const tfSiteData = Array.isArray(so.transferred_site) ? so.transferred_site[0] : so.transferred_site
+                sharedOrdersMap.set(origId, {
+                    partner_name: partnerName,
+                    partner_code: partnerCode,
+                    status: mappedStatus,
+                    transferred_site: tfSiteData || null
+                })
+            }
+        })
+    }
+
+    const mappedSites = data.map((site: any) => {
+        const sharedInfo = sharedOrdersMap.get(site.id)
+        const hasTransferredSite = sharedInfo && sharedInfo.transferred_site
+        let workerName = site.worker_name
+        let workerInfo = site.worker
+
+        if (hasTransferredSite) {
+            const rawName = sharedInfo.transferred_site.worker?.name
+            workerName = rawName ? maskName(rawName) : null
+            workerInfo = sharedInfo.transferred_site.worker ? {
+                ...sharedInfo.transferred_site.worker,
+                name: workerName
+            } : null
+        }
+
+        return {
+            ...site,
+            status: hasTransferredSite ? sharedInfo.transferred_site.status : site.status,
+            worker_name: workerName,
+            worker_id: hasTransferredSite ? sharedInfo.transferred_site.worker_id : site.worker_id,
+            worker: workerInfo,
+            is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
+            shared_info: sharedInfo || null
+        }
+    })
+
+    return mappedSites as (Site & { started_at?: string, completed_at?: string, updated_at?: string; is_shared_out?: boolean; shared_info?: any })[]
 }
 
 
