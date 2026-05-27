@@ -78,6 +78,46 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
+    const [resolvedRole, setResolvedRole] = useState<'leader' | 'customer' | 'guest' | 'admin'>(currentUserRole)
+    const [resolvedUserId, setResolvedUserId] = useState<string | undefined>(currentUserId)
+
+    useEffect(() => {
+        setResolvedRole(currentUserRole)
+        setResolvedUserId(currentUserId)
+    }, [currentUserRole, currentUserId])
+
+    useEffect(() => {
+        const checkLoggedInUser = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user) {
+                    const { data: userData, error } = await supabase
+                        .from('users')
+                        .select('name, role')
+                        .eq('id', user.id)
+                        .single()
+                    
+                    if (!error && userData) {
+                        setNickname(userData.name || '알 수 없음')
+                        setHasSetNickname(true)
+                        setResolvedUserId(user.id)
+                        
+                        if (userData.role === 'worker') {
+                            setResolvedRole('leader')
+                        } else if (userData.role === 'admin') {
+                            setResolvedRole('admin')
+                        } else {
+                            setResolvedRole(userData.role as any)
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error checking logged in user in chat:', err)
+            }
+        }
+        checkLoggedInUser()
+    }, [siteId])
+
     // Capacitor 하이브리드 대응 동적 Base URL 확인
     const getBaseUrl = () => {
         if (typeof window !== 'undefined') {
@@ -141,8 +181,8 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                 .upsert({
                     site_id: siteId,
                     name: nickname.trim(),
-                    role: currentUserRole,
-                    user_id: currentUserId || null,
+                    role: resolvedRole,
+                    user_id: resolvedUserId || null,
                     push_endpoint: pushEndpoint,
                     push_p256dh: pushP256dh,
                     push_auth: pushAuth,
@@ -160,7 +200,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         if (hasSetNickname && nickname.trim()) {
             registerOrUpdateParticipant()
         }
-    }, [siteId, hasSetNickname, nickname, currentUserRole, currentUserId])
+    }, [siteId, hasSetNickname, nickname, resolvedRole, resolvedUserId])
 
     // 영구 참여 대화 상대 목록 로드 및 Realtime 동기화
     useEffect(() => {
@@ -211,7 +251,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         const channel = supabase.channel(`presence_${siteId}`, {
             config: {
                 presence: {
-                    key: `${nickname.trim()}_${currentUserRole}_${currentUserId || 'anon'}_${Math.random().toString(36).substring(2, 6)}`,
+                    key: `${nickname.trim()}_${resolvedRole}_${resolvedUserId || 'anon'}_${Math.random().toString(36).substring(2, 6)}`,
                 },
             },
         })
@@ -242,7 +282,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                 if (status === 'SUBSCRIBED') {
                     await channel.track({
                         name: nickname.trim(),
-                        role: currentUserRole,
+                        role: resolvedRole,
                         online_at: new Date().toISOString(),
                     })
                 }
@@ -251,7 +291,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [siteId, isOpen, hasSetNickname, nickname, currentUserRole, currentUserId])
+    }, [siteId, isOpen, hasSetNickname, nickname, resolvedRole, resolvedUserId])
 
     // 메시지 로드 및 실시간 동기화
     useEffect(() => {
@@ -371,8 +411,8 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                 .insert({
                     site_id: siteId,
                     sender_name: nickname.trim(),
-                    sender_role: currentUserRole,
-                    sender_user_id: currentUserId || null,
+                    sender_role: resolvedRole,
+                    sender_user_id: resolvedUserId || null,
                     message: msgText,
                 })
 
@@ -439,8 +479,8 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
     }
 
     const isMyMessage = (msg: ChatMessage) => {
-        if (currentUserId && msg.sender_user_id === currentUserId) return true
-        if (!currentUserId && msg.sender_name === nickname && msg.sender_role === currentUserRole) return true
+        if (resolvedUserId && msg.sender_user_id === resolvedUserId) return true
+        if (!resolvedUserId && msg.sender_name === nickname && msg.sender_role === resolvedRole) return true
         return false
     }
 
@@ -488,7 +528,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
             {/* 상단 바 */}
             <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100 shrink-0">
                 <div className="flex gap-2 items-center w-full justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                    {currentUserRole === 'leader' && customerPhone && (
+                    {resolvedRole === 'leader' && customerPhone && (
                         <a
                             href={`tel:${customerPhone.split('/')[0].trim().replace(/-/g, '')}`}
                             className="h-8 px-3 inline-flex items-center justify-center rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all shrink-0 whitespace-nowrap gap-1.5"
@@ -656,7 +696,7 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                         </div>
                         <div className="text-center mt-1.5">
                             <span className="text-[10px] text-slate-400">
-                                {nickname} ({ROLE_LABELS[currentUserRole] || '참여자'})로 참여 중
+                                {nickname} ({ROLE_LABELS[resolvedRole] || '참여자'})로 참여 중
                             </span>
                         </div>
                     </div>
