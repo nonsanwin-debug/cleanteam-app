@@ -28,6 +28,7 @@ export async function getUsersWithClaims() {
         .select('id, name, worker_id, claimed_amount, payment_status, created_at, claimed_by')
         .eq('payment_status', 'requested')
         .eq('company_id', companyId)
+        .not('is_deleted', 'is', true)
 
     // Attach claims to users (claimed_by가 있으면 실제 청구자, 없으면 worker_id로 fallback)
     const usersWithClaims = users.map(user => {

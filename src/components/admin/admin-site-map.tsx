@@ -156,6 +156,7 @@ export function AdminSiteMap() {
                     worker:users!worker_id (name)
                 `)
                 .eq('company_id', companyId)
+                .not('is_deleted', 'is', true)
                 .or(`cleaning_date.gte.${startOfDay.toISOString()},and(cleaning_date.is.null,created_at.gte.${startOfDay.toISOString()})`)
 
             if (data && data.length > 0) {

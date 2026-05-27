@@ -14,6 +14,7 @@ export async function getAdminDailySiteCounts(startDateStr: string, endDateStr: 
         .eq('company_id', companyId)
         .gte('cleaning_date', startDateStr)
         .lte('cleaning_date', endDateStr)
+        .not('is_deleted', 'is', true)
 
     if (error) {
         console.error('getAdminDailySiteCounts error', error)
@@ -41,6 +42,7 @@ export async function getAdminSitesByDate(dateStr: string) {
         `)
         .eq('company_id', companyId)
         .eq('cleaning_date', dateStr)
+        .not('is_deleted', 'is', true)
         .order('start_time', { ascending: true })
 
     if (error) {
