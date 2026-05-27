@@ -206,7 +206,7 @@ export function PhotoUploader({ siteId, existingPhotos, readOnly = false, canDel
         }
 
         const unsubscribe = uploadManager.subscribe(updateStatus)
-        return () => unsubscribe()
+        return () => { unsubscribe() }
     }, [showInAppCamera, sessionPhotos.length])
 
     // 모달이 변경될 때 video 태그 srcObject 갱신 보장

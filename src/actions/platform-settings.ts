@@ -8,11 +8,17 @@ import { revalidatePath } from 'next/cache'
 export interface PlatformSettings {
     global_free_old_building: boolean
     global_free_interior: boolean
+    hide_wallet_features: boolean
+    hide_admin_photo_zone_setup: boolean
+    hide_cleaning_fee_examples: boolean
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {
     global_free_old_building: false,
     global_free_interior: false,
+    hide_wallet_features: false,
+    hide_admin_photo_zone_setup: false,
+    hide_cleaning_fee_examples: false,
 }
 
 /**
@@ -23,7 +29,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('platform_settings')
-            .select('global_free_old_building, global_free_interior')
+            .select('global_free_old_building, global_free_interior, hide_wallet_features, hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
             .limit(1)
             .single()
 
@@ -35,6 +41,9 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
         return {
             global_free_old_building: data.global_free_old_building ?? false,
             global_free_interior: data.global_free_interior ?? false,
+            hide_wallet_features: data.hide_wallet_features ?? false,
+            hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
+            hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
         }
     } catch {
         return DEFAULT_SETTINGS
@@ -80,6 +89,9 @@ export async function updatePlatformSettings(
                 .insert({
                     global_free_old_building: settings.global_free_old_building ?? false,
                     global_free_interior: settings.global_free_interior ?? false,
+                    hide_wallet_features: settings.hide_wallet_features ?? false,
+                    hide_admin_photo_zone_setup: settings.hide_admin_photo_zone_setup ?? false,
+                    hide_cleaning_fee_examples: settings.hide_cleaning_fee_examples ?? false,
                     updated_at: new Date().toISOString(),
                 })
 

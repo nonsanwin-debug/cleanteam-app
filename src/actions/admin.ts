@@ -90,6 +90,15 @@ export async function approvePayment(siteId: string, userId: string, amount: num
     try {
         const supabase = await createClient()
 
+        // 0. Fetch platform settings to check if wallet features are hidden
+        const { data: settings } = await supabase
+            .from('platform_settings')
+            .select('hide_wallet_features')
+            .limit(1)
+            .single()
+
+        const hideWallet = settings?.hide_wallet_features ?? false
+
         // 1. Fetch site info (name, additional_amount, payment_status)
         const { data: site, error: siteError } = await supabase
             .from('sites')
@@ -122,7 +131,7 @@ export async function approvePayment(siteId: string, userId: string, amount: num
             .single()
 
         const companyPoints = companyData?.points || 0
-        if (companyPoints < amount) {
+        if (!hideWallet && companyPoints < amount) {
             return { success: false, error: '업체의 잔여 포인트가 부족하여 정산을 승인할 수 없습니다. (마스터 충전 필요)' }
         }
 
@@ -136,15 +145,17 @@ export async function approvePayment(siteId: string, userId: string, amount: num
             return { success: false, error: '현장 상태 업데이트에 실패했습니다.' }
         }
 
-        // 3.5 Deduct company points
-        const { error: companyUpdateError } = await supabase
-            .from('companies')
-            .update({ points: companyPoints - amount })
-            .eq('id', site.company_id)
+        // 3.5 Deduct company points (bypass if wallet features are hidden)
+        if (!hideWallet) {
+            const { error: companyUpdateError } = await supabase
+                .from('companies')
+                .update({ points: companyPoints - amount })
+                .eq('id', site.company_id)
 
-        if (companyUpdateError) {
-            console.error('Company points deduction error:', companyUpdateError)
-            return { success: false, error: '업체 포인트 차감에 실패했습니다.' }
+            if (companyUpdateError) {
+                console.error('Company points deduction error:', companyUpdateError)
+                return { success: false, error: '업체 포인트 차감에 실패했습니다.' }
+            }
         }
 
         // 4. Update worker balance

@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     title: '캐쉬 충전 | 🅝 NEXUS',
 }
 
+import { getPlatformSettings } from '@/actions/platform-settings'
+
 export default async function RechargePage() {
     const supabase = await createClient()
 
@@ -14,6 +16,12 @@ export default async function RechargePage() {
 
     if (!user) {
         redirect('/auth/admin-login')
+    }
+
+    // Check if wallet features are hidden
+    const settings = await getPlatformSettings()
+    if (settings.hide_wallet_features) {
+        redirect('/admin/dashboard')
     }
 
     // Get user's company info

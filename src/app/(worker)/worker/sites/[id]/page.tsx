@@ -48,6 +48,22 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [additionalAmountVal, setAdditionalAmountVal] = useState('')
     const [additionalDescVal, setAdditionalDescVal] = useState('')
     const [savingAdditional, setSavingAdditional] = useState(false)
+    const [hideCleaningExamples, setHideCleaningExamples] = useState(false)
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('platform_settings')
+                .select('hide_cleaning_fee_examples')
+                .limit(1)
+                .single()
+            if (data) {
+                setHideCleaningExamples(data.hide_cleaning_fee_examples ?? false)
+            }
+        }
+        fetchSettings()
+    }, [])
     const [smsSettings, setSmsSettings] = useState<{ sms_enabled: boolean; sms_bank_name: string; sms_account_number: string; sms_message_template: string; company_collection_message: string } | null>(null)
     const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [currentUserName, setCurrentUserName] = useState<string>('')
@@ -55,6 +71,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
     const [startingWork, setStartingWork] = useState(false)
 
     const router = useRouter()
+    const checklistRef = useRef<any>(null)
 
     const handleStartWork = async () => {
         if (!site) return
@@ -313,7 +330,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             </div>
 
             {/* 작업 시작하기 카드 (팀장 전용 및 미시작 상태) */}
-            {isLeader && (site.status === 'scheduled' || site.status === 'pending') && (
+            {isLeader && (site.status === 'scheduled' || (site.status as string) === 'pending') && (
                 <div className="bg-white border-2 border-indigo-200 rounded-lg p-5 shadow-sm bg-indigo-50/20 flex flex-col items-center justify-center text-center space-y-3.5">
                     <div className="bg-indigo-100/80 p-3.5 rounded-full shrink-0">
                         <PlayCircle className="w-10 h-10 text-indigo-600 animate-pulse" />
@@ -615,7 +632,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                             <Textarea
                                                 value={additionalDescVal}
                                                 onChange={(e) => setAdditionalDescVal(e.target.value)}
-                                                placeholder="추가 작업 내용을 입력하세요"
+                                                placeholder={hideCleaningExamples ? "추가 작업 내용을 입력하세요" : "예: 피톤치드 추가, 오염 심함 등"}
                                                 className="bg-white resize-none text-xs"
                                                 rows={2}
                                             />

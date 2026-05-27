@@ -84,29 +84,40 @@ export async function getSites() {
         return []
     }
 
-    // Fetch shared orders to identify shared-out sites
+    // Fetch shared orders to identify shared-out sites and metadata
     const { data: sharedOrders } = await supabase
         .from('shared_orders')
-        .select('parsed_details')
+        .select('status, parsed_details, accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
-        .neq('status', 'cancelled')
+        .neq('status', 'deleted')
 
-    const sharedOutSiteIds = new Set<string>()
+    const sharedOrdersMap = new Map<string, any>()
     if (sharedOrders) {
         sharedOrders.forEach((so: any) => {
             const origId = so.parsed_details?.original_site_id
             if (origId) {
-                sharedOutSiteIds.add(origId)
+                const compData = Array.isArray(so.accepted_company) ? so.accepted_company[0] : so.accepted_company
+                const partnerName = compData?.name || '파트너'
+                const partnerCode = compData?.code || '????'
+                sharedOrdersMap.set(origId, {
+                    partner_name: partnerName,
+                    partner_code: partnerCode,
+                    status: so.status
+                })
             }
         })
     }
 
-    const sitesWithShareFlag = data.map((site: any) => ({
-        ...site,
-        is_shared_out: sharedOutSiteIds.has(site.id)
-    }))
+    const sitesWithShareFlag = data.map((site: any) => {
+        const sharedInfo = sharedOrdersMap.get(site.id)
+        return {
+            ...site,
+            is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
+            shared_info: sharedInfo || null
+        }
+    })
 
-    return sitesWithShareFlag as (Site & { is_shared_out: boolean })[]
+    return sitesWithShareFlag as (Site & { is_shared_out: boolean; shared_info: any })[]
 }
 
 export async function getWorkers() {
@@ -680,16 +691,27 @@ export async function getSiteAdminDetails(id: string) {
     // Fetch if there is any shared order for this site ID
     const { data: sharedOrders } = await supabase
         .from('shared_orders')
-        .select('id, parsed_details')
+        .select('id, status, parsed_details, accepted_company:accepted_by(name, code)')
         .eq('company_id', site.company_id)
-        .neq('status', 'cancelled')
+        .neq('status', 'deleted')
 
-    const is_shared_out = !!sharedOrders?.some((so: any) => so.parsed_details?.original_site_id === id)
+    const matchedOrder = sharedOrders?.find((so: any) => so.parsed_details?.original_site_id === id)
+    const is_shared_out = !!matchedOrder && matchedOrder.status === 'transferred'
+    const acceptedCompany = Array.isArray(matchedOrder?.accepted_company)
+        ? matchedOrder.accepted_company[0]
+        : matchedOrder?.accepted_company as any
+
+    const shared_info = matchedOrder ? {
+        partner_name: acceptedCompany?.name || '파트너',
+        partner_code: acceptedCompany?.code || '????',
+        status: matchedOrder.status
+    } : null
 
     return {
         site: {
             ...site,
-            is_shared_out
+            is_shared_out,
+            shared_info
         },
         photos: photos || [],
         checklist: checklist || null

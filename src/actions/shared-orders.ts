@@ -526,28 +526,48 @@ export async function getIncomingOrders() {
 
     const hiddenOrderIds = hiddenOrders?.map(h => h.order_id) || []
 
-    // 해당 업체들의 open 오더 조회
-    if (allSenderIds.length === 0) return []
+    let orders: any[] = []
 
-    let query = adminSupabase
+    if (allSenderIds.length > 0) {
+        let openQuery = adminSupabase
+            .from('shared_orders')
+            .select('*, sender_company:company_id(name, code)')
+            .eq('status', 'open')
+            .in('company_id', allSenderIds)
+
+        if (hiddenOrderIds.length > 0) {
+            openQuery = openQuery.not('id', 'in', `(${hiddenOrderIds.join(',')})`)
+        }
+
+        const { data: openOrders, error: openError } = await openQuery
+        if (openError) {
+            console.error('getIncomingOrders openQuery error:', openError)
+        } else if (openOrders) {
+            orders = [...orders, ...openOrders]
+        }
+    }
+
+    let pendingQuery = adminSupabase
         .from('shared_orders')
         .select('*, sender_company:company_id(name, code)')
-        .eq('status', 'open')
-        .in('company_id', allSenderIds)
-        .order('created_at', { ascending: false })
+        .eq('status', 'pending')
+        .eq('accepted_by', companyId)
 
-    // 숨긴 오더가 있으면 제외
     if (hiddenOrderIds.length > 0) {
-        query = query.not('id', 'in', `(${hiddenOrderIds.join(',')})`)
+        pendingQuery = pendingQuery.not('id', 'in', `(${hiddenOrderIds.join(',')})`)
     }
 
-    const { data: orders, error } = await query
-
-    if (error) {
-        console.error('getIncomingOrders error:', error)
-        return []
+    const { data: pendingOrders, error: pendingError } = await pendingQuery
+    if (pendingError) {
+        console.error('getIncomingOrders pendingQuery error:', pendingError)
+    } else if (pendingOrders) {
+        orders = [...orders, ...pendingOrders]
     }
-    if (!orders || orders.length === 0) return []
+
+    // Sort combined by created_at desc
+    orders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+    if (orders.length === 0) return []
 
     // 2. 관리자 키로 우회된 RLS 대신 애플리케이션 레벨에서 지역 필터링 적용
     // (전국 권한이 있거나, 오더 지역 명칭에 내 업체의 도/시가 포함된 경우만 노출)
@@ -584,7 +604,7 @@ export async function getIncomingOrders() {
     }))
 }
 
-/** 오더 수락 (상세정보 요청/지원) */
+/** 오더 수락 (상세정보 요청/지원 / 직접 공유 오더 수락) */
 export async function acceptOrder(orderId: string): Promise<ActionResponse> {
     const { supabase, companyId } = await getAuthCompany()
     if (!companyId) return { success: false, error: '인증 실패' }
@@ -596,11 +616,70 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         .from('shared_orders')
         .select('*')
         .eq('id', orderId)
-        .eq('status', 'open')
         .single()
 
     if (fetchError || !order) {
         return { success: false, error: '오더를 찾을 수 없거나 마감되었습니다.' }
+    }
+
+    // 직접 공유 대기 중인 오더 또는 오픈된 오더가 아닌 경우 에러
+    const isDirectShare = order.parsed_details?.is_direct_share === true
+    const isMyDirectShare = isDirectShare && order.accepted_by === companyId && order.status === 'pending'
+    const isOpenOrder = order.status === 'open'
+
+    if (!isMyDirectShare && !isOpenOrder) {
+        return { success: false, error: '수락 불가능한 상태의 오더이거나 마감되었습니다.' }
+    }
+
+    // 1.5 직접 공유 오더의 경우 즉시 이관 및 상태 변경 단독 처리
+    if (isMyDirectShare) {
+        const newStatus = 'transferred'
+
+        // 오더 상태를 transferred로 변경
+        const { error: updateError } = await adminSupabase
+            .from('shared_orders')
+            .update({
+                accepted_at: new Date().toISOString(),
+                status: newStatus
+            })
+            .eq('id', orderId)
+
+        if (updateError) {
+            console.error('acceptOrder direct_share update error:', updateError)
+            return { success: false, error: '오더 수락 처리에 실패했습니다.' }
+        }
+
+        // 수신사(나)의 현장(sites)으로 즉시 이관
+        const parsedDetails = order.parsed_details || {}
+        const orderToTransfer = {
+            ...order,
+            ...parsedDetails,
+            site_name: parsedDetails.detail_address || order.region || `${order.address} 현장`,
+            accepted_by: companyId,
+            status: newStatus
+        }
+        await transferToSite(orderToTransfer, companyId, supabase)
+
+        // 발신 업체(원 소유주)에게 알림 발송 - 수락 완료 알림
+        const { data: myCompany } = await supabase.from('companies').select('name').eq('id', companyId).single()
+        const myName = myCompany?.name || '파트너사'
+
+        await sendPushToAdmins(order.company_id, {
+            title: '🔗 직접 공유 오더 수락 완료',
+            body: `[${myName}] 업체에서 귀하의 직접 공유 오더(${order.address || order.region})를 수락하였습니다.`,
+            url: '/admin/shared-orders',
+            tag: `direct-share-accepted-${orderId}`
+        })
+
+        await adminSupabase.from('shared_order_notifications').insert({
+            order_id: orderId,
+            company_id: order.company_id,
+            message: `[${myName}] 업체에서 공유 현장을 수락하여 현장 이관이 완료되었습니다.`
+        })
+
+        revalidatePath('/admin/shared-orders')
+        revalidatePath('/admin/sites')
+        return { success: true }
     }
 
     // 2. 업체명 및 캐쉬 조회
@@ -998,7 +1077,7 @@ export async function deleteSharedOrder(orderId: string): Promise<ActionResponse
     // 오더 정보 조회
     const { data: order } = await adminSupabase
         .from('shared_orders')
-        .select('company_id, accepted_by, status, transferred_site_id')
+        .select('company_id, accepted_by, status, transferred_site_id, parsed_details')
         .eq('id', orderId)
         .single()
 
@@ -1231,7 +1310,7 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
             return { success: false, error: '공유 대상 업체를 찾을 수 없습니다.' }
         }
 
-        // 4. shared_orders 레코드 삽입 (직접 공유이므로 바로 status: 'transferred' 및 accepted_by 매핑)
+        // 4. shared_orders 레코드 삽입 (대기 상태로 생성, status: 'pending')
         const { data: order, error: orderError } = await adminSupabase
             .from('shared_orders')
             .insert({
@@ -1244,9 +1323,8 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
                 address: site.address || '',
                 customer_phone: site.customer_phone || '',
                 customer_name: site.customer_name || '',
-                status: 'transferred',
+                status: 'pending',
                 accepted_by: partnerCompanyId,
-                accepted_at: new Date().toISOString(),
                 parsed_details: {
                     original_site_id: siteId,
                     is_direct_share: true,
@@ -1261,55 +1339,18 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
             return { success: false, error: '공유 레코드 생성에 실패했습니다.' }
         }
 
-        // 5. 수신 파트너사 소속으로 새로운 sites 레코드 삽입
-        const { data: newSite, error: insertError } = await adminSupabase
-            .from('sites')
-            .insert({
-                company_id: partnerCompanyId,
-                name: site.name || `${site.address || ''} 현장`,
-                address: site.address || '',
-                customer_name: site.customer_name || null,
-                customer_phone: site.customer_phone || null,
-                cleaning_date: site.cleaning_date || null,
-                start_time: site.start_time || null,
-                residential_type: site.residential_type || null,
-                structure_type: site.structure_type || null,
-                area_size: site.area_size || null,
-                balance_amount: site.balance_amount || 0,
-                special_notes: site.special_notes 
-                    ? `[직접 공유: ${senderCompany?.name || '파트너'}] ${site.special_notes}`
-                    : `[직접 공유: ${senderCompany?.name || '파트너'}]`,
-                status: 'scheduled',
-                payment_status: 'none',
-                collection_type: site.collection_type || 'company'
-            })
-            .select('id')
-            .single()
-
-        if (insertError || !newSite) {
-            console.error('shareSiteDirectly site insert error:', insertError)
-            await adminSupabase.from('shared_orders').delete().eq('id', order.id)
-            return { success: false, error: '파트너사 현장 생성에 실패했습니다.' }
-        }
-
-        // 6. shared_orders의 transferred_site_id 업데이트
-        await adminSupabase
-            .from('shared_orders')
-            .update({ transferred_site_id: newSite.id })
-            .eq('id', order.id)
-
-        // 7. 실시간 푸시 알림 전송 및 DB 알림 기록
+        // 5. 실시간 푸시 알림 전송 및 DB 알림 기록 (오더 공유 센터 대기 상태 알림)
         await sendPushToAdmins(partnerCompanyId, {
-            title: '🔗 직접 공유 오더 수신',
-            body: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 직접 공유되었습니다.`,
-            url: '/admin/sites',
+            title: '🔗 공유 오더 수신 (수락 대기)',
+            body: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 공유되어 수락 대기 중입니다.`,
+            url: '/admin/shared-orders',
             tag: `direct-share-received-${order.id}`
         })
 
         await adminSupabase.from('shared_order_notifications').insert({
             order_id: order.id,
             company_id: partnerCompanyId,
-            message: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 직접 공유되었습니다.`
+            message: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 공유되어 수락 대기 중입니다.`
         })
 
         // 8. 발신사의 경로 및 전체 목록 경로 갱신
@@ -1319,6 +1360,100 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
         return { success: true }
     } catch (error: any) {
         console.error('shareSiteDirectly error:', error)
+        return { success: false, error: error.message || '서버 오류 발생' }
+    }
+}
+
+/** 파트너사에게 직접 공유한 오더를 회수 */
+export async function reclaimSharedOrder(orderId: string): Promise<ActionResponse> {
+    try {
+        const { companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '인증 실패' }
+
+        const adminSupabase = createAdminClient()
+
+        // 1. 오더 정보 조회 및 내 오더인지 검증
+        const { data: order, error: fetchError } = await adminSupabase
+            .from('shared_orders')
+            .select('*')
+            .eq('id', orderId)
+            .eq('company_id', companyId)
+            .single()
+
+        if (fetchError || !order) {
+            return { success: false, error: '회수할 오더를 찾을 수 없습니다.' }
+        }
+
+        // 이미 취소/회수된 오더이면 중복 차단
+        if (order.status === 'reclaimed' || order.status === 'cancelled') {
+            return { success: false, error: '이미 회수 처리된 오더입니다.' }
+        }
+
+        // 2. 오더 상태를 reclaimed로 변경
+        const { error: updateError } = await adminSupabase
+            .from('shared_orders')
+            .update({ status: 'reclaimed', updated_at: new Date().toISOString() })
+            .eq('id', orderId)
+
+        if (updateError) {
+            return { success: false, error: '오더 회수 처리에 실패했습니다.' }
+        }
+
+        // 3. 수신사 소속의 복제된 현장(sites)이 있으면 강제 소멸(is_deleted = true) 처리
+        if (order.transferred_site_id) {
+            const { error: siteDeleteError } = await adminSupabase
+                .from('sites')
+                .update({
+                    is_deleted: true,
+                    deleted_at: new Date().toISOString(),
+                    deleted_by_name: '발신사 오더 회수'
+                })
+                .eq('id', order.transferred_site_id)
+
+            if (siteDeleteError) {
+                console.error('reclaimSharedOrder site delete error:', siteDeleteError)
+            }
+        }
+
+        // 4. 발신사(송신사)의 업체명 및 코드 조회
+        const { data: senderCompany } = await adminSupabase
+            .from('companies')
+            .select('name, code')
+            .eq('id', companyId)
+            .single()
+
+        const senderLabel = senderCompany
+            ? `${senderCompany.name}#${senderCompany.code}`
+            : '발신 업체'
+
+        // 5. 수신 파트너사에게 오더 회수 알림판 저장 및 푸시 발송
+        if (order.accepted_by) {
+            const message = `${senderLabel} 업체에서 오더회수 알림 > 오더 회수됨`
+
+            await adminSupabase.from('shared_order_notifications').insert({
+                order_id: orderId,
+                company_id: order.accepted_by,
+                message: message
+            })
+
+            await sendPushToAdmins(order.accepted_by, {
+                title: '🚫 공유 오더 회수됨',
+                body: `[${senderCompany?.name || '파트너'}]에서 공유된 현장 오더(${order.address || order.region})를 회수하였습니다.`,
+                url: '/admin/shared-orders',
+                tag: `direct-share-reclaimed-${orderId}`
+            })
+        }
+
+        // 6. 발신사/수신사 경로 갱신
+        revalidatePath('/admin/shared-orders')
+        revalidatePath('/admin/sites')
+        if (order.parsed_details?.original_site_id) {
+            revalidatePath(`/admin/sites/${order.parsed_details.original_site_id}`)
+        }
+
+        return { success: true }
+    } catch (error: any) {
+        console.error('reclaimSharedOrder error:', error)
         return { success: false, error: error.message || '서버 오류 발생' }
     }
 }

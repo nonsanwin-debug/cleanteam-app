@@ -10,13 +10,14 @@ import { cn } from '@/lib/utils'
 interface AdminNavLinksProps {
     pendingCount: number
     unreadReplyCount?: number
+    unreadSharedOrdersCount?: number
 }
 
 const NAV_ITEMS = [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: '대시보드', iconColor: 'text-blue-500' },
     { href: '/admin/sites', icon: MapPin, label: '현장 관리', iconColor: 'text-rose-500' },
     { href: '/admin/chats', icon: MessageCircle, label: '실시간 채팅 관제', iconColor: 'text-indigo-500' },
-    { href: '/admin/shared-orders', icon: Share2, label: '오더 공유 센터', iconColor: 'text-emerald-500' },
+    { href: '/admin/shared-orders', icon: Share2, label: '오더 공유 센터', iconColor: 'text-emerald-500', showSharedBadge: true },
     // { href: '/admin/partners', icon: Building2, label: '업체 관리', iconColor: 'text-teal-500' },
     // { href: '/admin/users/new', icon: UserPlus, label: '팀원 등록', iconColor: 'text-indigo-600' },
     // { href: '/admin/promotion', icon: Camera, label: '홍보 관리', iconColor: 'text-sky-500' },
@@ -29,7 +30,7 @@ const NAV_ITEMS = [
     { href: '/admin/settings', icon: Settings, label: '설정', iconColor: 'text-slate-500' },
 ]
 
-export function AdminNavLinks({ pendingCount, unreadReplyCount = 0 }: AdminNavLinksProps) {
+export function AdminNavLinks({ pendingCount, unreadReplyCount = 0, unreadSharedOrdersCount = 0 }: AdminNavLinksProps) {
     const pathname = usePathname()
 
     return (
@@ -82,6 +83,16 @@ export function AdminNavLinks({ pendingCount, unreadReplyCount = 0 }: AdminNavLi
                                         : 'bg-red-500 text-white hover:bg-red-600'
                                 )}>
                                     {unreadReplyCount}
+                                </Badge>
+                            )}
+                            {item.showSharedBadge && unreadSharedOrdersCount > 0 && (
+                                <Badge className={cn(
+                                    'ml-auto h-5 min-w-5 flex items-center justify-center px-1.5',
+                                    isActive
+                                        ? 'bg-white text-emerald-600 hover:bg-white/90'
+                                        : 'bg-red-500 text-white hover:bg-red-600'
+                                )}>
+                                    {unreadSharedOrdersCount}
                                 </Badge>
                             )}
                         </Button>

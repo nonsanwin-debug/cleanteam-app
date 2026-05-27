@@ -15,6 +15,8 @@ import { updateSettlementInfo } from '@/actions/sites'
 import { toast } from 'sonner'
 import { Loader2, Pencil, X, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { useEffect } from 'react'
 
 interface SettlementEditFormProps {
     siteId: string
@@ -34,6 +36,22 @@ export function SettlementEditForm({
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [hideCleaningExamples, setHideCleaningExamples] = useState(false)
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('platform_settings')
+                .select('hide_cleaning_fee_examples')
+                .limit(1)
+                .single()
+            if (data) {
+                setHideCleaningExamples(data.hide_cleaning_fee_examples ?? false)
+            }
+        }
+        fetchSettings()
+    }, [])
 
     const [collectionType, setCollectionType] = useState(initialCollectionType)
     const [balanceAmount, setBalanceAmount] = useState(initialBalanceAmount.toString())
@@ -128,7 +146,7 @@ export function SettlementEditForm({
                     <Input
                         value={additionalDescription}
                         onChange={(e) => setAdditionalDescription(e.target.value)}
-                        placeholder="추가금액 사유 입력"
+                        placeholder={hideCleaningExamples ? "추가금액 사유 입력" : "예: 피톤치드, 오염 심함 등"}
                         className="h-9"
                     />
                 </div>

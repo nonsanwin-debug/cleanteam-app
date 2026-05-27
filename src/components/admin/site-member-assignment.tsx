@@ -9,6 +9,7 @@ import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2, 
 import { addSiteMember, removeSiteMember, requestHappyCallPush } from '@/actions/sites'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 type Worker = {
     id: string
@@ -37,6 +38,7 @@ type Site = {
     special_notes?: string | null
     happy_call_completed?: boolean
     is_shared_out?: boolean
+    shared_info?: { partner_name: string; partner_code: string; status: 'pending' | 'transferred' | 'reclaimed' } | null
 }
 
 interface Props {
@@ -286,6 +288,23 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     className="border-orange-500 text-orange-600 bg-orange-50 hover:bg-orange-50 font-semibold"
                                                 >
                                                     🔗 공유 오더 (읽기전용)
+                                                </Badge>
+                                            )}
+                                            {site.shared_info && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        "font-bold text-[10px] tracking-tight shadow-sm px-2 py-0.5",
+                                                        site.shared_info.status === 'transferred'
+                                                            ? "border-emerald-500 text-emerald-600 bg-emerald-50"
+                                                            : site.shared_info.status === 'pending'
+                                                                ? "border-amber-500 text-amber-600 bg-amber-50"
+                                                                : "border-slate-400 text-slate-500 bg-slate-100"
+                                                    )}
+                                                >
+                                                    🔗 {site.shared_info.partner_name}#{site.shared_info.partner_code}{' '}
+                                                    {site.shared_info.status === 'transferred' ? '공유됨' :
+                                                     site.shared_info.status === 'pending' ? '수락대기' : '회수됨'}
                                                 </Badge>
                                             )}
                                             <Badge

@@ -30,6 +30,9 @@ export default function MasterSettingsPage() {
     const [settings, setSettings] = useState({
         global_free_old_building: false,
         global_free_interior: false,
+        hide_wallet_features: false,
+        hide_admin_photo_zone_setup: false,
+        hide_cleaning_fee_examples: false,
     })
 
     // 피드 관리 상태
@@ -62,7 +65,7 @@ export default function MasterSettingsPage() {
             setLoading(true)
             const { data, error } = await supabase
                 .from('platform_settings')
-                .select('global_free_old_building, global_free_interior')
+                .select('global_free_old_building, global_free_interior, hide_wallet_features, hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
                 .limit(1)
                 .single()
 
@@ -70,6 +73,9 @@ export default function MasterSettingsPage() {
                 setSettings({
                     global_free_old_building: data.global_free_old_building ?? false,
                     global_free_interior: data.global_free_interior ?? false,
+                    hide_wallet_features: data.hide_wallet_features ?? false,
+                    hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
+                    hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
                 })
             }
             setLoading(false)
@@ -253,6 +259,60 @@ export default function MasterSettingsPage() {
                                 <div className="text-sm text-amber-700 space-y-1">
                                     <p>• 구축 할증: <strong>{settings.global_free_old_building ? '✅ 전체 무료' : '❌ 개별 업체 설정에 따름'}</strong></p>
                                     <p>• 인테리어 할증: <strong>{settings.global_free_interior ? '✅ 전체 무료' : '❌ 개별 업체 설정에 따름'}</strong></p>
+                                    <p>• 관리포인트 & 캐쉬 기능: <strong>{settings.hide_wallet_features ? '🚫 숨김 (회사 잔액 무관 포인트 지급 활성화)' : '✅ 노출'}</strong></p>
+                                    <p>• 사진구역 설정: <strong>{settings.hide_admin_photo_zone_setup ? '🚫 숨김' : '✅ 노출'}</strong></p>
+                                    <p>• 추가금액 사유 예시: <strong>{settings.hide_cleaning_fee_examples ? '🧹 청소 예시 제거' : '✅ 노출'}</strong></p>
+                                </div>
+                            </div>
+
+                            {/* 기능 숨김 및 런칭 토글 카드 추가 */}
+                            <div className="pt-6 border-t border-slate-100 space-y-4">
+                                <h3 className="text-base font-bold text-slate-800">런칭 및 화면 노출 세부 설정</h3>
+                                <p className="text-xs text-slate-500 -mt-2">초기 런칭 시점의 편의를 위해 화면 및 지갑 관련 비즈니스 로직을 제어합니다.</p>
+                                
+                                {/* 관리포인트 & 캐쉬 숨기기 */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                                    <div className="flex-1 pr-4">
+                                        <Label className="text-sm font-bold text-slate-800">관리포인트 & 캐쉬 숨기기</Label>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            활성화 시 파트너 지갑, 충전, 출금, 포인트 이력 메뉴가 모두 숨겨집니다.
+                                        </p>
+                                        <p className="text-[11px] text-amber-600 font-medium mt-1">
+                                            ※ 활성화 시 팀장/팀원 정산 시 회사 잔고 검증 없이 즉시 작업자의 보증금/캐쉬로 지급됩니다.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={settings.hide_wallet_features}
+                                        onCheckedChange={(c) => setSettings(prev => ({ ...prev, hide_wallet_features: c }))}
+                                    />
+                                </div>
+
+                                {/* 사진구역 설정 감추기 */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                                    <div className="flex-1 pr-4">
+                                        <Label className="text-sm font-bold text-slate-800">현장 등록 시 사진구역 설정 감추기</Label>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            현장 등록/수정 모달에서 현장별 "사진구역 설정" 필드를 숨깁니다.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={settings.hide_admin_photo_zone_setup}
+                                        onCheckedChange={(c) => setSettings(prev => ({ ...prev, hide_admin_photo_zone_setup: c }))}
+                                    />
+                                </div>
+
+                                {/* 청소 전용 추가금액 예시 제거 */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                                    <div className="flex-1 pr-4">
+                                        <Label className="text-sm font-bold text-slate-800">추가금액 사유 청소 예시 제거</Label>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            추가금액 사유 입력 란의 예시("피톤치드, 오염 심함" 등)를 제거하여 청소 외의 현장에서도 어색하지 않게 만듭니다.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={settings.hide_cleaning_fee_examples}
+                                        onCheckedChange={(c) => setSettings(prev => ({ ...prev, hide_cleaning_fee_examples: c }))}
+                                    />
                                 </div>
                             </div>
 

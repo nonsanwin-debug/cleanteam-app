@@ -34,11 +34,12 @@ import {
 } from '@/components/ui/select'
 import { createSite, updateSite } from '@/actions/sites'
 import { toast } from 'sonner'
-import { Loader2, Plus, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Loader2, Plus, ChevronLeft, ChevronRight, Check, X } from 'lucide-react'
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { KOREAN_HOLIDAYS } from '@/lib/korean-holidays'
+import { createClient } from '@/lib/supabase/client'
 
 const formSchema = z.object({
     name: z.string().min(1, '현장명을 입력해주세요'),
@@ -101,7 +102,26 @@ export function SiteDialog({
 }: SiteDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [newZoneInput, setNewZoneInput] = useState('')
+    const [hidePhotoZoneSetup, setHidePhotoZoneSetup] = useState(false)
+    const [hideCleaningExamples, setHideCleaningExamples] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('platform_settings')
+                .select('hide_admin_photo_zone_setup, hide_cleaning_fee_examples')
+                .limit(1)
+                .single()
+            if (data) {
+                setHidePhotoZoneSetup(data.hide_admin_photo_zone_setup ?? false)
+                setHideCleaningExamples(data.hide_cleaning_fee_examples ?? false)
+            }
+        }
+        fetchSettings()
+    }, [])
 
     // Custom Date Picker State
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
@@ -533,6 +553,118 @@ export function SiteDialog({
                                 )}
                             />
 
+                            {!hidePhotoZoneSetup && (
+                                <FormField
+                                    control={form.control}
+                                    name="photo_zones"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2">
+                                            <FormLabel>📷 사진 구역 설정</FormLabel>
+                                            <div className="bg-slate-50 p-3 rounded-md border space-y-3">
+                                                {/* 자동 생성 버튼 */}
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full text-xs"
+                                                    onClick={() => {
+                                                        const structureType = form.getValues('structure_type') || ''
+                                                        if (!structureType.trim()) {
+                                                            toast.error('구조 필드를 먼저 입력해주세요.')
+                                                            return
+                                                        }
+                                                        // 파싱: "방3 화2 베1" → ["방1","방2","방3","화1","화2","베1"]
+                                                        const zones: string[] = []
+                                                        const parts = structureType.replace(/,/g, ' ').split(/\s+/)
+                                                        for (const part of parts) {
+                                                            const match = part.match(/^(.+?)(\d+)$/)
+                                                            if (match) {
+                                                                const [, prefix, countStr] = match
+                                                                const count = parseInt(countStr, 10)
+                                                                for (let i = 1; i <= count; i++) {
+                                                                    zones.push(`${prefix}${i}`)
+                                                                }
+                                                            }
+                                                        }
+                                                        if (zones.length === 0) {
+                                                            toast.error('구조에서 구역을 파싱할 수 없습니다. 수동으로 추가해주세요.')
+                                                            return
+                                                        }
+                                                        field.onChange(zones)
+                                                        toast.success(`${zones.length}개 구역이 생성되었습니다.`)
+                                                    }}
+                                                >
+                                                    구조에서 자동 생성
+                                                </Button>
+
+                                                {/* 현재 구역 태그 */}
+                                                {field.value && field.value.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {field.value.map((zone: string, idx: number) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-md"
+                                                            >
+                                                                {zone}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newZones = [...field.value!]
+                                                                        newZones.splice(idx, 1)
+                                                                        field.onChange(newZones)
+                                                                    }}
+                                                                    className="hover:text-red-600"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* 수동 구역 추가 */}
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        placeholder="구역명 입력 (예: 거실)"
+                                                        value={newZoneInput}
+                                                        onChange={(e) => setNewZoneInput(e.target.value)}
+                                                        className="flex-1 h-8 text-sm"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault()
+                                                                if (newZoneInput.trim()) {
+                                                                    field.onChange([...(field.value || []), newZoneInput.trim()])
+                                                                    setNewZoneInput('')
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 text-xs"
+                                                        onClick={() => {
+                                                            if (newZoneInput.trim()) {
+                                                                field.onChange([...(field.value || []), newZoneInput.trim()])
+                                                                setNewZoneInput('')
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Plus className="w-3 h-3 mr-1" /> 추가
+                                                    </Button>
+                                                </div>
+
+                                                <p className="text-[10px] text-slate-400">
+                                                    설정하면 팀장이 각 구역별로 작업 전/중/후 사진을 촬영할 수 있습니다.
+                                                </p>
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
                             <Separator className="col-span-2 my-2" />
                             <div className="col-span-2">
                                 <h4 className="text-sm font-bold text-slate-900 mb-2">정산 및 수금 정보</h4>
@@ -595,7 +727,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>추가 금액 사유</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="추가금액 사유 입력" {...field} />
+                                            <Input placeholder={hideCleaningExamples ? "추가금액 사유 입력" : "예: 피톤치드, 오염 심함 등"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

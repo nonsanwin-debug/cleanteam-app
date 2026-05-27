@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { PushSubscriber } from '@/components/PushSubscriber'
+import { getPlatformSettings } from '@/actions/platform-settings'
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -23,6 +24,10 @@ export default async function AdminLayout({
     // Get user info
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    // Get platform settings
+    const settings = await getPlatformSettings()
+    const hideWallet = settings?.hide_wallet_features ?? false
 
     let displayName = '관리자'
     let companyPoints = 0
@@ -81,7 +86,7 @@ export default async function AdminLayout({
                             <div>
                                 <h1 className="text-2xl font-bold text-slate-800">승인 대기 중입니다</h1>
                                 <p className="text-slate-500 mt-2 mt-4 text-sm whitespace-pre-line">
-                                    NEXUS 시스템 심사가 진행 중입니다.{"\n"}
+                                    NEXUS 서비스 심사가 진행 중입니다.{"\n"}
                                     최고 관리자의 승인 완료 후부터{"\n"}모든 관리자 기능을 사용하실 수 있습니다.
                                 </p>
                             </div>
@@ -110,6 +115,24 @@ export default async function AdminLayout({
             
             companyPoints = company?.points || 0;
             companyCash = company?.cash || 0;
+        }
+    }
+
+    let unreadSharedOrdersCount = 0
+    if (user) {
+        const { data: userProfile } = await supabase
+            .from('users')
+            .select('company_id')
+            .eq('id', user.id)
+            .single()
+
+        if (userProfile?.company_id) {
+            const { count } = await supabase
+                .from('shared_orders')
+                .select('*', { count: 'exact', head: true })
+                .eq('accepted_by', userProfile.company_id)
+                .eq('status', 'pending')
+            unreadSharedOrdersCount = count || 0
         }
     }
 
@@ -152,28 +175,30 @@ export default async function AdminLayout({
                     </Link>
                     <div className="mt-3 space-y-1">
                         <p className="text-sm font-semibold text-primary break-keep">{displayName}님 반갑습니다</p>
-                        <div className="flex flex-col gap-1.5 mt-2">
-                            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md">
-                               <span>관리포인트</span>
-                               <span>{companyPoints?.toLocaleString() || 0} P</span>
+                        {!hideWallet && (
+                            <div className="flex flex-col gap-1.5 mt-2">
+                                <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50 text-blue-800 font-bold rounded-md">
+                                   <span>관리포인트</span>
+                                   <span>{companyPoints?.toLocaleString() || 0} P</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-emerald-50 text-emerald-800 font-bold rounded-md border border-emerald-100/50 shadow-sm">
+                                   <div className="flex items-center gap-1.5">
+                                       <span>캐쉬</span>
+                                   </div>
+                                   <div className="flex items-center gap-2">
+                                       <span>{companyCash?.toLocaleString() || 0} C</span>
+                                       <Link href="/admin/recharge" className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-sm hover:bg-emerald-700 transition-colors shadow-sm tracking-tight font-medium">
+                                           캐쉬충전
+                                       </Link>
+                                   </div>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-emerald-50 text-emerald-800 font-bold rounded-md border border-emerald-100/50 shadow-sm">
-                               <div className="flex items-center gap-1.5">
-                                   <span>캐쉬</span>
-                               </div>
-                               <div className="flex items-center gap-2">
-                                   <span>{companyCash?.toLocaleString() || 0} C</span>
-                                   <Link href="/admin/recharge" className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-sm hover:bg-emerald-700 transition-colors shadow-sm tracking-tight font-medium">
-                                       캐쉬충전
-                                   </Link>
-                               </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="p-4 flex-1">
-                    <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} />
+                    <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} unreadSharedOrdersCount={unreadSharedOrdersCount} />
                 </div>
 
                 <div className="p-4 border-t border-slate-100">
@@ -186,7 +211,7 @@ export default async function AdminLayout({
                 <MobileNav displayName={displayName}>
                     <div className="flex flex-col h-full">
                         <div className="p-4 flex-1">
-                            <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} />
+                            <AdminNavLinks pendingCount={pendingCount} unreadReplyCount={unreadReplyCount} unreadSharedOrdersCount={unreadSharedOrdersCount} />
                         </div>
                         <div className="p-4 border-t mt-auto mb-10">
                             <LogoutButton redirectTo="/auth/admin-login" variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100" />
