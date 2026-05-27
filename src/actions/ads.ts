@@ -1,11 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache'
 import { verifyMasterAccess } from './master' // Helper to check if user is master
 
 export async function getAds() {
     try {
+        noStore()
         const supabase = await createClient()
         
         // Use verifyMasterAccess to ensure only master can see all ads including inactive
@@ -156,13 +157,16 @@ export async function deleteAd(id: string) {
 
 export async function getActiveAds(placement: string) {
     try {
+        noStore()
         const supabase = await createClient()
         
         // RLS will automatically filter out inactive ads and max_impressions reached
+        // But authenticated users can view all ads under RLS, so we explicitly filter is_active
         const { data, error } = await supabase
             .from('ads')
             .select('*')
             .eq('placement', placement)
+            .eq('is_active', true)
             
         if (error) throw error
         

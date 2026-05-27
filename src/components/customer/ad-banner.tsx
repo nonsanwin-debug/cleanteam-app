@@ -29,6 +29,8 @@ export function AdBanner({ placement }: { placement: string }) {
                 if (validAds.length > 0) {
                     setCurrentAdIndex(Math.floor(Math.random() * validAds.length))
                 }
+            } else {
+                setAds([])
             }
             setLoading(false)
         }

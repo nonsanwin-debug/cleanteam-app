@@ -230,6 +230,7 @@ export function AdminChatsClient({ sites, adminName, adminId }: AdminChatsClient
                                 currentUserRole="admin"
                                 currentUserId={adminId}
                                 heightClass="h-[600px]" // Enlarged to 600px to perfectly balance with the left-side photos card
+                                isSharedOut={selectedSite.is_shared_out}
                             />
                         </div>
                     </div>

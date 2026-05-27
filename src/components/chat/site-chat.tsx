@@ -24,6 +24,7 @@ interface SiteChatProps {
     currentUserId?: string
     customerPhone?: string
     heightClass?: string
+    isSharedOut?: boolean
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -50,7 +51,15 @@ function formatDate(dateStr: string) {
     return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
 
-export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', currentUserId, customerPhone, heightClass = 'h-[300px]' }: SiteChatProps) {
+export function SiteChat({ 
+    siteId, 
+    currentUserName, 
+    currentUserRole = 'guest', 
+    currentUserId, 
+    customerPhone, 
+    heightClass = 'h-[300px]',
+    isSharedOut = false 
+}: SiteChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
@@ -675,31 +684,39 @@ export function SiteChat({ siteId, currentUserName, currentUserRole = 'guest', c
                     </div>
 
                     {/* 입력 영역 */}
-                    <div className="px-3 py-2.5 bg-white border-t border-slate-100 shrink-0">
-                        <div className="flex gap-2">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="메시지를 입력하세요..."
-                                className="flex-1 h-10 px-4 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                            />
-                            <Button
-                                onClick={handleSend}
-                                disabled={!newMessage.trim() || isSending}
-                                className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0 flex items-center justify-center"
-                            >
-                                <Send className="w-4 h-4 text-white" />
-                            </Button>
-                        </div>
-                        <div className="text-center mt-1.5">
-                            <span className="text-[10px] text-slate-400">
-                                {nickname} ({ROLE_LABELS[resolvedRole] || '참여자'})로 참여 중
+                    {isSharedOut && resolvedRole === 'admin' ? (
+                        <div className="px-4 py-4 bg-slate-100 border-t border-slate-200 shrink-0 text-center">
+                            <span className="text-xs font-bold text-slate-500 flex items-center justify-center gap-1.5">
+                                🔗 이관된 현장입니다. 대화에 참여하거나 관여할 수 없습니다.
                             </span>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="px-3 py-2.5 bg-white border-t border-slate-100 shrink-0">
+                            <div className="flex gap-2">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="메시지를 입력하세요..."
+                                    className="flex-1 h-10 px-4 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+                                />
+                                <Button
+                                    onClick={handleSend}
+                                    disabled={!newMessage.trim() || isSending}
+                                    className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 shrink-0 flex items-center justify-center"
+                                >
+                                    <Send className="w-4 h-4 text-white" />
+                                </Button>
+                            </div>
+                            <div className="text-center mt-1.5">
+                                <span className="text-[10px] text-slate-400">
+                                    {nickname} ({ROLE_LABELS[resolvedRole] || '참여자'})로 참여 중
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 

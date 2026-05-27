@@ -57,6 +57,18 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                 </div>
             </div>
 
+            {site.is_shared_out && (
+                <div className="bg-orange-50 border border-orange-200 text-orange-950 rounded-lg p-4 flex gap-3 items-start shadow-xs">
+                    <AlertCircle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-bold text-sm">🔗 읽기 전용 공유 현장</p>
+                        <p className="text-xs text-orange-800 mt-1 leading-relaxed">
+                            이 현장은 파트너사로 이관 완료되어 읽기 전용 상태입니다. 정산 정보 수정 및 채팅 참여가 제한됩니다.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Basic Info */}
                 <Card>
@@ -137,13 +149,15 @@ export default async function AdminSiteDetailPage(props: { params: Promise<{ id:
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-lg">정산 및 수금 정보</CardTitle>
-                        <SettlementEditForm
-                            siteId={site.id}
-                            collectionType={(site.collection_type as 'site' | 'company') || 'company'}
-                            balanceAmount={site.balance_amount || 0}
-                            additionalAmount={site.additional_amount || 0}
-                            additionalDescription={site.additional_description || ''}
-                        />
+                        {!site.is_shared_out && (
+                            <SettlementEditForm
+                                siteId={site.id}
+                                collectionType={(site.collection_type as 'site' | 'company') || 'company'}
+                                balanceAmount={site.balance_amount || 0}
+                                additionalAmount={site.additional_amount || 0}
+                                additionalDescription={site.additional_description || ''}
+                            />
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4 text-sm">

@@ -39,6 +39,7 @@ export type Site = {
     additional_amount?: number
     additional_description?: string
     collection_type?: 'site' | 'company'
+    is_shared_out?: boolean
 }
 
 export type CreateSiteDTO = {
@@ -83,7 +84,29 @@ export async function getSites() {
         return []
     }
 
-    return data as Site[]
+    // Fetch shared orders to identify shared-out sites
+    const { data: sharedOrders } = await supabase
+        .from('shared_orders')
+        .select('parsed_details')
+        .eq('company_id', companyId)
+        .neq('status', 'cancelled')
+
+    const sharedOutSiteIds = new Set<string>()
+    if (sharedOrders) {
+        sharedOrders.forEach((so: any) => {
+            const origId = so.parsed_details?.original_site_id
+            if (origId) {
+                sharedOutSiteIds.add(origId)
+            }
+        })
+    }
+
+    const sitesWithShareFlag = data.map((site: any) => ({
+        ...site,
+        is_shared_out: sharedOutSiteIds.has(site.id)
+    }))
+
+    return sitesWithShareFlag as (Site & { is_shared_out: boolean })[]
 }
 
 export async function getWorkers() {
@@ -654,8 +677,20 @@ export async function getSiteAdminDetails(id: string) {
 
     if (!site) return null
 
+    // Fetch if there is any shared order for this site ID
+    const { data: sharedOrders } = await supabase
+        .from('shared_orders')
+        .select('id, parsed_details')
+        .eq('company_id', site.company_id)
+        .neq('status', 'cancelled')
+
+    const is_shared_out = !!sharedOrders?.some((so: any) => so.parsed_details?.original_site_id === id)
+
     return {
-        site,
+        site: {
+            ...site,
+            is_shared_out
+        },
         photos: photos || [],
         checklist: checklist || null
     }

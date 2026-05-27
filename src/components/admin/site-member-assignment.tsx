@@ -36,6 +36,7 @@ type Site = {
     worker_notes?: string | null
     special_notes?: string | null
     happy_call_completed?: boolean
+    is_shared_out?: boolean
 }
 
 interface Props {
@@ -236,23 +237,25 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                         return (
                             <Card
                                 key={site.id}
-                                onDragOver={onDragOver}
-                                onDragEnter={() => setDragOverSiteId(site.id)}
-                                onDragLeave={(e) => {
+                                onDragOver={site.is_shared_out ? undefined : onDragOver}
+                                onDragEnter={site.is_shared_out ? undefined : () => setDragOverSiteId(site.id)}
+                                onDragLeave={site.is_shared_out ? undefined : (e) => {
                                     // 자식 요소로의 이동은 무시
                                     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                                         setDragOverSiteId(null)
                                     }
                                 }}
-                                onDrop={(e) => onDrop(e, site.id)}
-                                onClick={() => handleSiteTap(site.id)}
+                                onDrop={site.is_shared_out ? undefined : (e) => onDrop(e, site.id)}
+                                onClick={site.is_shared_out ? undefined : () => handleSiteTap(site.id)}
                                 className={`
                                     overflow-hidden group transition-all duration-150
-                                    ${isHovered
-                                        ? 'border-blue-500 border-2 bg-blue-50/50 shadow-lg scale-[1.02]'
-                                        : isSelecting
-                                            ? 'hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer'
-                                            : 'hover:border-slate-400'
+                                    ${site.is_shared_out
+                                        ? 'bg-slate-50/70 border-slate-200 opacity-90'
+                                        : isHovered
+                                            ? 'border-blue-500 border-2 bg-blue-50/50 shadow-lg scale-[1.02]'
+                                            : isSelecting
+                                                ? 'hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer'
+                                                : 'hover:border-slate-400'
                                     }
                                 `}
                             >
@@ -277,6 +280,14 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                             </CardDescription>
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5">
+                                            {site.is_shared_out && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-orange-500 text-orange-600 bg-orange-50 hover:bg-orange-50 font-semibold"
+                                                >
+                                                    🔗 공유 오더 (읽기전용)
+                                                </Badge>
+                                            )}
                                             <Badge
                                                 variant="outline"
                                                 className={
@@ -290,29 +301,31 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 {site.status === 'completed' ? '완료' :
                                                     site.status === 'in_progress' ? '진행중' : '대기'}
                                             </Badge>
-                                            {site.happy_call_completed ? (
-                                                <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shadow-sm">
-                                                    <CheckCircle2 className="w-3 h-3" />
-                                                    해피콜
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
-                                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
-                                                        해피콜 대기
+                                            {!site.is_shared_out && (
+                                                site.happy_call_completed ? (
+                                                    <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        해피콜
                                                     </div>
-                                                    {site.worker_id && (
-                                                        <Button 
-                                                            variant="outline" 
-                                                            size="sm" 
-                                                            className="h-6 text-[10px] px-2 py-0 pointer-events-auto"
-                                                            onClick={(e) => handleRequestHappyCall(e, site.id, site.worker_id!)}
-                                                            disabled={isPending}
-                                                        >
-                                                            <BellRing className="w-3 h-3 mr-1" />
-                                                            해피콜 요청
-                                                        </Button>
-                                                    )}
-                                                </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
+                                                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                            해피콜 대기
+                                                        </div>
+                                                        {site.worker_id && (
+                                                            <Button 
+                                                                variant="outline" 
+                                                                size="sm" 
+                                                                className="h-6 text-[10px] px-2 py-0 pointer-events-auto"
+                                                                onClick={(e) => handleRequestHappyCall(e, site.id, site.worker_id!)}
+                                                                disabled={isPending}
+                                                            >
+                                                                <BellRing className="w-3 h-3 mr-1" />
+                                                                해피콜 요청
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -363,16 +376,18 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                         }}
                                                     >
                                                         {memberInfo?.name || '팀원'}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault()
-                                                                e.stopPropagation()
-                                                                handleRemove(site.id, sm.user_id)
-                                                            }}
-                                                            className="ml-0.5 hover:text-red-500 transition-colors pointer-events-auto"
-                                                        >
-                                                            <X className="h-3 w-3" />
-                                                        </button>
+                                                        {!site.is_shared_out && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.preventDefault()
+                                                                    e.stopPropagation()
+                                                                    handleRemove(site.id, sm.user_id)
+                                                                }}
+                                                                className="ml-0.5 hover:text-red-500 transition-colors pointer-events-auto"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        )}
                                                     </span>
                                                 )
                                             })}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MoreHorizontal, Trash2, Edit } from 'lucide-react'
+import { MoreHorizontal, Trash2, Edit, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import {
@@ -10,6 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
     AlertDialog,
@@ -24,6 +25,16 @@ import {
 import { deleteSite, type Site } from '@/actions/sites'
 import { toast } from 'sonner'
 import { SiteDialog } from './site-dialog'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { searchCompanyByCode, shareSiteDirectly } from '@/actions/shared-orders'
 
 interface SiteActionsProps {
     site: Site
@@ -36,6 +47,61 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [open, setOpen] = useState(false)
+
+    // Direct Order Share States
+    const [showShareDialog, setShowShareDialog] = useState(false)
+    const [partnerCode, setPartnerCode] = useState('')
+    const [isValidating, setIsValidating] = useState(false)
+    const [validatedCompany, setValidatedCompany] = useState<{ id: string; name: string; code: string } | null>(null)
+    const [isSharing, setIsSharing] = useState(false)
+
+    async function handleValidateCompany() {
+        if (!partnerCode) return
+        setIsValidating(true)
+        try {
+            const result = await searchCompanyByCode(partnerCode)
+            if (result.found && result.companies && result.companies.length > 0) {
+                const comp = result.companies[0]
+                setValidatedCompany({
+                    id: comp.id,
+                    name: comp.name || '',
+                    code: comp.code || ''
+                })
+                toast.success('파트너사가 매칭되었습니다.')
+            } else {
+                toast.error(result.error || '업체를 찾을 수 없습니다.')
+                setValidatedCompany(null)
+            }
+        } catch (error) {
+            toast.error('검증 중 오류가 발생했습니다.')
+            console.error(error)
+        } finally {
+            setIsValidating(false)
+        }
+    }
+
+    async function handleDirectShare() {
+        if (!validatedCompany) return
+        setIsSharing(true)
+        try {
+            const result = await shareSiteDirectly(site.id, validatedCompany.id)
+            if (result.success) {
+                toast.success('성공적으로 오더를 공유(이관)하였습니다.')
+                setShowShareDialog(false)
+                router.refresh()
+                setTimeout(() => {
+                    window.location.reload()
+                }, 500)
+            } else {
+                toast.error(result.error || '오더 공유에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('공유 중 오류가 발생했습니다.')
+            console.error(error)
+        } finally {
+            setIsSharing(false)
+        }
+    }
 
     async function handleDelete() {
         setIsDeleting(true)
@@ -77,21 +143,42 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                     <DropdownMenuLabel>관리</DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() => {
+                            if (site.is_shared_out) return
                             setOpen(false)
                             setShowEditDialog(true)
                         }}
-                        className="cursor-pointer"
+                        className={`cursor-pointer ${site.is_shared_out ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={site.is_shared_out}
                     >
                         <Edit className="mr-2 h-4 w-4" />
-                        수정하기
+                        수정하기 {site.is_shared_out && '(공유됨)'}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={() => setShowDeleteAlert(true)}
-                        className="text-red-600 cursor-pointer focus:text-red-600"
+                        onClick={() => {
+                            if (site.is_shared_out) return
+                            setShowDeleteAlert(true)
+                        }}
+                        className={`text-red-600 cursor-pointer focus:text-red-600 ${site.is_shared_out ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={site.is_shared_out}
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        삭제하기
+                        삭제하기 {site.is_shared_out && '(공유됨)'}
                     </DropdownMenuItem>
+                    {!site.is_shared_out && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setOpen(false)
+                                    setShowShareDialog(true)
+                                }}
+                                className="cursor-pointer text-blue-600 focus:text-blue-600"
+                            >
+                                <Share2 className="mr-2 h-4 w-4" />
+                                오더 공유
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -154,6 +241,81 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* 오더 공유 다이얼로그 */}
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Share2 className="w-5 h-5 text-blue-600" />
+                            파트너사 직접 오더 공유
+                        </DialogTitle>
+                        <DialogDescription>
+                            업체명#코드명(4자리 숫자) 형식으로 파트너사를 검색하여 오더를 직접 이관(공유)할 수 있습니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-3">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="예: 클린체크#1234"
+                                value={partnerCode}
+                                onChange={(e) => {
+                                    setPartnerCode(e.target.value)
+                                    setValidatedCompany(null)
+                                }}
+                                disabled={isValidating || isSharing}
+                            />
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={handleValidateCompany}
+                                disabled={!partnerCode.includes('#') || isValidating || isSharing}
+                            >
+                                {isValidating ? '검증 중...' : '검증'}
+                            </Button>
+                        </div>
+
+                        {validatedCompany && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm flex items-center justify-between">
+                                <div>
+                                    <p className="font-semibold">✅ 매칭 파트너사 확인</p>
+                                    <p className="text-xs text-blue-700 mt-0.5">
+                                        업체명: <span className="font-bold">{validatedCompany.name}</span> (#{validatedCompany.code})
+                                    </p>
+                                </div>
+                                <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                    매칭됨
+                                </span>
+                            </div>
+                        )}
+                        
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 text-xs space-y-1.5 leading-relaxed">
+                            <p className="font-semibold text-slate-800">📌 공유 시 통제 규칙 및 동의</p>
+                            <p>• 이관 완료 시 파트너사 소속으로 새로운 현장이 생성됩니다.</p>
+                            <p>• 발신사(나)의 목록에는 원래 카드가 <span className="font-bold text-orange-600">읽기 전용</span>으로 보존됩니다.</p>
+                            <p>• 읽기 전용 전환 후에는 <span className="font-semibold">팀원 배정, 삭제, 수정, 채팅 참여</span>가 모두 엄격히 차단됩니다.</p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setShowShareDialog(false)}
+                            disabled={isSharing}
+                        >
+                            취소
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleDirectShare}
+                            disabled={!validatedCompany || isSharing}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            {isSharing ? '공유 중...' : '공유하기'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

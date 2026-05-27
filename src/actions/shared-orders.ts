@@ -1190,3 +1190,135 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
         return null
     }
 }
+
+/** 파트너사에게 직접 오더 공유 및 이관 */
+export async function shareSiteDirectly(siteId: string, partnerCompanyId: string): Promise<ActionResponse> {
+    try {
+        const { supabase, user, companyId } = await getAuthCompany()
+        if (!companyId || !user) return { success: false, error: '인증 실패' }
+
+        const adminSupabase = createAdminClient()
+
+        // 1. 원본 현장 정보 및 발신 업체명 조회
+        const siteQuery = await supabase
+            .from('sites')
+            .select('*')
+            .eq('id', siteId)
+            .eq('company_id', companyId)
+            .single()
+
+        if (siteQuery.error || !siteQuery.data) {
+            return { success: false, error: '현장을 찾을 수 없거나 해당 현장에 대한 권한이 없습니다.' }
+        }
+
+        const site = siteQuery.data
+
+        // 2. 발신사(송신사)의 업체명 조회
+        const { data: senderCompany } = await adminSupabase
+            .from('companies')
+            .select('name')
+            .eq('id', companyId)
+            .single()
+
+        // 3. 수신사(받는 파트너사)의 공유 상태 및 존재 여부 검사
+        const { data: receiverCompany } = await adminSupabase
+            .from('companies')
+            .select('name, sharing_enabled')
+            .eq('id', partnerCompanyId)
+            .single()
+
+        if (!receiverCompany) {
+            return { success: false, error: '공유 대상 업체를 찾을 수 없습니다.' }
+        }
+
+        // 4. shared_orders 레코드 삽입 (직접 공유이므로 바로 status: 'transferred' 및 accepted_by 매핑)
+        const { data: order, error: orderError } = await adminSupabase
+            .from('shared_orders')
+            .insert({
+                company_id: companyId,
+                created_by: user.id,
+                region: site.name || `${site.address || ''} 현장`,
+                work_date: site.cleaning_date || null,
+                area_size: site.area_size || '',
+                notes: site.special_notes || '',
+                address: site.address || '',
+                customer_phone: site.customer_phone || '',
+                customer_name: site.customer_name || '',
+                status: 'transferred',
+                accepted_by: partnerCompanyId,
+                accepted_at: new Date().toISOString(),
+                parsed_details: {
+                    original_site_id: siteId,
+                    is_direct_share: true,
+                    detail_address: site.name
+                }
+            })
+            .select('id')
+            .single()
+
+        if (orderError || !order) {
+            console.error('shareSiteDirectly shared_orders insert error:', orderError)
+            return { success: false, error: '공유 레코드 생성에 실패했습니다.' }
+        }
+
+        // 5. 수신 파트너사 소속으로 새로운 sites 레코드 삽입
+        const { data: newSite, error: insertError } = await adminSupabase
+            .from('sites')
+            .insert({
+                company_id: partnerCompanyId,
+                name: site.name || `${site.address || ''} 현장`,
+                address: site.address || '',
+                customer_name: site.customer_name || null,
+                customer_phone: site.customer_phone || null,
+                cleaning_date: site.cleaning_date || null,
+                start_time: site.start_time || null,
+                residential_type: site.residential_type || null,
+                structure_type: site.structure_type || null,
+                area_size: site.area_size || null,
+                balance_amount: site.balance_amount || 0,
+                special_notes: site.special_notes 
+                    ? `[직접 공유: ${senderCompany?.name || '파트너'}] ${site.special_notes}`
+                    : `[직접 공유: ${senderCompany?.name || '파트너'}]`,
+                status: 'scheduled',
+                payment_status: 'none',
+                collection_type: site.collection_type || 'company'
+            })
+            .select('id')
+            .single()
+
+        if (insertError || !newSite) {
+            console.error('shareSiteDirectly site insert error:', insertError)
+            await adminSupabase.from('shared_orders').delete().eq('id', order.id)
+            return { success: false, error: '파트너사 현장 생성에 실패했습니다.' }
+        }
+
+        // 6. shared_orders의 transferred_site_id 업데이트
+        await adminSupabase
+            .from('shared_orders')
+            .update({ transferred_site_id: newSite.id })
+            .eq('id', order.id)
+
+        // 7. 실시간 푸시 알림 전송 및 DB 알림 기록
+        await sendPushToAdmins(partnerCompanyId, {
+            title: '🔗 직접 공유 오더 수신',
+            body: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 직접 공유되었습니다.`,
+            url: '/admin/sites',
+            tag: `direct-share-received-${order.id}`
+        })
+
+        await adminSupabase.from('shared_order_notifications').insert({
+            order_id: order.id,
+            company_id: partnerCompanyId,
+            message: `[${senderCompany?.name || '파트너'}]로부터 새로운 현장(${site.address || site.name})이 직접 공유되었습니다.`
+        })
+
+        // 8. 발신사의 경로 및 전체 목록 경로 갱신
+        revalidatePath('/admin/sites')
+        revalidatePath(`/admin/sites/${siteId}`)
+
+        return { success: true }
+    } catch (error: any) {
+        console.error('shareSiteDirectly error:', error)
+        return { success: false, error: error.message || '서버 오류 발생' }
+    }
+}
