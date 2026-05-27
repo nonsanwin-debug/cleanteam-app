@@ -128,7 +128,7 @@ export function SettlementEditForm({
                     <Input
                         value={additionalDescription}
                         onChange={(e) => setAdditionalDescription(e.target.value)}
-                        placeholder="예: 피톤치드 추가, 오염 심함 등"
+                        placeholder="추가금액 사유 입력"
                         className="h-9"
                     />
                 </div>

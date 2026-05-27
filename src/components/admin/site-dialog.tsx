@@ -110,7 +110,6 @@ export function SiteDialog({
     const [ampm, setAmpm] = useState<'AM' | 'PM'>('AM')
     const [hour, setHour] = useState<string>('')
     const [minute, setMinute] = useState<string>('00')
-    const [newZoneInput, setNewZoneInput] = useState('')
 
     const open = controlledOpen !== undefined ? controlledOpen : internalOpen
     const setOpen = controlledOnOpenChange || setInternalOpen
@@ -519,80 +518,7 @@ export function SiteDialog({
                                 )}
                             />
 
-                            {/* 사진 구역 설정 UI */}
-                            <FormField
-                                control={form.control}
-                                name="photo_zones"
-                                render={({ field }) => (
-                                    <FormItem className="col-span-2">
-                                        <FormLabel>📷 사진 구역 설정</FormLabel>
-                                        <div className="bg-slate-50 p-3 rounded-md border space-y-3">
-                                            {/* 현재 구역 태그 */}
-                                            {field.value && field.value.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {field.value.map((zone: string, idx: number) => (
-                                                        <span
-                                                            key={idx}
-                                                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-md"
-                                                        >
-                                                            {zone}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const newZones = [...field.value!]
-                                                                    newZones.splice(idx, 1)
-                                                                    field.onChange(newZones)
-                                                                }}
-                                                                className="hover:text-red-600"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
 
-                                            {/* 수동 구역 추가 */}
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    placeholder="구역명 입력 (예: 거실)"
-                                                    value={newZoneInput}
-                                                    onChange={(e) => setNewZoneInput(e.target.value)}
-                                                    className="flex-1 h-8 text-sm"
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault()
-                                                            if (newZoneInput.trim()) {
-                                                                field.onChange([...(field.value || []), newZoneInput.trim()])
-                                                                setNewZoneInput('')
-                                                            }
-                                                        }
-                                                    }}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="h-8 text-xs"
-                                                    onClick={() => {
-                                                        if (newZoneInput.trim()) {
-                                                            field.onChange([...(field.value || []), newZoneInput.trim()])
-                                                            setNewZoneInput('')
-                                                        }
-                                                    }}
-                                                >
-                                                    <Plus className="w-3 h-3 mr-1" /> 추가
-                                                </Button>
-                                            </div>
-
-                                            <p className="text-[10px] text-slate-400">
-                                                설정하면 팀장이 각 구역별로 작업 전/중/후 사진을 촬영할 수 있습니다.
-                                            </p>
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                             <FormField
                                 control={form.control}
                                 name="special_notes"
@@ -669,7 +595,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>추가 금액 사유</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="예: 피톤치드 추가, 오염 심함 등" {...field} />
+                                            <Input placeholder="추가금액 사유 입력" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
