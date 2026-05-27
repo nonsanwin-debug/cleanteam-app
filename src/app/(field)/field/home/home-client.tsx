@@ -481,7 +481,7 @@ export function FieldHomeClient({
 
                         <a
                             href={smsPhone.replace(/[^0-9]/g, '').length >= 10
-                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 전문업체가 고객님의 현장을 관리하고\n케어합니다.\n(스마트배정을 통해 검증된 업체가 배정됩니다)\n\n${typeof window !== 'undefined' && !(window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.startsWith('capacitor://')) ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app')}/book/p/${partnerId}?r=${showSmsModal}`)}`
+                                ? `sms:${smsPhone.replace(/[^0-9]/g, '')}?body=${encodeURIComponent(`[NEXUS]\n아래의 링크를 눌러 예약을 진행하시면\n검증된 전문업체가 고객님의 현장을 관리하고\n케어합니다.\n(스마트배정을 통해 검증된 업체가 배정됩니다)\n\n${typeof window !== 'undefined' && !(window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.startsWith('capacitor://')) ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c')}/book/p/${partnerId}?r=${showSmsModal}`)}`
                                 : '#'
                             }
                             onClick={(e) => {

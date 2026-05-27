@@ -232,11 +232,11 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 if (typeof window !== 'undefined') {
                     const origin = window.location.origin
                     if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
-                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
                     }
                     return origin
                 }
-                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
             }
             const baseUrl = getBaseUrl()
             const link = `${baseUrl}/share/${site.id}`
@@ -452,11 +452,11 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 if (typeof window !== 'undefined') {
                                     const origin = window.location.origin
                                     if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
-                                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
                                     }
                                     return origin
                                 }
-                                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                                return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
                             }
                             const baseUrl = getBaseUrl()
                             const link = `${baseUrl}/share/${site.id}`

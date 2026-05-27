@@ -132,11 +132,11 @@ export function SiteChat({
         if (typeof window !== 'undefined') {
             const origin = window.location.origin
             if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
-                return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+                return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
             }
             return origin
         }
-        return process.env.NEXT_PUBLIC_SITE_URL || 'https://cleanteam-app.vercel.app'
+        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
     }
 
     // 모바일 OS 타입 판별 유틸리티 (어르신용 맞춤 안내 목적)
