@@ -90,7 +90,7 @@ export async function getSites() {
     // Fetch shared orders to identify shared-out sites and metadata
     const { data: sharedOrders } = await adminSupabase
         .from('shared_orders')
-        .select('status, parsed_details, accepted_by, accepted_company:accepted_by(name, code)')
+        .select('status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
         .neq('status', 'deleted')
 
@@ -106,10 +106,12 @@ export async function getSites() {
                 const isPendingDirect = isDirectShare && so.status === 'open' && so.accepted_by !== null
                 const isReclaimedDirect = isDirectShare && so.status === 'cancelled'
                 const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : so.status)
+                const tfSiteData = Array.isArray(so.transferred_site) ? so.transferred_site[0] : so.transferred_site
                 sharedOrdersMap.set(origId, {
                     partner_name: partnerName,
                     partner_code: partnerCode,
-                    status: mappedStatus
+                    status: mappedStatus,
+                    transferred_site: tfSiteData || null
                 })
             }
         })
@@ -117,8 +119,12 @@ export async function getSites() {
 
     const sitesWithShareFlag = data.map((site: any) => {
         const sharedInfo = sharedOrdersMap.get(site.id)
+        const hasTransferredSite = sharedInfo && sharedInfo.transferred_site
         return {
             ...site,
+            status: hasTransferredSite ? sharedInfo.transferred_site.status : site.status,
+            worker_name: hasTransferredSite ? (sharedInfo.transferred_site.worker?.name || null) : site.worker_name,
+            worker_id: hasTransferredSite ? sharedInfo.transferred_site.worker_id : site.worker_id,
             is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
             shared_info: sharedInfo || null
         }
@@ -674,8 +680,7 @@ export async function getDashboardStats() {
 export async function getSiteAdminDetails(id: string) {
     const supabase = await createClient()
 
-    // Parallelize: site info, photos, and checklist
-    const siteQuery = supabase
+    const { data: site, error: siteError } = await supabase
         .from('sites')
         .select(`
             *,
@@ -684,30 +689,12 @@ export async function getSiteAdminDetails(id: string) {
         .eq('id', id)
         .single()
 
-    const photosQuery = supabase
-        .from('photos')
-        .select('id, site_id, url, type, created_at, is_featured')
-        .eq('site_id', id)
-        .order('created_at')
-
-    const checklistQuery = supabase
-        .from('checklist_submissions')
-        .select('*')
-        .eq('site_id', id)
-        .single()
-
-    const [{ data: site }, { data: photos }, { data: checklist }] = await Promise.all([
-        siteQuery,
-        photosQuery,
-        checklistQuery
-    ])
-
-    if (!site || site.is_deleted === true) return null
+    if (siteError || !site || site.is_deleted === true) return null
 
     // Fetch if there is any shared order for this site ID
     const { data: sharedOrders } = await supabase
         .from('shared_orders')
-        .select('id, status, parsed_details, accepted_by, accepted_company:accepted_by(name, code)')
+        .select('id, status, parsed_details, accepted_by, transferred_site_id, accepted_company:accepted_by(name, code)')
         .eq('company_id', site.company_id)
         .neq('status', 'deleted')
 
@@ -728,12 +715,65 @@ export async function getSiteAdminDetails(id: string) {
         status: mappedStatus
     } : null
 
+    // Determine target site ID for fetching photos, checklist and details overrides
+    let targetSiteId = id
+    let displaySite = { ...site, is_shared_out, shared_info }
+
+    if (is_shared_out && matchedOrder?.transferred_site_id) {
+        targetSiteId = matchedOrder.transferred_site_id
+        
+        // Fetch transferred site worker & status info
+        const { data: tfSite } = await supabase
+            .from('sites')
+            .select(`
+                *,
+                worker:users!worker_id (name, phone, display_color)
+            `)
+            .eq('id', targetSiteId)
+            .single()
+
+        if (tfSite) {
+            displaySite = {
+                ...site,
+                status: tfSite.status,
+                worker_id: tfSite.worker_id,
+                worker: tfSite.worker,
+                estimated_end_at: tfSite.estimated_end_at,
+                cleaning_date: tfSite.cleaning_date,
+                start_time: tfSite.start_time,
+                special_notes: tfSite.special_notes,
+                happy_call_completed: tfSite.happy_call_completed,
+                balance_amount: tfSite.balance_amount,
+                additional_amount: tfSite.additional_amount,
+                additional_description: tfSite.additional_description,
+                collection_type: tfSite.collection_type,
+                worker_notes: tfSite.worker_notes,
+                is_shared_out,
+                shared_info
+            }
+        }
+    }
+
+    // Parallelize: photos and checklist for the targetSiteId
+    const photosQuery = supabase
+        .from('photos')
+        .select('id, site_id, url, type, created_at, is_featured')
+        .eq('site_id', targetSiteId)
+        .order('created_at')
+
+    const checklistQuery = supabase
+        .from('checklist_submissions')
+        .select('*')
+        .eq('site_id', targetSiteId)
+        .single()
+
+    const [{ data: photos }, { data: checklist }] = await Promise.all([
+        photosQuery,
+        checklistQuery
+    ])
+
     return {
-        site: {
-            ...site,
-            is_shared_out,
-            shared_info
-        },
+        site: displaySite,
         photos: photos || [],
         checklist: checklist || null
     }
