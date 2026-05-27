@@ -101,6 +101,26 @@ export function AdminSiteDateFilter() {
         handleSelectDate(new Date())
     }
 
+    const [animationClass, setAnimationClass] = useState('')
+    const prevWeekStartRef = useRef(weekStart.getTime())
+
+    useEffect(() => {
+        const prevTime = prevWeekStartRef.current
+        const currTime = weekStart.getTime()
+        if (currTime > prevTime) {
+            setAnimationClass('animate-slide-in-right')
+        } else if (currTime < prevTime) {
+            setAnimationClass('animate-slide-in-left')
+        }
+        prevWeekStartRef.current = currTime
+
+        const timer = setTimeout(() => {
+            setAnimationClass('')
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [weekStart])
+
     // 마우스 및 터치 스와이프 드래그 구현
     const dragStartRef = useRef<number | null>(null)
     const hasDraggedRef = useRef(false)
@@ -209,58 +229,76 @@ export function AdminSiteDateFilter() {
                 </button>
             </div>
 
-            {/* Week Days */}
-            <div className="grid grid-cols-7 gap-1">
-                {weekDays.map((day, i) => {
-                    const isSelected = isSameDay(day, selectedDate)
-                    const isToday = isSameDay(day, today)
-                    const dateStr = formatDate(day)
-                    const holiday = KOREAN_HOLIDAYS[dateStr]
-                    const isSunday = i === 6
-                    const isSaturday = i === 5
-                    const isHoliday = !!holiday
+            {/* Week Days with overflow-hidden and sliding animations */}
+            <div className="overflow-hidden relative py-0.5">
+                <style>{`
+                    @keyframes slideInFromRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideInFromLeft {
+                        from { transform: translateX(-100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    .animate-slide-in-right {
+                        animation: slideInFromRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    }
+                    .animate-slide-in-left {
+                        animation: slideInFromLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    }
+                `}</style>
+                <div className={`grid grid-cols-7 gap-1 ${animationClass}`}>
+                    {weekDays.map((day, i) => {
+                        const isSelected = isSameDay(day, selectedDate)
+                        const isToday = isSameDay(day, today)
+                        const dateStr = formatDate(day)
+                        const holiday = KOREAN_HOLIDAYS[dateStr]
+                        const isSunday = i === 6
+                        const isSaturday = i === 5
+                        const isHoliday = !!holiday
 
-                    return (
-                        <button
-                            key={i}
-                            onClick={() => handleSelectDate(day)}
-                            className={`
-                                flex flex-col items-center py-2 px-1 rounded-xl transition-all duration-200 relative
-                                ${isSelected
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-105'
-                                    : isToday
-                                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                        : 'hover:bg-slate-100 text-slate-700'
-                                }
-                            `}
-                            title={holiday || undefined}
-                        >
-                            <span className={`text-[11px] font-medium mb-1 ${isSelected ? 'text-blue-100'
-                                : (isHoliday || isSunday) ? 'text-red-400'
-                                    : isSaturday ? 'text-blue-400'
-                                        : 'text-slate-400'
-                                }`}>
-                                {DAY_LABELS[i]}
-                            </span>
-                            <span className={`text-lg font-bold leading-none ${isSelected ? 'text-white'
-                                : (isHoliday || isSunday) ? 'text-red-500'
-                                    : isSaturday ? 'text-blue-500'
-                                        : ''
-                                }`}>
-                                {day.getDate()}
-                            </span>
-                            {holiday && (
-                                <span className={`text-[8px] mt-1 leading-tight text-center truncate w-full ${isSelected ? 'text-blue-200' : 'text-red-400'
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => handleSelectDate(day)}
+                                className={`
+                                    flex flex-col items-center py-2 px-1 rounded-xl transition-all duration-200 relative
+                                    ${isSelected
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-105'
+                                        : isToday
+                                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                            : 'hover:bg-slate-100 text-slate-700'
+                                    }
+                                `}
+                                title={holiday || undefined}
+                            >
+                                <span className={`text-[11px] font-medium mb-1 ${isSelected ? 'text-blue-100'
+                                    : (isHoliday || isSunday) ? 'text-red-400'
+                                        : isSaturday ? 'text-blue-400'
+                                            : 'text-slate-400'
                                     }`}>
-                                    {holiday}
+                                    {DAY_LABELS[i]}
                                 </span>
-                            )}
-                            {isHoliday && !isSelected && (
-                                <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                            )}
-                        </button>
-                    )
-                })}
+                                <span className={`text-lg font-bold leading-none ${isSelected ? 'text-white'
+                                    : (isHoliday || isSunday) ? 'text-red-500'
+                                        : isSaturday ? 'text-blue-500'
+                                            : ''
+                                    }`}>
+                                    {day.getDate()}
+                                </span>
+                                {holiday && (
+                                    <span className={`text-[8px] mt-1 leading-tight text-center truncate w-full ${isSelected ? 'text-blue-200' : 'text-red-400'
+                                        }`}>
+                                        {holiday}
+                                    </span>
+                                )}
+                                {isHoliday && !isSelected && (
+                                    <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
             </div>
 
             {/* Selected Date Label */}
