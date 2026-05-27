@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { KOREAN_HOLIDAYS } from '@/lib/korean-holidays'
 
@@ -74,14 +74,6 @@ export function AdminSiteDateFilter() {
         return label
     }, [selectedDate])
 
-    const handleSelectDate = (date: Date) => {
-        const formatted = formatDate(date)
-        const params = new URLSearchParams(searchParams.toString())
-        params.set('date', formatted)
-        const query = params.toString()
-        router.push(`/admin/sites${query ? `?${query}` : ''}`)
-    }
-
     const prevWeek = () => {
         const newStart = new Date(weekStart)
         newStart.setDate(weekStart.getDate() - 7)
@@ -94,14 +86,105 @@ export function AdminSiteDateFilter() {
         setWeekStart(newStart)
     }
 
+    const handleSelectDate = (date: Date) => {
+        if (hasDraggedRef.current) return // 드래그 스와이프 도중 클릭 차단
+        const formatted = formatDate(date)
+        const params = new URLSearchParams(searchParams.toString())
+        params.set('date', formatted)
+        const query = params.toString()
+        router.push(`/admin/sites${query ? `?${query}` : ''}`)
+    }
+
     const goToToday = () => {
         const todayMonday = getMonday(new Date())
         setWeekStart(todayMonday)
         handleSelectDate(new Date())
     }
 
+    // 마우스 및 터치 스와이프 드래그 구현
+    const dragStartRef = useRef<number | null>(null)
+    const hasDraggedRef = useRef(false)
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        dragStartRef.current = e.touches[0].clientX
+        hasDraggedRef.current = false
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (dragStartRef.current === null) return
+        const currentX = e.touches[0].clientX
+        const diff = currentX - dragStartRef.current
+        if (Math.abs(diff) > 15) {
+            hasDraggedRef.current = true
+        }
+    }
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (dragStartRef.current === null) return
+        const currentX = e.changedTouches[0].clientX
+        const diff = currentX - dragStartRef.current
+
+        if (diff > 50) {
+            prevWeek()
+        } else if (diff < -50) {
+            nextWeek()
+        }
+
+        dragStartRef.current = null
+        // 클릭 차단을 위해 드래그 여부를 잠시 유지 후 리셋
+        setTimeout(() => {
+            hasDraggedRef.current = false
+        }, 50)
+    }
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        dragStartRef.current = e.clientX
+        hasDraggedRef.current = false
+    }
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (dragStartRef.current === null) return
+        const currentX = e.clientX
+        const diff = currentX - dragStartRef.current
+        if (Math.abs(diff) > 15) {
+            hasDraggedRef.current = true
+            e.preventDefault() // 드래그 중 텍스트 선택 등 방지
+        }
+    }
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+        if (dragStartRef.current === null) return
+        const currentX = e.clientX
+        const diff = currentX - dragStartRef.current
+
+        if (diff > 50) {
+            prevWeek()
+        } else if (diff < -50) {
+            nextWeek()
+        }
+
+        dragStartRef.current = null
+        setTimeout(() => {
+            hasDraggedRef.current = false
+        }, 50)
+    }
+
+    const handleMouseLeave = () => {
+        dragStartRef.current = null
+        hasDraggedRef.current = false
+    }
+
     return (
-        <div className="bg-white rounded-xl border shadow-sm p-4 select-none">
+        <div 
+            className="bg-white rounded-xl border shadow-sm p-4 select-none touch-pan-y cursor-grab active:cursor-grabbing"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+        >
             {/* Month Header */}
             <div className="flex items-center justify-between mb-4">
                 <button
