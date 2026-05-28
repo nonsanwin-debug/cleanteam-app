@@ -1073,8 +1073,32 @@ export async function removeFeedAliasName(name: string): Promise<ActionResponse>
     return { success: true }
 }
 
-// AI 블로그 작성용 완료된 현장 데이터 일괄 팩키지 빌드
-export async function getCompletedSiteBlogData(orderId: string) {
+// AI 블로그 작성용 전체 완료 현장 목록 조회
+export async function getAllCompletedSitesForBlog() {
+    const { verifyMasterAccess } = await import('./master')
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) return []
+
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminClient = createAdminClient()
+
+    // status가 'completed'인 현장들을 완료시간 최신순으로 조회
+    const { data: sites, error } = await adminClient
+        .from('sites')
+        .select('*, company:company_id(name)')
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false })
+
+    if (error) {
+        console.error('getAllCompletedSitesForBlog error:', error)
+        return []
+    }
+
+    return sites || []
+}
+
+// AI 블로그 작성용 완료된 현장 데이터 일괄 팩키지 빌드 (현장 ID 기반)
+export async function getCompletedSiteBlogData(siteId: string) {
     const { verifyMasterAccess } = await import('./master')
     const isMaster = await verifyMasterAccess()
     if (!isMaster) throw new Error('권한이 없습니다.')
@@ -1082,31 +1106,23 @@ export async function getCompletedSiteBlogData(orderId: string) {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const adminClient = createAdminClient()
 
-    // 1. 오더 정보 조회
-    const { data: order, error: orderError } = await adminClient
-        .from('shared_orders')
-        .select('*, company:company_id(name), accepted_company:accepted_by(name)')
-        .eq('id', orderId)
-        .single()
-
-    if (orderError || !order) {
-        throw new Error('오더를 찾을 수 없습니다.')
-    }
-
-    if (!order.transferred_site_id) {
-        throw new Error('이 오더에는 작업 진행 또는 완료된 현장이 아직 연결되지 않았습니다.')
-    }
-
-    // 2. 연결된 현장(Site) 상세 조회
+    // 1. 현장(Site) 상세 조회
     const { data: site, error: siteError } = await adminClient
         .from('sites')
-        .select('*')
-        .eq('id', order.transferred_site_id)
+        .select('*, company:company_id(name)')
+        .eq('id', siteId)
         .single()
 
     if (siteError || !site) {
-        throw new Error('연결된 현장 정보를 불러오지 못했습니다.')
+        throw new Error('현장 정보를 불러오지 못했습니다.')
     }
+
+    // 2. 오더 정보 조회 (선택적)
+    const { data: order } = await adminClient
+        .from('shared_orders')
+        .select('*, company:company_id(name), accepted_company:accepted_by(name)')
+        .eq('transferred_site_id', site.id)
+        .maybeSingle()
 
     // 3. 체크리스트 제출 내역 및 템플릿 정보 조회
     const { data: submission } = await adminClient
@@ -1274,8 +1290,8 @@ export async function getCompletedSiteBlogData(orderId: string) {
   - 공간 크기: ${site.area_size ? `${site.area_size}평형` : '미지정'}
   - 내부 구조: ${site.structure_type || '미지정'}
 * **참여 주체**:
-  - 발주사: ${order.company?.name || 'NEXUS 파트너'}
-  - 수행사: ${order.accepted_company?.name || 'NEXUS 대행팀'}
+  - 발주사: ${order?.company?.name || 'NEXUS 파트너'}
+  - 수행사: ${order?.accepted_company?.name || site.company?.name || 'NEXUS 대행팀'}
   - 현장 책임 팀장: ${site.worker_name || '전문 대행 팀장'}
 * **고객 요청 및 특이사항**:
   - ${site.special_notes || '특별한 요청사항 없음'}

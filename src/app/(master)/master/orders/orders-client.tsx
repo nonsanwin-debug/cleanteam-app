@@ -5,14 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2, Share2, Building2, Undo2, FileDown } from 'lucide-react'
+import { Search, MapPin, Calendar, Clock, Phone, User, CheckCircle2, Inbox, Trash2, Loader2, Share2, Building2, Undo2 } from 'lucide-react'
 import { format } from 'date-fns'
-import { deleteSharedOrderForce, releaseToSharedBoard, assignCustomerOrder, revokeCustomerOrder, getCompletedSiteBlogData } from '@/actions/master'
+import { deleteSharedOrderForce, releaseToSharedBoard, assignCustomerOrder, revokeCustomerOrder } from '@/actions/master'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import JSZip from 'jszip'
-import { saveAs } from 'file-saver'
 
 export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) {
     const router = useRouter()
@@ -23,66 +21,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
     const [assigningId, setAssigningId] = useState<string | null>(null)
     const [releasingId, setReleasingId] = useState<string | null>(null)
     const [revokingId, setRevokingId] = useState<string | null>(null)
-    const [downloadingId, setDownloadingId] = useState<string | null>(null)
     const [selectedCompany, setSelectedCompany] = useState<Record<string, string>>({})
-
-    const handleDownloadBlogPackage = async (orderId: string) => {
-        setDownloadingId(orderId)
-        toast.info('블로그 패키지 구성 중...', {
-            description: '현장 정보 및 작업 사진을 서버에서 내려받고 있습니다.'
-        })
-
-        try {
-            const result = await getCompletedSiteBlogData(orderId)
-            
-            if (!result.success) {
-                throw new Error('데이터 로드 실패')
-            }
-
-            const { siteInfo, markdown, photos } = result
-            
-            // 1. Initialize JSZip
-            const zip = new JSZip()
-
-            // 2. Add blog guide markdown file
-            zip.file('블로그_작성_가이드.md', markdown)
-
-            // 3. Create folders for photos
-            const beforeFolder = zip.folder('작업전_사진')
-            const afterFolder = zip.folder('작업후_사진')
-
-            // 4. Populate photos
-            photos.forEach((p: any) => {
-                const folder = p.phase === 'after' ? afterFolder : beforeFolder
-                if (folder) {
-                    // Convert Base64 back to binary data
-                    folder.file(p.fileName, p.base64, { base64: true })
-                }
-            })
-
-            // 5. Generate zip file and download
-            const content = await zip.generateAsync({ type: 'blob' })
-            
-            // Format zip name: [Date]_[Region]_[CustomerName]_블로그_패키지.zip
-            const rawDate = siteInfo.cleaning_date ? new Date(siteInfo.cleaning_date) : new Date()
-            const dateStr = format(rawDate, 'yyyy-MM-dd')
-            const regionStr = siteInfo.name.replace(/[^a-zA-Z0-9가-힣_-]/g, '_')
-            const customerStr = siteInfo.customer_name.replace(/[^a-zA-Z0-9가-힣_-]/g, '_')
-            const zipFileName = `${dateStr}_${regionStr}_${customerStr}_블로그_패키지.zip`
-
-            saveAs(content, zipFileName)
-            toast.success('다운로드 완료!', {
-                description: '블로그 패키지 압축 파일이 정상적으로 다운로드되었습니다.'
-            })
-        } catch (error: any) {
-            console.error('Download blog package error:', error)
-            toast.error('다운로드 실패', {
-                description: error.message || '패키지 빌드 중 오류가 발생했습니다.'
-            })
-        } finally {
-            setDownloadingId(null)
-        }
-    }
 
     useEffect(() => {
         const loadCompanies = async () => {
@@ -341,29 +280,7 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                     </div>
                                 )}
 
-                                {/* AI 블로그 패키지 다운로드 버튼 (이관 완료 또는 작업 완료 상태일 때 노출) */}
-                                {(order.status === 'completed' || order.status === 'transferred' || order.transferred_site_id) && (
-                                    <div className="mt-3 pt-3 border-t border-indigo-100">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full h-11 text-xs font-bold border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100/50 hover:border-indigo-300"
-                                            onClick={() => handleDownloadBlogPackage(order.id)}
-                                            disabled={downloadingId === order.id}
-                                        >
-                                            {downloadingId === order.id ? (
-                                                <>
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                                                    블로그 패키지 구성 중...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FileDown className="w-4 h-4 mr-1.5" />
-                                                    AI 블로그 패키지 다운로드 (ZIP)
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                )}
+
                             </CardContent>
                         </Card>
                     ))}
