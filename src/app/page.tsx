@@ -336,13 +336,13 @@ export default function Home() {
                   </div>
                 </div>
 
-                {isSignUp && (
+                 {isSignUp && (
                   <div className="flex items-start space-x-2 pt-1 pb-1">
                     <Checkbox 
                       id="terms-worker" 
                       checked={agreedToTerms} 
                       onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} 
-                      className="mt-1"
+                      className="mt-1 border-slate-400 border-2 w-5 h-5 data-[state=checked]:bg-slate-800 data-[state=checked]:border-slate-800"
                     />
                     <label
                       htmlFor="terms-worker"
@@ -362,7 +362,7 @@ export default function Home() {
                         id="keepLoggedIn" 
                         checked={keepLoggedIn}
                         onCheckedChange={(checked) => setKeepLoggedIn(checked as boolean)}
-                        className="mt-0.5 border-slate-400"
+                        className="mt-0.5 border-slate-400 border-2 w-5 h-5 data-[state=checked]:bg-slate-800 data-[state=checked]:border-slate-800"
                     />
                     <label htmlFor="keepLoggedIn" className="text-sm font-medium text-slate-700 cursor-pointer">
                         로그인 상태 유지

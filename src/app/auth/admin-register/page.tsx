@@ -208,7 +208,7 @@ export default function AdminRegisterPage() {
                         </div>
 
                         <div className="flex items-center space-x-2 pt-2 pb-1">
-                            <Checkbox id="terms-admin" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
+                            <Checkbox id="terms-admin" checked={agreedToTerms} onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} className="border-slate-400 border-2 w-5 h-5 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600" />
                             <label
                                 htmlFor="terms-admin"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700"
