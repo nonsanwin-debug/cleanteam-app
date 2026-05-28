@@ -1072,3 +1072,242 @@ export async function removeFeedAliasName(name: string): Promise<ActionResponse>
     revalidatePath('/master/settings')
     return { success: true }
 }
+
+// AI 블로그 작성용 완료된 현장 데이터 일괄 팩키지 빌드
+export async function getCompletedSiteBlogData(orderId: string) {
+    const { verifyMasterAccess } = await import('./master')
+    const isMaster = await verifyMasterAccess()
+    if (!isMaster) throw new Error('권한이 없습니다.')
+
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminClient = createAdminClient()
+
+    // 1. 오더 정보 조회
+    const { data: order, error: orderError } = await adminClient
+        .from('shared_orders')
+        .select('*, company:company_id(name), accepted_company:accepted_by(name)')
+        .eq('id', orderId)
+        .single()
+
+    if (orderError || !order) {
+        throw new Error('오더를 찾을 수 없습니다.')
+    }
+
+    if (!order.transferred_site_id) {
+        throw new Error('이 오더에는 작업 진행 또는 완료된 현장이 아직 연결되지 않았습니다.')
+    }
+
+    // 2. 연결된 현장(Site) 상세 조회
+    const { data: site, error: siteError } = await adminClient
+        .from('sites')
+        .select('*')
+        .eq('id', order.transferred_site_id)
+        .single()
+
+    if (siteError || !site) {
+        throw new Error('연결된 현장 정보를 불러오지 못했습니다.')
+    }
+
+    // 3. 체크리스트 제출 내역 및 템플릿 정보 조회
+    const { data: submission } = await adminClient
+        .from('checklist_submissions')
+        .select('*')
+        .eq('site_id', site.id)
+        .maybeSingle()
+
+    let template = null
+    if (site.template_id) {
+        const { data: t } = await adminClient
+            .from('checklist_templates')
+            .select('*')
+            .eq('id', site.template_id)
+            .maybeSingle()
+        template = t
+    }
+    if (!template) {
+        const { data: latest } = await adminClient
+            .from('checklist_templates')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        template = latest
+    }
+
+    const DEFAULT_ITEMS = [
+        { id: 'entrance', text: '현관 (신발장, 바닥, 거울)' },
+        { id: 'living', text: '거실 (바닥, 창틀, 등기구)' },
+        { id: 'kitchen', text: '주방 (싱크대, 수납장, 후드)' },
+        { id: 'bathroom', text: '화장실 (변기, 세면대, 배수구)' },
+        { id: 'rooms', text: '방 (바닥, 창문, 붙박이장)' },
+        { id: 'veranda', text: '베란다/다용도실' }
+    ]
+
+    const items = template?.items || DEFAULT_ITEMS
+    let checklistMarkdown = ''
+    items.forEach((item: any) => {
+        const isChecked = submission?.data?.[item.id] === 'checked'
+        checklistMarkdown += `- **${item.text}**: ${isChecked ? '✅ 작업 완료 (이상 없음)' : '⚠️ 점검 대기 또는 제외'}\n`
+    })
+
+    // 4. 업로드된 작업 사진 목록 조회 및 바이너리 다운로드 (Base64 변환)
+    const { data: photosData } = await adminClient
+        .from('photos')
+        .select('*')
+        .eq('site_id', site.id)
+        .order('created_at', { ascending: true })
+
+    const photos = photosData || []
+    const photosWithBase64: any[] = []
+
+    const ZONE_NAMES_KO: Record<string, string> = {
+        entrance: '현관',
+        living: '거실',
+        kitchen: '주방',
+        bathroom: '화장실',
+        rooms: '방',
+        veranda: '베란다',
+        before: '작업전',
+        after: '작업후'
+    }
+
+    // 사진 목록 정렬: 작업전 먼저, 그 후 작업후
+    const sortedPhotos = [...photos].sort((a: any, b: any) => {
+        const aIsAfter = a.type?.includes('_after') || a.type === 'after'
+        const bIsAfter = b.type?.includes('_after') || b.type === 'after'
+        if (aIsAfter === bIsAfter) return 0
+        return aIsAfter ? 1 : -1
+    })
+
+    let beforeCount = 0
+    let afterCount = 0
+
+    for (const p of sortedPhotos) {
+        try {
+            const res = await fetch(p.url)
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+            const arrayBuffer = await res.arrayBuffer()
+            const base64 = Buffer.from(arrayBuffer).toString('base64')
+
+            // type 문자열 분석해서 한글 구역 및 구분 파싱
+            let phase = 'before'
+            let zoneKo = '일반'
+            const typeStr = p.type || 'before'
+
+            if (typeStr.includes('_')) {
+                const parts = typeStr.split('_')
+                const phasePart = parts.pop()
+                const zoneId = parts.join('_')
+
+                phase = phasePart === 'after' ? 'after' : 'before'
+                zoneKo = ZONE_NAMES_KO[zoneId] || zoneId
+            } else {
+                phase = typeStr === 'after' ? 'after' : 'before'
+                zoneKo = '일반'
+            }
+
+            let finalFileName = ''
+            if (phase === 'before') {
+                beforeCount++
+                finalFileName = `${String(beforeCount).padStart(2, '0')}_작업전_${zoneKo}.jpg`
+            } else {
+                afterCount++
+                finalFileName = `${String(afterCount).padStart(2, '0')}_작업후_${zoneKo}.jpg`
+            }
+
+            photosWithBase64.push({
+                originalUrl: p.url,
+                type: p.type,
+                phase,
+                zoneKo,
+                fileName: finalFileName,
+                base64
+            })
+        } catch (err) {
+            console.error(`Failed to fetch and encode photo ${p.url}:`, err)
+        }
+    }
+
+    const beforePhotos = photosWithBase64.filter(p => p.phase === 'before')
+    const beforePhotosMarkdown = beforePhotos.length > 0
+        ? beforePhotos.map(p => `- 🖼️ **파일명**: \`${p.fileName}\` (원본주소: ${p.originalUrl})`).join('\n')
+        : '등록된 작업전 사진이 없습니다.'
+
+    const afterPhotos = photosWithBase64.filter(p => p.phase === 'after')
+    const afterPhotosMarkdown = afterPhotos.length > 0
+        ? afterPhotos.map(p => `- 🖼️ **파일명**: \`${p.fileName}\` (원본주소: ${p.originalUrl})`).join('\n')
+        : '등록된 작업후 사진이 없습니다.'
+
+    // 5. 프리미엄 페르소나가 부여된 마크다운 템플릿 생성
+    const markdown = `# 🤖 [AI 네이버 블로그 자동 작성 지시서]
+
+당신은 대한민국 최고의 현장 서비스 대행 및 청소 관리 분야 전문 블로그 마케터이자 파워블로거입니다.
+아래에 제공되는 실제 현장 작업 보고서 데이터를 완벽히 분석한 후, 소비자의 마음을 사로잡고 네이버 검색 노출(SEO)에 최적화된 고품질 홍보 블로그 글을 작성해 주세요.
+
+---
+
+### 🎯 [작성 규칙 및 요구사항]
+1. **페르소나 및 태도**:
+   - 친절하고, 신뢰감 있고, 꼼꼼함이 뚝뚝 묻어나는 전문 서비스 업체의 대표 또는 전담 작가 시점으로 작성해 주세요.
+   - 지나친 미사여구는 지양하고, 실제 작업한 사실을 바탕으로 한 사실적이고 진정성 있는 톤앤매너(예: "~해드렸습니다", "~완료했습니다")를 유지해 주세요.
+2. **글의 흐름 및 스토리텔링 구성**:
+   - **도입부**: 계절감이나 최근 현장 예약 트렌드를 가볍게 언급하며 독자의 주의를 환기하고, 오늘 방문한 현장을 정중히 소개합니다.
+   - **현장 분석 및 진단**: 현장 규모, 구조, 주거 형태(혹은 사무 공간 등)의 특징을 서술하고, 작업 시작 전 발견한 오염 상태나 집중 케어가 필요했던 부분(특이사항)을 상세히 나열합니다.
+   - **디테일한 작업 과정 (핵심)**: 체크리스트 영역(현관, 주방, 화장실 등)별로 어떤 순서와 전문 지식을 동원해 정성껏 케어했는지 구체적인 행동 위주로 서술해 주세요. (예: 세제를 아끼지 않는 꼼꼼한 세척, 고온 스팀 소독, 틈새 먼지 흡입 등)
+   - **비포 & 애프터 극적 묘사**: 각 구역별 작업 전후의 눈부신 변화를 묘사하며, 사진이 들어갈 자리를 정확히 짚어줍니다.
+   - **마무리**: 고객의 피드백이나 서명 완료 소식을 전하며, 서비스 만족을 위해 항상 최선을 다하겠다는 진심 어린 다짐으로 정중히 마무리합니다.
+3. **사진 삽입 가이드라인**:
+   - 본문의 흐름에 맞춰 아래 제공되는 사진 목록의 파일명을 정확히 매핑하여 \`[사진 삽입부: 파일명]\` 형태로 표시해 주세요.
+   - 가급적 "작업전 사진"과 "작업후 사진"이 한 세트로 묶여서 배치될 수 있도록 묘사해 주세요.
+4. **네이버 블로그 최적화(SEO) 팁**:
+   - 주요 핵심 키워드(예: [지역명] 현장관리, [지역명] 서비스, 프리미엄 서비스 후기 등)를 제목과 본문에 자연스럽게 녹여내고, 문맥 흐름을 방해하지 않는 선에서 3~5회 반복 노출되도록 해주세요.
+   - 중요한 단어는 굵은 글씨(**bold**)를 적용해 시각적 가독성을 확보해 주세요.
+   
+---
+
+## 📋 1. 현장 상세 데이터 (Raw Data)
+* **현장명(지역)**: ${site.name}
+* **상세 주소**: ${site.address} ${site.detail_address || ''}
+* **작업 일시**: ${site.cleaning_date || '일정 미정'} ${site.start_time ? `(${site.start_time} 시작)` : ''}
+* **공간 정보**:
+  - 주거/공간 형태: ${site.residential_type || '미지정'}
+  - 공간 크기: ${site.area_size ? `${site.area_size}평형` : '미지정'}
+  - 내부 구조: ${site.structure_type || '미지정'}
+* **참여 주체**:
+  - 발주사: ${order.company?.name || 'NEXUS 파트너'}
+  - 수행사: ${order.accepted_company?.name || 'NEXUS 대행팀'}
+  - 현장 책임 팀장: ${site.worker_name || '전문 대행 팀장'}
+* **고객 요청 및 특이사항**:
+  - ${site.special_notes || '특별한 요청사항 없음'}
+  
+## 🛠️ 2. 체크리스트 구역별 작업 결과
+${checklistMarkdown}
+
+* **작업 중 메모 / 특이사항**: ${submission?.data?.notes || '특이사항 없음'}
+
+## 📷 3. 사진 파일 매칭 목록
+이 사진 폴더의 파일들을 본문의 적절한 비포/애프터 스토리텔링 위치에 정확히 삽입해 주세요.
+
+### 📁 [작업전 사진 폴더] (ZIP 파일 내 '작업전_사진' 폴더 위치)
+${beforePhotosMarkdown}
+
+### 📁 [작업후 사진 폴더] (ZIP 파일 내 '작업후_사진' 폴더 위치)
+${afterPhotosMarkdown}
+
+---
+이제 위 내용을 바탕으로 즉시 네이버 블로그에 포스팅 가능한 수준의 고품질 블로그 원고를 창작해 주세요.
+`
+
+    return {
+        success: true,
+        siteInfo: {
+            name: site.name,
+            address: site.address,
+            cleaning_date: site.cleaning_date,
+            customer_name: site.customer_name || '고객'
+        },
+        markdown,
+        photos: photosWithBase64
+    }
+}
+
