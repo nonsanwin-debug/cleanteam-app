@@ -71,7 +71,7 @@ export default function WorkerRegisterPage() {
             // 1. Sign Up
             // Email is required for Supabase Auth, so we generate a placeholder email using loginId
             const normalizedLoginId = formData.loginId.trim().toLowerCase()
-            const email = `${normalizedLoginId}@cleanteam.temp`
+            const email = `${normalizedLoginId}@cleanteam.com`
 
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: email,

@@ -392,7 +392,7 @@ export async function createWorker(data: {
         // 2. Create auth user
         let userId = ''
         const normalizedLoginId = data.loginId.trim().toLowerCase()
-        const email = `${normalizedLoginId}@cleanteam.temp`
+        const email = `${normalizedLoginId}@cleanteam.com`
         const password = data.password.trim()
 
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
@@ -747,7 +747,7 @@ export async function deleteWorker(workerId: string): Promise<ActionResponse> {
         }
 
         // 5. Auth 사용자 접근 완전 차단 (이메일/비번 무작위 변경, 로그인 불가)
-        const deletedEmail = `deleted_${workerId}_${Date.now()}@cleanteam.temp`;
+        const deletedEmail = `deleted_${workerId}_${Date.now()}@cleanteam.com`;
         const randomPassword = crypto.randomUUID();
         const { error: authError } = await adminClient.auth.admin.updateUserById(workerId, {
             email: deletedEmail,

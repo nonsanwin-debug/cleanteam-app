@@ -18,7 +18,7 @@ const adminClient = createClient(
 
 async function simulateCreateWorker(companyId, companyName, companyCode) {
   const loginId = `testworker_${Math.floor(Math.random() * 100000)}`;
-  const email = `${loginId}@cleanteam.temp`;
+  const email = `${loginId}@cleanteam.com`;
   const compNameStr = companyCode ? `${companyName}#${companyCode}` : companyName;
   
   console.log(`\n--- Simulating for ${companyName} (${companyId}) ---`);

@@ -62,8 +62,8 @@ export default function Home() {
     const companyName = formData.get('companyName') as string // Only for signup
     const role = 'worker' // Always worker here for main page
 
-    // 아이디를 이메일 형식으로 변환 (최신 도메인: .temp, 대소문자 & 공백 무시)
-    const email = `${username.trim().toLowerCase()}@cleanteam.temp`
+    // 아이디를 이메일 형식으로 변환 (최신 도메인: .com, 대소문자 & 공백 무시)
+    const email = `${username.trim().toLowerCase()}@cleanteam.com`
 
     try {
       if (isSignUp) {
