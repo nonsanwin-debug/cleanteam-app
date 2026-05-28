@@ -42,10 +42,6 @@ export default function AdminRegisterPage() {
             return
         }
 
-        if (formData.companyName.includes(' ')) {
-            toast.error('가입 불가', { description: '업체명에는 띄어쓰기를 포함할 수 없습니다.' })
-            return
-        }
 
         if (!formData.regionProvince || !formData.regionCity) {
             toast.error('입력 오류', { description: '지역(도/시)을 정확히 선택해주세요.' })

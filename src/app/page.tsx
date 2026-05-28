@@ -81,11 +81,6 @@ export default function Home() {
           return
         }
 
-        if (inputName.includes(' ')) {
-          toast.error('가입 불가', { description: '소속 업체명에는 띄어쓰기를 포함할 수 없습니다.' })
-          setIsLoading(false)
-          return
-        }
 
         if (!agreedToTerms) {
           toast.error('가입 실패', { description: 'NEXUS 서비스 이용약관에 동의해야 합니다.' })
