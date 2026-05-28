@@ -341,8 +341,8 @@ export function MasterOrdersClient({ initialOrders }: { initialOrders: any[] }) 
                                     </div>
                                 )}
 
-                                {/* AI 블로그 패키지 다운로드 버튼 (작업 완료 상태일 때 노출) */}
-                                {order.status === 'completed' && (
+                                {/* AI 블로그 패키지 다운로드 버튼 (이관 완료 또는 작업 완료 상태일 때 노출) */}
+                                {(order.status === 'completed' || order.status === 'transferred' || order.transferred_site_id) && (
                                     <div className="mt-3 pt-3 border-t border-indigo-100">
                                         <Button
                                             variant="outline"
