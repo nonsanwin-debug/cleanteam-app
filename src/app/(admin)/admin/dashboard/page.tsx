@@ -4,6 +4,7 @@ import { Users, Building, ClipboardCheck, AlertCircle, Clock, CheckCircle2, Play
 import Link from "next/link"
 import { AdminSiteMap } from '@/components/admin/admin-site-map'
 import { ActiveSiteItem } from './active-site-item'
+import { DashboardHeader } from "@/components/admin/dashboard-header"
 
 function calculateDuration(start?: string, end?: string) {
     if (!start) return "알 수 없음"
@@ -42,7 +43,7 @@ export default async function AdminDashboard() {
     return (
         <div className="space-y-4 md:space-y-6">
             {/* ... (KPI Cards remain same) ... */}
-            <h2 className="text-3xl font-bold tracking-tight">대시보드</h2>
+            <DashboardHeader />
 
             {/* KPI Cards */}
             {/* KPI Cards */}
