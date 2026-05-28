@@ -21,7 +21,7 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>NEXUS 서비스 이용약관</DialogTitle>
           <DialogDescription>
-            입주/이사 청소 현장 관리 플랫폼 서비스 이용을 위한 약관입니다.
+            현장 관리 플랫폼 서비스 이용을 위한 약관입니다.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="flex-1 px-6 pb-6">
@@ -36,12 +36,12 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
             <section className="space-y-3">
               <h4 className="font-bold">제 2 조 (정 의)</h4>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>NEXUS:</strong> 회사가 운영하는 입주/이사 청소 현장 관리 플랫폼을 말합니다.</li>
+                <li><strong>NEXUS:</strong> 회사가 운영하는 현장 관리 플랫폼을 말합니다.</li>
                 <li><strong>이용자:</strong> NEXUS에 접속하여 이 약관에 따라 서비스를 이용하는 회원 및 비회원을 말합니다.</li>
                 <li><strong>회원:</strong> 회사에 개인정보를 제공하여 회원등록을 한 자로서, 성격에 따라 다음과 같이 구분됩니다.
                   <ul className="list-circle pl-5 mt-2 space-y-1 text-slate-600">
-                    <li><strong className="text-slate-700">업체 회원:</strong> 청소 서비스를 운영하며 현장 팀장에게 업무를 배정하고 관리하는 주체입니다.</li>
-                    <li><strong className="text-slate-700">팀장 회원:</strong> 업체 회원으로부터 업무를 배정받아 실제 청소 현장을 관리하고 수행하는 주체입니다.</li>
+                    <li><strong className="text-slate-700">업체 회원:</strong> 서비스를 운영하며 현장 팀장(작업자)에게 업무를 배정하고 관리하는 주체입니다.</li>
+                    <li><strong className="text-slate-700">팀장 회원:</strong> 업체 회원으로부터 업무를 배정받아 실제 현장을 관리하고 수행하는 주체입니다.</li>
                   </ul>
                 </li>
                 <li><strong>관리포인트:</strong> 업체 회원이 팀장 회원에게 지급해야 할 정산 예정 금액을 플랫폼 내에서 가시화하여 기록하기 위한 단순 수치 데이터를 말합니다.</li>
@@ -55,7 +55,7 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
               <h4 className="font-bold">제 3 조 (서비스의 내용)</h4>
               <p>회사가 제공하는 서비스는 다음과 같습니다.</p>
               <ul className="list-disc pl-5 space-y-1">
-                <li>입주/이사 청소 현장 배정 및 상태 관리 지원</li>
+                <li>현장 배정 및 상태 관리 지원</li>
                 <li>업체와 팀장 간의 업무 정산 내역 기록 관리(관리포인트 시스템)</li>
                 <li>업체 및 제3자를 위한 배너 광고 게재</li>
                 <li>기타 현장 관리에 부수적인 지원 서비스</li>

@@ -234,7 +234,7 @@ export default function Home() {
                 <span className="font-black text-[#0F172A] tracking-tighter pt-1.5">NEXUS</span>
             </h1>
             <p className="text-xl text-slate-500">
-              청소 현장 관리 시스템 & 스마트 검수 솔루션
+              현장 관리 시스템 & 스마트 검수 솔루션
             </p>
           </div>
 
@@ -243,7 +243,7 @@ export default function Home() {
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />
               <div>
                 <h3 className="font-bold text-slate-700 text-[16px]">표준화된 체크리스트</h3>
-                <p className="text-[14px] text-slate-500 mt-1">매뉴얼화된 청소 기준으로 품질 보장</p>
+                <p className="text-[14px] text-slate-500 mt-1">매뉴얼화된 현장 기준으로 품질 보장</p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-left">

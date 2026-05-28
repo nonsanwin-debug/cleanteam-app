@@ -101,7 +101,7 @@ export default function AdminRegisterPage() {
                     <div>
                         <CardTitle className="text-2xl font-bold text-slate-800">업체 관리자 회원가입</CardTitle>
                         <CardDescription>
-                            새로운 청소 업체를 등록하고 관리자로 시작하세요.
+                            새로운 업체를 등록하고 관리자로 시작하세요.
                         </CardDescription>
                     </div>
                 </CardHeader>
