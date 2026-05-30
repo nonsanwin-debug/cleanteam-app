@@ -46,7 +46,7 @@ export default async function UsersPage() {
                 <TabsContent value="workers" className="mt-6">
                     <div className="flex justify-end mb-4">
                         <Link href="/admin/users/new">
-                            <Button className="bg-indigo-600 hover:bg-indigo-700">
+                            <Button id="btn-add-worker" className="bg-indigo-600 hover:bg-indigo-700">
                                 <UserPlus className="w-4 h-4 mr-2" />
                                 새 팀원 추가
                             </Button>

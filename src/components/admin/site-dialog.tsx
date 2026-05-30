@@ -254,7 +254,7 @@ export function SiteDialog({
                 <DialogTrigger asChild>{triggerButton}</DialogTrigger>
             ) : mode === 'create' ? (
                 <DialogTrigger asChild>
-                    <Button>
+                    <Button id="btn-add-site">
                         <Plus className="mr-2 h-4 w-4" /> 현장 추가
                     </Button>
                 </DialogTrigger>

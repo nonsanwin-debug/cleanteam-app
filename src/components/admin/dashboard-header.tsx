@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { HelpCircle, Sparkles } from 'lucide-react'
+import { Sparkles, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { OnboardingTourModal } from './onboarding-tour-modal'
 
 export function DashboardHeader() {
-    const [isTourOpen, setIsTourOpen] = useState(false)
+    const handleTriggerTour = () => {
+        window.dispatchEvent(new CustomEvent('nexus-trigger-tour'))
+    }
 
     return (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -20,7 +20,7 @@ export function DashboardHeader() {
             
             <div className="flex shrink-0">
                 <Button
-                    onClick={() => setIsTourOpen(true)}
+                    onClick={handleTriggerTour}
                     variant="outline"
                     className="h-9 px-3.5 rounded-lg border-blue-200 bg-blue-50/30 hover:bg-blue-50 text-blue-700 font-bold text-xs gap-1.5 transition-all duration-200"
                 >
@@ -28,8 +28,6 @@ export function DashboardHeader() {
                     서비스 가이드 다시보기
                 </Button>
             </div>
-
-            <OnboardingTourModal open={isTourOpen} onOpenChange={setIsTourOpen} />
         </div>
     )
 }

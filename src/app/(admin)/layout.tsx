@@ -1,6 +1,7 @@
 import { RealtimeSubscriber } from '@/components/admin/realtime-subscriber'
 import { MobileNav } from '@/components/admin/mobile-nav'
 import { AdminNavLinks } from '@/components/admin/admin-nav-links'
+import { OnboardingTourModal } from '@/components/admin/onboarding-tour-modal'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingWithdrawalCount } from '@/actions/admin'
 import { LogoutButton } from '@/components/auth/logout-button'
@@ -148,6 +149,7 @@ export default async function AdminLayout({
         <div className="flex h-screen bg-slate-100">
             <RealtimeSubscriber />
             <PushSubscriber />
+            <OnboardingTourModal />
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
