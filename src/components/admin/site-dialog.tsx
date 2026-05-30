@@ -262,8 +262,8 @@ export function SiteDialog({
             <DialogContent 
                 className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
                 onInteractOutside={(event) => {
-                    const target = event.target as HTMLElement;
-                    if (target && target.closest('.onboarding-tour-modal')) {
+                    // Prevent closing the dialog by clicking outside if the onboarding tour is active
+                    if (document.querySelector('.onboarding-tour-modal')) {
                         event.preventDefault();
                     }
                 }}

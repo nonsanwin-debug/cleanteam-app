@@ -684,7 +684,6 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                             right: 0,
                             height: Math.max(0, targetRect.top - 6),
                         }}
-                        onClick={() => handleClose(false)}
                     />
                     {/* Bottom panel */}
                     <div 
@@ -695,7 +694,6 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                             right: 0,
                             bottom: 0,
                         }}
-                        onClick={() => handleClose(false)}
                     />
                     {/* Left panel */}
                     <div 
@@ -706,7 +704,6 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                             width: Math.max(0, targetRect.left - 8),
                             height: Math.max(0, targetRect.height + 12),
                         }}
-                        onClick={() => handleClose(false)}
                     />
                     {/* Right panel */}
                     <div 
@@ -717,14 +714,12 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                             right: 0,
                             height: Math.max(0, targetRect.height + 12),
                         }}
-                        onClick={() => handleClose(false)}
                     />
                 </>
             ) : (
                 /* Fullscreen overlay when mobile fallback or no element is focused */
                 <div 
                     className="absolute inset-0 bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-opacity duration-300 pointer-events-auto"
-                    onClick={() => handleClose(false)}
                 />
             )}
 
