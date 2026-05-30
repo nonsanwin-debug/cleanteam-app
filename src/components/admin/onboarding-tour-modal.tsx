@@ -35,9 +35,9 @@ const CHAPTERS = [
         textColor: 'text-blue-600',
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
         expectedPath: '/admin/dashboard',
+        forceDirectClick: true,
         steps: [
-            '왼쪽 메뉴에서 [현장 관리] 메뉴를 누르세요.',
-            '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 누르면 현장 관리 화면으로 페이지가 자동 전환됩니다.'
+            '왼쪽 메뉴에서 [현장 관리] 메뉴를 직접 누르세요.'
         ],
         tip: '현장 관리 메뉴는 달력 일정 생성, 담당자 지정 및 오더 이관 등 핵심 업무의 중심지입니다.'
     },
@@ -50,9 +50,9 @@ const CHAPTERS = [
         textColor: 'text-blue-600',
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
         expectedPath: '/admin/sites',
+        forceDirectClick: true,
         steps: [
-            '우측 상단에 밝게 빛나는 [현장 추가] 버튼을 클릭해 보세요.',
-            '상세 정보를 기입하는 새 현장 등록 창이 화면에 열립니다.'
+            '우측 상단에 밝게 빛나는 [현장 추가] 버튼을 직접 클릭해 보세요.'
         ],
         tip: '수동 등록 외에도 카카오톡 오더를 복사 붙여넣기해 자동 파싱하는 텍스트 분석 기능도 지원합니다.'
     },
@@ -311,11 +311,11 @@ const CHAPTERS = [
         textColor: 'text-purple-600',
         badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
         expectedPath: '/admin/sites',
+        forceDirectClick: true,
         steps: [
-            '인력이 배정되려면 요원 계정이 필요합니다.',
-            '왼쪽 사이드바의 [사용자 관리] 메뉴를 터치해 진입하세요.'
+            '왼쪽 사이드바의 [사용자 관리] 메뉴를 직접 터치해 진입하세요.'
         ],
-        tip: '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 클릭하면 사용자/팀원 관리 대시보드로 자동 이동됩니다.'
+        tip: '메뉴 버튼을 직접 클릭해야만 다음 계정 추가 단계로 자연스럽게 이동할 수 있습니다.'
     },
     {
         id: 'workers_action',
@@ -326,10 +326,9 @@ const CHAPTERS = [
         textColor: 'text-purple-600',
         badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
         expectedPath: '/admin/users',
+        forceDirectClick: true,
         steps: [
-            '요원 목록과 정산 청구 관리 화면입니다.',
-            '우측 상단의 [새 팀원 추가] 버튼을 클릭해 보세요.',
-            '요원의 성함, 연락처, 역할을 입력하고 비밀번호를 등록하여 계정을 신설합니다.'
+            '우측 상단의 [새 팀원 추가] 버튼을 직접 클릭해 보세요.'
         ],
         tip: '비밀번호를 요원분께 공유해 주시면 요원이 모바일 앱을 다운로드받아 즉시 로그인할 수 있습니다.'
     },
@@ -344,9 +343,9 @@ const CHAPTERS = [
         textColor: 'text-rose-600',
         badgeBg: 'bg-rose-50 text-rose-700 border-rose-100',
         expectedPath: '/admin/users',
+        forceDirectClick: true,
         steps: [
-            '방금 생성한 요원 계정을 현장에 최종 투입할 시간입니다.',
-            '다시 왼쪽 사이드바의 [현장 관리] 메뉴 버튼을 클릭해 주세요.'
+            '다시 왼쪽 사이드바의 [현장 관리] 메뉴 버튼을 직접 클릭해 주세요.'
         ],
         tip: '현장 목록으로 복귀한 뒤 드래그 앤 드롭 방식을 이용해 수월하게 팀원을 카드에 던질 수 있습니다.'
     },
@@ -395,11 +394,11 @@ const CHAPTERS = [
         textColor: 'text-orange-600',
         badgeBg: 'bg-orange-50 text-orange-700 border-orange-100',
         expectedPath: '/admin/sites',
+        forceDirectClick: true,
         steps: [
-            '마지막으로 다른 제휴 파트너들이 나에게 넘긴 오더들을 확인해 봅시다.',
-            '왼쪽 사이드바에서 [오더 공유 센터] 메뉴 버튼을 클릭하여 이동하세요.'
+            '왼쪽 사이드바에서 [오더 공유 센터] 메뉴 버튼을 직접 클릭하여 이동하세요.'
         ],
-        tip: '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 클릭하면 오더 공유 센터 관제판 화면으로 즉시 이동합니다.'
+        tip: '메뉴 버튼을 직접 클릭해야만 오더 공유 수신함 대시보드를 확인하실 수 있습니다.'
     },
     {
         id: 'receiving_action',
@@ -863,23 +862,29 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                             이전
                         </Button>
                         
-                        <Button
-                            onClick={handleNext}
-                            className={cn(
-                                "h-8 px-3 rounded-lg text-white font-bold text-xs shadow-xs transition-colors",
-                                currentStep === CHAPTERS.length - 1 ? "bg-emerald-600 hover:bg-emerald-750" : "bg-blue-600 hover:bg-blue-755"
-                            )}
-                        >
-                            {currentStep === CHAPTERS.length - 1 ? (
-                                <span className="flex items-center gap-1">
-                                    가이드 종료 <CheckCircle2 className="w-3 h-3" />
-                                </span>
-                            ) : (
-                                <span className="flex items-center gap-0.5">
-                                    다음 지시 <ChevronRight className="w-3 h-3" />
-                                </span>
-                            )}
-                        </Button>
+                        {currentChapter.forceDirectClick ? (
+                            <div className="h-8 px-3 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-extrabold text-[10px] flex items-center justify-center animate-pulse gap-1 shadow-xs select-none">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-700 shrink-0" /> 직접 클릭 필수 👆
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={handleNext}
+                                className={cn(
+                                    "h-8 px-3 rounded-lg text-white font-bold text-xs shadow-xs transition-colors",
+                                    currentStep === CHAPTERS.length - 1 ? "bg-emerald-600 hover:bg-emerald-750" : "bg-blue-600 hover:bg-blue-755"
+                                )}
+                            >
+                                {currentStep === CHAPTERS.length - 1 ? (
+                                    <span className="flex items-center gap-1">
+                                        가이드 종료 <CheckCircle2 className="w-3 h-3" />
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-0.5">
+                                        다음 지시 <ChevronRight className="w-3 h-3" />
+                                    </span>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
