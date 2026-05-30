@@ -275,7 +275,17 @@ export function SiteDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form 
+                        onSubmit={(e) => {
+                            if (typeof document !== 'undefined' && document.querySelector('.onboarding-tour-modal')) {
+                                e.preventDefault();
+                                setOpen(false);
+                            } else {
+                                form.handleSubmit(onSubmit)(e);
+                            }
+                        }} 
+                        className="space-y-4"
+                    >
                         <div className="grid grid-cols-2 gap-4">
                             {/* Custom Date Picker */}
                             <FormField
@@ -773,7 +783,17 @@ export function SiteDialog({
                             )}
                         />
                         <DialogFooter>
-                            <Button id="btn-submit-site" type="submit" disabled={isLoading || !cleaningDate || !startTime}>
+                            <Button 
+                                id="btn-submit-site" 
+                                type="submit" 
+                                onClick={(event) => {
+                                    if (typeof document !== 'undefined' && document.querySelector('.onboarding-tour-modal')) {
+                                        event.preventDefault();
+                                        setOpen(false);
+                                    }
+                                }}
+                                disabled={!(typeof document !== 'undefined' && document.querySelector('.onboarding-tour-modal')) && (isLoading || !cleaningDate || !startTime)}
+                            >
                                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (mode === 'update' ? '수정' : '등록')}
                             </Button>
                         </DialogFooter>

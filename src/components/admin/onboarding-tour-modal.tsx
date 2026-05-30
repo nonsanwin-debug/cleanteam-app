@@ -572,12 +572,16 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     useEffect(() => {
         if (!isOpen) return
 
-        const handleGlobalClick = (event: MouseEvent) => {
+        const handleInteraction = (event: Event) => {
             const targetId = CHAPTERS[currentStep].targetId
             const element = document.getElementById(targetId)
             
-            const isTargetClick = element && element.contains(event.target as Node);
-            const isSelectOptionClick = targetId.startsWith('select-') && !!(event.target as HTMLElement).closest('[role="option"]');
+            const targetElement = event.target as HTMLElement;
+            if (!targetElement) return;
+
+            const isTargetClick = element && (element === targetElement || element.contains(targetElement));
+            const isSelectOptionClick = targetId.startsWith('select-') && 
+                !!(targetElement.closest('[role="option"]') || targetElement.closest('.select-item') || targetElement.closest('[data-radix-collection-item]'));
             
             if (isTargetClick || isSelectOptionClick) {
                 // Let the click happen, then auto advance after 350ms
@@ -604,18 +608,23 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 const targetId = CHAPTERS[currentStep].targetId
                 const element = document.getElementById(targetId)
                 if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
-                    // Enter inside text input -> advance to next step
+                    // Enter inside text input -> advance to next step and prevent submission
+                    event.preventDefault()
                     handleNext()
                 }
             }
         }
 
-        window.addEventListener('click', handleGlobalClick, true)
-        window.addEventListener('keydown', handleKeyDown)
+        window.addEventListener('pointerdown', handleInteraction, true)
+        window.addEventListener('mousedown', handleInteraction, true)
+        window.addEventListener('click', handleInteraction, true)
+        window.addEventListener('keydown', handleKeyDown, true)
         
         return () => {
-            window.removeEventListener('click', handleGlobalClick, true)
-            window.removeEventListener('keydown', handleKeyDown)
+            window.removeEventListener('pointerdown', handleInteraction, true)
+            window.removeEventListener('mousedown', handleInteraction, true)
+            window.removeEventListener('click', handleInteraction, true)
+            window.removeEventListener('keydown', handleKeyDown, true)
         }
     }, [isOpen, currentStep, pathname, router])
 
