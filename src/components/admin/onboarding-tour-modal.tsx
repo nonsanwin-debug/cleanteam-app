@@ -272,30 +272,57 @@ export function OnboardingTourModal() {
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
                 position: 'fixed' as const,
-                width: 'min(92vw, 390px)',
+                width: 'min(92vw, 360px)',
                 zIndex: 51
             }
         }
 
+        const width = 350
+        const height = 400
+        const margin = 16
+
+        // 1. If highlighted element is on the left half of the screen, place tooltip to the right of it
         const spaceOnRight = window.innerWidth - targetRect.right
-        if (spaceOnRight > 420) {
+        if (spaceOnRight > width + margin + 10) {
             return {
                 top: Math.min(
-                    window.innerHeight - 440, 
-                    Math.max(20, targetRect.top + (targetRect.height / 2) - 170)
+                    window.innerHeight - height - margin, 
+                    Math.max(margin, targetRect.top + (targetRect.height / 2) - (height / 2))
                 ),
-                left: targetRect.right + 24,
+                left: targetRect.right + 16,
                 position: 'fixed' as const,
-                width: '370px',
+                width: `${width}px`,
                 zIndex: 51
             }
         }
 
+        // 2. If highlighted element is on the right half of the screen, place tooltip to the left of it (avoid overflow)
+        const spaceOnLeft = targetRect.left
+        if (spaceOnLeft > width + margin + 10) {
+            return {
+                top: Math.min(
+                    window.innerHeight - height - margin,
+                    Math.max(margin, targetRect.top + (targetRect.height / 2) - (height / 2))
+                ),
+                left: targetRect.left - width - 16,
+                position: 'fixed' as const,
+                width: `${width}px`,
+                zIndex: 51
+            }
+        }
+
+        // 3. Fallback: place below the target, clamping left & top to keep it fully visible inside viewport
+        const idealLeft = targetRect.left + (targetRect.width / 2) - (width / 2)
+        const clampedLeft = Math.max(margin, Math.min(window.innerWidth - width - margin, idealLeft))
+        
+        const idealTop = targetRect.bottom + 16
+        const clampedTop = Math.max(margin, Math.min(window.innerHeight - height - margin, idealTop))
+
         return {
-            top: targetRect.bottom + 16,
-            left: Math.max(16, targetRect.left + (targetRect.width / 2) - 185),
+            top: clampedTop,
+            left: clampedLeft,
             position: 'fixed' as const,
-            width: '370px',
+            width: `${width}px`,
             zIndex: 51
         }
     }
@@ -479,17 +506,6 @@ export function OnboardingTourModal() {
                     </div>
                 </div>
 
-                {/* Tooltip Arrow Pointer (Desktop only) */}
-                {targetRect && !isMobileFallback && (
-                    <div 
-                        className="hidden md:block absolute w-3 h-3 bg-white border-l border-b border-slate-200 rotate-45"
-                        style={{
-                            left: '-6px',
-                            top: '40px',
-                            boxShadow: '-2px 2px 4px -2px rgba(0,0,0,0.06)'
-                        }}
-                    />
-                )}
             </div>
         </div>
     )
