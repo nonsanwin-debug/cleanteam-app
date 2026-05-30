@@ -334,6 +334,21 @@ const CHAPTERS = [
         tip: '메뉴 버튼을 직접 클릭해야만 다음 계정 추가 단계로 자연스럽게 이동할 수 있습니다.'
     },
     {
+        id: 'workers_tab',
+        title: '팀원 관리 탭 전환',
+        targetId: 'tab-workers',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users',
+        forceDirectClick: true,
+        steps: [
+            '[팀원 관리] 탭을 직접 클릭하여 팀원 관리 목록으로 이동하세요.'
+        ],
+        tip: '팀원 관리 탭에서만 새 팀원을 추가하고 요원 권한과 수수료 정산을 통제할 수 있습니다.'
+    },
+    {
         id: 'workers_action',
         title: '새 요원 계정 생성',
         targetId: 'btn-add-worker',
@@ -478,10 +493,10 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             setCurrentStep(1)
         } else if (currentStep === 20 && pathname.startsWith('/admin/users')) {
             setCurrentStep(21)
-        } else if (currentStep === 22 && pathname.startsWith('/admin/sites')) {
-            setCurrentStep(23)
-        } else if (currentStep === 25 && pathname.startsWith('/admin/shared-orders')) {
-            setCurrentStep(26)
+        } else if (currentStep === 23 && pathname.startsWith('/admin/sites')) {
+            setCurrentStep(24)
+        } else if (currentStep === 26 && pathname.startsWith('/admin/shared-orders')) {
+            setCurrentStep(27)
         }
     }, [pathname, isOpen, currentStep])
 

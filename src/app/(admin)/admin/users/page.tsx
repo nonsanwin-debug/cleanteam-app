@@ -35,7 +35,7 @@ export default async function UsersPage() {
                             </span>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger value="workers">팀원 관리</TabsTrigger>
+                    <TabsTrigger id="tab-workers" value="workers">팀원 관리</TabsTrigger>
                 </TabsList>
                 <TabsContent value="claims" className="mt-6">
                     <UserList users={users} />
