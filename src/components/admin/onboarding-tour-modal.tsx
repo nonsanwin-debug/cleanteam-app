@@ -576,6 +576,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
     const [isMobileFallback, setIsMobileFallback] = useState(false)
     const tooltipRef = useRef<HTMLDivElement>(null)
+    const lastScrolledStepRef = useRef<number>(-1)
 
     // Handle single-tone trigger event globally
     useEffect(() => {
@@ -617,17 +618,12 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         }
     }, [pathname, isOpen, currentStep])
 
-    // Smoothly scroll the target element into view ONCE when the step transitions (Zero-jitter typing)
+    // Reset scroll ref when closed
     useEffect(() => {
-        if (!isOpen) return
-
-        const targetId = CHAPTERS[currentStep].targetId
-        const element = getVisibleElement(targetId)
-        if (element) {
-            // Smoothly center the input field in viewport so user can see it perfectly
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (!isOpen) {
+            lastScrolledStepRef.current = -1
         }
-    }, [isOpen, currentStep])
+    }, [isOpen])
 
     // Track element position in real-time
     useEffect(() => {
@@ -650,12 +646,18 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             
             if (element) {
                 const rect = element.getBoundingClientRect()
-                if (rect.width === 0 || rect.height === 0 || rect.left < 0 || rect.top < 0) {
+                if (rect.width === 0 || rect.height === 0) {
                     setIsMobileFallback(true)
                     setTargetRect(null)
                 } else {
                     setIsMobileFallback(false)
                     setTargetRect(rect)
+                    
+                    // Smoothly scroll the target element into view ONCE when it is first found/mounted with size
+                    if (currentStep !== lastScrolledStepRef.current) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        lastScrolledStepRef.current = currentStep
+                    }
                 }
             } else {
                 setIsMobileFallback(true)
@@ -795,6 +797,35 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
     // Compute float tooltip style matching spotlight rect (mathematically Clamped, left/right responsive)
     const getTooltipStyle = () => {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            // Check if target is in the bottom half of the screen
+            const isBottomHalf = targetRect && (targetRect.top + targetRect.height / 2) > window.innerHeight / 2;
+            
+            if (isBottomHalf) {
+                // Dock at the TOP of the screen (top: 16px)
+                return {
+                    top: '16px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    position: 'fixed' as const,
+                    width: 'calc(100% - 32px)',
+                    maxWidth: '380px',
+                    zIndex: 51
+                }
+            } else {
+                // Dock at the BOTTOM of the screen (bottom: 16px)
+                return {
+                    bottom: '16px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    position: 'fixed' as const,
+                    width: 'calc(100% - 32px)',
+                    maxWidth: '380px',
+                    zIndex: 51
+                }
+            }
+        }
+
         if (isMobileFallback || !targetRect) {
             return {
                 top: '50%',
