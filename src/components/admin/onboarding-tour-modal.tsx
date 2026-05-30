@@ -145,7 +145,11 @@ const CHAPTERS = [
     }
 ]
 
-export function OnboardingTourModal() {
+interface OnboardingTourModalProps {
+    isNewUser?: boolean
+}
+
+export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     const pathname = usePathname()
     const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
@@ -165,13 +169,17 @@ export function OnboardingTourModal() {
         return () => window.removeEventListener('nexus-trigger-tour', handleTrigger)
     }, [])
 
-    // Auto open logic on first dashboard mount only
+    // Auto open logic on first dashboard mount only: ONLY FOR NEW USERS!
+    // Set completed instantly upon first auto-open so it NEVER auto-opens again
     useEffect(() => {
-        const isCompleted = localStorage.getItem('nexus_admin_onboarding_completed')
-        if (isCompleted !== 'true' && pathname === '/admin/dashboard') {
-            setIsOpen(true)
+        if (!isOpen && isNewUser) {
+            const isCompleted = localStorage.getItem('nexus_admin_onboarding_completed')
+            if (isCompleted !== 'true' && pathname === '/admin/dashboard') {
+                setIsOpen(true)
+                localStorage.setItem('nexus_admin_onboarding_completed', 'true')
+            }
         }
-    }, [pathname])
+    }, [pathname, isNewUser, isOpen])
 
     // Auto-advance step index based on path change (Active Multi-Page navigation tracking)
     useEffect(() => {

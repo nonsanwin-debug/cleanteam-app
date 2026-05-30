@@ -34,11 +34,13 @@ export default async function AdminLayout({
     let companyPoints = 0
     let companyCash = 0
 
+    let isNewUser = false
+
     if (user) {
         // Fetch user profile with company info in a single join
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('name, role, company_id, companies(name, code, status, points, cash)')
+            .select('name, role, company_id, created_at, companies(name, code, status, points, cash, created_at)')
             .eq('id', user.id)
             .single()
 
@@ -62,11 +64,18 @@ export default async function AdminLayout({
                 console.warn('⚠️ Link to company exists but data not fetched. Checking RLS...')
                 const { data: directCompany } = await supabase
                     .from('companies')
-                    .select('name, code, status, points, cash')
+                    .select('name, code, status, points, cash, created_at')
                     .eq('id', profile.company_id)
                     .single()
                 if (directCompany) company = directCompany
             }
+
+            // Calculate isNewUser: registered within 24 hours
+            const userCreatedAt = profile.created_at ? new Date(profile.created_at).getTime() : 0
+            const companyCreatedAt = company?.created_at ? new Date(company.created_at).getTime() : 0
+            const now = Date.now()
+            const oneDayMs = 24 * 60 * 60 * 1000
+            isNewUser = (now - userCreatedAt < oneDayMs) || (now - companyCreatedAt < oneDayMs)
 
             if (company && company.name && company.code) {
                 displayName = `${company.name}#${company.code} 관리자`
@@ -149,7 +158,7 @@ export default async function AdminLayout({
         <div className="flex h-screen bg-slate-100">
             <RealtimeSubscriber />
             <PushSubscriber />
-            <OnboardingTourModal />
+            <OnboardingTourModal isNewUser={isNewUser} />
             {/* Sidebar (Desktop) */}
             <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-slate-100">
