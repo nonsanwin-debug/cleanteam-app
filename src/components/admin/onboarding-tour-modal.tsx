@@ -724,6 +724,27 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     useEffect(() => {
         if (!isOpen) return
 
+        const preventKeyboardFocus = (event: Event) => {
+            const target = event.target as HTMLElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+                if (!target.closest('.onboarding-tour-modal')) {
+                    event.preventDefault();
+                    if ('blur' in target) {
+                        (target as any).blur();
+                    }
+                }
+            }
+        }
+
+        const handleFocusCapture = (event: FocusEvent) => {
+            const target = event.target as HTMLElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+                if (!target.closest('.onboarding-tour-modal')) {
+                    target.blur();
+                }
+            }
+        }
+
         const handleInteraction = (event: Event) => {
             const targetId = CHAPTERS[currentStep].targetId
             const element = getVisibleElement(targetId)
@@ -771,12 +792,22 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         window.addEventListener('mousedown', handleInteraction, true)
         window.addEventListener('click', handleInteraction, true)
         window.addEventListener('keydown', handleKeyDown, true)
+
+        window.addEventListener('pointerdown', preventKeyboardFocus, true)
+        window.addEventListener('mousedown', preventKeyboardFocus, true)
+        window.addEventListener('touchstart', preventKeyboardFocus, true)
+        window.addEventListener('focus', handleFocusCapture, true)
         
         return () => {
             window.removeEventListener('pointerdown', handleInteraction, true)
             window.removeEventListener('mousedown', handleInteraction, true)
             window.removeEventListener('click', handleInteraction, true)
             window.removeEventListener('keydown', handleKeyDown, true)
+
+            window.removeEventListener('pointerdown', preventKeyboardFocus, true)
+            window.removeEventListener('mousedown', preventKeyboardFocus, true)
+            window.removeEventListener('touchstart', preventKeyboardFocus, true)
+            window.removeEventListener('focus', handleFocusCapture, true)
         }
     }, [isOpen, currentStep, pathname, router])
 
