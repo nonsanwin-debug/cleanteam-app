@@ -13,15 +13,22 @@ import {
     ChevronRight, 
     Sparkles, 
     CheckCircle2,
-    Info
+    Info,
+    Calendar,
+    Clock,
+    DollarSign,
+    MapPin,
+    UserCheck,
+    FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
 const CHAPTERS = [
+    // 🏢 Chapter 1: 현장 관리 진입 및 추가
     {
         id: 'register_nav',
-        title: '현장 추가 방법 (1/2)',
+        title: '현장 관리 메뉴 진입',
         targetId: 'nav-sites',
         icon: Building2,
         color: 'bg-blue-600',
@@ -30,13 +37,13 @@ const CHAPTERS = [
         expectedPath: '/admin/dashboard',
         steps: [
             '왼쪽 메뉴에서 [현장 관리] 메뉴를 누르세요.',
-            '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 클릭하면 현장 관리 화면으로 자동 연동 및 이동됩니다.'
+            '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 누르면 현장 관리 화면으로 페이지가 자동 전환됩니다.'
         ],
         tip: '현장 관리 메뉴는 달력 일정 생성, 담당자 지정 및 오더 이관 등 핵심 업무의 중심지입니다.'
     },
     {
         id: 'register_action',
-        title: '현장 추가 방법 (2/2)',
+        title: '새 현장 추가 시작',
         targetId: 'btn-add-site',
         icon: Building2,
         color: 'bg-blue-600',
@@ -44,15 +51,260 @@ const CHAPTERS = [
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
         expectedPath: '/admin/sites',
         steps: [
-            '현장 관리 목록 페이지에 진입했습니다.',
-            '우측 상단에 밝게 빛나는 [현장 추가] 버튼을 직접 눌러 보세요.',
-            '주소, 청소 날짜, 작업 종류를 적는 상세 정보 등록 창이 화면에 열립니다.'
+            '우측 상단에 밝게 빛나는 [현장 추가] 버튼을 클릭해 보세요.',
+            '상세 정보를 기입하는 새 현장 등록 창이 화면에 열립니다.'
         ],
-        tip: '오더 주소와 청소 일자를 정확히 적으셔야 모바일 앱 지도 경로와 요원 정산이 올바르게 꼬이지 않고 연동됩니다.'
+        tip: '수동 등록 외에도 카카오톡 오더를 복사 붙여넣기해 자동 파싱하는 텍스트 분석 기능도 지원합니다.'
+    },
+    
+    // 🗓️ 폼 필드 하나씩 상세 가이드 지명 (17개 필드)
+    {
+        id: 'form_date',
+        title: '작업 날짜 선택',
+        targetId: 'date-picker-grid',
+        icon: Calendar,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '달력 패널에서 청소 작업을 진행할 [날짜를 선택]해 주세요.',
+            '원하는 일자를 터치하면 파란색 원으로 활성화됩니다.'
+        ],
+        tip: '달력 위의 좌우 화살표를 눌러 주차를 넘기며 편하게 날짜를 지정하실 수 있습니다.'
     },
     {
+        id: 'form_ampm',
+        title: '오전 / 오후 구분',
+        targetId: 'time-ampm-toggle',
+        icon: Clock,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '작업 일정이 [오전]인지 [오후]인지 선택해 주세요.'
+        ],
+        tip: '오전/오후 구분을 통해 일정을 빠르게 선별하고 요원 작업 목록에 직관적으로 시각화됩니다.'
+    },
+    {
+        id: 'form_hour',
+        title: '시작 시간 선택',
+        targetId: 'time-hour-grid',
+        icon: Clock,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '오더가 시작되는 [정확한 시각(시간)]을 직접 클릭하여 지정해 주세요.'
+        ],
+        tip: '1시부터 12시까지 정규 시각 배열이 제공되어 빠르고 편리하게 선택하실 수 있습니다.'
+    },
+    {
+        id: 'form_minute',
+        title: '분 단위 최종 지정',
+        targetId: 'time-minute-selection',
+        icon: Clock,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[00분] 또는 [30분] 단위를 탭하여 오더 시작 시간을 최종 확정해 줍니다.'
+        ],
+        tip: '정시 또는 30분 단위 설정 방식으로 작업 편의를 높였습니다.'
+    },
+    {
+        id: 'form_name',
+        title: '현장명 기입',
+        targetId: 'input-site-name',
+        icon: FileText,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[현장명] 입력 칸을 클릭하고 텍스트를 입력하세요.',
+            '아파트명, 건물명 및 동/호수를 알아보기 쉽게 적어 줍니다 (예: 강남 자이 101-1004).'
+        ],
+        tip: '현장명은 관리자 및 요원들이 현장을 서로 소통하고 관리하는 일차 기준 명칭이 됩니다.'
+    },
+    {
+        id: 'form_address',
+        title: '상세 주소 입력',
+        targetId: 'input-site-address',
+        icon: MapPin,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[주소] 입력 칸을 클릭해 상세 주소를 작성합니다.',
+            '실제 요원 앱에서 길찾기 내비게이션으로 직결되므로 도로명/지번을 정확히 적으셔야 합니다.'
+        ],
+        tip: '주소를 정확하게 기입해야만 요원용 스마트폰 앱에서 단 한번의 탭으로 티맵/카카오내비 연동이 가능해집니다.'
+    },
+    {
+        id: 'form_customer_name',
+        title: '고객 성함 입력',
+        targetId: 'input-customer-name',
+        icon: UserCheck,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[고객 성함] 란에 예약을 접수한 고객님의 실명 또는 예약자명을 입력하세요.'
+        ],
+        tip: '접수된 이름은 해피콜 진행 및 상담 데이터 정렬용으로 요긴하게 활용됩니다.'
+    },
+    {
+        id: 'form_customer_phone',
+        title: '고객 연락처 입력',
+        targetId: 'input-customer-phone',
+        icon: UserCheck,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[고객 연락처] 란에 연락 가능한 전화번호를 하이픈을 넣어 기재합니다.'
+        ],
+        tip: '추후 청소 완수 후 고객님께 발송할 모바일 해피콜 링크 전송 및 비상 연락망으로 작동합니다.'
+    },
+    {
+        id: 'form_residential_type',
+        title: '주거 형태 입력',
+        targetId: 'input-residential-type',
+        icon: Building2,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[주거 형태]를 클릭해 작성하세요. (아파트, 빌라, 주택, 원룸 등)'
+        ],
+        tip: '주거 형태에 따라 투입될 청소 장비와 요원 작업 양상이 달라지므로 명기해 주시는 것이 좋습니다.'
+    },
+    {
+        id: 'form_area_size',
+        title: '평수 입력',
+        targetId: 'input-area-size',
+        icon: FileText,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '청소를 진행할 공간의 [평수] 크기를 기입해 주세요. (예: 24평)'
+        ],
+        tip: '공간의 평수를 적어 두면 팀장들이 투입인력을 가늠하고 정산의 객관적 척도로 삼기 수월합니다.'
+    },
+    {
+        id: 'form_structure_type',
+        title: '구조 (방/욕실 개수) 입력',
+        targetId: 'input-structure-type',
+        icon: FileText,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '현장의 [구조] 정보를 기재합니다. (예: 방3, 화장실2, 베란다 확장 등)'
+        ],
+        tip: '세부 방과 화장실 구조는 팀장 배정 시 작업 난이도 조율과 도구 준비에 큰 보탬이 됩니다.'
+    },
+    {
+        id: 'form_special_notes',
+        title: '고객 요청 및 특이사항',
+        targetId: 'input-special-notes',
+        icon: FileText,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[특이사항] 란에 주의해야 할 고객 요청 사항이나 사전 인지 정보를 입력해 줍니다.'
+        ],
+        tip: '예: "싱크대 물때 오염 심함, 베란다 페인트 벗겨짐 주의" 등을 적어두면 팀장의 모바일 앱 화면에 붉은색 알림으로 강조 노출됩니다.'
+    },
+    {
+        id: 'form_collection_type',
+        title: '수금 형태 선택',
+        targetId: 'select-collection-type',
+        icon: DollarSign,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[수금 형태] 선택창을 클릭하여 방식을 지정합니다.',
+            '회사수금(사무실 계좌로 이체) 또는 현장수금(현장 팀장이 청소 완료 후 직접 수납) 중 택일합니다.'
+        ],
+        tip: '이 정산 데이터는 추후 정산 로그에 완벽하게 집계되어 수금 잔액 누락 사고를 방지합니다.'
+    },
+    {
+        id: 'form_balance_amount',
+        title: '수납할 잔금 입력',
+        targetId: 'input-balance-amount',
+        icon: DollarSign,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '[잔금] 입력 란에 현장에서 요원이 최종 고객에게 수납받아야 할 나머지 잔금 액수를 기재합니다.'
+        ],
+        tip: '계약금을 제외하고 청소 완료 당일날 직접 수납해야 할 금액을 숫자(원 단위)로만 채워 주시면 됩니다.'
+    },
+    {
+        id: 'form_additional_amount',
+        title: '추가 금액 입력',
+        targetId: 'input-additional-amount',
+        icon: DollarSign,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '오염도 조율이나 특수 옵션으로 부과될 [추가 금액]이 있을 경우 이곳에 작성합니다.'
+        ],
+        tip: '현장에서 발생하는 추가 결제 내역을 깔끔하게 투명 통제할 수 있습니다.'
+    },
+    {
+        id: 'form_additional_description',
+        title: '추가 금액 부과 사유',
+        targetId: 'input-additional-description',
+        icon: FileText,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '추가 금액이 청구된 [부과 사유]를 상세 기입합니다. (예: 피톤치드 추가, 빌라 창틀 오염 심함 등)'
+        ],
+        tip: '고객과의 불필요한 결제 실랑이를 없애고 오더의 무결함을 보장해 줍니다.'
+    },
+    {
+        id: 'form_leader',
+        title: '담당 팀장 지정',
+        targetId: 'select-worker-leader',
+        icon: UserCheck,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        steps: [
+            '이 현장 일정을 전담하고 통제할 [담당 팀장]을 드롭다운을 클릭하여 지정해 줍니다.'
+        ],
+        tip: '여기에 매칭된 담당 팀장의 스마트폰 모바일 화면에 현장 일정이 실시간 등록되어 즉시 작업에 투입 가능해집니다.'
+    },
+
+    // 👤 Chapter 2: 요원 계정 생성 및 생성 화면 안내
+    {
         id: 'workers_nav',
-        title: '팀장/팀원 생성 (1/2)',
+        title: '사용자 관리 메뉴 이동',
         targetId: 'nav-users',
         icon: UserPlus,
         color: 'bg-purple-600',
@@ -60,14 +312,14 @@ const CHAPTERS = [
         badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
         expectedPath: '/admin/sites',
         steps: [
-            '다음으로 현장 실무자를 등록해 볼까요?',
-            '왼쪽 사이드바의 [사용자 관리] 메뉴 버튼을 클릭하여 이동하세요.'
+            '인력이 배정되려면 요원 계정이 필요합니다.',
+            '왼쪽 사이드바의 [사용자 관리] 메뉴를 터치해 진입하세요.'
         ],
-        tip: '사용자 관리를 터치하거나 [다음 지시]를 누르면 사용자 관리 및 정산 대시보드로 자동 이동됩니다.'
+        tip: '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 클릭하면 사용자/팀원 관리 대시보드로 자동 이동됩니다.'
     },
     {
         id: 'workers_action',
-        title: '팀장/팀원 생성 (2/2)',
+        title: '새 요원 계정 생성',
         targetId: 'btn-add-worker',
         icon: UserPlus,
         color: 'bg-purple-600',
@@ -75,15 +327,17 @@ const CHAPTERS = [
         badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
         expectedPath: '/admin/users',
         steps: [
-            '요원 목록과 정산 내역이 표시되는 사용자 화면입니다.',
+            '요원 목록과 정산 청구 관리 화면입니다.',
             '우측 상단의 [새 팀원 추가] 버튼을 클릭해 보세요.',
-            '이름, 전화번호 및 역할(팀장/팀원)과 요원 로그인 비밀번호를 생성해 등록합니다.'
+            '요원의 성함, 연락처, 역할을 입력하고 비밀번호를 등록하여 계정을 신설합니다.'
         ],
-        tip: '등록 후 비밀번호를 실제 팀장/팀원 요원분께 전달하여 스마트폰 NEXUS 모바일 앱으로 출퇴근 서명을 하도록 안내해 주세요.'
+        tip: '비밀번호를 요원분께 공유해 주시면 요원이 모바일 앱을 다운로드받아 즉시 로그인할 수 있습니다.'
     },
+
+    // 🤝 Chapter 3: 팀장 및 팀원 현장 배정
     {
         id: 'assignment_nav',
-        title: '현장 요원 배정 (1/2)',
+        title: '현장 배정 화면 이동',
         targetId: 'nav-sites',
         icon: Users,
         color: 'bg-rose-600',
@@ -91,14 +345,14 @@ const CHAPTERS = [
         badgeBg: 'bg-rose-50 text-rose-700 border-rose-100',
         expectedPath: '/admin/users',
         steps: [
-            '팀원 생성을 마쳤다면 현장에 인력을 투입해 일정 지시를 보낼 차례입니다.',
-            '왼쪽 사이드바의 [현장 관리] 메뉴를 다시 클릭하세요.'
+            '방금 생성한 요원 계정을 현장에 최종 투입할 시간입니다.',
+            '다시 왼쪽 사이드바의 [현장 관리] 메뉴 버튼을 클릭해 주세요.'
         ],
-        tip: '현장 관리 화면으로 돌아가서 드래그 앤 드롭으로 배정하는 신기한 스킬을 안내해 드리겠습니다.'
+        tip: '현장 목록으로 복귀한 뒤 드래그 앤 드롭 방식을 이용해 수월하게 팀원을 카드에 던질 수 있습니다.'
     },
     {
         id: 'assignment_action',
-        title: '현장 요원 배정 (2/2)',
+        title: '드래그 앤 드롭 팀원 배정',
         targetId: 'nav-sites',
         icon: Users,
         color: 'bg-rose-600',
@@ -106,15 +360,17 @@ const CHAPTERS = [
         badgeBg: 'bg-rose-50 text-rose-700 border-rose-100',
         expectedPath: '/admin/sites',
         steps: [
-            '현장 관리 화면으로 복귀했습니다.',
-            '각 카드 중앙의 [담당 팀장] 드롭다운에서 메인 현장 관리자를 지정하세요.',
-            '하단 배지 영역에서 일반 팀원들을 마우스로 끌어 [드래그 앤 드롭]하여 카드 위로 떨어뜨려 스마트하게 배정합니다.'
+            '현장 관리 화면으로 정상 복귀했습니다.',
+            'PC 환경: 하단의 팀원 목록 배지에서 요원을 클릭한 상태로 현장 카드 위로 [드래그 앤 드롭]해 떨어뜨립니다.',
+            '모바일 환경: 하단의 요원 배지를 가볍게 터치해 선택한 후, 보낼 현장 카드를 가볍게 탭하면 지능적으로 배정 완료됩니다.'
         ],
-        tip: '모바일 환경에서는 배정할 팀원 배지를 먼저 가볍게 원터치 선택 후, 가고자 하는 현장 카드를 터치해 주시면 배정이 마무리됩니다.'
+        tip: '담당 팀장(메인)과 배정된 팀원(보조)들에게 스마트 알림톡과 실시간 푸시가 즉시 동기화되어 일정이 전송됩니다.'
     },
+
+    // 🔗 Chapter 4: 오더 공유 (이관)
     {
         id: 'sharing',
-        title: '오더 공유하기 (이관)',
+        title: '파트너 오더 이관 공유',
         targetId: 'nav-sites',
         icon: Share2,
         color: 'bg-emerald-600',
@@ -122,15 +378,17 @@ const CHAPTERS = [
         badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-100',
         expectedPath: '/admin/sites',
         steps: [
-            '일정이 중복되거나 거리가 먼 현장을 제휴 파트너에게 손쉽게 외주 주는 기능입니다.',
-            '현장 카드 우측 상단의 [세 점(더보기)] 버튼을 눌러 [오더 공유]를 클릭하세요.',
-            '상대방의 업체명#코드(예: 클린체크#1234)를 검증하고 전송 시 실시간 이관 완료됩니다.'
+            '일정이 겹치거나 직접 처리가 곤란한 현장을 제휴 파트너에게 양도하는 구조입니다.',
+            '현장 카드의 우측 상단 [세 점(더보기)] 아이콘을 눌러 [오더 공유]를 클릭해 보세요.',
+            '제휴 파트너사의 고유 정보(예: 클린체크#1234)를 검색해 전송하면 완벽히 위탁됩니다.'
         ],
-        tip: '이관 즉시 원래의 카드는 중복 조작 방지를 위해 "읽기 전용"으로 바뀌어 정산 오차를 철저히 방지합니다.'
+        tip: '이관 완료 시 나의 원래 현장 카드는 "읽기 전용"으로 격리 보호되어 중복 제어 사고를 사전에 전면 차단합니다.'
     },
+
+    // 📩 Chapter 5: 공유 오더 수행 및 수락
     {
-        id: 'receiving',
-        title: '공유 오더 수락/받기',
+        id: 'receiving_nav',
+        title: '오더 공유 센터 진입',
         targetId: 'nav-shared-orders',
         icon: Inbox,
         color: 'bg-orange-600',
@@ -138,10 +396,26 @@ const CHAPTERS = [
         badgeBg: 'bg-orange-50 text-orange-700 border-orange-100',
         expectedPath: '/admin/sites',
         steps: [
-            '마지막으로 타사가 넘긴 알짜 오더를 수락해 매출을 늘려 볼까요?',
-            '왼쪽 사이드바의 [오더 공유 센터] 메뉴 버튼을 클릭하여 이동하세요.'
+            '마지막으로 다른 제휴 파트너들이 나에게 넘긴 오더들을 확인해 봅시다.',
+            '왼쪽 사이드바에서 [오더 공유 센터] 메뉴 버튼을 클릭하여 이동하세요.'
         ],
-        tip: '오더 공유 센터의 [받은 공유 오더 (incoming)] 탭에서 보낸 제안들을 살펴보고 [오더 수락하기]를 클릭하면 내 현장으로 즉시 이관됩니다.'
+        tip: '메뉴 버튼을 클릭하거나 [다음 지시] 버튼을 클릭하면 오더 공유 센터 관제판 화면으로 즉시 이동합니다.'
+    },
+    {
+        id: 'receiving_action',
+        title: '공유 오더 수락 및 수행',
+        targetId: 'nav-shared-orders',
+        icon: Inbox,
+        color: 'bg-orange-600',
+        textColor: 'text-orange-600',
+        badgeBg: 'bg-orange-50 text-orange-700 border-orange-100',
+        expectedPath: '/admin/shared-orders',
+        steps: [
+            '오더 수발신 관제 센터입니다.',
+            '상단의 [받은 공유 오더 (incoming)] 탭을 클릭하세요.',
+            '파트너사가 올린 미배정 일감을 검토하고, [오더 수락하기] 버튼을 누르면 나의 새로운 매출 일정으로 즉시 이관 이식됩니다.'
+        ],
+        tip: '공유 오더 수락 시 소정의 수수료(캐쉬)가 차감되므로 설정이나 대시보드에서 항상 캐쉬를 충전해 두시는 것을 추천합니다.'
     }
 ]
 
@@ -187,14 +461,26 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         if (currentStep === 0 && pathname.startsWith('/admin/sites')) {
             setCurrentStep(1)
-        } else if (currentStep === 2 && pathname.startsWith('/admin/users')) {
-            setCurrentStep(3)
-        } else if (currentStep === 4 && pathname.startsWith('/admin/sites')) {
-            setCurrentStep(5)
-        } else if (currentStep === 7 && pathname.startsWith('/admin/shared-orders')) {
-            // Already navigated to shared orders, stay or allow manual complete
+        } else if (currentStep === 19 && pathname.startsWith('/admin/users')) {
+            setCurrentStep(20)
+        } else if (currentStep === 21 && pathname.startsWith('/admin/sites')) {
+            setCurrentStep(22)
+        } else if (currentStep === 24 && pathname.startsWith('/admin/shared-orders')) {
+            setCurrentStep(25)
         }
     }, [pathname, isOpen, currentStep])
+
+    // Smoothly scroll the target element into view ONCE when the step transitions (Zero-jitter typing)
+    useEffect(() => {
+        if (!isOpen) return
+
+        const targetId = CHAPTERS[currentStep].targetId
+        const element = document.getElementById(targetId)
+        if (element) {
+            // Smoothly center the input field in viewport so user can see it perfectly
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+    }, [isOpen, currentStep])
 
     // Track element position in real-time
     useEffect(() => {
@@ -221,7 +507,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         updatePosition()
 
-        const intervalId = setInterval(updatePosition, 200)
+        const intervalId = setInterval(updatePosition, 180)
         window.addEventListener('resize', updatePosition)
         window.addEventListener('scroll', updatePosition, true)
 
@@ -244,7 +530,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         if (nextStep < CHAPTERS.length) {
             const nextChapter = CHAPTERS[nextStep]
             
-            // Programmatically navigate users if they are on a different page and clicked next!
+            // Programmatically navigate users if they are on a different page and clicked next
             if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
                 router.push(nextChapter.expectedPath)
             }
@@ -272,7 +558,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
     if (!isOpen) return null
 
-    // Compute float tooltip style matching spotlight rect
+    // Compute float tooltip style matching spotlight rect (mathematically Clamped, left/right responsive)
     const getTooltipStyle = () => {
         if (isMobileFallback || !targetRect) {
             return {
@@ -285,8 +571,8 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             }
         }
 
-        const width = 350
-        const height = 400
+        const width = 340
+        const height = 370
         const margin = 16
 
         // 1. If highlighted element is on the left half of the screen, place tooltip to the right of it
@@ -337,19 +623,132 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
     const tooltipStyle = getTooltipStyle()
 
+    // Global interaction listener for auto-advancing steps
+    useEffect(() => {
+        if (!isOpen) return
+
+        const handleGlobalClick = (event: MouseEvent) => {
+            const targetId = CHAPTERS[currentStep].targetId
+            const element = document.getElementById(targetId)
+            
+            if (element && element.contains(event.target as Node)) {
+                const clickOnlyIds = [
+                    'nav-sites', 
+                    'btn-add-site', 
+                    'date-picker-grid', 
+                    'time-ampm-toggle', 
+                    'time-hour-grid', 
+                    'time-minute-selection', 
+                    'select-collection-type', 
+                    'select-worker-leader',
+                    'nav-users',
+                    'btn-add-worker',
+                    'nav-shared-orders'
+                ]
+                
+                if (clickOnlyIds.includes(targetId)) {
+                    // Let the click happen, then auto advance after 350ms
+                    setTimeout(() => {
+                        setCurrentStep(prev => {
+                            if (prev === currentStep) {
+                                const nextStep = prev + 1
+                                if (nextStep < CHAPTERS.length) {
+                                    const nextChapter = CHAPTERS[nextStep]
+                                    if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
+                                        router.push(nextChapter.expectedPath)
+                                    }
+                                    return nextStep
+                                }
+                            }
+                            return prev
+                        })
+                    }, 350)
+                }
+            }
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                const targetId = CHAPTERS[currentStep].targetId
+                const element = document.getElementById(targetId)
+                if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
+                    // Enter inside text input -> advance to next step
+                    handleNext()
+                }
+            }
+        }
+
+        window.addEventListener('click', handleGlobalClick, true)
+        window.addEventListener('keydown', handleKeyDown)
+        
+        return () => {
+            window.removeEventListener('click', handleGlobalClick, true)
+            window.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [isOpen, currentStep, pathname, router])
+
     return (
         <div className="fixed inset-0 z-[9999] overflow-hidden select-none">
-            {/* Backdrop Mask */}
-            {/* Set pointer-events-none so click-through works exactly inside the target ring! */}
-            <div 
-                className="absolute inset-0 bg-slate-950/45 backdrop-blur-[0.5px] transition-opacity duration-300 pointer-events-auto"
-                onClick={() => handleClose(false)}
-            />
+            {/* 4-Blocker Backdrop mask around the highlighted target rect */}
+            {targetRect && !isMobileFallback ? (
+                <>
+                    {/* Top panel */}
+                    <div 
+                        className="fixed bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-all duration-300 pointer-events-auto"
+                        style={{
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: Math.max(0, targetRect.top - 6),
+                        }}
+                        onClick={() => handleClose(false)}
+                    />
+                    {/* Bottom panel */}
+                    <div 
+                        className="fixed bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-all duration-300 pointer-events-auto"
+                        style={{
+                            top: Math.max(0, targetRect.bottom + 6),
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                        }}
+                        onClick={() => handleClose(false)}
+                    />
+                    {/* Left panel */}
+                    <div 
+                        className="fixed bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-all duration-300 pointer-events-auto"
+                        style={{
+                            top: Math.max(0, targetRect.top - 6),
+                            left: 0,
+                            width: Math.max(0, targetRect.left - 8),
+                            height: Math.max(0, targetRect.height + 12),
+                        }}
+                        onClick={() => handleClose(false)}
+                    />
+                    {/* Right panel */}
+                    <div 
+                        className="fixed bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-all duration-300 pointer-events-auto"
+                        style={{
+                            top: Math.max(0, targetRect.top - 6),
+                            left: Math.max(0, targetRect.right + 8),
+                            right: 0,
+                            height: Math.max(0, targetRect.height + 12),
+                        }}
+                        onClick={() => handleClose(false)}
+                    />
+                </>
+            ) : (
+                /* Fullscreen overlay when mobile fallback or no element is focused */
+                <div 
+                    className="absolute inset-0 bg-slate-950/65 backdrop-blur-[0.5px] z-40 transition-opacity duration-300 pointer-events-auto"
+                    onClick={() => handleClose(false)}
+                />
+            )}
 
-            {/* Spotlight Highlight Element with pointer-events-none inside but letting click-through onto standard DOM */}
+            {/* Glowing Border around highlighted element with no pointer blockers */}
             {targetRect && !isMobileFallback && (
                 <div 
-                    className="fixed z-50 rounded-xl border-3 border-blue-500 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] pointer-events-none transition-all duration-300 ease-out"
+                    className="fixed z-50 rounded-xl border-3 border-blue-500 pointer-events-none transition-all duration-300 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                     style={{
                         top: targetRect.top - 6,
                         left: targetRect.left - 8,
@@ -357,30 +756,8 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         height: targetRect.height + 12,
                     }}
                 >
-                    {/* Glowing pulse ring */}
                     <div className="absolute -inset-1 rounded-xl border border-blue-400/50 animate-ping opacity-75 pointer-events-none" />
                 </div>
-            )}
-
-            {/* Click-through Area Helper for desktop: Tells them they can click directly or click the next button */}
-            {targetRect && !isMobileFallback && (
-                <div 
-                    className="fixed z-50 cursor-pointer pointer-events-auto opacity-0"
-                    title="여기를 직접 클릭하여 동작할 수 있습니다."
-                    style={{
-                        top: targetRect.top - 6,
-                        left: targetRect.left - 8,
-                        width: targetRect.width + 16,
-                        height: targetRect.height + 12,
-                    }}
-                    onClick={() => {
-                        // Triggers the click on the actual DOM element
-                        const element = document.getElementById(currentChapter.targetId)
-                        if (element) {
-                            element.click()
-                        }
-                    }}
-                />
             )}
 
             {/* Floating Tooltip Bubble */}
@@ -390,7 +767,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
             >
                 {/* Header Progress Indicators */}
-                <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div className="px-4.5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className={cn(
                             "text-[9px] font-black tracking-tight px-2 py-0.5 rounded-full border shrink-0",
@@ -398,16 +775,8 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         )}>
                             STEP {currentStep + 1}
                         </span>
-                        <div className="flex gap-1">
-                            {CHAPTERS.map((_, idx) => (
-                                <div 
-                                    key={idx} 
-                                    className={cn(
-                                        "w-1.5 h-1.5 rounded-full transition-all duration-200",
-                                        idx === currentStep ? "w-3 bg-blue-600" : "bg-slate-350"
-                                    )}
-                                />
-                            ))}
+                        <div className="flex gap-0.5">
+                            <span className="text-[10px] text-slate-400 font-bold">/ {CHAPTERS.length}</span>
                         </div>
                     </div>
                     <button 
@@ -419,17 +788,17 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 </div>
 
                 {/* Instruction Body */}
-                <div className="p-5 flex-1 overflow-y-auto max-h-[350px] space-y-4">
+                <div className="p-4.5 flex-1 overflow-y-auto max-h-[300px] space-y-3.5">
                     
                     {/* Chapter Title */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                         <div className={cn(
-                            "w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm",
+                            "w-8.5 h-8.5 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs",
                             currentChapter.color
                         )}>
-                            <IconComponent className="w-5 h-5" />
+                            <IconComponent className="w-4.5 h-4.5" />
                         </div>
-                        <h3 className="text-sm font-bold text-slate-900 leading-tight break-keep">{currentChapter.title}</h3>
+                        <h3 className="text-xs font-bold text-slate-900 leading-tight break-keep">{currentChapter.title}</h3>
                     </div>
 
                     {/* Step Guidelines */}
@@ -437,10 +806,10 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         {currentChapter.steps.map((step, idx) => (
                             <div 
                                 key={idx} 
-                                className="flex gap-2.5 items-start bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-2.5 rounded-lg transition-colors"
+                                className="flex gap-2 items-start bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-2.5 rounded-lg transition-colors"
                             >
                                 <span className={cn(
-                                    "text-[9px] font-black text-white px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 shadow-xs",
+                                    "text-[8px] font-black text-white px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 shadow-xs",
                                     currentChapter.color
                                 )}>
                                     ✔
@@ -454,9 +823,9 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
                     {/* Mobile fallback indicator */}
                     {isMobileFallback && (
-                        <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2">
-                            <span className="text-sm shrink-0">📱</span>
-                            <p className="text-[10px] text-amber-900 leading-normal font-semibold break-keep">
+                        <div className="bg-amber-50 border border-amber-100 rounded-lg p-2.5 flex gap-2">
+                            <span className="text-xs shrink-0">📱</span>
+                            <p className="text-[9px] text-amber-900 leading-normal font-semibold break-keep">
                                 모바일 화면에서는 상단 삼선(☰) 단추를 눌러 지목된 메뉴를 직접 찾아 탭해 주시기 바랍니다.
                             </p>
                         </div>
@@ -464,10 +833,10 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
                     {/* Tip Section */}
                     <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex gap-2">
-                        <Info className={cn("w-4 h-4 shrink-0 mt-0.5", currentChapter.textColor)} />
+                        <Info className={cn("w-3.5 h-3.5 shrink-0 mt-0.5", currentChapter.textColor)} />
                         <div className="space-y-0.5 min-w-0">
-                            <p className={cn("text-[10px] font-bold", currentChapter.textColor)}>NEXUS 가이드 봇 🤖</p>
-                            <p className="text-[10px] text-slate-600 leading-relaxed font-medium break-keep">
+                            <p className={cn("text-[9px] font-bold", currentChapter.textColor)}>NEXUS 가이드 봇 🤖</p>
+                            <p className="text-[9px] text-slate-655 leading-relaxed font-medium break-keep">
                                 {currentChapter.tip}
                             </p>
                         </div>
@@ -475,22 +844,22 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+                <div className="px-4.5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
                     <button
                         onClick={() => handleClose(true)}
-                        className="text-[10px] font-bold text-slate-400 hover:text-slate-700 transition-colors p-1"
+                        className="text-[9px] font-bold text-slate-400 hover:text-slate-700 transition-colors p-1"
                     >
                         다시 보지 않기
                     </button>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
                             onClick={handlePrev}
                             disabled={currentStep === 0}
                             className="h-8 px-2.5 rounded-lg border-slate-300 text-slate-700 font-bold text-xs"
                         >
-                            <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
+                            <ChevronLeft className="w-3 h-3 mr-0.5" />
                             이전
                         </Button>
                         
@@ -503,17 +872,16 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         >
                             {currentStep === CHAPTERS.length - 1 ? (
                                 <span className="flex items-center gap-1">
-                                    가이드 종료 <CheckCircle2 className="w-3.5 h-3.5" />
+                                    가이드 종료 <CheckCircle2 className="w-3 h-3" />
                                 </span>
                             ) : (
                                 <span className="flex items-center gap-0.5">
-                                    다음 지시 <ChevronRight className="w-3.5 h-3.5" />
+                                    다음 지시 <ChevronRight className="w-3 h-3" />
                                 </span>
                             )}
                         </Button>
                     </div>
                 </div>
-
             </div>
         </div>
     )

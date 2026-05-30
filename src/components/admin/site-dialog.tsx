@@ -298,7 +298,7 @@ export function SiteDialog({
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </div>
-                                            <div className="grid grid-cols-7 gap-1">
+                                            <div id="date-picker-grid" className="grid grid-cols-7 gap-1">
                                                 {weekDays.map(day => {
                                                     const dateStr = format(day, 'yyyy-MM-dd')
                                                     const isSelected = field.value === dateStr
@@ -364,7 +364,7 @@ export function SiteDialog({
                                         <FormLabel>시작 시간</FormLabel>
                                         <div className="bg-slate-50 p-3 rounded-md border space-y-3">
                                             {/* AM/PM Toggle */}
-                                            <div className="flex bg-slate-200 rounded-lg p-1 w-full relative">
+                                            <div id="time-ampm-toggle" className="flex bg-slate-200 rounded-lg p-1 w-full relative">
                                                 <button
                                                     type="button"
                                                     onClick={() => setAmpm('AM')}
@@ -388,7 +388,7 @@ export function SiteDialog({
                                             </div>
 
                                             {/* Hour Grid (1-12) */}
-                                            <div className="grid grid-cols-6 gap-2">
+                                            <div id="time-hour-grid" className="grid grid-cols-6 gap-2">
                                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => (
                                                     <button
                                                         key={h}
@@ -407,7 +407,7 @@ export function SiteDialog({
                                             </div>
 
                                             {/* Minute Selection */}
-                                            <div className="flex gap-2">
+                                            <div id="time-minute-selection" className="flex gap-2">
                                                 {['00', '30'].map(m => (
                                                     <button
                                                         key={m}
@@ -446,7 +446,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>현장명</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="예: 강남 자이 101-1004" {...field} />
+                                            <Input id="input-site-name" placeholder="예: 강남 자이 101-1004" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -460,7 +460,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>주소</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="상세 주소를 입력하세요" {...field} />
+                                            <Input id="input-site-address" placeholder="상세 주소를 입력하세요" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -476,7 +476,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>고객 성함</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="홍길동" {...field} />
+                                            <Input id="input-customer-name" placeholder="홍길동" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -489,7 +489,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>고객 연락처</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="010-1234-5678" {...field} />
+                                            <Input id="input-customer-phone" placeholder="010-1234-5678" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -503,7 +503,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>주거 형태</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="아파트, 빌라 등" {...field} />
+                                            <Input id="input-residential-type" placeholder="아파트, 빌라 등" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -516,7 +516,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>평수</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="24평" {...field} />
+                                            <Input id="input-area-size" placeholder="24평" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -529,7 +529,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>구조</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="방3, 화장실2, 베란다 확장 등" {...field} />
+                                            <Input id="input-structure-type" placeholder="방3, 화장실2, 베란다 확장 등" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -544,7 +544,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>특이사항</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="고객 요청사항 등" {...field} />
+                                            <Input id="input-special-notes" placeholder="고객 요청사항 등" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -676,7 +676,7 @@ export function SiteDialog({
                                         <FormLabel>수금 형태</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger id="select-collection-type">
                                                     <SelectValue placeholder="수금 형태 선택" />
                                                 </SelectTrigger>
                                             </FormControl>
@@ -697,7 +697,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>잔금 (원)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="0" {...field} />
+                                            <Input id="input-balance-amount" type="number" placeholder="0" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -711,7 +711,7 @@ export function SiteDialog({
                                     <FormItem>
                                         <FormLabel>추가금액 (원)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="0" {...field} />
+                                            <Input id="input-additional-amount" type="number" placeholder="0" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -725,7 +725,7 @@ export function SiteDialog({
                                     <FormItem className="col-span-2">
                                         <FormLabel>추가 금액 사유</FormLabel>
                                         <FormControl>
-                                            <Input placeholder={hideCleaningExamples ? "추가금액 사유 입력" : "예: 피톤치드, 오염 심함 등"} {...field} />
+                                            <Input id="input-additional-description" placeholder={hideCleaningExamples ? "추가금액 사유 입력" : "예: 피톤치드, 오염 심함 등"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -741,7 +741,7 @@ export function SiteDialog({
                                     <FormLabel>담당 팀장 (선택)</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger id="select-worker-leader">
                                                 <SelectValue placeholder="담당자를 선택하세요" />
                                             </SelectTrigger>
                                         </FormControl>
