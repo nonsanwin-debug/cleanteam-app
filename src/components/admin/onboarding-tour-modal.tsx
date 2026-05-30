@@ -553,6 +553,70 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         }
     }
 
+    // Global interaction listener for auto-advancing steps
+    useEffect(() => {
+        if (!isOpen) return
+
+        const handleGlobalClick = (event: MouseEvent) => {
+            const targetId = CHAPTERS[currentStep].targetId
+            const element = document.getElementById(targetId)
+            
+            if (element && element.contains(event.target as Node)) {
+                const clickOnlyIds = [
+                    'nav-sites', 
+                    'btn-add-site', 
+                    'date-picker-grid', 
+                    'time-ampm-toggle', 
+                    'time-hour-grid', 
+                    'time-minute-selection', 
+                    'select-collection-type', 
+                    'select-worker-leader',
+                    'nav-users',
+                    'btn-add-worker',
+                    'nav-shared-orders'
+                ]
+                
+                if (clickOnlyIds.includes(targetId)) {
+                    // Let the click happen, then auto advance after 350ms
+                    setTimeout(() => {
+                        setCurrentStep(prev => {
+                            if (prev === currentStep) {
+                                const nextStep = prev + 1
+                                if (nextStep < CHAPTERS.length) {
+                                    const nextChapter = CHAPTERS[nextStep]
+                                    if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
+                                        router.push(nextChapter.expectedPath)
+                                    }
+                                    return nextStep
+                                }
+                            }
+                            return prev
+                        })
+                    }, 350)
+                }
+            }
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                const targetId = CHAPTERS[currentStep].targetId
+                const element = document.getElementById(targetId)
+                if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
+                    // Enter inside text input -> advance to next step
+                    handleNext()
+                }
+            }
+        }
+
+        window.addEventListener('click', handleGlobalClick, true)
+        window.addEventListener('keydown', handleKeyDown)
+        
+        return () => {
+            window.removeEventListener('click', handleGlobalClick, true)
+            window.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [isOpen, currentStep, pathname, router])
+
     const currentChapter = CHAPTERS[currentStep]
     const IconComponent = currentChapter.icon
 
@@ -622,70 +686,6 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     }
 
     const tooltipStyle = getTooltipStyle()
-
-    // Global interaction listener for auto-advancing steps
-    useEffect(() => {
-        if (!isOpen) return
-
-        const handleGlobalClick = (event: MouseEvent) => {
-            const targetId = CHAPTERS[currentStep].targetId
-            const element = document.getElementById(targetId)
-            
-            if (element && element.contains(event.target as Node)) {
-                const clickOnlyIds = [
-                    'nav-sites', 
-                    'btn-add-site', 
-                    'date-picker-grid', 
-                    'time-ampm-toggle', 
-                    'time-hour-grid', 
-                    'time-minute-selection', 
-                    'select-collection-type', 
-                    'select-worker-leader',
-                    'nav-users',
-                    'btn-add-worker',
-                    'nav-shared-orders'
-                ]
-                
-                if (clickOnlyIds.includes(targetId)) {
-                    // Let the click happen, then auto advance after 350ms
-                    setTimeout(() => {
-                        setCurrentStep(prev => {
-                            if (prev === currentStep) {
-                                const nextStep = prev + 1
-                                if (nextStep < CHAPTERS.length) {
-                                    const nextChapter = CHAPTERS[nextStep]
-                                    if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
-                                        router.push(nextChapter.expectedPath)
-                                    }
-                                    return nextStep
-                                }
-                            }
-                            return prev
-                        })
-                    }, 350)
-                }
-            }
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Enter') {
-                const targetId = CHAPTERS[currentStep].targetId
-                const element = document.getElementById(targetId)
-                if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
-                    // Enter inside text input -> advance to next step
-                    handleNext()
-                }
-            }
-        }
-
-        window.addEventListener('click', handleGlobalClick, true)
-        window.addEventListener('keydown', handleKeyDown)
-        
-        return () => {
-            window.removeEventListener('click', handleGlobalClick, true)
-            window.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [isOpen, currentStep, pathname, router])
 
     return (
         <div className="fixed inset-0 z-[9999] overflow-hidden select-none">
