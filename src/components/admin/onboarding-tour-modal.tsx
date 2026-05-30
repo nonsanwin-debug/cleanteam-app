@@ -622,11 +622,22 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         const updatePosition = () => {
             const targetId = CHAPTERS[currentStep].targetId
-            const element = document.getElementById(targetId)
+            let element = document.getElementById(targetId)
+            
+            // Mobile navigation interceptor:
+            // If the target element is hidden (e.g. sidebar link on mobile) but the hamburger menu button is present and visible,
+            // highlight the hamburger menu button first so the user can open the menu!
+            const isTargetHidden = !element || element.getBoundingClientRect().width === 0;
+            const mobileMenuBtn = document.getElementById('btn-mobile-menu');
+            const isMobileView = mobileMenuBtn && mobileMenuBtn.getBoundingClientRect().width > 0;
+            
+            if (isTargetHidden && isMobileView && (targetId === 'nav-sites' || targetId === 'nav-users' || targetId === 'nav-shared-orders')) {
+                element = mobileMenuBtn;
+            }
             
             if (element) {
                 const rect = element.getBoundingClientRect()
-                if (rect.width === 0 || rect.height === 0 || rect.left < 0 || rect.top < 0 || window.innerWidth < 768) {
+                if (rect.width === 0 || rect.height === 0 || rect.left < 0 || rect.top < 0) {
                     setIsMobileFallback(true)
                     setTargetRect(null)
                 } else {
@@ -748,6 +759,23 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     }, [isOpen, currentStep, pathname, router])
 
     const currentChapter = CHAPTERS[currentStep]
+    
+    // Resolve dynamic guide text for mobile drawer navigation
+    const targetId = currentChapter.targetId
+    const element = typeof document !== 'undefined' ? document.getElementById(targetId) : null
+    const isTargetHidden = !element || element.getBoundingClientRect().width === 0
+    const mobileMenuBtn = typeof document !== 'undefined' ? document.getElementById('btn-mobile-menu') : null
+    const isMobileView = mobileMenuBtn && mobileMenuBtn.getBoundingClientRect().width > 0
+    const showMobileMenuGuide = isTargetHidden && isMobileView && (targetId === 'nav-sites' || targetId === 'nav-users' || targetId === 'nav-shared-orders')
+
+    const displayTitle = showMobileMenuGuide ? '모바일 메뉴 열기 ☰' : currentChapter.title
+    const displaySteps = showMobileMenuGuide 
+        ? ['상단 좌측/우측의 [메뉴 ☰] 버튼을 먼저 터치하여 사이드바 메뉴를 열어주세요.']
+        : currentChapter.steps
+    const displayTip = showMobileMenuGuide
+        ? '메뉴를 열면 숨겨진 메뉴 버튼이 나타나며 가이드가 자동으로 이어집니다.'
+        : currentChapter.tip
+        
     const IconComponent = currentChapter.icon
 
     if (!isOpen) return null
@@ -922,12 +950,12 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         )}>
                             <IconComponent className="w-4.5 h-4.5" />
                         </div>
-                        <h3 className="text-xs font-bold text-slate-900 leading-tight break-keep">{currentChapter.title}</h3>
+                        <h3 className="text-xs font-bold text-slate-900 leading-tight break-keep">{displayTitle}</h3>
                     </div>
 
                     {/* Step Guidelines */}
                     <div className="space-y-2">
-                        {currentChapter.steps.map((step, idx) => (
+                        {displaySteps.map((step, idx) => (
                             <div 
                                 key={idx} 
                                 className="flex gap-2 items-start bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-2.5 rounded-lg transition-colors"
@@ -961,7 +989,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                         <div className="space-y-0.5 min-w-0">
                             <p className={cn("text-[9px] font-bold", currentChapter.textColor)}>NEXUS 가이드 봇 🤖</p>
                             <p className="text-[9px] text-slate-655 leading-relaxed font-medium break-keep">
-                                {currentChapter.tip}
+                                {displayTip}
                             </p>
                         </div>
                     </div>
