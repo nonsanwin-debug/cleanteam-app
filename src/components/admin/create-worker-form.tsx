@@ -34,6 +34,12 @@ export function CreateWorkerForm() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
 
+        if (typeof document !== 'undefined' && document.querySelector('.onboarding-tour-modal')) {
+            router.push('/admin/users')
+            router.refresh()
+            return
+        }
+
         if (!formData.loginId || !formData.name || !formData.phone || !formData.password) {
             toast.error('필수 항목을 입력해주세요.')
             return
@@ -156,7 +162,7 @@ export function CreateWorkerForm() {
                                     setFormData({ ...formData, workerType: value })
                                 }
                             >
-                                <SelectTrigger className="w-full md:w-[200px]">
+                                <SelectTrigger id="select-worker-type" className="w-full md:w-[200px]">
                                     <SelectValue placeholder="역할 선택" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -173,7 +179,7 @@ export function CreateWorkerForm() {
                                     취소
                                 </Button>
                             </Link>
-                            <Button type="submit" disabled={loading} className="px-8 bg-indigo-600 hover:bg-indigo-700">
+                             <Button id="btn-create-worker" type="submit" disabled={loading} className="px-8 bg-indigo-600 hover:bg-indigo-700">
                                 {loading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />

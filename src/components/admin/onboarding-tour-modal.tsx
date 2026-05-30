@@ -363,6 +363,108 @@ const CHAPTERS = [
         ],
         tip: '비밀번호를 요원분께 공유해 주시면 요원이 모바일 앱을 다운로드받아 즉시 로그인할 수 있습니다.'
     },
+    // 👤 새 팀원 등록 폼 작성 안내 (7개 단계)
+    {
+        id: 'form_worker_loginId',
+        title: '요원 로그인 아이디 설정',
+        targetId: 'loginId',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '로그인에 사용할 [아이디] 칸을 클릭하고 입력해 보세요.'
+        ],
+        tip: '아이디는 소속 지점/본사에서 요원이 고유하게 사용할 식별값입니다.'
+    },
+    {
+        id: 'form_worker_password',
+        title: '초기 비밀번호 입력',
+        targetId: 'password',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '로그인에 사용될 [초기 비밀번호] 칸을 클릭하여 최소 6자 이상 입력해 줍니다.'
+        ],
+        tip: '지정된 비밀번호를 전달받은 요원이 모바일 앱에서 직접 로그인한 후 스스로 바꿀 수 있습니다.'
+    },
+    {
+        id: 'form_worker_name',
+        title: '팀원 실명 기입',
+        targetId: 'name',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '요원의 실명 확인을 위한 [이름] 란을 클릭하여 기입해 주세요.'
+        ],
+        tip: '이름은 관리자 대시보드 화면 및 요원 리스트, 정산 대장에 실명으로 노출되는 기준 정보입니다.'
+    },
+    {
+        id: 'form_worker_phone',
+        title: '요원 연락처 기입',
+        targetId: 'phone',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '현장 배정 알림을 수신할 요원의 [전화번호] 란을 클릭해 주세요.'
+        ],
+        tip: '전화번호는 하이픈(-) 기호가 자동으로 기입되므로 숫자만 바로 입력하시면 편리합니다.'
+    },
+    {
+        id: 'form_worker_account',
+        title: '정산 계좌 정보 입력',
+        targetId: 'accountInfo',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '요원 수수료 및 일당 지급을 위한 [정산 계좌 정보]를 클릭하여 입력합니다. (선택)'
+        ],
+        tip: '예: "국민은행 123-45-67890 홍길동" 형식으로 적어두면 추후 지급 정산 업무 시 편리합니다.'
+    },
+    {
+        id: 'form_worker_type',
+        title: '요원 역할 및 권한 선택',
+        targetId: 'select-worker-type',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        steps: [
+            '[역할 구분] 선택창을 직접 탭하여 권한을 지정합니다.',
+            '팀장(현장 관리 및 완수 처리 권한 부여) 혹은 일반 팀원 중 하나를 알맞게 탭하세요.'
+        ],
+        tip: '팀장(leader) 권한이 있는 요원만 자신의 모바일 스마트폰 앱에서 청소 완료를 보고하고 정산을 청구할 수 있습니다.'
+    },
+    {
+        id: 'form_worker_submit',
+        title: '팀원 등록 최종 완료',
+        targetId: 'btn-create-worker',
+        icon: UserPlus,
+        color: 'bg-purple-600',
+        textColor: 'text-purple-600',
+        badgeBg: 'bg-purple-50 text-purple-700 border-purple-100',
+        expectedPath: '/admin/users/new',
+        forceDirectClick: true,
+        steps: [
+            '모든 입력이 끝났습니다.',
+            '하단의 [팀원 생성하기] 단추를 직접 클릭하여 생성을 마무리하세요.'
+        ],
+        tip: '등록 완료 즉시 새로운 팀원이 생성되어 데이터베이스에 기록되고 사용자 목록 화면으로 복귀합니다.'
+    },
 
     // 🤝 Chapter 3: 팀장 및 팀원 현장 배정
     {
@@ -493,10 +595,12 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             setCurrentStep(1)
         } else if (currentStep === 20 && pathname.startsWith('/admin/users')) {
             setCurrentStep(21)
-        } else if (currentStep === 23 && pathname.startsWith('/admin/sites')) {
-            setCurrentStep(24)
-        } else if (currentStep === 26 && pathname.startsWith('/admin/shared-orders')) {
-            setCurrentStep(27)
+        } else if (currentStep === 22 && pathname.startsWith('/admin/users/new')) {
+            setCurrentStep(23)
+        } else if (currentStep === 30 && pathname.startsWith('/admin/sites')) {
+            setCurrentStep(31)
+        } else if (currentStep === 33 && pathname.startsWith('/admin/shared-orders')) {
+            setCurrentStep(34)
         }
     }, [pathname, isOpen, currentStep])
 
