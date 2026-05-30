@@ -655,7 +655,14 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                     
                     // Smoothly scroll the target element into view ONCE when it is first found/mounted with size
                     if (currentStep !== lastScrolledStepRef.current) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                        let scrollBlock: 'center' | 'start' | 'end' = 'center';
+                        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                            // If element is below the middle of the viewport, scroll to the bottom ('end')
+                            // If element is above the middle of the viewport, scroll to the top ('start')
+                            const isBelowMiddle = rect.top > window.innerHeight / 2;
+                            scrollBlock = isBelowMiddle ? 'end' : 'start';
+                        }
+                        element.scrollIntoView({ behavior: 'smooth', block: scrollBlock })
                         lastScrolledStepRef.current = currentStep
                     }
                 }
@@ -963,7 +970,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 className="onboarding-tour-modal bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
             >
                 {/* Header Progress Indicators */}
-                <div className="px-4.5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div className="px-3 py-2 md:px-4.5 md:py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className={cn(
                             "text-[9px] font-black tracking-tight px-2 py-0.5 rounded-full border shrink-0",
@@ -984,33 +991,34 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 </div>
 
                 {/* Instruction Body */}
-                <div className="p-4.5 flex-1 overflow-y-auto max-h-[300px] space-y-3.5">
+                <div className="p-3.5 md:p-4.5 flex-1 overflow-y-auto max-h-[200px] md:max-h-[300px] space-y-2.5 md:space-y-3.5">
                     
                     {/* Chapter Title */}
                     <div className="flex items-center gap-2.5">
                         <div className={cn(
-                            "w-8.5 h-8.5 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs",
+                            "w-7 h-7 md:w-8.5 md:h-8.5 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs",
                             currentChapter.color
                         )}>
-                            <IconComponent className="w-4.5 h-4.5" />
+                            <IconComponent className="w-4 h-4 md:w-4.5 md:h-4.5" />
                         </div>
                         <h3 className="text-xs font-bold text-slate-900 leading-tight break-keep">{displayTitle}</h3>
                     </div>
 
                     {/* Step Guidelines */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 md:space-y-2">
                         {displaySteps.map((step, idx) => (
                             <div 
                                 key={idx} 
-                                className="flex gap-2 items-start bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-2.5 rounded-lg transition-colors"
+                                className="flex gap-2 items-start bg-slate-50/50 hover:bg-slate-50 border border-slate-100 p-2 md:p-2.5 rounded-lg transition-colors"
                             >
                                 <span className={cn(
                                     "text-[8px] font-black text-white px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 shadow-xs",
                                     currentChapter.color
+                                ? "bg-emerald-600" : currentChapter.color
                                 )}>
                                     ✔
                                 </span>
-                                <p className="text-xs font-semibold text-slate-750 leading-relaxed break-keep">
+                                <p className="text-[11px] md:text-xs font-semibold text-slate-750 leading-relaxed break-keep">
                                     {step}
                                 </p>
                             </div>
@@ -1019,7 +1027,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
                     {/* Mobile fallback indicator */}
                     {isMobileFallback && (
-                        <div className="bg-amber-50 border border-amber-100 rounded-lg p-2.5 flex gap-2">
+                        <div className="bg-amber-50 border border-amber-100 rounded-lg p-2 flex gap-2">
                             <span className="text-xs shrink-0">📱</span>
                             <p className="text-[9px] text-amber-900 leading-normal font-semibold break-keep">
                                 모바일 화면에서는 상단 삼선(☰) 단추를 눌러 지목된 메뉴를 직접 찾아 탭해 주시기 바랍니다.
@@ -1028,7 +1036,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                     )}
 
                     {/* Tip Section */}
-                    <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 flex gap-2">
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 hidden md:flex gap-2">
                         <Info className={cn("w-3.5 h-3.5 shrink-0 mt-0.5", currentChapter.textColor)} />
                         <div className="space-y-0.5 min-w-0">
                             <p className={cn("text-[9px] font-bold", currentChapter.textColor)}>NEXUS 가이드 봇 🤖</p>
@@ -1040,7 +1048,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="px-4.5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+                <div className="px-3.5 py-2.5 md:px-4.5 md:py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
                     <button
                         onClick={() => handleClose(true)}
                         className="text-[9px] font-bold text-slate-400 hover:text-slate-700 transition-colors p-1"
