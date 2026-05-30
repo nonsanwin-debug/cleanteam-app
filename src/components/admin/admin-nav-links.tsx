@@ -49,6 +49,7 @@ export function AdminNavLinks({ pendingCount, unreadReplyCount = 0, unreadShared
                 return (
                     <Link key={item.href} href={item.href}>
                         <Button
+                            id={`nav-${item.href.split('/').pop()}`}
                             variant={isActive ? 'default' : 'ghost'}
                             className={cn(
                                 'w-full justify-start border-l-4 justify-between',
