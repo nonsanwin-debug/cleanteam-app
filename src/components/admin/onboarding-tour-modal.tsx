@@ -24,6 +24,19 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
+const getVisibleElement = (id: string): HTMLElement | null => {
+    if (typeof document === 'undefined') return null
+    const elements = document.querySelectorAll(`#${id}`)
+    for (let i = 0; i < elements.length; i++) {
+        const el = elements[i] as HTMLElement
+        const rect = el.getBoundingClientRect()
+        if (rect.width > 0 && rect.height > 0) {
+            return el
+        }
+    }
+    return document.getElementById(id)
+}
+
 const CHAPTERS = [
     // 🏢 Chapter 1: 현장 관리 진입 및 추가
     {
@@ -609,7 +622,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         if (!isOpen) return
 
         const targetId = CHAPTERS[currentStep].targetId
-        const element = document.getElementById(targetId)
+        const element = getVisibleElement(targetId)
         if (element) {
             // Smoothly center the input field in viewport so user can see it perfectly
             element.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -622,13 +635,13 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         const updatePosition = () => {
             const targetId = CHAPTERS[currentStep].targetId
-            let element = document.getElementById(targetId)
+            let element = getVisibleElement(targetId)
             
             // Mobile navigation interceptor:
             // If the target element is hidden (e.g. sidebar link on mobile) but the hamburger menu button is present and visible,
             // highlight the hamburger menu button first so the user can open the menu!
             const isTargetHidden = !element || element.getBoundingClientRect().width === 0;
-            const mobileMenuBtn = document.getElementById('btn-mobile-menu');
+            const mobileMenuBtn = getVisibleElement('btn-mobile-menu');
             const isMobileView = mobileMenuBtn && mobileMenuBtn.getBoundingClientRect().width > 0;
             
             if (isTargetHidden && isMobileView && (targetId === 'nav-sites' || targetId === 'nav-users' || targetId === 'nav-shared-orders')) {
@@ -704,7 +717,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         const handleInteraction = (event: Event) => {
             const targetId = CHAPTERS[currentStep].targetId
-            const element = document.getElementById(targetId)
+            const element = getVisibleElement(targetId)
             
             const targetElement = event.target as HTMLElement;
             if (!targetElement) return;
@@ -736,7 +749,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Enter') {
                 const targetId = CHAPTERS[currentStep].targetId
-                const element = document.getElementById(targetId)
+                const element = getVisibleElement(targetId)
                 if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
                     // Enter inside text input -> advance to next step and prevent submission
                     event.preventDefault()
@@ -762,9 +775,9 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     
     // Resolve dynamic guide text for mobile drawer navigation
     const targetId = currentChapter.targetId
-    const element = typeof document !== 'undefined' ? document.getElementById(targetId) : null
+    const element = getVisibleElement(targetId)
     const isTargetHidden = !element || element.getBoundingClientRect().width === 0
-    const mobileMenuBtn = typeof document !== 'undefined' ? document.getElementById('btn-mobile-menu') : null
+    const mobileMenuBtn = getVisibleElement('btn-mobile-menu')
     const isMobileView = mobileMenuBtn && mobileMenuBtn.getBoundingClientRect().width > 0
     const showMobileMenuGuide = isTargetHidden && isMobileView && (targetId === 'nav-sites' || targetId === 'nav-users' || targetId === 'nav-shared-orders')
 
