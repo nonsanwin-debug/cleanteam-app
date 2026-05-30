@@ -687,7 +687,7 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
     const tooltipStyle = getTooltipStyle()
 
     return (
-        <div className="fixed inset-0 z-[9999] overflow-hidden select-none">
+        <div className="fixed inset-0 z-[9999] overflow-hidden select-none pointer-events-none">
             {/* 4-Blocker Backdrop mask around the highlighted target rect */}
             {targetRect && !isMobileFallback ? (
                 <>
