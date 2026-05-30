@@ -259,7 +259,15 @@ export function SiteDialog({
                     </Button>
                 </DialogTrigger>
             ) : null}
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent 
+                className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+                onInteractOutside={(event) => {
+                    const target = event.target as HTMLElement;
+                    if (target && target.closest('.onboarding-tour-modal')) {
+                        event.preventDefault();
+                    }
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>{mode === 'update' ? '현장 정보 수정 (Ver.2.0)' : '새 현장 등록 (Ver.2.0)'}</DialogTitle>
                     <DialogDescription>

@@ -561,38 +561,22 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             const element = document.getElementById(targetId)
             
             if (element && element.contains(event.target as Node)) {
-                const clickOnlyIds = [
-                    'nav-sites', 
-                    'btn-add-site', 
-                    'date-picker-grid', 
-                    'time-ampm-toggle', 
-                    'time-hour-grid', 
-                    'time-minute-selection', 
-                    'select-collection-type', 
-                    'select-worker-leader',
-                    'nav-users',
-                    'btn-add-worker',
-                    'nav-shared-orders'
-                ]
-                
-                if (clickOnlyIds.includes(targetId)) {
-                    // Let the click happen, then auto advance after 350ms
-                    setTimeout(() => {
-                        setCurrentStep(prev => {
-                            if (prev === currentStep) {
-                                const nextStep = prev + 1
-                                if (nextStep < CHAPTERS.length) {
-                                    const nextChapter = CHAPTERS[nextStep]
-                                    if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
-                                        router.push(nextChapter.expectedPath)
-                                    }
-                                    return nextStep
+                // Let the click happen, then auto advance after 350ms
+                setTimeout(() => {
+                    setCurrentStep(prev => {
+                        if (prev === currentStep) {
+                            const nextStep = prev + 1
+                            if (nextStep < CHAPTERS.length) {
+                                const nextChapter = CHAPTERS[nextStep]
+                                if (nextChapter.expectedPath && !pathname.startsWith(nextChapter.expectedPath)) {
+                                    router.push(nextChapter.expectedPath)
                                 }
+                                return nextStep
                             }
-                            return prev
-                        })
-                    }, 350)
-                }
+                        }
+                        return prev
+                    })
+                }, 350)
             }
         }
 
@@ -759,11 +743,10 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
                 </div>
             )}
 
-            {/* Floating Tooltip Bubble */}
             <div 
                 ref={tooltipRef}
                 style={tooltipStyle}
-                className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
+                className="onboarding-tour-modal bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-out animate-in fade-in zoom-in-95"
             >
                 {/* Header Progress Indicators */}
                 <div className="px-4.5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
