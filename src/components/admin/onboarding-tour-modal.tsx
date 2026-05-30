@@ -300,6 +300,22 @@ const CHAPTERS = [
         ],
         tip: '여기에 매칭된 담당 팀장의 스마트폰 모바일 화면에 현장 일정이 실시간 등록되어 즉시 작업에 투입 가능해집니다.'
     },
+    {
+        id: 'form_submit',
+        title: '현장 등록 완료',
+        targetId: 'btn-submit-site',
+        icon: CheckCircle2,
+        color: 'bg-blue-600',
+        textColor: 'text-blue-600',
+        badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
+        expectedPath: '/admin/sites',
+        forceDirectClick: true,
+        steps: [
+            '정보 기입이 모두 끝났습니다.',
+            '하단의 [등록] 버튼을 직접 클릭하여 현장을 최종 등록하세요.'
+        ],
+        tip: '등록이 완료되면 새로운 현장 일정이 데이터베이스에 저장되며 입력 폼이 자동으로 닫힙니다.'
+    },
 
     // 👤 Chapter 2: 요원 계정 생성 및 생성 화면 안내
     {
@@ -460,12 +476,12 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
 
         if (currentStep === 0 && pathname.startsWith('/admin/sites')) {
             setCurrentStep(1)
-        } else if (currentStep === 19 && pathname.startsWith('/admin/users')) {
-            setCurrentStep(20)
-        } else if (currentStep === 21 && pathname.startsWith('/admin/sites')) {
-            setCurrentStep(22)
-        } else if (currentStep === 24 && pathname.startsWith('/admin/shared-orders')) {
-            setCurrentStep(25)
+        } else if (currentStep === 20 && pathname.startsWith('/admin/users')) {
+            setCurrentStep(21)
+        } else if (currentStep === 22 && pathname.startsWith('/admin/sites')) {
+            setCurrentStep(23)
+        } else if (currentStep === 25 && pathname.startsWith('/admin/shared-orders')) {
+            setCurrentStep(26)
         }
     }, [pathname, isOpen, currentStep])
 
@@ -560,7 +576,10 @@ export function OnboardingTourModal({ isNewUser }: OnboardingTourModalProps) {
             const targetId = CHAPTERS[currentStep].targetId
             const element = document.getElementById(targetId)
             
-            if (element && element.contains(event.target as Node)) {
+            const isTargetClick = element && element.contains(event.target as Node);
+            const isSelectOptionClick = targetId.startsWith('select-') && !!(event.target as HTMLElement).closest('[role="option"]');
+            
+            if (isTargetClick || isSelectOptionClick) {
                 // Let the click happen, then auto advance after 350ms
                 setTimeout(() => {
                     setCurrentStep(prev => {
