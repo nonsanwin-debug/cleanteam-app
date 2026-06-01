@@ -231,10 +231,9 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             const getBaseUrl = () => {
                 if (typeof window !== 'undefined') {
                     const origin = window.location.origin
-                    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
-                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+                    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                        return origin
                     }
-                    return origin
                 }
                 return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
             }
@@ -451,10 +450,9 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             const getBaseUrl = () => {
                                 if (typeof window !== 'undefined') {
                                     const origin = window.location.origin
-                                    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('capacitor://')) {
-                                        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+                                    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                                        return origin
                                     }
-                                    return origin
                                 }
                                 return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
                             }

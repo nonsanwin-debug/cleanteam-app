@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NEXUS',
   webDir: 'public',
   server: {
-    url: 'https://cleanteam-app.vercel.app',
+    url: 'https://nexuspartner.kr',
     cleartext: true
   },
   plugins: {
