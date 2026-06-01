@@ -128,8 +128,18 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
 
     const hasPhotos = photos.length > 0
 
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            const origin = window.location.origin
+            if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                return origin
+            }
+        }
+        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+    }
+
     const handleShare = () => {
-        const shareUrl = `${window.location.origin}/share/${site.id}`
+        const shareUrl = `${getBaseUrl()}/share/${site.id}`
         if (navigator.share) {
             navigator.share({ title: 'NEXUS 작업 보고서', url: shareUrl })
         } else {
@@ -248,7 +258,7 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
                         <button
                             onClick={() => {
                                 if (isFromOrders) {
-                                    const shareUrl = `${window.location.origin}/share/${site.id}`
+                                    const shareUrl = `${getBaseUrl()}/share/${site.id}`
                                     if (navigator.share) {
                                         navigator.share({ title: 'NEXUS 작업 보고서', url: shareUrl })
                                     } else {
