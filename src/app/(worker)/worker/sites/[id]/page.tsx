@@ -496,18 +496,20 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             </section>
 
             {/* Chat Section */}
-            <section>
-                <h3 className="font-bold mb-2 flex items-center">
-                    현장 채팅
-                </h3>
-                <SiteChat
-                    siteId={site.id}
-                    currentUserName={currentUserName}
-                    currentUserRole="leader"
-                    currentUserId={currentUserId || undefined}
-                    customerPhone={site.customer_phone || site.manager_phone || undefined}
-                />
-            </section>
+            {isLeader && (
+                <section>
+                    <h3 className="font-bold mb-2 flex items-center">
+                        현장 채팅
+                    </h3>
+                    <SiteChat
+                        siteId={site.id}
+                        currentUserName={currentUserName}
+                        currentUserRole="leader"
+                        currentUserId={currentUserId || undefined}
+                        customerPhone={site.customer_phone || site.manager_phone || undefined}
+                    />
+                </section>
+            )}
 
             {/* 작업 완료 버튼 - 팀장 전용 및 진행 중 상태에서만 표시 */}
             {isLeader && site.status === 'in_progress' && (
