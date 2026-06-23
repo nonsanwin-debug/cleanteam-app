@@ -380,10 +380,12 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
-          <div className="text-center mt-4">
-            <Link href="/auth/admin-login" className="text-xs text-slate-300 hover:text-slate-500 transition-colors">
-              관리자 페이지로 이동
-            </Link>
+          <div className="mt-4">
+            <Button variant="outline" asChild className="w-full text-xs py-5 border-slate-300 text-slate-600 hover:text-slate-900 bg-white/70 hover:bg-white rounded-xl shadow-sm transition-all">
+              <Link href="/auth/admin-login">
+                관리자 페이지로 이동
+              </Link>
+            </Button>
           </div>
         </div>
 
