@@ -10,18 +10,19 @@ export async function getChecklistForSite(siteId: string) {
     const supabase = await createClient()
 
     // 1. Get Site Info (to check template_id - assuming we added it, but fallback needed)
-    const { data: site } = await supabase.from('sites').select('template_id').eq('id', siteId).single()
+    const { data: site } = await supabase.from('sites').select('template_id, company_id').eq('id', siteId).single()
 
     let templateId = site?.template_id
 
-    // 2. If no template assigned, grab the most recent one (Fallback)
-    if (!templateId) {
+    // 2. If no template assigned, grab the most recent one for this company (Fallback)
+    if (!templateId && site?.company_id) {
         const { data: latest } = await supabase
             .from('checklist_templates')
             .select('id')
+            .eq('company_id', site.company_id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single()
+            .maybeSingle()
         templateId = latest?.id
     }
 

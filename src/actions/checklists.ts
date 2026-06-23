@@ -34,10 +34,17 @@ async function getCompanyId() {
 export async function getChecklistTemplates() {
     try {
         const supabase = await createClient()
+        const companyId = await getCompanyId()
+
+        if (!companyId) {
+            console.warn('getChecklistTemplates: No company ID found')
+            return []
+        }
 
         const { data, error } = await supabase
             .from('checklist_templates')
             .select('*')
+            .eq('company_id', companyId)
             .order('created_at', { ascending: false })
 
         if (error) {
@@ -55,11 +62,18 @@ export async function getChecklistTemplates() {
 export async function getChecklistTemplate(id: string) {
     try {
         const supabase = await createClient()
+        const companyId = await getCompanyId()
+
+        if (!companyId) {
+            console.warn('getChecklistTemplate: No company ID found')
+            return null
+        }
 
         const { data, error } = await supabase
             .from('checklist_templates')
             .select('*')
             .eq('id', id)
+            .eq('company_id', companyId)
             .single()
 
         if (error) {
@@ -125,11 +139,29 @@ export async function createChecklistTemplate(title: string) {
 export async function updateChecklistTemplate(id: string, items: CheckItem[]) {
     try {
         const supabase = await createClient()
+        const companyId = await getCompanyId()
+
+        if (!companyId) {
+            console.error('updateChecklistTemplate: No company ID found')
+            return { success: false, error: '인증 권한이 없습니다.' }
+        }
+
+        // Verify ownership
+        const { data: template, error: checkError } = await supabase
+            .from('checklist_templates')
+            .select('company_id')
+            .eq('id', id)
+            .single()
+
+        if (checkError || !template || template.company_id !== companyId) {
+            return { success: false, error: '수정 권한이 없는 템플릿입니다.' }
+        }
 
         const { error } = await supabase
             .from('checklist_templates')
             .update({ items })
             .eq('id', id)
+            .eq('company_id', companyId)
 
         if (error) {
             console.error('Error updating template:', error)
@@ -147,11 +179,29 @@ export async function updateChecklistTemplate(id: string, items: CheckItem[]) {
 export async function deleteChecklistTemplate(id: string) {
     try {
         const supabase = await createClient()
+        const companyId = await getCompanyId()
+
+        if (!companyId) {
+            console.error('deleteChecklistTemplate: No company ID found')
+            return { success: false, error: '인증 권한이 없습니다.' }
+        }
+
+        // Verify ownership
+        const { data: template, error: checkError } = await supabase
+            .from('checklist_templates')
+            .select('company_id')
+            .eq('id', id)
+            .single()
+
+        if (checkError || !template || template.company_id !== companyId) {
+            return { success: false, error: '삭제 권한이 없는 템플릿입니다.' }
+        }
 
         const { error } = await supabase
             .from('checklist_templates')
             .delete()
             .eq('id', id)
+            .eq('company_id', companyId)
 
         if (error) {
             console.error('Error deleting template:', error)

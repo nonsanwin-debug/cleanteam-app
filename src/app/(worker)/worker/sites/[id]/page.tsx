@@ -170,7 +170,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 // 4. Fetch Checklist Template and existing answers
                 try {
                     const templateData = await getChecklistForSite(siteId)
-                    setChecklistTemplate(templateData || DEFAULT_TEMPLATE)
+                    setChecklistTemplate(templateData || null)
 
                     const { data: submission } = await supabase
                         .from('checklist_submissions')
@@ -183,7 +183,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     }
                 } catch (err) {
                     console.error('Failed to load checklist template/answers:', err)
-                    setChecklistTemplate(DEFAULT_TEMPLATE)
+                    setChecklistTemplate(null)
                 }
             } catch (err) {
                 console.error('Failed to fetch data:', err)
@@ -521,7 +521,11 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 toast.error('사진 등록을 먼저 완료해주세요.')
                                 return
                             }
-                            setCompletedWizardStep('checklist')
+                            if (!checklistTemplate || !checklistTemplate.items || checklistTemplate.items.length === 0) {
+                                setCompletedWizardStep('settlement')
+                            } else {
+                                setCompletedWizardStep('checklist')
+                            }
                         }}
                     >
                         <CheckCheck className="w-6 h-6" />
@@ -792,10 +796,16 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 <Button
                                     variant="outline"
                                     className="flex-1"
-                                    onClick={() => setCompletedWizardStep('checklist')}
+                                    onClick={() => {
+                                        if (!checklistTemplate || !checklistTemplate.items || checklistTemplate.items.length === 0) {
+                                            setCompletedWizardStep('closed')
+                                        } else {
+                                            setCompletedWizardStep('checklist')
+                                        }
+                                    }}
                                     disabled={submittingChecklist || completingWork}
                                 >
-                                    이전
+                                    {(!checklistTemplate || !checklistTemplate.items || checklistTemplate.items.length === 0) ? '취소' : '이전'}
                                 </Button>
                                 <Button
                                     className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
