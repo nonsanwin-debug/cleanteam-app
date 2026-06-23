@@ -4,13 +4,20 @@ import { useState, useEffect, useTransition } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Clock, User, ArrowRight, Loader2 } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Clock, User, ArrowRight, Loader2, Plus } from 'lucide-react'
 import { format, addMonths, subMonths, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, startOfMonth, endOfMonth } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { getAdminDailySiteCounts, getAdminSitesByDate } from '@/actions/admin-schedule'
 import Link from 'next/link'
+import { SiteDialog } from './site-dialog'
 
-export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
+export function AdminScheduleCalendar({ 
+    initialDate,
+    workers
+}: { 
+    initialDate: Date
+    workers: any[]
+}) {
     const [currentDate, setCurrentDate] = useState(initialDate)
     const [selectedDate, setSelectedDate] = useState<Date>(new Date()) // default to today
     const [isPending, startTransition] = useTransition()
@@ -139,13 +146,29 @@ export function AdminScheduleCalendar({ initialDate }: { initialDate: Date }) {
             {/* Daily Schedule Panel */}
             <Card className="shadow-sm self-start lg:sticky lg:top-6 border-slate-200 flex flex-col max-h-[400px] lg:max-h-[850px] lg:h-[calc(100vh-2rem)]">
                 <CardHeader className="pb-4 border-b bg-indigo-600 text-white rounded-t-xl shrink-0">
-                    <CardTitle className="text-xl flex items-center justify-between">
-                        <span>{format(selectedDate, 'M월 d일', { locale: ko })} 스케줄</span>
-                        <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none font-bold">
-                            {selectedSites.length}건
-                        </Badge>
-                    </CardTitle>
-                    <CardDescription className="text-indigo-100">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl flex items-center gap-2">
+                            <span>{format(selectedDate, 'M월 d일', { locale: ko })} 스케줄</span>
+                            <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none font-bold">
+                                {selectedSites.length}건
+                            </Badge>
+                        </CardTitle>
+                        <SiteDialog 
+                            workers={workers}
+                            mode="create"
+                            initialData={{
+                                name: '',
+                                address: '',
+                                cleaning_date: format(selectedDate, 'yyyy-MM-dd')
+                            }}
+                            triggerButton={
+                                <Button size="sm" variant="secondary" className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold gap-1 shadow-sm h-8">
+                                    <Plus className="w-3.5 h-3.5" /> 현장 등록
+                                </Button>
+                            }
+                        />
+                    </div>
+                    <CardDescription className="text-indigo-100 mt-1">
                         해당 일자에 등록된 현장 목록입니다.
                     </CardDescription>
                 </CardHeader>

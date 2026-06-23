@@ -1,12 +1,14 @@
 import { AdminScheduleCalendar } from '@/components/admin/admin-schedule-calendar'
+import { getWorkers } from '@/actions/sites'
 
 export const metadata = {
     title: '일정 관리 | NEXUS',
     description: '관리자 전용 스케줄 캘린더',
 }
 
-export default function AdminSchedulePage() {
+export default async function AdminSchedulePage() {
     const defaultDate = new Date()
+    const workers = await getWorkers()
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -17,7 +19,7 @@ export default function AdminSchedulePage() {
                 </p>
             </div>
 
-            <AdminScheduleCalendar initialDate={defaultDate} />
+            <AdminScheduleCalendar initialDate={defaultDate} workers={workers} />
         </div>
     )
 }
