@@ -135,7 +135,7 @@ export function PartnerSiteDetail({ siteId }: { siteId: string }) {
                 return origin
             }
         }
-        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexuspartner.kr'
     }
 
     const handleShare = () => {

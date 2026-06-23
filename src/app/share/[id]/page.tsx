@@ -8,7 +8,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nexuspartner.kr'
     const ogImage = `${siteUrl}/og-nexus.png`
 
     // Try server fetch for metadata (best effort)

@@ -135,7 +135,7 @@ export function SiteChat({
                 return origin
             }
         }
-        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexus.xn--mk1bu44c'
+        return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexuspartner.kr'
     }
 
     // 모바일 OS 타입 판별 유틸리티 (어르신용 맞춤 안내 목적)
