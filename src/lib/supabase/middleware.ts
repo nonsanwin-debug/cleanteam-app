@@ -66,8 +66,33 @@ export async function updateSession(request: NextRequest) {
 
     const hostname = request.headers.get('host') || ''
 
-    // 파트너 전용 도메인 접속 처리
-    if (hostname.includes('nexuspartner.kr') && request.nextUrl.pathname === '/') {
+    // 1. 도메인 트레이드에 따른 교차 경로 리다이렉션 (사용자 혼선 방지)
+    // admin/worker/일반 로그인 경로가 nexus.닷컴으로 들어왔을 때 -> nexuspartner.kr 로 전송
+    if (hostname.includes('nexus.xn--mk1bu44c')) {
+        const isAdminOrWorkerPath = 
+            request.nextUrl.pathname.startsWith('/admin') || 
+            request.nextUrl.pathname.startsWith('/master') || 
+            request.nextUrl.pathname.startsWith('/worker') || 
+            ['/auth/login', '/auth/register', '/auth/admin-login', '/auth/admin-register'].some(p => request.nextUrl.pathname.startsWith(p))
+            
+        if (isAdminOrWorkerPath) {
+            return NextResponse.redirect(new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://nexuspartner.kr'))
+        }
+    }
+
+    // partner 전용 경로가 nexuspartner.kr로 들어왔을 때 -> nexus.닷컴으로 전송
+    if (hostname.includes('nexuspartner.kr')) {
+        const isPartnerPath = 
+            request.nextUrl.pathname.startsWith('/field') || 
+            ['/auth/partner-login', '/auth/partner-register'].some(p => request.nextUrl.pathname.startsWith(p))
+            
+        if (isPartnerPath) {
+            return NextResponse.redirect(new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://nexus.xn--mk1bu44c'))
+        }
+    }
+
+    // 2. 파트너 전용 도메인(이제 nexus.닷컴) 접속 시 루트('/') -> '/field/home' 리다이렉트
+    if (hostname.includes('nexus.xn--mk1bu44c') && request.nextUrl.pathname === '/') {
         return NextResponse.redirect(new URL('/field/home', request.url))
     }
 
@@ -82,9 +107,9 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // QR코드: nexus.닷컴/auth/partner-login 만 nexuspartner.kr 로 리다이렉트
-    if (hostname.includes('nexus.xn--mk1bu44c') && request.nextUrl.pathname === '/auth/partner-login') {
-        return NextResponse.redirect('https://nexuspartner.kr/')
+    // 3. QR코드 및 구형 링크 처리: nexuspartner.kr/auth/partner-login 진입 시 nexus.닷컴으로 리다이렉트
+    if (hostname.includes('nexuspartner.kr') && request.nextUrl.pathname === '/auth/partner-login') {
+        return NextResponse.redirect('https://nexus.xn--mk1bu44c/')
     }
 
     // Protected Routes Logic

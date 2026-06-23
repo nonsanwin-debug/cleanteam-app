@@ -43,7 +43,7 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers()
   const host = headersList.get('host') || ''
-  const isMaintenance = host.includes('nexuspartner.kr')
+  const isMaintenance = host.includes('nexus.xn--mk1bu44c')
 
   return (
     <html lang="ko">

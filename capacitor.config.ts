@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NEXUS',
   webDir: 'public',
   server: {
-    url: 'https://nexuspartner.kr',
+    url: 'https://nexus.xn--mk1bu44c',
     cleartext: true
   },
   plugins: {
