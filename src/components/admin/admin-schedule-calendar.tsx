@@ -145,9 +145,9 @@ export function AdminScheduleCalendar({
 
             {/* Daily Schedule Panel */}
             <Card className="shadow-sm self-start lg:sticky lg:top-6 border-slate-200 flex flex-col max-h-[400px] lg:max-h-[850px] lg:h-[calc(100vh-2rem)]">
-                <CardHeader className="pb-4 border-b bg-indigo-600 text-white rounded-t-xl shrink-0">
+                <CardHeader className="pt-5 pb-5 px-6 border-b bg-indigo-600 text-white rounded-t-xl shrink-0">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-xl flex items-center gap-2">
+                        <CardTitle className="text-xl flex items-center gap-2 font-bold leading-none">
                             <span>{format(selectedDate, 'M월 d일', { locale: ko })} 스케줄</span>
                             <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none font-bold">
                                 {selectedSites.length}건
@@ -162,13 +162,13 @@ export function AdminScheduleCalendar({
                                 cleaning_date: format(selectedDate, 'yyyy-MM-dd')
                             }}
                             triggerButton={
-                                <Button size="sm" variant="secondary" className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold gap-1 shadow-sm h-8">
-                                    <Plus className="w-3.5 h-3.5" /> 현장 등록
+                                <Button size="default" variant="secondary" className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold gap-1.5 shadow-md h-9 px-4 rounded-xl text-xs md:text-sm border border-indigo-200 transition-all">
+                                    <Plus className="w-4 h-4 text-indigo-600" /> 현장 등록
                                 </Button>
                             }
                         />
                     </div>
-                    <CardDescription className="text-indigo-100 mt-1">
+                    <CardDescription className="text-indigo-100 mt-2">
                         해당 일자에 등록된 현장 목록입니다.
                     </CardDescription>
                 </CardHeader>
