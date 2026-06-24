@@ -391,8 +391,56 @@ export default function Home() {
 
       </div>
 
-      <footer className="mt-12 text-sm text-slate-400 text-center">
-        © 2026 Field Management System. All rights reserved.
+      <footer className="mt-16 border-t border-slate-200 pt-8 pb-12 w-full max-w-4xl mx-auto px-4 text-xs text-slate-400 leading-relaxed text-center md:text-left">
+        <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 mb-4 font-semibold text-slate-500">
+          <button type="button" onClick={() => setIsTermsOpen(true)} className="hover:text-slate-800 transition-colors">
+            이용약관
+          </button>
+          <span className="text-slate-300">|</span>
+          <Link href="/privacy" className="hover:text-slate-800 transition-colors">
+            개인정보 처리방침
+          </Link>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 transition-colors cursor-pointer">광고약관</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 transition-colors cursor-pointer">위치기반 서비스 이용약관</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 transition-colors cursor-pointer">사업자 정보확인</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 transition-colors cursor-pointer">운영정책</span>
+        </div>
+        
+        <p className="mb-4 text-[11px] text-slate-400">
+          NEXUS시스템은 통신판매중개자로서 통신판매의 당사자가 아니며, 개별 판매자(업체)가 제공하는 서비스에 대한 이행, 계약사항 등과 관련한 의무와 책임은 거래 당사자에게 있습니다.
+        </p>
+        
+        <div className="space-y-1 text-[11px] text-slate-400">
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
+            <span>상호명: NEXUS시스템</span>
+            <span className="text-slate-200">•</span>
+            <span>대표이사: 김용민</span>
+            <span className="text-slate-200">•</span>
+            <span>개인정보책임관리자: 김용민</span>
+            <span className="text-slate-200">•</span>
+            <span>주소: 서울특별시 강남구 테헤란로 133</span>
+          </div>
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
+            <span>사업자등록번호: 000-00-00000</span>
+            <span className="text-slate-200">•</span>
+            <span>통신판매업신고증: 제 2026-서울강남-0000 호</span>
+          </div>
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
+            <span>호스팅서비스 제공자: Vercel, Inc. / Supabase, Inc.</span>
+            <span className="text-slate-200">•</span>
+            <span>고객센터: 1644-4354</span>
+            <span className="text-slate-200">•</span>
+            <span>이메일: contact@nexuspartner.kr</span>
+          </div>
+        </div>
+        
+        <p className="mt-4 text-[10px] text-slate-400">
+          Copyright © NEXUS System. All Rights Reserved.
+        </p>
       </footer>
 
       <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} />
