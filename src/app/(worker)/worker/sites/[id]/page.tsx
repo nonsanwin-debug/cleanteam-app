@@ -265,6 +265,56 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
         }
     }
 
+    const handleShareKakao = () => {
+        if (!site) return
+
+        const getBaseUrl = () => {
+            if (typeof window !== 'undefined') {
+                const origin = window.location.origin
+                if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                    return origin
+                }
+            }
+            return process.env.NEXT_PUBLIC_SITE_URL || 'https://nexuspartner.kr'
+        }
+
+        const shareUrl = `${getBaseUrl()}/share/${site.id}`
+        const workerName = site.worker?.name || site.worker_name || '미배정'
+
+        const sendKakaoMessage = () => {
+            const kakaoObj = (window as any).Kakao
+            if (kakaoObj) {
+                if (!kakaoObj.isInitialized()) {
+                    kakaoObj.init(process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || 'c9b7bd6fa67ee5f5724b76fa58d72ecc')
+                }
+                kakaoObj.Share.sendCustom({
+                    templateId: 134637,
+                    templateArgs: {
+                        siteName: site.name,
+                        workerName: workerName,
+                        webUrl: shareUrl
+                    }
+                })
+            } else {
+                toast.error('카카오톡 SDK 로드 중입니다. 잠시 후 다시 시도해 주세요.')
+            }
+        }
+
+        if (typeof window !== 'undefined' && !(window as any).Kakao) {
+            const script = document.createElement('script')
+            script.src = 'https://t1.kakaocdn.net/kakao_js_sdk_v2/kakao.min.js'
+            script.onload = () => {
+                sendKakaoMessage()
+            }
+            script.onerror = () => {
+                toast.error('카카오톡 공유 기능을 불러오지 못했습니다.')
+            }
+            document.head.appendChild(script)
+        } else {
+            sendKakaoMessage()
+        }
+    }
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
@@ -461,27 +511,49 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
                             const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`
                             return (
-                                <a
-                                    href={smsRef}
-                                    className="w-full mt-3 block"
-                                >
-                                    <Button
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-11"
+                                <div className="grid grid-cols-2 gap-2 mt-3 w-full">
+                                    <a
+                                        href={smsRef}
+                                        className="w-full"
                                     >
-                                        <MessageSquare className="w-4 h-4 mr-2" />
-                                        고객전용페이지 고객에게 보내기
+                                        <Button
+                                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-11 text-xs"
+                                        >
+                                            <MessageSquare className="w-4 h-4 mr-1.5" />
+                                            문자로 전송
+                                        </Button>
+                                    </a>
+                                    <Button
+                                        className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#191919] font-bold h-11 text-xs"
+                                        onClick={handleShareKakao}
+                                    >
+                                        <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.68 2.531-.777 2.94-.12.505.187.498.393.36.16-.107 2.537-1.724 3.56-2.42.49.068.995.105 1.51.105 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+                                        </svg>
+                                        카카오톡 공유
                                     </Button>
-                                </a>
+                                </div>
                             )
                         })() : (
-                            <Button
-                                variant="outline"
-                                className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 mt-3 font-bold h-11"
-                                onClick={handleTriggerCopy}
-                            >
-                                <Share2 className="w-4 h-4 mr-2" />
-                                고객 공유 링크 (저장 & 복사)
-                            </Button>
+                            <div className="grid grid-cols-2 gap-2 mt-3 w-full">
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 font-bold h-11 text-xs"
+                                    onClick={handleTriggerCopy}
+                                >
+                                    <Share2 className="w-4 h-4 mr-1.5" />
+                                    링크 복사
+                                </Button>
+                                <Button
+                                    className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#191919] font-bold h-11 text-xs"
+                                    onClick={handleShareKakao}
+                                >
+                                    <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.557 1.707 4.8 4.27 6.054-.188.702-.68 2.531-.777 2.94-.12.505.187.498.393.36.16-.107 2.537-1.724 3.56-2.42.49.068.995.105 1.51.105 4.97 0 9-3.186 9-7.115C21 6.185 16.97 3 12 3z"/>
+                                    </svg>
+                                    카카오톡 공유
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </section>
