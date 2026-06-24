@@ -242,7 +242,7 @@ export default function PrivacyPage() {
                             </div>
                             <div className="flex gap-2">
                                 <span className="font-semibold text-slate-800 w-24">대표번호:</span>
-                                <span className="text-slate-600">1544-0000 (NEXUS 고객센터)</span>
+                                <span className="text-slate-600">1644-4354(NEXUS 고객센터)</span>
                             </div>
                         </div>
                     </div>
