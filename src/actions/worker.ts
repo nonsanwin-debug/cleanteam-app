@@ -294,6 +294,19 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             }
         }
 
+        // 카카오 알림톡 발송 (서버 사이드 발송)
+        try {
+            const { sendAlimTalk } = await import('@/actions/alimtalk')
+            const alimtalkRes = await sendAlimTalk(siteId)
+            if (!alimtalkRes.success) {
+                console.warn('AlimTalk trigger failed:', alimtalkRes.error)
+            } else {
+                console.log('AlimTalk triggered successfully:', alimtalkRes.data)
+            }
+        } catch (alimtalkErr) {
+            console.error('Unexpected error triggering AlimTalk:', alimtalkErr)
+        }
+
         revalidatePath('/worker/home')
         revalidatePath(`/worker/sites/${siteId}`)
         revalidatePath('/worker/schedule')
