@@ -253,7 +253,7 @@ const CHAPTERS = [
         expectedPath: '/admin/sites',
         steps: [
             '[수금 형태] 선택창을 클릭하여 방식을 지정합니다.',
-            '회사수금(사무실 계좌로 이체) 또는 현장수금(현장 팀장이 청소 완료 후 직접 수납) 중 택일합니다.'
+            '회사수금(사무실 계좌로 이체) 또는 현장수금(현장 팀장이 작업 완료 후 직접 수납) 중 택일합니다.'
         ],
         tip: '이 정산 데이터는 추후 정산 로그에 완벽하게 집계되어 수금 잔액 누락 사고를 방지합니다.'
     },
@@ -295,7 +295,7 @@ const CHAPTERS = [
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-100',
         expectedPath: '/admin/sites',
         steps: [
-            '추가 금액이 청구된 [부과 사유]를 상세 기입합니다. (예: 피톤치드 추가, 빌라 창틀 오염 심함 등)'
+            '추가 금액이 청구된 [부과 사유]를 상세 기입합니다.'
         ],
         tip: '고객과의 불필요한 결제 실랑이를 없애고 오더의 무결함을 보장해 줍니다.'
     },
@@ -498,7 +498,7 @@ const CHAPTERS = [
     {
         id: 'assignment_action',
         title: '드래그 앤 드롭 팀원 배정',
-        targetId: 'nav-sites',
+        targetId: 'section-member-assignment',
         icon: Users,
         color: 'bg-rose-600',
         textColor: 'text-rose-600',
@@ -516,7 +516,7 @@ const CHAPTERS = [
     {
         id: 'sharing',
         title: '파트너 오더 이관 공유',
-        targetId: 'nav-sites',
+        targetId: 'grid-site-cards',
         icon: Share2,
         color: 'bg-emerald-600',
         textColor: 'text-emerald-600',
@@ -549,7 +549,7 @@ const CHAPTERS = [
     {
         id: 'receiving_action',
         title: '공유 오더 수락 및 수행',
-        targetId: 'nav-shared-orders',
+        targetId: 'shared-orders-tabs',
         icon: Inbox,
         color: 'bg-orange-600',
         textColor: 'text-orange-600',

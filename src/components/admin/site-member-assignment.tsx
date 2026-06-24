@@ -156,7 +156,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
         <div className="space-y-4">
             {/* 팀원 칩 목록 */}
             {members.length > 0 && (
-                <div className="bg-white rounded-lg border p-4">
+                <div id="section-member-assignment" className="bg-white rounded-lg border p-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Users className="h-4 w-4 text-slate-500" />
                         <span className="text-sm font-semibold text-slate-700">팀원 배정 (드래그로 배정가능)</span>
@@ -225,7 +225,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
             )}
 
             {/* 현장 카드 그리드 */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div id="grid-site-cards" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {sites.length === 0 ? (
                     <div className="col-span-full text-center py-20 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
                         등록된 현장이 없습니다.

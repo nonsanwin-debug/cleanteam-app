@@ -331,7 +331,7 @@ export default function SharedOrdersPage() {
                 </Dialog>
             </div>
 
-            <Tabs defaultValue="incoming" className="w-full">
+            <Tabs id="shared-orders-tabs" defaultValue="incoming" className="w-full">
                 <TabsList className="grid w-full max-w-md grid-cols-2">
                     <TabsTrigger value="incoming" className="flex items-center gap-2">
                         <Inbox className="w-4 h-4" />
