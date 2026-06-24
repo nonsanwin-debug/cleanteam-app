@@ -19,7 +19,10 @@ const DEFAULT_TEMPLATE = `고객님 작업은 잘 마무리 되었습니다
 {계좌번호}
 잔금 : {잔금}원
 추가금 : {추가금}원
-합계 : {합계}원`
+합계 : {합계}원
+
+추후 부족하신 부분이나 문제가 있는 부분에 대해서
+연락주시면 바로 처리 도와드리겠습니다`
 
 export default function SettingsPage() {
     const [smsEnabled, setSmsEnabled] = useState(false)
