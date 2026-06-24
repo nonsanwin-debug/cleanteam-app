@@ -234,7 +234,7 @@ export default function PrivacyPage() {
                         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2 text-sm">
                             <div className="flex gap-2">
                                 <span className="font-semibold text-slate-800 w-24">보호책임자:</span>
-                                <span className="text-slate-600">NEXUS 개인정보 담당 부서</span>
+                                <span className="text-slate-600">김현서</span>
                             </div>
                             <div className="flex gap-2">
                                 <span className="font-semibold text-slate-800 w-24">이메일:</span>

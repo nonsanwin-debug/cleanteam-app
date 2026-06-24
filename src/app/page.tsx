@@ -420,7 +420,7 @@ export default function Home() {
             <span className="text-slate-200">•</span>
             <span>대표이사: 김용민</span>
             <span className="text-slate-200">•</span>
-            <span>개인정보책임관리자: 김용민</span>
+            <span>개인정보책임관리자: 김현서</span>
             <span className="text-slate-200">•</span>
             <span>주소: 서울특별시 강남구 테헤란로 133</span>
           </div>
