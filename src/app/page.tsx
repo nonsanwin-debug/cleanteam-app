@@ -422,12 +422,10 @@ export default function Home() {
             <span className="text-slate-200">•</span>
             <span>개인정보책임관리자: 김현서</span>
             <span className="text-slate-200">•</span>
-            <span>주소: 서울 강남구 청담동</span>
+            <span>주소: 서북구 월봉로 126, 901호</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
             <span>사업자등록번호: 417-17-69767</span>
-            <span className="text-slate-200">•</span>
-            <span>통신판매업신고증: 제 2026-서울강남-0000 호</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
             <span>호스팅서비스 제공자: Vercel, Inc. / Supabase, Inc.</span>
