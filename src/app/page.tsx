@@ -418,14 +418,14 @@ export default function Home() {
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
             <span>상호명: NEXUS시스템</span>
             <span className="text-slate-200">•</span>
-            <span>대표이사: 김용민</span>
+            <span>대표이사: 이용훈</span>
             <span className="text-slate-200">•</span>
             <span>개인정보책임관리자: 김현서</span>
             <span className="text-slate-200">•</span>
-            <span>주소: 서울특별시 강남구 테헤란로 133</span>
+            <span>주소: 서울 강남구 청담동</span>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-3 gap-y-1">
-            <span>사업자등록번호: 000-00-00000</span>
+            <span>사업자등록번호: 417-17-69767</span>
             <span className="text-slate-200">•</span>
             <span>통신판매업신고증: 제 2026-서울강남-0000 호</span>
           </div>
