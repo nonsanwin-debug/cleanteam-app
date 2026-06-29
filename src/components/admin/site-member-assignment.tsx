@@ -327,14 +327,14 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 <div className="flex items-center gap-1">
                                                     {site.shared_info.status !== 'cancelled' && site.shared_info.status !== 'reclaimed' && (
                                                         site.shared_info.status === 'reclaim_requested' ? (
-                                                            <span className="text-[10px] text-rose-500 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                            <span className="text-xs text-rose-500 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded shadow-sm">
                                                                 회수 승인 대기 중
                                                             </span>
                                                         ) : (
                                                             <Button
-                                                                size="xs"
+                                                                size="sm"
                                                                 variant="destructive"
-                                                                className="h-5 px-1.5 text-[9px] font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                                                className="h-7 px-2.5 text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 shadow-sm"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
                                                                     if (!site.shared_info?.id) {
