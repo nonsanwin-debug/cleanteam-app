@@ -372,7 +372,13 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </Link>
                 <h2 className="text-lg font-bold truncate flex-1">{site.name}</h2>
                 <Badge variant={site.status === 'in_progress' ? 'default' : 'secondary'}>
-                    {site.status === 'in_progress' ? '진행 중' : site.status}
+                    {site.status === 'in_progress' 
+                        ? '진행 중' 
+                        : site.status === 'completed' 
+                            ? '완료됨' 
+                            : site.status === 'scheduled' 
+                                ? '예정됨' 
+                                : site.status}
                 </Badge>
             </div>
 
@@ -416,9 +422,9 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                 </div>
             )}
 
-            {/* 예상 종료 시간 설정 (팀장 전용) */}
+            {/* 예상 종료 시간 설정 (팀장 전용) - 진행 중 상태일 때만 노출 */}
             {isLeader && site.status !== 'completed' && (
-                <section className="">
+                <section className="mb-4">
                     <div className="bg-white border rounded-lg p-4 shadow-sm border-indigo-100">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -491,11 +497,45 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 <Plus className="w-4 h-4 mr-1 text-slate-400" />2시간
                             </Button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 text-center border-b pb-3">
+                        <p className="text-xs text-slate-500 mt-2 text-center">
                             * 설정된 시간은 고객용 공유 페이지 상단에 실시간으로 표시됩니다.
                         </p>
+                    </div>
+                </section>
+            )}
 
-                        {/* 고객전용페이지 고객에게 보내기 버튼 */}
+            {/* 고객전용페이지 고객에게 보내기 버튼 (팀장 전용, 완료 후에도 공유 가능) */}
+            {isLeader && (
+                <section className="mb-4">
+                    <div className={`border rounded-lg p-4 shadow-sm ${
+                        site.status === 'completed' 
+                            ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300' 
+                            : 'bg-white border-indigo-100'
+                    }`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            {site.status === 'completed' ? (
+                                <>
+                                    <div className="bg-emerald-500 text-white p-1 rounded-full shrink-0">
+                                        <CheckCheck className="w-4 h-4" />
+                                    </div>
+                                    <span className="font-bold text-slate-800 text-base">🎉 작업 완료 보고서 공유</span>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="bg-indigo-100 p-1 rounded-full shrink-0">
+                                        <Share2 className="w-4 h-4 text-indigo-600" />
+                                    </div>
+                                    <span className="font-bold text-slate-800">고객 실시간 안내 페이지 공유</span>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-500 mb-3.5 leading-normal">
+                            {site.status === 'completed'
+                                ? '작업이 완료되었습니다. 아래 버튼을 눌러 고객에게 완료 보고서 링크를 공유해 주세요.'
+                                : '아래 버튼을 눌러 고객에게 실시간 작업 상황(진행 상태, 작업 사진 등)을 확인할 수 있는 페이지 링크를 전달합니다.'
+                            }
+                        </p>
+
                         {site.customer_phone ? (() => {
                             const getBaseUrl = () => {
                                 if (typeof window !== 'undefined') {
@@ -508,10 +548,12 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                             }
                             const baseUrl = getBaseUrl()
                             const link = `${baseUrl}/share/${site.id}`
-                            const messageTemplate = `[NEXUS 작업 보고서]\n현장명: ${site.name}\n\n아래 링크를 눌러 상세 현장 사진과 작업 내역을 확인해 보세요.\n${link}`
+                            const messageTemplate = site.status === 'completed'
+                                ? `[NEXUS 작업 완료 보고서]\n현장명: ${site.name}\n\n의뢰하신 현장의 모든 작업이 완료되었습니다. 아래 링크를 눌러 완성된 사진과 완료 보고서를 확인해 보세요.\n${link}`
+                                : `[NEXUS 작업 안내]\n현장명: ${site.name}\n\n아래 링크를 통해 실시간 작업 현황(사진 및 예상 시간)을 확인하실 수 있습니다.\n${link}`
                             const smsRef = `sms:${(site.customer_phone || '').split('/')[0].trim()}${/iPhone|iPad|iPod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? '&' : '?'}body=${encodeURIComponent(messageTemplate)}`
                             return (
-                                <div className="grid grid-cols-2 gap-2 mt-3 w-full">
+                                <div className="grid grid-cols-2 gap-2 w-full">
                                     <a
                                         href={smsRef}
                                         className="w-full"
@@ -535,7 +577,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                 </div>
                             )
                         })() : (
-                            <div className="grid grid-cols-2 gap-2 mt-3 w-full">
+                            <div className="grid grid-cols-2 gap-2 w-full">
                                 <Button
                                     variant="outline"
                                     className="w-full text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 font-bold h-11 text-xs"
@@ -897,9 +939,17 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                                                 throw new Error(completeRes.error || '작업 완료 처리 중 오류가 발생했습니다.')
                                             }
 
-                                            toast.success('작업이 완료되었습니다.')
+                                            toast.success('작업이 완료되었습니다. 고객에게 완료 보고서를 공유해 주세요.')
                                             setCompletedWizardStep('closed')
-                                            router.push('/worker/home')
+                                            
+                                            // Refresh site details
+                                            const refreshRes = await getSiteDetails(site.id)
+                                            if (refreshRes.success && refreshRes.data) {
+                                                setSite(refreshRes.data)
+                                            } else {
+                                                setSite(prev => prev ? { ...prev, status: 'completed' } : null)
+                                            }
+                                            router.refresh()
                                         } catch (error: any) {
                                             console.error('Final completion failed:', error)
                                             toast.error(error.message || '작업 완료 처리에 실패했습니다.')

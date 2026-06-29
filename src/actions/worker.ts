@@ -294,7 +294,8 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
             }
         }
 
-        // 카카오 알림톡 발송 (서버 사이드 발송)
+        // 카카오 알림톡 자동 발송 비활성화 (팀장 직접 공유 방식으로 변경)
+        /*
         try {
             const { sendAlimTalk } = await import('@/actions/alimtalk')
             const alimtalkRes = await sendAlimTalk(siteId)
@@ -306,6 +307,7 @@ export async function completeWork(siteId: string): Promise<ActionResponse> {
         } catch (alimtalkErr) {
             console.error('Unexpected error triggering AlimTalk:', alimtalkErr)
         }
+        */
 
         revalidatePath('/worker/home')
         revalidatePath(`/worker/sites/${siteId}`)
