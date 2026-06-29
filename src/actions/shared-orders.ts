@@ -805,10 +805,9 @@ export async function acceptOrder(orderId: string): Promise<ActionResponse> {
         message: `${companyName}에서 오더 배정을 요청하였습니다.`
     })
 
-    // 강제 Realtime Broadcast (shared_order_applicants의 publication 제한 우회)
     await adminSupabase
         .from('shared_orders')
-        .update({ updated_at: new Date().toISOString() })
+        .update({ status: order.status })
         .eq('id', orderId)
 
     revalidatePath('/admin/shared-orders')
@@ -1427,7 +1426,7 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
             // 수락 완료된 상태이므로 즉시 회수가 아닌 "회수 요청" 상태로 변경
             const { error: updateError } = await adminSupabase
                 .from('shared_orders')
-                .update({ status: 'reclaim_requested', updated_at: new Date().toISOString() })
+                .update({ status: 'reclaim_requested' })
                 .eq('id', orderId)
 
             if (updateError) {
@@ -1468,7 +1467,7 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
         // 2. 오더 상태를 cancelled로 변경 (즉시 회수)
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
-            .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+            .update({ status: 'cancelled' })
             .eq('id', orderId)
 
         if (updateError) {
@@ -1561,7 +1560,7 @@ export async function approveReclaimSharedOrder(orderId: string): Promise<Action
         // 2. 오더 상태를 cancelled로 변경
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
-            .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+            .update({ status: 'cancelled' })
             .eq('id', orderId)
 
         if (updateError) {
