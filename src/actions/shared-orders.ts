@@ -1351,6 +1351,26 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
             return { success: false, error: '공유 레코드 생성에 실패했습니다.' }
         }
 
+        // 4.5. 원본 현장 담당 팀장 배정 해제 및 팀원 배정 삭제
+        const { error: updateSiteError } = await adminSupabase
+            .from('sites')
+            .update({ worker_id: null })
+            .eq('id', siteId)
+
+        if (updateSiteError) {
+            console.error('shareSiteDirectly unassign worker error:', updateSiteError)
+            return { success: false, error: '현장 담당 팀장 배정 해제에 실패했습니다.' }
+        }
+
+        const { error: deleteMembersError } = await adminSupabase
+            .from('site_members')
+            .delete()
+            .eq('site_id', siteId)
+
+        if (deleteMembersError) {
+            console.warn('shareSiteDirectly delete site_members warning:', deleteMembersError)
+        }
+
         // 5. 실시간 푸시 알림 전송 및 DB 알림 기록 (오더 공유 센터 대기 상태 알림)
         await sendPushToAdmins(partnerCompanyId, {
             title: '🔗 공유 오더 수신 (수락 대기)',

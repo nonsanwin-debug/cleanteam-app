@@ -445,6 +445,36 @@ export default function SharedOrdersPage() {
                                                         <p>{order.sender_company?.name || '오더 제공사'}에서 다이렉트로 전달해 준 오더입니다.</p>
                                                     </div>
                                                 )}
+
+                                                {/* 직접 공유 또는 수락/이관된 오더인 경우 상세주소 및 연락처 공개 */}
+                                                {(isDirectShare || order.status === 'transferred' || order.status === 'pending') && (
+                                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5 text-xs text-slate-700">
+                                                        {order.address && (
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                    상세주소
+                                                                </span>
+                                                                <span className="text-slate-700 flex-1 break-words font-semibold">{order.address}</span>
+                                                            </div>
+                                                        )}
+                                                        {order.customer_name && (
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                    고객명
+                                                                </span>
+                                                                <span className="text-slate-700 flex-1 break-words">{order.customer_name}</span>
+                                                            </div>
+                                                        )}
+                                                        {order.customer_phone && (
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                    연락처
+                                                                </span>
+                                                                <span className="text-slate-700 flex-1 break-words">{order.customer_phone}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                         {/* parsed_details 상세 정보 (고객 링크 예약) */}
