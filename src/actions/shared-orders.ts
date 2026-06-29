@@ -1283,7 +1283,7 @@ async function transferToSite(order: any, receivingCompanyId: string, supabase: 
 }
 
 /** 파트너사에게 직접 오더 공유 및 이관 */
-export async function shareSiteDirectly(siteId: string, partnerCompanyId: string): Promise<ActionResponse> {
+export async function shareSiteDirectly(siteId: string, partnerCompanyId: string, shareNotes?: string): Promise<ActionResponse> {
     try {
         const { supabase, user, companyId } = await getAuthCompany()
         if (!companyId || !user) return { success: false, error: '인증 실패' }
@@ -1331,7 +1331,7 @@ export async function shareSiteDirectly(siteId: string, partnerCompanyId: string
                 region: site.name || `${site.address || ''} 현장`,
                 work_date: site.cleaning_date || null,
                 area_size: site.area_size || '',
-                notes: site.special_notes || '',
+                notes: shareNotes || site.special_notes || '',
                 address: site.address || '',
                 customer_phone: site.customer_phone || '',
                 customer_name: site.customer_name || '',

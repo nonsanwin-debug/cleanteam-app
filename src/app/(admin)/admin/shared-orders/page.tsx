@@ -417,9 +417,8 @@ export default function SharedOrdersPage() {
                                                             </span>
                                                         )}
                                                         {order.area_size && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Ruler className="h-3.5 w-3.5" />
-                                                                {order.area_size}
+                                                            <span className="flex items-center gap-1 font-semibold text-slate-600">
+                                                                {order.area_size.includes('평') ? order.area_size : `${order.area_size}평`}
                                                             </span>
                                                         )}
                                                     </div>
@@ -446,7 +445,7 @@ export default function SharedOrdersPage() {
                                                     </div>
                                                 )}
 
-                                                {/* 직접 공유 또는 수락/이관된 오더인 경우 상세주소 및 연락처 공개 */}
+                                                {/* 직접 공유 또는 수락/이관된 오더인 경우 상세주소 및 주거형태 공개 */}
                                                 {(isDirectShare || order.status === 'transferred' || order.status === 'pending') && (
                                                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5 text-xs text-slate-700">
                                                         {order.address && (
@@ -457,20 +456,20 @@ export default function SharedOrdersPage() {
                                                                 <span className="text-slate-700 flex-1 break-words font-semibold">{order.address}</span>
                                                             </div>
                                                         )}
+                                                        {(order.residential_type || parsedDetails.residential_type) && (
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
+                                                                    주거형태
+                                                                </span>
+                                                                <span className="text-slate-700 flex-1 break-words">{order.residential_type || parsedDetails.residential_type}</span>
+                                                            </div>
+                                                        )}
                                                         {order.customer_name && (
                                                             <div className="flex items-start gap-2">
                                                                 <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
                                                                     고객명
                                                                 </span>
                                                                 <span className="text-slate-700 flex-1 break-words">{order.customer_name}</span>
-                                                            </div>
-                                                        )}
-                                                        {order.customer_phone && (
-                                                            <div className="flex items-start gap-2">
-                                                                <span className="bg-slate-200/50 text-slate-600 text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 min-w-20 text-center mt-0.5">
-                                                                    연락처
-                                                                </span>
-                                                                <span className="text-slate-700 flex-1 break-words">{order.customer_phone}</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -506,7 +505,8 @@ export default function SharedOrdersPage() {
                                         )}
 
                                         {order.notes && (
-                                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 space-y-1.5">
+                                            <div className="bg-blue-50/50 border border-blue-100 p-3 rounded-lg mb-3 space-y-1">
+                                                <p className="font-semibold text-xs text-blue-800 flex items-center gap-1">📋 공유 요청사항</p>
                                                 {(() => {
                                                     if (!order.notes.includes('[')) {
                                                         return <div className="text-sm text-slate-600 whitespace-pre-wrap">{order.notes}</div>
@@ -655,9 +655,8 @@ export default function SharedOrdersPage() {
                                                             </span>
                                                         )}
                                                         {order.area_size && (
-                                                            <span className="flex items-center gap-1">
-                                                                <Ruler className="h-3.5 w-3.5" />
-                                                                {order.area_size}
+                                                            <span className="flex items-center gap-1 font-semibold text-slate-600">
+                                                                {order.area_size.includes('평') ? order.area_size : `${order.area_size}평`}
                                                             </span>
                                                         )}
                                                     </div>

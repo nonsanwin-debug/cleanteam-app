@@ -34,6 +34,8 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { searchCompanyByCode, shareSiteDirectly } from '@/actions/shared-orders'
 
 interface SiteActionsProps {
@@ -53,6 +55,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     const [partnerCode, setPartnerCode] = useState('')
     const [isValidating, setIsValidating] = useState(false)
     const [validatedCompany, setValidatedCompany] = useState<{ id: string; name: string; code: string } | null>(null)
+    const [shareNotes, setShareNotes] = useState('')
     const [isSharing, setIsSharing] = useState(false)
 
     async function handleValidateCompany() {
@@ -84,10 +87,10 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
         if (!validatedCompany) return
         setIsSharing(true)
         try {
-            const result = await shareSiteDirectly(site.id, validatedCompany.id)
+            const result = await shareSiteDirectly(site.id, validatedCompany.id, shareNotes)
             if (result.success) {
                 toast.success('성공적으로 오더를 공유(이관)하였습니다.')
-                setShowShareDialog(false)
+                handleCloseShareDialog()
                 router.refresh()
                 setTimeout(() => {
                     window.location.reload()
@@ -101,6 +104,13 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
         } finally {
             setIsSharing(false)
         }
+    }
+
+    function handleCloseShareDialog() {
+        setShowShareDialog(false)
+        setPartnerCode('')
+        setValidatedCompany(null)
+        setShareNotes('')
     }
 
     async function handleDelete() {
@@ -243,7 +253,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
             </AlertDialog>
 
             {/* 오더 공유 다이얼로그 */}
-            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+            <Dialog open={showShareDialog} onOpenChange={(open) => { if (!open) handleCloseShareDialog(); else setShowShareDialog(true); }}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
@@ -276,16 +286,30 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                         </div>
 
                         {validatedCompany && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold">✅ 매칭 파트너사 확인</p>
-                                    <p className="text-xs text-blue-700 mt-0.5">
-                                        업체명: <span className="font-bold">{validatedCompany.name}</span> (#{validatedCompany.code})
-                                    </p>
+                            <div className="space-y-3">
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold">✅ 매칭 파트너사 확인</p>
+                                        <p className="text-xs text-blue-700 mt-0.5">
+                                            업체명: <span className="font-bold">{validatedCompany.name}</span> (#{validatedCompany.code})
+                                        </p>
+                                    </div>
+                                    <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                        매칭됨
+                                    </span>
                                 </div>
-                                <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                                    매칭됨
-                                </span>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="share-notes" className="text-xs font-semibold text-slate-600">공유 요청사항 (선택)</Label>
+                                    <Textarea
+                                        id="share-notes"
+                                        placeholder="파트너사에게 전달할 요청사항이나 특이사항을 적어주세요."
+                                        value={shareNotes}
+                                        onChange={(e) => setShareNotes(e.target.value)}
+                                        rows={3}
+                                        className="text-xs"
+                                        disabled={isSharing}
+                                    />
+                                </div>
                             </div>
                         )}
                         
@@ -300,7 +324,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                         <Button 
                             type="button" 
                             variant="outline" 
-                            onClick={() => setShowShareDialog(false)}
+                            onClick={handleCloseShareDialog}
                             disabled={isSharing}
                         >
                             취소
