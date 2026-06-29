@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2, BellRing } from 'lucide-react'
+import { MapPin, User, Calendar, Clock, X, Users, GripHorizontal, CheckCircle2, BellRing, Loader2 } from 'lucide-react'
 import { addSiteMember, removeSiteMember, requestHappyCallPush } from '@/actions/sites'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -38,7 +38,7 @@ type Site = {
     special_notes?: string | null
     happy_call_completed?: boolean
     is_shared_out?: boolean
-    shared_info?: { partner_name: string; partner_code: string; status: 'pending' | 'transferred' | 'reclaimed' } | null
+    shared_info?: { id?: string; partner_name: string; partner_code: string; status: 'open' | 'pending' | 'transferred' | 'reclaimed' | 'cancelled' | 'reclaim_requested' } | null
 }
 
 interface Props {
@@ -55,6 +55,39 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
     const [draggedMember, setDraggedMember] = useState<string | null>(null)
     const [dragOverSiteId, setDragOverSiteId] = useState<string | null>(null)
     const [hoveredMemberId, setHoveredMemberId] = useState<string | null>(null)
+
+    const [isReclaiming, setIsReclaiming] = useState<string | null>(null)
+
+    async function handleReclaimSiteDirect(orderId: string, isAlreadyAccepted: boolean) {
+        const confirmMessage = isAlreadyAccepted
+            ? '이미 파트너사가 수락한 오더입니다. 회수를 요청하시겠습니까?\n요청 시 파트너사의 동의를 받아 회수 처리가 완료됩니다.'
+            : '이 공유 오더를 즉시 회수하시겠습니까?'
+
+        if (!confirm(confirmMessage)) return
+
+        setIsReclaiming(orderId)
+        try {
+            const { reclaimSharedOrder } = await import('@/actions/shared-orders')
+            const result = await reclaimSharedOrder(orderId)
+            if (result.success) {
+                if (isAlreadyAccepted) {
+                    toast.success('성공적으로 오더 회수 요청을 접수했습니다.')
+                } else {
+                    toast.success('오더가 정상적으로 회수되었습니다.')
+                }
+                router.refresh()
+                setTimeout(() => {
+                    window.location.reload()
+                }, 500)
+            } else {
+                toast.error(result.error || '오더 회수에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('회수 처리 중 오류가 발생했습니다.')
+        } finally {
+            setIsReclaiming(null)
+        }
+    }
 
     // 팀원 필터 (leader가 아닌 모든 워커)
     const members = workers.filter(w => w.worker_type !== 'leader')
@@ -291,21 +324,54 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 </Badge>
                                             )}
                                             {site.shared_info && (
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn(
-                                                        "font-bold text-[10px] tracking-tight shadow-sm px-2 py-0.5",
-                                                        site.shared_info.status === 'transferred'
-                                                            ? "border-emerald-500 text-emerald-600 bg-emerald-50"
-                                                            : site.shared_info.status === 'pending'
-                                                                ? "border-amber-500 text-amber-600 bg-amber-50"
-                                                                : "border-slate-400 text-slate-500 bg-slate-100"
+                                                <div className="flex items-center gap-1">
+                                                    {site.shared_info.status !== 'cancelled' && site.shared_info.status !== 'reclaimed' && (
+                                                        site.shared_info.status === 'reclaim_requested' ? (
+                                                            <span className="text-[10px] text-rose-500 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded shadow-sm">
+                                                                회수 승인 대기 중
+                                                            </span>
+                                                        ) : (
+                                                            <Button
+                                                                size="xs"
+                                                                variant="destructive"
+                                                                className="h-5 px-1.5 text-[9px] font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    if (!site.shared_info?.id) {
+                                                                        toast.error('회수할 공유 오더 ID를 찾을 수 없습니다.')
+                                                                        return
+                                                                    }
+                                                                    const isAccepted = site.shared_info.status === 'transferred' || site.shared_info.status === 'pending'
+                                                                    handleReclaimSiteDirect(site.shared_info.id, isAccepted)
+                                                                }}
+                                                                disabled={isReclaiming === site.shared_info.id}
+                                                            >
+                                                                {isReclaiming === site.shared_info.id ? (
+                                                                    <Loader2 className="w-2.5 h-2.5 animate-spin mr-0.5" />
+                                                                ) : null}
+                                                                {(site.shared_info.status === 'transferred' || site.shared_info.status === 'pending')
+                                                                    ? '회수요청'
+                                                                    : '오더회수'
+                                                                }
+                                                            </Button>
+                                                        )
                                                     )}
-                                                >
-                                                    🔗 {site.shared_info.partner_name}#{site.shared_info.partner_code}{' '}
-                                                    {site.shared_info.status === 'transferred' ? '공유됨' :
-                                                     site.shared_info.status === 'pending' ? '수락대기' : '회수됨'}
-                                                </Badge>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "font-bold text-[10px] tracking-tight shadow-sm px-2 py-0.5",
+                                                            site.shared_info.status === 'transferred'
+                                                                ? "border-emerald-500 text-emerald-600 bg-emerald-50"
+                                                                : site.shared_info.status === 'pending'
+                                                                    ? "border-amber-500 text-amber-600 bg-amber-50"
+                                                                    : "border-slate-400 text-slate-500 bg-slate-100"
+                                                        )}
+                                                    >
+                                                        🔗 {site.shared_info.partner_name}#{site.shared_info.partner_code}{' '}
+                                                        {site.shared_info.status === 'transferred' ? '공유됨' :
+                                                         site.shared_info.status === 'pending' ? '수락대기' : '회수됨'}
+                                                    </Badge>
+                                                </div>
                                             )}
                                             <Badge
                                                 variant="outline"

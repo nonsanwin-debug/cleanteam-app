@@ -96,7 +96,7 @@ export async function getSites() {
     // Fetch shared orders to identify shared-out sites and metadata
     const { data: sharedOrders } = await adminSupabase
         .from('shared_orders')
-        .select('status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
+        .select('id, status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
         .neq('status', 'deleted')
 
@@ -896,7 +896,7 @@ export async function getTodayActivitySites() {
     // Fetch shared orders to identify shared-out sites and metadata
     const { data: sharedOrders } = await adminSupabase
         .from('shared_orders')
-        .select('status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
+        .select('id, status, parsed_details, accepted_by, transferred_site_id, transferred_site:transferred_site_id(status, worker_id, worker:worker_id(name)), accepted_company:accepted_by(name, code)')
         .eq('company_id', companyId)
         .neq('status', 'deleted')
 

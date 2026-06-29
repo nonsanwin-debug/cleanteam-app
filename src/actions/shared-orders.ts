@@ -1431,7 +1431,7 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
                 .eq('id', orderId)
 
             if (updateError) {
-                return { success: false, error: '오더 회수 요청에 실패했습니다.' }
+                return { success: false, error: '오더 회수 요청에 실패했습니다: ' + (updateError.message || JSON.stringify(updateError)) }
             }
 
             // 발신사(송신사)의 업체명 및 코드 조회
@@ -1472,7 +1472,7 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
             .eq('id', orderId)
 
         if (updateError) {
-            return { success: false, error: '오더 회수 처리에 실패했습니다.' }
+            return { success: false, error: '오더 회수 처리에 실패했습니다: ' + (updateError.message || JSON.stringify(updateError)) }
         }
 
         // 3. 수신사 소속의 복제된 현장(sites)이 있으면 강제 소멸(is_deleted = true) 처리
