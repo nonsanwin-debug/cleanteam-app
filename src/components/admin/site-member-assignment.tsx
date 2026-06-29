@@ -314,7 +314,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 )}
                                             </CardDescription>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1.5">
+                                        <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
                                             {site.is_shared_out && (
                                                 <Badge
                                                     variant="outline"

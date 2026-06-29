@@ -227,32 +227,6 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                             </DropdownMenuItem>
                         </>
                     )}
-                    {site.shared_info && site.shared_info.status !== 'cancelled' && site.shared_info.status !== 'reclaimed' && (
-                        <>
-                            <DropdownMenuSeparator />
-                            {site.shared_info.status === 'reclaim_requested' ? (
-                                <DropdownMenuItem
-                                    className="cursor-not-allowed text-slate-400 focus:text-slate-400 opacity-60"
-                                    disabled
-                                >
-                                    <AlertCircle className="mr-2 h-4 w-4" />
-                                    회수 승인 대기 중
-                                </DropdownMenuItem>
-                            ) : (
-                                <DropdownMenuItem
-                                    onClick={handleReclaimSite}
-                                    className="cursor-pointer text-red-600 focus:text-red-600 font-semibold"
-                                    disabled={isReclaiming}
-                                >
-                                    <AlertCircle className="mr-2 h-4 w-4" />
-                                    {(site.shared_info.status === 'transferred' || site.shared_info.status === 'pending')
-                                        ? '오더 회수 요청'
-                                        : '오더 회수'
-                                    }
-                                </DropdownMenuItem>
-                            )}
-                        </>
-                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 
