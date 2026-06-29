@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MoreHorizontal, Trash2, Edit, Share2 } from 'lucide-react'
+import { MoreHorizontal, Trash2, Edit, Share2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import {
@@ -36,10 +36,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { searchCompanyByCode, shareSiteDirectly } from '@/actions/shared-orders'
+import { searchCompanyByCode, shareSiteDirectly, reclaimSharedOrder } from '@/actions/shared-orders'
 
 interface SiteActionsProps {
-    site: Site
+    site: Site & { is_shared_out?: boolean; shared_info?: any }
     workers: { id: string; name: string | null }[]
 }
 
@@ -57,6 +57,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     const [validatedCompany, setValidatedCompany] = useState<{ id: string; name: string; code: string } | null>(null)
     const [shareNotes, setShareNotes] = useState('')
     const [isSharing, setIsSharing] = useState(false)
+    const [isReclaiming, setIsReclaiming] = useState(false)
 
     async function handleValidateCompany() {
         if (!partnerCode) return
@@ -111,6 +112,43 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
         setPartnerCode('')
         setValidatedCompany(null)
         setShareNotes('')
+    }
+
+    async function handleReclaimSite() {
+        const orderId = site.shared_info?.id
+        if (!orderId) {
+            toast.error('회수할 공유 오더 ID를 찾을 수 없습니다.')
+            return
+        }
+
+        const isAlreadyAccepted = site.shared_info?.status === 'transferred' || site.shared_info?.status === 'pending'
+        const confirmMessage = isAlreadyAccepted
+            ? '이미 파트너사가 수락한 오더입니다. 회수를 요청하시겠습니까?\n요청 시 파트너사의 동의를 받아 회수 처리가 완료됩니다.'
+            : '이 공유 오더를 즉시 회수하시겠습니까?'
+
+        if (!confirm(confirmMessage)) return
+
+        setIsReclaiming(true)
+        try {
+            const result = await reclaimSharedOrder(orderId)
+            if (result.success) {
+                if (isAlreadyAccepted) {
+                    toast.success('성공적으로 오더 회수 요청을 접수했습니다.')
+                } else {
+                    toast.success('오더가 정상적으로 회수되었습니다.')
+                }
+                router.refresh()
+                setTimeout(() => {
+                    window.location.reload()
+                }, 500)
+            } else {
+                toast.error(result.error || '오더 회수에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('회수 처리 중 오류가 발생했습니다.')
+        } finally {
+            setIsReclaiming(false)
+        }
     }
 
     async function handleDelete() {
@@ -174,7 +212,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                         <Trash2 className="mr-2 h-4 w-4" />
                         삭제하기 {site.is_shared_out && '(공유됨)'}
                     </DropdownMenuItem>
-                    {!site.is_shared_out && (
+                    {!site.is_shared_out && (!site.shared_info || site.shared_info.status === 'cancelled' || site.shared_info.status === 'reclaimed') && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -187,6 +225,32 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                                 <Share2 className="mr-2 h-4 w-4" />
                                 오더 공유
                             </DropdownMenuItem>
+                        </>
+                    )}
+                    {site.shared_info && site.shared_info.status !== 'cancelled' && site.shared_info.status !== 'reclaimed' && (
+                        <>
+                            <DropdownMenuSeparator />
+                            {site.shared_info.status === 'reclaim_requested' ? (
+                                <DropdownMenuItem
+                                    className="cursor-not-allowed text-slate-400 focus:text-slate-400 opacity-60"
+                                    disabled
+                                >
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    회수 승인 대기 중
+                                </DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem
+                                    onClick={handleReclaimSite}
+                                    className="cursor-pointer text-red-600 focus:text-red-600 font-semibold"
+                                    disabled={isReclaiming}
+                                >
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    {(site.shared_info.status === 'transferred' || site.shared_info.status === 'pending')
+                                        ? '오더 회수 요청'
+                                        : '오더 회수'
+                                    }
+                                </DropdownMenuItem>
+                            )}
                         </>
                     )}
                 </DropdownMenuContent>

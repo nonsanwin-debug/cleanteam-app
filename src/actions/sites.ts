@@ -114,6 +114,7 @@ export async function getSites() {
                 const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : so.status)
                 const tfSiteData = Array.isArray(so.transferred_site) ? so.transferred_site[0] : so.transferred_site
                 sharedOrdersMap.set(origId, {
+                    id: so.id,
                     partner_name: partnerName,
                     partner_code: partnerCode,
                     status: mappedStatus,
@@ -753,6 +754,7 @@ export async function getSiteAdminDetails(id: string) {
     const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : (matchedOrder ? matchedOrder.status : null))
 
     const shared_info = matchedOrder ? {
+        id: matchedOrder.id,
         partner_name: acceptedCompany?.name || '파트너',
         partner_code: acceptedCompany?.code || '????',
         status: mappedStatus
@@ -912,6 +914,7 @@ export async function getTodayActivitySites() {
                 const mappedStatus = isPendingDirect ? 'pending' : (isReclaimedDirect ? 'reclaimed' : so.status)
                 const tfSiteData = Array.isArray(so.transferred_site) ? so.transferred_site[0] : so.transferred_site
                 sharedOrdersMap.set(origId, {
+                    id: so.id,
                     partner_name: partnerName,
                     partner_code: partnerCode,
                     status: mappedStatus,
