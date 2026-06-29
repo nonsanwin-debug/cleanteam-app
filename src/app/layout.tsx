@@ -104,7 +104,7 @@ export default async function RootLayout({
                 src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services,clusterer,drawing&autoload=false`} 
             />
             <Script
-                src="https://t1.kakaocdn.net/kakao_js_sdk_v2/kakao.min.js"
+                src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
                 strategy="afterInteractive"
             />
           </>

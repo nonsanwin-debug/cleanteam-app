@@ -302,7 +302,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
 
         if (typeof window !== 'undefined' && !(window as any).Kakao) {
             const script = document.createElement('script')
-            script.src = 'https://t1.kakaocdn.net/kakao_js_sdk_v2/kakao.min.js'
+            script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js'
             script.onload = () => {
                 sendKakaoMessage()
             }
