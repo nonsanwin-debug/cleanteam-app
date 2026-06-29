@@ -447,7 +447,7 @@ export async function getSiteDetails(id: string): Promise<ActionResponse<Assigne
         const supabase = await createClient()
         const { data, error } = await supabase
             .from('sites')
-            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones, is_deleted')
+            .select('id, name, address, status, worker_id, created_at, customer_name, customer_phone, residential_type, area_size, structure_type, cleaning_date, start_time, special_notes, happy_call_completed, balance_amount, additional_amount, additional_description, collection_type, worker_notes, estimated_end_at, photo_zones, is_deleted, worker:users!worker_id(name, phone)')
             .eq('id', id)
             .single()
 

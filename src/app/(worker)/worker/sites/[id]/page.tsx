@@ -292,7 +292,10 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     templateArgs: {
                         siteName: site.name,
                         workerName: workerName,
-                        webUrl: shareUrl
+                        webUrl: shareUrl,
+                        siteId: site.id,
+                        path: `/share/${site.id}`,
+                        url: `/share/${site.id}`
                     }
                 })
             } else {
