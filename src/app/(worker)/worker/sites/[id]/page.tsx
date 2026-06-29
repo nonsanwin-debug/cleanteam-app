@@ -288,7 +288,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
                     kakaoObj.init(process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || 'c9b7bd6fa67ee5f5724b76fa58d72ecc')
                 }
                 kakaoObj.Share.sendCustom({
-                    templateId: 134637,
+                    templateId: Number(process.env.NEXT_PUBLIC_KAKAO_SHARE_TEMPLATE_ID) || 134637,
                     templateArgs: {
                         siteName: site.name,
                         workerName: workerName,
