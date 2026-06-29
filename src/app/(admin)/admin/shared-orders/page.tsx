@@ -335,7 +335,8 @@ export default function SharedOrdersPage() {
                 <TabsList className="grid w-full max-w-md grid-cols-2">
                     <TabsTrigger value="incoming" className="flex items-center gap-2">
                         <Inbox className="w-4 h-4" />
-                        수신 오더 (받은 공유)
+                        수신 오더
+                        <span className="hidden sm:inline"> (받은 공유)</span>
                         {incomingOrders.filter(o => o.status === 'pending').length > 0 && (
                             <Badge className="bg-red-500 text-white hover:bg-red-600 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] px-1 ml-1 animate-pulse">
                                 {incomingOrders.filter(o => o.status === 'pending').length}
@@ -344,7 +345,8 @@ export default function SharedOrdersPage() {
                     </TabsTrigger>
                     <TabsTrigger value="outgoing" className="flex items-center gap-2">
                         <Send className="w-4 h-4" />
-                        발신 오더 (보낸 공유)
+                        발신 오더
+                        <span className="hidden sm:inline"> (보낸 공유)</span>
                     </TabsTrigger>
                 </TabsList>
 
