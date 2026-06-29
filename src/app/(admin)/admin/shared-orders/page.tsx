@@ -27,6 +27,7 @@ import {
     getIncomingOrders,
     acceptOrder,
     reclaimSharedOrder,
+    approveReclaimSharedOrder,
     cancelSharedOrder,
     deleteSharedOrder,
     getOrderNotifications,
@@ -65,6 +66,7 @@ export default function SharedOrdersPage() {
 
     const [acceptingId, setAcceptingId] = useState<string | null>(null)
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
+    const [processingReclaimId, setProcessingReclaimId] = useState<string | null>(null)
 
     const [hiddenOrders, setHiddenOrders] = useState<string[]>([])
     const [hideWallet, setHideWallet] = useState(false)
@@ -229,6 +231,24 @@ export default function SharedOrdersPage() {
             loadData()
         } else {
             toast.error(result.error)
+        }
+    }
+
+    async function handleApproveReclaim(orderId: string) {
+        if (!confirm('발신사의 오더 회수 요청에 동의하시겠습니까?\n동의 시 귀사의 현장 카드도 즉시 강제 소멸(삭제)됩니다.')) return
+        setProcessingReclaimId(orderId)
+        try {
+            const result = await approveReclaimSharedOrder(orderId)
+            if (result.success) {
+                toast.success('오더 회수 요청을 승인하여 회수 완료되었습니다.')
+                loadData()
+            } else {
+                toast.error(result.error || '회수 승인에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('처리 중 오류가 발생했습니다.')
+        } finally {
+            setProcessingReclaimId(null)
         }
     }
 
@@ -473,7 +493,13 @@ export default function SharedOrdersPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                )}
+                                                 )}
+                                                    {order.status === 'reclaim_requested' && (
+                                                        <div className="bg-rose-50 border border-rose-100 p-2.5 rounded text-xs text-rose-800 space-y-1 mb-3">
+                                                            <p className="font-bold flex items-center gap-1">🚨 발신사의 오더 회수 요청</p>
+                                                            <p>발신사에서 오더 회수를 요청했습니다. 이에 동의하여 회수 수락 시 귀사의 현장 카드도 강제 삭제됩니다.</p>
+                                                        </div>
+                                                 )}
                                             </div>
 
                                         {/* parsed_details 상세 정보 (고객 링크 예약) */}
@@ -559,7 +585,20 @@ export default function SharedOrdersPage() {
                                         )}
 
                                         <div className="flex gap-2">
-                                            {order.status === 'pending' ? (
+                                            {order.status === 'reclaim_requested' ? (
+                                                <Button
+                                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm"
+                                                    onClick={() => handleApproveReclaim(order.id)}
+                                                    disabled={processingReclaimId === order.id}
+                                                >
+                                                    {processingReclaimId === order.id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                    ) : (
+                                                        <AlertCircle className="w-4 h-4 mr-2" />
+                                                    )}
+                                                    오더 회수 동의 (현장 삭제)
+                                                </Button>
+                                            ) : order.status === 'pending' ? (
                                                 <Button
                                                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                                                     onClick={() => handleAccept(order.id, true)}
@@ -707,23 +746,32 @@ export default function SharedOrdersPage() {
                                             </div>
 
                                             <div className="flex gap-2 mt-2">
-                                                {(order.status === 'pending' || order.status === 'transferred') && (
+                                                {order.status === 'reclaim_requested' ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        className="flex-1 text-slate-500 border-slate-200 bg-slate-50 cursor-not-allowed text-sm"
+                                                        disabled
+                                                    >
+                                                        회수 승인 대기 중
+                                                    </Button>
+                                                ) : (order.status === 'pending' || order.status === 'transferred' || (order.status === 'open' && isDirectShare)) ? (
                                                     <Button
                                                         variant="destructive"
                                                         className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm"
                                                         onClick={() => handleReclaim(order.id)}
                                                     >
-                                                        오더 회수
+                                                        {(order.status === 'transferred' || order.status === 'pending') ? '오더 회수 요청' : '오더 회수'}
                                                     </Button>
-                                                )}
-                                                {order.status === 'open' && (
-                                                    <Button
-                                                        variant="outline"
-                                                        className="flex-1 text-slate-600 hover:bg-slate-100 text-sm"
-                                                        onClick={() => handleCancel(order.id)}
-                                                    >
-                                                        오더 취소 (비활성화)
-                                                    </Button>
+                                                ) : (
+                                                    order.status === 'open' && (
+                                                        <Button
+                                                            variant="outline"
+                                                            className="flex-1 text-slate-600 hover:bg-slate-100 text-sm"
+                                                            onClick={() => handleCancel(order.id)}
+                                                        >
+                                                            오더 취소 (비활성화)
+                                                        </Button>
+                                                    )
                                                 )}
                                             </div>
                                         </CardContent>

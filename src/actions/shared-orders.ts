@@ -1421,7 +1421,51 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
             return { success: false, error: '이미 회수 처리된 오더입니다.' }
         }
 
-        // 2. 오더 상태를 cancelled로 변경
+        const isAlreadyAccepted = order.status === 'transferred' || order.status === 'pending'
+
+        if (isAlreadyAccepted) {
+            // 수락 완료된 상태이므로 즉시 회수가 아닌 "회수 요청" 상태로 변경
+            const { error: updateError } = await adminSupabase
+                .from('shared_orders')
+                .update({ status: 'reclaim_requested', updated_at: new Date().toISOString() })
+                .eq('id', orderId)
+
+            if (updateError) {
+                return { success: false, error: '오더 회수 요청에 실패했습니다.' }
+            }
+
+            // 발신사(송신사)의 업체명 및 코드 조회
+            const { data: senderCompany } = await adminSupabase
+                .from('companies')
+                .select('name, code')
+                .eq('id', companyId)
+                .single()
+
+            const senderLabel = senderCompany ? `${senderCompany.name}#${senderCompany.code}` : '발신 업체'
+
+            // 수신 파트너사에게 오더 회수 요청 알림판 저장 및 푸시 발송
+            if (order.accepted_by) {
+                const message = `[${senderLabel}] 오더 회수 요청 접수 ➔ 동의 여부 대기`
+
+                await adminSupabase.from('shared_order_notifications').insert({
+                    order_id: orderId,
+                    company_id: order.accepted_by,
+                    message: message
+                })
+
+                await sendPushToAdmins(order.accepted_by, {
+                    title: '🔗 공유 오더 회수 요청 접수',
+                    body: `[${senderCompany?.name || '파트너'}]에서 공유된 현장 오더(${order.address || order.region})에 대해 회수를 요청했습니다. 동의가 필요합니다.`,
+                    url: '/admin/shared-orders',
+                    tag: `direct-share-reclaim-request-${orderId}`
+                })
+            }
+
+            revalidatePath('/admin/shared-orders')
+            return { success: true }
+        }
+
+        // 2. 오더 상태를 cancelled로 변경 (즉시 회수)
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
             .update({ status: 'cancelled', updated_at: new Date().toISOString() })
@@ -1486,6 +1530,90 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
         return { success: true }
     } catch (error: any) {
         console.error('reclaimSharedOrder error:', error)
+        return { success: false, error: error.message || '서버 오류 발생' }
+    }
+}
+
+/** 파트너사가 발신사의 오더 회수 요청에 동의/승인 */
+export async function approveReclaimSharedOrder(orderId: string): Promise<ActionResponse> {
+    try {
+        const { companyId } = await getAuthCompany()
+        if (!companyId) return { success: false, error: '인증 실패' }
+
+        const adminSupabase = createAdminClient()
+
+        // 1. 오더 정보 조회 및 수신사인지 검증
+        const { data: order, error: fetchError } = await adminSupabase
+            .from('shared_orders')
+            .select('*')
+            .eq('id', orderId)
+            .eq('accepted_by', companyId)
+            .single()
+
+        if (fetchError || !order) {
+            return { success: false, error: '해당 오더를 찾을 수 없습니다.' }
+        }
+
+        if (order.status !== 'reclaim_requested') {
+            return { success: false, error: '회수 요청 상태가 아닙니다.' }
+        }
+
+        // 2. 오더 상태를 cancelled로 변경
+        const { error: updateError } = await adminSupabase
+            .from('shared_orders')
+            .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+            .eq('id', orderId)
+
+        if (updateError) {
+            return { success: false, error: '회수 승인 처리에 실패했습니다.' }
+        }
+
+        // 3. 내 현장(수신사 소속의 복제된 현장) 강제 소멸 처리
+        if (order.transferred_site_id) {
+            const { error: siteDeleteError } = await adminSupabase
+                .from('sites')
+                .update({
+                    is_deleted: true,
+                    deleted_at: new Date().toISOString(),
+                    deleted_by_name: '오더 회수 요청 동의'
+                })
+                .eq('id', order.transferred_site_id)
+
+            if (siteDeleteError) {
+                console.error('approveReclaimSharedOrder site delete error:', siteDeleteError)
+            }
+        }
+
+        // 4. 수신사의 업체명 조회
+        const { data: receiverCompany } = await adminSupabase
+            .from('companies')
+            .select('name')
+            .eq('id', companyId)
+            .single()
+
+        // 5. 발신사에게 회수 완료 알림 발송
+        await adminSupabase.from('shared_order_notifications').insert({
+            order_id: orderId,
+            company_id: order.company_id,
+            message: `[${receiverCompany?.name || '파트너사'}] 오더 회수 요청 동의 완료`
+        })
+
+        await sendPushToAdmins(order.company_id, {
+            title: '🚫 공유 오더 회수 완료',
+            body: `[${receiverCompany?.name || '파트너'}]에서 귀하의 오더 회수 요청에 동의하여 오더가 정상적으로 회수되었습니다.`,
+            url: '/admin/shared-orders',
+            tag: `direct-share-reclaim-approved-${orderId}`
+        })
+
+        revalidatePath('/admin/shared-orders')
+        revalidatePath('/admin/sites')
+        if (order.parsed_details?.original_site_id) {
+            revalidatePath(`/admin/sites/${order.parsed_details.original_site_id}`)
+        }
+
+        return { success: true }
+    } catch (error: any) {
+        console.error('approveReclaimSharedOrder error:', error)
         return { success: false, error: error.message || '서버 오류 발생' }
     }
 }
