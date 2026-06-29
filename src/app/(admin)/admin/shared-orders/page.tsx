@@ -440,7 +440,7 @@ export default function SharedOrdersPage() {
                                                 {isDirectShare && (
                                                     <div className="bg-amber-50 border border-amber-100 p-2.5 rounded text-xs text-amber-800 space-y-1">
                                                         <p className="font-bold">🔗 직접 공유 오더 (수락 대기)</p>
-                                                        <p>제휴 부동산/파트너사에서 다이렉트로 전달해 준 오더입니다.</p>
+                                                        <p>{order.sender_company?.name || '오더 제공사'}에서 다이렉트로 전달해 준 오더입니다.</p>
                                                     </div>
                                                 )}
                                             </div>
