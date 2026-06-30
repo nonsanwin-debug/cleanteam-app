@@ -104,8 +104,20 @@ export default function SharedOrdersPage() {
             getMySharedOrders(),
             getOrderNotifications()
         ])
+
+        const uniqueOutgoing: any[] = []
+        const seenKeys = new Set<string>()
+        outgoing.forEach((o: any) => {
+            const origId = o.parsed_details?.original_site_id
+            const key = origId ? `site_${origId}` : `addr_${o.address}_${o.region}`
+            if (!seenKeys.has(key)) {
+                seenKeys.add(key)
+                uniqueOutgoing.push(o)
+            }
+        })
+
         setIncomingOrders(incoming)
-        setOutgoingOrders(outgoing)
+        setOutgoingOrders(uniqueOutgoing)
         setNotifications(notifs)
 
         try {
@@ -310,7 +322,7 @@ export default function SharedOrdersPage() {
                         <Share2 className="mr-2" /> 오더 공유 센터
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        파트너사 간 오더를 수발신하고 공유 이관 상태를 모니터링합니다.
+                        현장을 공유하고 공유된 현장을 실시간 모니터링 할 수 있습니다
                     </p>
                 </div>
                 <Button 
@@ -715,7 +727,27 @@ export default function SharedOrdersPage() {
                                                     {order.notes && (
                                                         <p className="text-xs text-slate-500 whitespace-pre-wrap mt-1"><strong>특이사항:</strong> {order.notes}</p>
                                                     )}
-                                                </div>
+                                                     {order.parsed_details?.reclaimed_at && (() => {
+                                                         try {
+                                                             return (
+                                                                 <p className="text-rose-600 font-semibold mt-1">
+                                                                     <strong>회수 일시:</strong> {format(new Date(order.parsed_details.reclaimed_at), 'yyyy-MM-dd HH:mm')}
+                                                                 </p>
+                                                             )
+                                                         } catch {
+                                                             return (
+                                                                 <p className="text-rose-600 font-semibold mt-1">
+                                                                     <strong>회수 일시:</strong> {order.parsed_details.reclaimed_at}
+                                                                 </p>
+                                                             )
+                                                         }
+                                                     })()}
+                                                     {order.parsed_details?.delete_reason && (
+                                                         <p className="text-rose-600 font-semibold mt-1">
+                                                             <strong>회수/취소 사유:</strong> {order.parsed_details.delete_reason}
+                                                         </p>
+                                                     )}
+                                                 </div>
 
                                                 {/* Applicants for Open Orders */}
                                                 {!isDirectShare && order.status === 'open' && order.applicants && order.applicants.length > 0 && (

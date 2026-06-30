@@ -48,6 +48,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     const [showDeleteAlert, setShowDeleteAlert] = useState(false)
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [deleteReason, setDeleteReason] = useState('')
     const [open, setOpen] = useState(false)
 
     // Direct Order Share States
@@ -152,12 +153,18 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     }
 
     async function handleDelete() {
+        if (site.received_info && !deleteReason.trim()) {
+            toast.error('회수/삭제 사유를 입력해주세요.')
+            return
+        }
+
         setIsDeleting(true)
         try {
-            const result = await deleteSite(site.id)
+            const result = await deleteSite(site.id, deleteReason.trim())
 
             if (!result.success) {
                 toast.error(result.error || '삭제에 실패했습니다.')
+                setIsDeleting(false)
                 return
             }
 
@@ -272,6 +279,17 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                                     <p className="leading-relaxed">• 진행중인 현장을 삭제 시<br />&nbsp;&nbsp;서버에서도 삭제 됩니다 ( 복구 불가 )</p>
                                     <p className="leading-relaxed">• 해당 현장이 공유받은 현장일 경우<br />&nbsp;&nbsp;현장을 공유한 업체로 회수 됩니다<br />&nbsp;&nbsp;( 공유업체 삭제 불가 )</p>
                                 </div>
+                                {site.received_info && (
+                                    <div className="space-y-1.5 text-left pt-1">
+                                        <Label className="text-xs font-bold text-slate-700 block">회수/삭제 사유 (필수)</Label>
+                                        <Input
+                                            placeholder="예: 일정 변경, 고객 요청 취소, 대리 청소 취소 등"
+                                            value={deleteReason}
+                                            onChange={(e) => setDeleteReason(e.target.value)}
+                                            className="w-full text-xs"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>

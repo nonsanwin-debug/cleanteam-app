@@ -314,7 +314,7 @@ export async function createSite(formData: CreateSiteDTO) {
     }
 }
 
-export async function deleteSite(id: string) {
+export async function deleteSite(id: string, deleteReason?: string) {
     const supabase = await createClient()
 
     try {
@@ -387,15 +387,17 @@ export async function deleteSite(id: string) {
             const myCompanyId = userProfile?.company_id
 
             for (const order of linkedOrders) {
-                // 오더 상태를 deleted로 표시
+                // 오더 상태를 cancelled로 변경 (기존: deleted) 및 회수 사유 기록
                 await adminSupabase
                     .from('shared_orders')
                     .update({
-                        status: 'deleted',
+                        status: 'cancelled',
                         parsed_details: {
                             ...(await adminSupabase.from('shared_orders').select('parsed_details').eq('id', order.id).single()).data?.parsed_details,
                             deleted_by: deletedByLabel,
                             deleted_at: new Date().toISOString(),
+                            reclaimed_at: new Date().toISOString(),
+                            delete_reason: deleteReason || null
                         }
                     })
                     .eq('id', order.id)

@@ -1464,10 +1464,17 @@ export async function reclaimSharedOrder(orderId: string): Promise<ActionRespons
             return { success: true }
         }
 
-        // 2. 오더 상태를 cancelled로 변경 (즉시 회수)
+        // 2. 오더 상태를 cancelled로 변경 (즉시 회수) 및 회수 시간 기록
+        const updatedDetails = {
+            ...(order.parsed_details || {}),
+            reclaimed_at: new Date().toISOString()
+        }
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
-            .update({ status: 'cancelled' })
+            .update({ 
+                status: 'cancelled',
+                parsed_details: updatedDetails
+            })
             .eq('id', orderId)
 
         if (updateError) {
@@ -1557,10 +1564,17 @@ export async function approveReclaimSharedOrder(orderId: string): Promise<Action
             return { success: false, error: '회수 요청 상태가 아닙니다.' }
         }
 
-        // 2. 오더 상태를 cancelled로 변경
+        // 2. 오더 상태를 cancelled로 변경 및 회수 시간 기록
+        const updatedDetails = {
+            ...(order.parsed_details || {}),
+            reclaimed_at: new Date().toISOString()
+        }
         const { error: updateError } = await adminSupabase
             .from('shared_orders')
-            .update({ status: 'cancelled' })
+            .update({ 
+                status: 'cancelled',
+                parsed_details: updatedDetails
+            })
             .eq('id', orderId)
 
         if (updateError) {
