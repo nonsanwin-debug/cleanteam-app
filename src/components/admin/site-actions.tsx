@@ -39,7 +39,7 @@ import { Label } from '@/components/ui/label'
 import { searchCompanyByCode, shareSiteDirectly, reclaimSharedOrder } from '@/actions/shared-orders'
 
 interface SiteActionsProps {
-    site: Site & { is_shared_out?: boolean; shared_info?: any }
+    site: Site & { is_shared_out?: boolean; shared_info?: any; received_info?: any }
     workers: { id: string; name: string | null }[]
 }
 
@@ -212,7 +212,9 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                         <Trash2 className="mr-2 h-4 w-4" />
                         삭제하기 {site.is_shared_out && '(공유됨)'}
                     </DropdownMenuItem>
-                    {!site.is_shared_out && (!site.shared_info || site.shared_info.status === 'cancelled' || site.shared_info.status === 'reclaimed') && (
+                    {!site.is_shared_out && 
+                    (!site.shared_info || site.shared_info.status === 'cancelled' || site.shared_info.status === 'reclaimed') && 
+                    (!site.received_info || site.received_info.status === 'cancelled' || site.received_info.status === 'reclaimed') && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem

@@ -418,12 +418,12 @@ export default function SharedOrdersPage() {
                                     <Card key={order.id} className={cn("overflow-hidden border-2", order.status === 'pending' ? "border-amber-400 shadow-amber-100" : isDiscount ? "border-rose-400 shadow-rose-100" : "border-teal-400 shadow-teal-100")}>
                                         <CardContent className="p-4">
                                             <div className="flex flex-col gap-3 mb-3">
-                                                <div className="flex items-start justify-between">
+                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
                                                         <span className="font-bold text-lg leading-tight">{order.region}</span>
                                                     </div>
-                                                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 shrink-0">
+                                                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 shrink-0 self-start sm:self-auto">
                                                         {(order.status === 'transferred' || order.status === 'completed' || order.status === 'pending' || order.status === 'reclaimed' || isDirectShare) ? (order.sender_company?.name || '타업체') : '제휴업체 (배정 후 공개)'}
                                                     </Badge>
                                                 </div>
@@ -672,17 +672,18 @@ export default function SharedOrdersPage() {
                             outgoingOrders.map(order => {
                                 const parsedDetails = order.parsed_details || {}
                                 const isDirectShare = parsedDetails.is_direct_share === true
-                                
-                                return (
+                                 return (
                                     <Card key={order.id} className="overflow-hidden border-2 border-slate-200 shadow-sm bg-white">
                                         <CardContent className="p-4">
                                             <div className="flex flex-col gap-3 mb-3">
-                                                <div className="flex items-start justify-between">
+                                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <MapPin className="h-5 w-5 text-blue-500 shrink-0" />
                                                         <span className="font-bold text-lg leading-tight">{order.region}</span>
                                                     </div>
-                                                    {getStatusBadge(order.status)}
+                                                     <div className="self-start sm:self-auto shrink-0">
+                                                         {getStatusBadge(order.status)}
+                                                     </div>
                                                 </div>
                                                 
                                                 {(order.work_date || order.area_size) && (
