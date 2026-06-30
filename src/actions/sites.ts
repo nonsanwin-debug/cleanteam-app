@@ -124,8 +124,33 @@ export async function getSites() {
         })
     }
 
+    // Fetch received shared orders to identify shared-in sites and metadata
+    const { data: receivedOrders } = await adminSupabase
+        .from('shared_orders')
+        .select('id, status, company_id, company:company_id(name, code), transferred_site_id')
+        .eq('accepted_by', companyId)
+        .neq('status', 'deleted')
+
+    const receivedOrdersMap = new Map<string, any>()
+    if (receivedOrders) {
+        receivedOrders.forEach((so: any) => {
+            if (so.transferred_site_id) {
+                const compData = Array.isArray(so.company) ? so.company[0] : so.company
+                const partnerName = compData?.name || '파트너'
+                const partnerCode = compData?.code || '????'
+                receivedOrdersMap.set(so.transferred_site_id, {
+                    id: so.id,
+                    partner_name: partnerName,
+                    partner_code: partnerCode,
+                    status: so.status
+                })
+            }
+        })
+    }
+
     const sitesWithShareFlag = data.map((site: any) => {
         const sharedInfo = sharedOrdersMap.get(site.id)
+        const receivedInfo = receivedOrdersMap.get(site.id)
         const hasTransferredSite = sharedInfo && sharedInfo.transferred_site
         let workerName = site.worker_name
         if (hasTransferredSite) {
@@ -138,11 +163,12 @@ export async function getSites() {
             worker_name: workerName,
             worker_id: hasTransferredSite ? sharedInfo.transferred_site.worker_id : site.worker_id,
             is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
-            shared_info: sharedInfo || null
+            shared_info: sharedInfo || null,
+            received_info: receivedInfo || null
         }
     })
 
-    return sitesWithShareFlag as (Site & { is_shared_out: boolean; shared_info: any })[]
+    return sitesWithShareFlag as (Site & { is_shared_out: boolean; shared_info: any; received_info: any })[]
 }
 
 export async function getWorkers() {
@@ -924,8 +950,33 @@ export async function getTodayActivitySites() {
         })
     }
 
+    // Fetch received shared orders to identify shared-in sites and metadata
+    const { data: receivedOrders } = await adminSupabase
+        .from('shared_orders')
+        .select('id, status, company_id, company:company_id(name, code), transferred_site_id')
+        .eq('accepted_by', companyId)
+        .neq('status', 'deleted')
+
+    const receivedOrdersMap = new Map<string, any>()
+    if (receivedOrders) {
+        receivedOrders.forEach((so: any) => {
+            if (so.transferred_site_id) {
+                const compData = Array.isArray(so.company) ? so.company[0] : so.company
+                const partnerName = compData?.name || '파트너'
+                const partnerCode = compData?.code || '????'
+                receivedOrdersMap.set(so.transferred_site_id, {
+                    id: so.id,
+                    partner_name: partnerName,
+                    partner_code: partnerCode,
+                    status: so.status
+                })
+            }
+        })
+    }
+
     const mappedSites = data.map((site: any) => {
         const sharedInfo = sharedOrdersMap.get(site.id)
+        const receivedInfo = receivedOrdersMap.get(site.id)
         const hasTransferredSite = sharedInfo && sharedInfo.transferred_site
         let workerName = site.worker_name
         let workerInfo = site.worker
@@ -946,11 +997,12 @@ export async function getTodayActivitySites() {
             worker_id: hasTransferredSite ? sharedInfo.transferred_site.worker_id : site.worker_id,
             worker: workerInfo,
             is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
-            shared_info: sharedInfo || null
+            shared_info: sharedInfo || null,
+            received_info: receivedInfo || null
         }
     })
 
-    return mappedSites as (Site & { started_at?: string, completed_at?: string, updated_at?: string; is_shared_out?: boolean; shared_info?: any })[]
+    return mappedSites as (Site & { started_at?: string, completed_at?: string, updated_at?: string; is_shared_out?: boolean; shared_info?: any; received_info?: any })[]
 }
 
 

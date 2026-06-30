@@ -39,6 +39,7 @@ type Site = {
     happy_call_completed?: boolean
     is_shared_out?: boolean
     shared_info?: { id?: string; partner_name: string; partner_code: string; status: 'open' | 'pending' | 'transferred' | 'reclaimed' | 'cancelled' | 'reclaim_requested' } | null
+    received_info?: { id?: string; partner_name: string; partner_code: string; status: string } | null
 }
 
 interface Props {
@@ -86,6 +87,31 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
             toast.error('회수 처리 중 오류가 발생했습니다.')
         } finally {
             setIsReclaiming(null)
+        }
+    }
+
+    const [isApproving, setIsApproving] = useState<string | null>(null)
+
+    async function handleApproveReclaimSite(orderId: string) {
+        if (!confirm('발신 파트너사의 오더 회수 요청을 승인하시겠습니까?\n승인 시 해당 현장 카드가 강제 삭제(소멸) 처리됩니다.')) return
+
+        setIsApproving(orderId)
+        try {
+            const { approveReclaimSharedOrder } = await import('@/actions/shared-orders')
+            const result = await approveReclaimSharedOrder(orderId)
+            if (result.success) {
+                toast.success('오더 회수 요청을 승인했습니다. 현장이 제거되었습니다.')
+                router.refresh()
+                setTimeout(() => {
+                    window.location.reload()
+                }, 500)
+            } else {
+                toast.error(result.error || '회수 승인에 실패했습니다.')
+            }
+        } catch (error) {
+            toast.error('회수 승인 중 오류가 발생했습니다.')
+        } finally {
+            setIsApproving(null)
         }
     }
 
@@ -373,6 +399,43 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     </Badge>
                                                 </div>
                                             )}
+                                            {site.received_info && (
+                                                 <div className="flex items-center gap-1">
+                                                     {site.received_info.status === 'reclaim_requested' && (
+                                                         <Button
+                                                             size="sm"
+                                                             variant="destructive"
+                                                             className="h-7 px-2.5 text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 shadow-sm animate-pulse"
+                                                             onClick={(e) => {
+                                                                 e.stopPropagation()
+                                                                 if (!site.received_info?.id) {
+                                                                     toast.error('회수할 공유 오더 ID를 찾을 수 없습니다.')
+                                                                     return
+                                                                 }
+                                                                 handleApproveReclaimSite(site.received_info.id)
+                                                             }}
+                                                             disabled={isApproving === site.received_info.id}
+                                                         >
+                                                             {isApproving === site.received_info.id ? (
+                                                                 <Loader2 className="w-2.5 h-2.5 animate-spin mr-0.5" />
+                                                             ) : null}
+                                                             회수동의
+                                                         </Button>
+                                                     )}
+                                                     <Badge
+                                                         variant="outline"
+                                                         className={cn(
+                                                             "font-bold text-[10px] tracking-tight shadow-sm px-2 py-0.5",
+                                                             site.received_info.status === 'reclaim_requested'
+                                                                 ? "border-amber-500 text-amber-600 bg-amber-50"
+                                                                 : "border-slate-400 text-slate-500 bg-slate-100"
+                                                         )}
+                                                     >
+                                                         🔗 {site.received_info.partner_name}#{site.received_info.partner_code}{' '}
+                                                         {site.received_info.status === 'reclaim_requested' ? '회수요청됨' : '공유받음'}
+                                                     </Badge>
+                                                 </div>
+                                             )}
                                             <Badge
                                                 variant="outline"
                                                 className={
