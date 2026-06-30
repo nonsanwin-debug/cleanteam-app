@@ -322,8 +322,8 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                             >
                                 <CardHeader className="pb-3 bg-slate-50/50 relative">
                                     <Link href={`/admin/sites/${site.id}`} className="absolute inset-0 z-0" />
-                                    <div className="flex justify-between items-start z-10 pointer-events-none">
-                                        <div className="space-y-1">
+                                    <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-between sm:items-start z-10 pointer-events-none">
+                                        <div className="space-y-1 w-full sm:w-auto">
                                             <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
                                                 {site.name}
                                             </CardTitle>
@@ -340,7 +340,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                 )}
                                             </CardDescription>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
+                                         <div className="flex flex-row flex-wrap gap-1.5 items-center sm:flex-col sm:items-end pointer-events-auto relative z-20">
                                             {site.is_shared_out && (
                                                 <Badge
                                                     variant="outline"
@@ -456,7 +456,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                         해피콜
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-end gap-1.5 pointer-events-auto relative z-20">
+                                                    <div className="flex flex-row flex-wrap gap-1.5 items-center sm:flex-col sm:items-end pointer-events-auto relative z-20">
                                                         <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">
                                                             해피콜 대기
                                                         </div>
