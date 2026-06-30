@@ -11,6 +11,7 @@ export interface PlatformSettings {
     hide_wallet_features: boolean
     hide_admin_photo_zone_setup: boolean
     hide_cleaning_fee_examples: boolean
+    disable_deleted_site_reporting: boolean
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {
@@ -19,6 +20,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
     hide_wallet_features: false,
     hide_admin_photo_zone_setup: false,
     hide_cleaning_fee_examples: false,
+    disable_deleted_site_reporting: true, // Default to true (not reported)
 }
 
 /**
@@ -42,6 +44,8 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
         const hide_wallet_features = aliasNames.includes('__hide_wallet_features:true')
         const hide_admin_photo_zone_setup = aliasNames.includes('__hide_admin_photo_zone_setup:true')
         const hide_cleaning_fee_examples = aliasNames.includes('__hide_cleaning_fee_examples:true')
+        // Reporting is disabled by default unless explicitly set to false
+        const disable_deleted_site_reporting = !aliasNames.includes('__disable_deleted_site_reporting:false')
 
         return {
             global_free_old_building: data.global_free_old_building ?? false,
@@ -49,6 +53,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
             hide_wallet_features,
             hide_admin_photo_zone_setup,
             hide_cleaning_fee_examples,
+            disable_deleted_site_reporting,
         }
     } catch {
         return DEFAULT_SETTINGS
@@ -97,10 +102,14 @@ export async function updatePlatformSettings(
         const hideExamples = settings.hide_cleaning_fee_examples !== undefined
             ? settings.hide_cleaning_fee_examples
             : (existing?.feed_alias_names || []).includes('__hide_cleaning_fee_examples:true')
+        const disableReporting = settings.disable_deleted_site_reporting !== undefined
+            ? settings.disable_deleted_site_reporting
+            : !(existing?.feed_alias_names || []).includes('__disable_deleted_site_reporting:false')
 
         if (hideWallet) currentAliasNames.push('__hide_wallet_features:true')
         if (hidePhoto) currentAliasNames.push('__hide_admin_photo_zone_setup:true')
         if (hideExamples) currentAliasNames.push('__hide_cleaning_fee_examples:true')
+        if (!disableReporting) currentAliasNames.push('__disable_deleted_site_reporting:false')
 
         if (existing) {
             const { error } = await adminClient

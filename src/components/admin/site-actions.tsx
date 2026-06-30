@@ -267,11 +267,10 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                         <AlertDialogDescription asChild>
                             <div className="space-y-3">
                                 <p>&quot;{site.name}&quot; 현장이 삭제됩니다.</p>
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-800 text-sm space-y-1">
-                                    <p className="font-bold">⚠️ 주의사항</p>
-                                    <p>• 삭제 시 <span className="font-bold">수수료(캐쉬)를 돌려받을 수 없습니다.</span></p>
-                                    <p>• 삭제된 현장은 마스터 관리자에게 보고됩니다.</p>
-                                    <p>• 환불이 필요한 경우 마스터에게 문의하세요.</p>
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3.5 text-red-800 text-sm space-y-2 text-left">
+                                    <p className="font-bold text-center">⚠️ 주의사항</p>
+                                    <p className="leading-relaxed">• 진행중인 현장을 삭제 시<br />&nbsp;&nbsp;서버에서도 삭제 됩니다 ( 복구 불가 )</p>
+                                    <p className="leading-relaxed">• 해당 현장이 공유받은 현장일 경우<br />&nbsp;&nbsp;현장을 공유한 업체로 회수 됩니다<br />&nbsp;&nbsp;( 공유업체 삭제 불가 )</p>
                                 </div>
                             </div>
                         </AlertDialogDescription>

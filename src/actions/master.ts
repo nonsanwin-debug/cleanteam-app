@@ -853,6 +853,12 @@ export async function getDeletedSites() {
     const isMaster = await verifyMasterAccess()
     if (!isMaster) return { deletedSites: [], deletedOrders: [] }
 
+    const { getPlatformSettings } = await import('./platform-settings')
+    const globalSettings = await getPlatformSettings()
+    if (globalSettings.disable_deleted_site_reporting) {
+        return { deletedSites: [], deletedOrders: [] }
+    }
+
     const adminClient = createAdminClient()
 
     // 1. soft-deleted sites

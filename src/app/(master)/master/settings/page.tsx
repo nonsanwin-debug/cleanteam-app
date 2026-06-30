@@ -33,6 +33,7 @@ export default function MasterSettingsPage() {
         hide_wallet_features: false,
         hide_admin_photo_zone_setup: false,
         hide_cleaning_fee_examples: false,
+        disable_deleted_site_reporting: true,
     })
 
     // 피드 관리 상태
@@ -73,6 +74,7 @@ export default function MasterSettingsPage() {
                         hide_wallet_features: data.hide_wallet_features ?? false,
                         hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
                         hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
+                        disable_deleted_site_reporting: data.disable_deleted_site_reporting ?? true,
                     })
                 }
             } catch (err) {
@@ -263,6 +265,7 @@ export default function MasterSettingsPage() {
                                     <p>• 관리포인트 & 캐쉬 기능: <strong>{settings.hide_wallet_features ? '🚫 숨김 (회사 잔액 무관 포인트 지급 활성화)' : '✅ 노출'}</strong></p>
                                     <p>• 사진구역 설정: <strong>{settings.hide_admin_photo_zone_setup ? '🚫 숨김' : '✅ 노출'}</strong></p>
                                     <p>• 추가금액 사유 예시: <strong>{settings.hide_cleaning_fee_examples ? '🧹 청소 예시 제거' : '✅ 노출'}</strong></p>
+                                    <p>• 삭제 현장 마스터 보고: <strong>{settings.disable_deleted_site_reporting ? '🚫 비활성화 (마스터 노출 안 함)' : '✅ 활성화 (마스터 노출)'}</strong></p>
                                 </div>
                             </div>
 
@@ -302,7 +305,21 @@ export default function MasterSettingsPage() {
                                     />
                                 </div>
 
-                                {/* 청소 전용 추가금액 예시 제거 */}
+                                 {/* 삭제 현장 마스터 보고 비활성화 */}
+                                 <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors mb-4">
+                                     <div className="flex-1 pr-4">
+                                         <Label className="text-sm font-bold text-slate-800">삭제 현장 마스터 보고 비활성화</Label>
+                                         <p className="text-xs text-slate-500 mt-1">
+                                             활성화 시 업체들이 현장을 삭제하더라도 마스터 페이지(삭제 오더 관리)에 보고/노출되지 않습니다.
+                                         </p>
+                                     </div>
+                                     <Switch
+                                         checked={settings.disable_deleted_site_reporting}
+                                         onCheckedChange={(c) => setSettings(prev => ({ ...prev, disable_deleted_site_reporting: c }))}
+                                     />
+                                 </div>
+
+                                 {/* 청소 전용 추가금액 예시 제거 */}
                                 <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
                                     <div className="flex-1 pr-4">
                                         <Label className="text-sm font-bold text-slate-800">추가금액 사유 청소 예시 제거</Label>
