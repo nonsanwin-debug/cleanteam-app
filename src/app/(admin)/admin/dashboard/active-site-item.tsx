@@ -73,21 +73,11 @@ export function ActiveSiteItem({ site, isComplete, duration }: ActiveSiteItemPro
                         {isComplete ? '완료됨' : isScheduled ? '대기중' : '작업 중'}
                     </span>
                     
-                    {/* Happy Call Badge / Button */}
-                    {site.happy_call_completed ? (
+                    {/* Happy Call Badge */}
+                    {site.happy_call_completed && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-indigo-50 text-indigo-600 border-indigo-200 flex items-center gap-0.5">
                             <CheckCircle2 className="w-3 h-3" />해피콜 완료
                         </span>
-                    ) : (
-                        <button 
-                            type="button"
-                            onClick={handleHappyCallRequest}
-                            disabled={isRequesting}
-                            className="text-[10px] px-1.5 py-0.5 rounded border shrink-0 bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100 flex items-center gap-0.5 transition-colors"
-                        >
-                            {isRequesting ? <Loader2 className="w-3 h-3 animate-spin"/> : <PhoneCall className="w-3 h-3" />}
-                            해피콜 요청
-                        </button>
                     )}
                 </div>
                 <div className="flex items-center text-xs text-slate-500">

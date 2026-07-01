@@ -93,28 +93,34 @@ export default async function AdminDashboard() {
                         <CardTitle>실시간 현장 현황</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {activeSites.length === 0 ? (
-                            <div className="h-[200px] flex items-center justify-center text-slate-400 bg-slate-50 rounded-md">
-                                오늘 일정이 없습니다.
-                            </div>
-                        ) : (
-                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                {activeSites.map(site => {
-                                    const isComplete = site.status === 'completed'
-                                    const completionTime = isComplete ? (site.completed_at || site.updated_at) : undefined
-                                    const duration = calculateDuration(site.started_at, completionTime)
+                        {(() => {
+                            const inProgressSites = activeSites.filter(site => site.status === 'in_progress')
+                            if (inProgressSites.length === 0) {
+                                return (
+                                    <div className="h-[200px] flex items-center justify-center text-slate-400 bg-slate-50 rounded-md">
+                                        현재 진행 중인 현장이 없습니다.
+                                    </div>
+                                )
+                            }
+                            return (
+                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                    {inProgressSites.map(site => {
+                                        const isComplete = site.status === 'completed'
+                                        const completionTime = isComplete ? (site.completed_at || site.updated_at) : undefined
+                                        const duration = calculateDuration(site.started_at, completionTime)
 
-                                    return (
-                                        <ActiveSiteItem 
-                                            key={site.id} 
-                                            site={site} 
-                                            isComplete={isComplete} 
-                                            duration={duration} 
-                                        />
-                                    )
-                                })}
-                            </div>
-                        )}
+                                        return (
+                                            <ActiveSiteItem 
+                                                key={site.id} 
+                                                site={site} 
+                                                isComplete={isComplete} 
+                                                duration={duration} 
+                                            />
+                                        )
+                                    })}
+                                </div>
+                            )
+                        })()}
                     </CardContent>
                 </Card>
                 <Card className="hidden md:block col-span-1 md:col-span-1 lg:col-span-3">
