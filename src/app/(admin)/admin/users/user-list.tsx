@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { approvePayment, rejectClaim } from '@/actions/admin'
-import { Loader2, User, X, Search } from 'lucide-react'
+import { Loader2, User, X, Search, Plus, Minus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -31,6 +32,13 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [rejectingId, setRejectingId] = useState<string | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
+
+    // Point adjustment states
+    const [adjustOpen, setAdjustOpen] = useState<string | null>(null)
+    const [adjustType, setAdjustType] = useState<'add' | 'deduct'>('add')
+    const [adjustAmount, setAdjustAmount] = useState('')
+    const [adjustReason, setAdjustReason] = useState('')
+    const [adjustLoading, setAdjustLoading] = useState(false)
 
     const filteredUsers = users.filter(user =>
         user.name.includes(searchTerm) ||
@@ -80,6 +88,51 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
             toast.error('오류가 발생했습니다.')
         } finally {
             setRejectingId(null)
+        }
+    }
+
+    function openAdjustForm(workerId: string, type: 'add' | 'deduct') {
+        setAdjustOpen(workerId)
+        setAdjustType(type)
+        setAdjustAmount('')
+        setAdjustReason('')
+    }
+
+    async function handleAdjustSubmit(workerId: string) {
+        const amount = parseInt(adjustAmount)
+        if (isNaN(amount) || amount <= 0) {
+            toast.error('올바른 금액을 입력하세요.')
+            return
+        }
+        if (!adjustReason.trim()) {
+            toast.error('사유를 입력하세요.')
+            return
+        }
+
+        const actionText = adjustType === 'add' ? '포인트 지급' : '포인트 차감'
+        if (!confirm(`${amount.toLocaleString()}포인트를 ${actionText}하시겠습니까?\n사유: ${adjustReason}`)) return
+
+        setAdjustLoading(true)
+        try {
+            const { adjustWorkerBalance } = await import('@/actions/admin')
+            const result = await adjustWorkerBalance(workerId, amount, adjustType, adjustReason.trim())
+            if (result.success && result.error) {
+                toast.warning(`${actionText} 처리됨 (기록 저장 실패)`)
+                setAdjustOpen(null)
+                router.refresh()
+                setTimeout(() => window.location.reload(), 500)
+            } else if (result.success) {
+                toast.success(`${actionText} 처리되었습니다.`)
+                setAdjustOpen(null)
+                router.refresh()
+                setTimeout(() => window.location.reload(), 500)
+            } else {
+                toast.error(result.error)
+            }
+        } catch (e) {
+            toast.error('오류가 발생했습니다.')
+        } finally {
+            setAdjustLoading(false)
         }
     }
 
@@ -134,6 +187,78 @@ export function UserList({ users }: { users: UserWithClaims[] }) {
                                     <div className="text-sm">
                                         <span className="text-slate-500 w-20 inline-block">계좌정보</span>
                                         <span className="font-medium">{user.account_info || '미등록'}</span>
+                                    </div>
+
+                                    {/* Payment/Deduction Buttons */}
+                                    <div className="space-y-3">
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
+                                                onClick={() => openAdjustForm(user.id, 'add')}
+                                            >
+                                                <Plus className="w-3.5 h-3.5 mr-1" />
+                                                포인트 지급
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
+                                                onClick={() => openAdjustForm(user.id, 'deduct')}
+                                            >
+                                                <Minus className="w-3.5 h-3.5 mr-1" />
+                                                포인트 차감
+                                            </Button>
+                                        </div>
+
+                                        {/* Adjust Form */}
+                                        {adjustOpen === user.id && (
+                                            <div className={`p-3 rounded-lg border-2 ${adjustType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                                <h4 className={`text-sm font-bold mb-2 ${adjustType === 'add' ? 'text-green-700' : 'text-red-700'}`}>
+                                                    {adjustType === 'add' ? '💰 포인트 지급' : '📉 포인트 차감'}
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="금액 입력"
+                                                        value={adjustAmount}
+                                                        onChange={(e) => setAdjustAmount(e.target.value)}
+                                                        className="bg-white text-xs h-8"
+                                                    />
+                                                    <Textarea
+                                                        placeholder="사유 입력 (필수)"
+                                                        value={adjustReason}
+                                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAdjustReason(e.target.value)}
+                                                        rows={2}
+                                                        className="bg-white text-xs resize-none"
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            className={`flex-1 h-8 text-xs ${adjustType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                                            onClick={() => handleAdjustSubmit(user.id)}
+                                                            disabled={adjustLoading}
+                                                        >
+                                                            {adjustLoading ? (
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            ) : (
+                                                                adjustType === 'add' ? '지급 확인' : '차감 확인'
+                                                            )}
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="h-8 text-xs"
+                                                            onClick={() => setAdjustOpen(null)}
+                                                            disabled={adjustLoading}
+                                                        >
+                                                            취소
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="border-t pt-3">

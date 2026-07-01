@@ -24,9 +24,10 @@ export default async function UsersPage() {
                 <h2 className="text-2xl font-bold tracking-tight">사용자 및 정산 관리</h2>
             </div>
 
-            <Tabs defaultValue="claims" className="w-full">
+            <Tabs defaultValue="workers" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
-                    <TabsTrigger value="claims">지급 대기 (청구)</TabsTrigger>
+                    <TabsTrigger id="tab-workers" value="workers">팀원 관리</TabsTrigger>
+                    <TabsTrigger value="claims">포인트 지급 관리</TabsTrigger>
                     <TabsTrigger value="withdrawals" className="relative">
                         포인트 전환 요청
                         {pendingCount > 0 && (
@@ -35,14 +36,7 @@ export default async function UsersPage() {
                             </span>
                         )}
                     </TabsTrigger>
-                    <TabsTrigger id="tab-workers" value="workers">팀원 관리</TabsTrigger>
                 </TabsList>
-                <TabsContent value="claims" className="mt-6">
-                    <UserList users={users} />
-                </TabsContent>
-                <TabsContent value="withdrawals" className="mt-6">
-                    <WithdrawalList requests={withdrawals} />
-                </TabsContent>
                 <TabsContent value="workers" className="mt-6">
                     <div className="flex justify-end mb-4">
                         <Link href="/admin/users/new">
@@ -53,6 +47,12 @@ export default async function UsersPage() {
                         </Link>
                     </div>
                     <WorkerManagementList workers={workers} commissionLogs={commissionLogs} />
+                </TabsContent>
+                <TabsContent value="claims" className="mt-6">
+                    <UserList users={users} />
+                </TabsContent>
+                <TabsContent value="withdrawals" className="mt-6">
+                    <WithdrawalList requests={withdrawals} />
                 </TabsContent>
             </Tabs>
         </div>
