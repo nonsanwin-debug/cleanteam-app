@@ -38,7 +38,8 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
     const [filterType, setFilterType] = useState<string>('all')
     const [searchTerm1, setSearchTerm1] = useState('')
     const [searchTerm2, setSearchTerm2] = useState('')
-    const [searchTerm3, setSearchTerm3] = useState('')
+    const [startDate, setStartDate] = useState('')
+    const [endDate, setEndDate] = useState('')
 
     const filteredLogs = initialLogs.filter(log => {
         const matchesType = filterType === 'all' || log.type === filterType
@@ -51,11 +52,23 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
             log.description?.toLowerCase().includes(searchTerm2.toLowerCase()) ||
             log.user?.name?.toLowerCase().includes(searchTerm2.toLowerCase())
 
-        const matchesSearch3 = !searchTerm3 || 
-            log.description?.toLowerCase().includes(searchTerm3.toLowerCase()) ||
-            log.user?.name?.toLowerCase().includes(searchTerm3.toLowerCase())
+        // Date Range filter
+        let matchesDate = true
+        if (startDate || endDate) {
+            const logDate = new Date(log.created_at)
+            if (startDate) {
+                const start = new Date(startDate)
+                start.setHours(0, 0, 0, 0)
+                matchesDate = matchesDate && logDate >= start
+            }
+            if (endDate) {
+                const end = new Date(endDate)
+                end.setHours(23, 59, 59, 999)
+                matchesDate = matchesDate && logDate <= end
+            }
+        }
 
-        return matchesType && matchesSearch1 && matchesSearch2 && matchesSearch3
+        return matchesType && matchesSearch1 && matchesSearch2 && matchesDate
     })
 
     const totalEarning = filteredLogs
@@ -107,13 +120,22 @@ export function AdminLogsClient({ initialLogs }: { initialLogs: any[] }) {
                         />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 block">3차 검색어 (AND 조건)</label>
-                        <Input
-                            placeholder="추가 검색어 입력..."
-                            value={searchTerm3}
-                            onChange={(e) => setSearchTerm3(e.target.value)}
-                            className="bg-white"
-                        />
+                        <label className="text-xs font-bold text-slate-500 block">기간 설정 (조회 기간)</label>
+                        <div className="flex items-center gap-1.5 h-10">
+                            <Input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="bg-white text-xs px-2 py-1 h-9 w-full"
+                            />
+                            <span className="text-slate-400 text-xs shrink-0 font-medium">~</span>
+                            <Input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="bg-white text-xs px-2 py-1 h-9 w-full"
+                            />
+                        </div>
                     </div>
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-500 block">유형 필터</label>
