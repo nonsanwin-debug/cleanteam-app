@@ -148,9 +148,43 @@ export default function SettingsPage() {
                                     rows={12}
                                     className="text-sm font-mono"
                                 />
-                                <p className="text-xs text-slate-400">
-                                    사용 가능한 변수: <code className="bg-slate-100 px-1 rounded">{'{은행명}'}</code> <code className="bg-slate-100 px-1 rounded">{'{계좌번호}'}</code> <code className="bg-slate-100 px-1 rounded">{'{잔금}'}</code> <code className="bg-slate-100 px-1 rounded">{'{추가금}'}</code> <code className="bg-slate-100 px-1 rounded">{'{합계}'}</code>
-                                </p>
+                                
+                                {/* Placeholder Information Section */}
+                                <div className="mt-3 bg-slate-50/50 border border-slate-200 rounded-xl p-4 text-xs space-y-3">
+                                    <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                                        <span>💡 플레이스홀더(Placeholder) 안내</span>
+                                    </div>
+                                    <p className="text-slate-500 leading-normal">
+                                        문자 발송 시 템플릿의 중괄호 영역은 해당 현장의 실제 상세 정보로 자동 치환되어 발송됩니다.
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-white p-3 rounded-lg border border-slate-200/60 shadow-sm">
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">{'{은행명}'}</code>
+                                            <span className="text-slate-600 text-[11px]">&apos;은행명&apos; 칸에 입력한 내용이 들어갑니다.</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">{'{계좌번호}'}</code>
+                                            <span className="text-slate-600 text-[11px]">&apos;계좌번호&apos; 칸에 입력한 내용이 들어갑니다.</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">{'{잔금}'}</code>
+                                            <span className="text-slate-600 text-[11px]">초기에 현장에 설정했던 잔금 금액이 들어갑니다.</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">{'{추가금}'}</code>
+                                            <span className="text-slate-600 text-[11px]">현장에서 발생한 추가금 입력 시 기입됩니다.</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                            <code className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">{'{합계}'}</code>
+                                            <span className="text-slate-600 text-[11px]">잔금과 추가금을 합산한 총 금액이 들어갑니다.</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 leading-relaxed bg-slate-100/50 p-3 rounded-lg border border-slate-200/50">
+                                        <p className="font-semibold text-slate-700 mb-1">※ 사용 팁 및 주의사항</p>
+                                        <p className="mt-1">• 내용에서 플레이스홀더를 임의로 지우고 문자 템플릿을 발송하셔도 기능상 문제가 없습니다.</p>
+                                        <p className="mt-1">• 플레이스홀더를 다시 삽입하고 싶으실 땐, 중괄호 기호 <code className="bg-white px-1 py-0.5 border text-slate-700 font-mono rounded">{'{ }'}</code> 안에 알맞은 단어 (은행명, 계좌번호, 잔금, 추가금, 합계)를 그대로 입력하시면 언제든지 재적용됩니다.</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="bg-slate-50 border rounded-lg p-3 mt-2">
