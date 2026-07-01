@@ -402,8 +402,43 @@ export async function getMySharedOrders() {
     }
     if (!orders || orders.length === 0) return []
 
+    // 원본 현장이 삭제되었거나 존재하지 않는 오더 필터링
+    const originalSiteIds = orders
+        .map((o: any) => o.parsed_details?.original_site_id)
+        .filter(Boolean)
+
+    const existingSiteIds = new Set<string>()
+    const deletedSiteIds = new Set<string>()
+    if (originalSiteIds.length > 0) {
+        const { data: originalSites } = await adminSupabase
+            .from('sites')
+            .select('id, is_deleted')
+            .in('id', originalSiteIds)
+
+        if (originalSites) {
+            originalSites.forEach((s: any) => {
+                existingSiteIds.add(s.id)
+                if (s.is_deleted) {
+                    deletedSiteIds.add(s.id)
+                }
+            })
+        }
+    }
+
+    const filteredOrders = orders.filter((o: any) => {
+        const origId = o.parsed_details?.original_site_id
+        if (origId) {
+            if (!existingSiteIds.has(origId) || deletedSiteIds.has(origId)) {
+                return false
+            }
+        }
+        return true
+    })
+
+    if (filteredOrders.length === 0) return []
+
     // 오픈 상태인 오더들에 대한 지원자 목록 조회
-    const openOrderIds = orders.filter((o: any) => o.status === 'open').map((o: any) => o.id)
+    const openOrderIds = filteredOrders.filter((o: any) => o.status === 'open').map((o: any) => o.id)
     const applicantsGrouped: Record<string, any[]> = {}
 
     if (openOrderIds.length > 0) {
@@ -427,7 +462,7 @@ export async function getMySharedOrders() {
         }
     }
 
-    return orders.map((order: any) => {
+    return filteredOrders.map((order: any) => {
         const isDirectShare = order.parsed_details?.is_direct_share === true
         const isPendingDirect = isDirectShare && order.status === 'open' && order.accepted_by !== null
         const isReclaimedDirect = isDirectShare && order.status === 'cancelled'
