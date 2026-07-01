@@ -269,7 +269,7 @@ export function AdminSiteMap() {
                 .from('sites')
                 .select(`
                     id, name, address, created_at, cleaning_date, start_time,
-                    worker_id, is_shared_out, status, customer_name, customer_phone,
+                    worker_id, status, customer_name, customer_phone,
                     residential_type, area_size, structure_type, special_notes,
                     balance_amount, additional_amount, additional_description, collection_type,
                     worker:users!worker_id (id, name)
@@ -303,6 +303,7 @@ export function AdminSiteMap() {
                     const receivedInfo = receivedOrders?.find((ro: any) => ro.transferred_site_id === site.id)
                     return {
                         ...site,
+                        is_shared_out: !!sharedInfo && sharedInfo.status === 'transferred',
                         shared_info: sharedInfo || null,
                         received_info: receivedInfo || null
                     }
