@@ -285,7 +285,7 @@ export default function WorkerSitePage({ params }: { params: Promise<{ id: strin
             const kakaoObj = (window as any).Kakao
             if (kakaoObj) {
                 if (!kakaoObj.isInitialized()) {
-                    kakaoObj.init(process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '11f1ba1cffe83e7a9fee55aceb7122e1')
+                    kakaoObj.init(process.env.NEXT_PUBLIC_KAKAO_SHARE_KEY || 'b35cc64bd8157efcda468c80b5956eff')
                 }
                 kakaoObj.Share.sendCustom({
                     templateId: Number(process.env.NEXT_PUBLIC_KAKAO_SHARE_TEMPLATE_ID) || 134637,
