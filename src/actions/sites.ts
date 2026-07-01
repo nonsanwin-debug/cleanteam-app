@@ -382,7 +382,46 @@ export async function deleteSite(id: string, deleteReason?: string) {
             return { success: false, error: softDelError.message }
         }
 
-        // linked orders의 상태 업데이트 + 알림
+        // 만약 삭제하는 현장이 공유를 보낸 현장(원본 현장)이라면, 관련 공유 오더도 status = 'deleted'로 처리
+        const { data: allSentOrders } = await adminSupabase
+            .from('shared_orders')
+            .select('id, status, transferred_site_id, parsed_details, company_id')
+            .eq('company_id', userProfile?.company_id)
+            .neq('status', 'deleted')
+
+        const linkedSentOrders = allSentOrders?.filter((o: any) => o.parsed_details?.original_site_id === id) || []
+
+        if (linkedSentOrders.length > 0) {
+            for (const order of linkedSentOrders) {
+                // 공유 오더의 status를 'deleted'로 업데이트하여 발신 목록에서 제외시킴
+                await adminSupabase
+                    .from('shared_orders')
+                    .update({
+                        status: 'deleted',
+                        parsed_details: {
+                            ...(order.parsed_details || {}),
+                            deleted_by: deletedByLabel,
+                            deleted_at: new Date().toISOString(),
+                            original_site_deleted: true
+                        }
+                    })
+                    .eq('id', order.id)
+
+                // 만약 상대방(수신사)이 이미 수락해서 생성된 복제 현장이 있다면, 그 현장도 같이 삭제 처리
+                if (order.transferred_site_id) {
+                    await adminSupabase
+                        .from('sites')
+                        .update({
+                            is_deleted: true,
+                            deleted_at: new Date().toISOString(),
+                            deleted_by_name: `${deletedByLabel} (원본 현장 삭제됨)`
+                        })
+                        .eq('id', order.transferred_site_id)
+                }
+            }
+        }
+
+        // linked orders의 상태 업데이트 + 알림 (이것은 수신사 입장에서 삭제할 때의 로직)
         if (linkedOrders && linkedOrders.length > 0) {
             const myCompanyId = userProfile?.company_id
 
