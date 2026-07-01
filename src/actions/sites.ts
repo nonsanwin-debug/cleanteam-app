@@ -1198,3 +1198,49 @@ export async function requestHappyCallPush(siteId: string, workerId: string) {
         return { success: false, error: e.message || '해피콜 푸시 실패' }
     }
 }
+
+export async function assignSiteLeader(siteId: string, workerId: string | null) {
+    const supabase = await createClient()
+    try {
+        let workerName = null
+        let workerPhone = null
+        if (workerId) {
+            const { data: worker } = await supabase.from('users').select('name, phone').eq('id', workerId).single()
+            if (worker) {
+                workerName = worker.name
+                workerPhone = worker.phone
+            }
+        }
+
+        const { error } = await supabase
+            .from('sites')
+            .update({
+                worker_id: workerId,
+                worker_name: workerName,
+                worker_phone: workerPhone
+            })
+            .eq('id', siteId)
+
+        if (error) throw error
+
+        if (workerId) {
+            try {
+                const { data: site } = await supabase.from('sites').select('name').eq('id', siteId).single()
+                const { sendPushToUser } = await import('@/actions/push')
+                await sendPushToUser(workerId, {
+                    title: '현장 배정 알림',
+                    body: `[${site?.name || '현장'}]에 현장 팀장으로 배정되었습니다.`,
+                    url: '/worker',
+                    tag: 'site-assigned'
+                })
+            } catch (pushErr) {
+                console.error('Failed to send push to leader:', pushErr)
+            }
+        }
+
+        revalidatePath('/admin/sites')
+        return { success: true }
+    } catch (e: any) {
+        return { success: false, error: e.message || '팀장 배정 실패' }
+    }
+}

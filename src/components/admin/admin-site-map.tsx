@@ -7,9 +7,29 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MapPin, Search, Calendar as CalendarIcon, Loader2, Navigation, AlertCircle } from 'lucide-react'
+import { MapPin, Search, Calendar as CalendarIcon, Loader2, Navigation, AlertCircle, Users, Share2 } from 'lucide-react'
 import { format, subDays, addDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { toast } from 'sonner'
+import { assignSiteLeader } from '@/actions/sites'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 interface SiteLocation {
     id: string
@@ -22,6 +42,11 @@ interface SiteLocation {
     workerName?: string
     startTime?: string
     isFallback?: boolean // indicates the coordinate is a fallback (e.g. Dong/Myeon)
+    worker_id?: string | null
+    is_shared_out?: boolean
+    shared_info?: any
+    received_info?: any
+    rawSite?: any
 }
 
 export function AdminSiteMap() {
@@ -47,6 +72,16 @@ export function AdminSiteMap() {
 
     // 회사 필터링
     const [companyId, setCompanyId] = useState<string | null>(null)
+    const [workers, setWorkers] = useState<any[]>([])
+    const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+    // Sharing dialog states
+    const [sharingSite, setSharingSite] = useState<any>(null)
+    const [partnerCode, setPartnerCode] = useState('')
+    const [isValidating, setIsValidating] = useState(false)
+    const [validatedCompany, setValidatedCompany] = useState<any>(null)
+    const [shareNotes, setShareNotes] = useState('')
+    const [isSharing, setIsSharing] = useState(false)
 
     // 0. 로그인된 유저의 company_id 조회
     useEffect(() => {
@@ -66,6 +101,86 @@ export function AdminSiteMap() {
         }
         fetchCompany()
     }, [])
+
+    // 0-1. 팀장 배정을 위한 작업자(workers) 목록 조회
+    useEffect(() => {
+        const fetchWorkers = async () => {
+            const { getWorkers } = await import('@/actions/sites')
+            const data = await getWorkers()
+            setWorkers(data || [])
+        }
+        fetchWorkers()
+    }, [])
+
+    const triggerRefresh = () => setRefreshTrigger(prev => prev + 1)
+
+    async function handleAssignLeader(siteId: string, workerId: string | null) {
+        try {
+            const res = await assignSiteLeader(siteId, workerId)
+            if (res.success) {
+                toast.success('팀장이 변경되었습니다.')
+                triggerRefresh()
+            } else {
+                toast.error(res.error || '팀장 변경 실패')
+            }
+        } catch (err: any) {
+            toast.error('팀장 변경 중 오류가 발생했습니다.')
+        }
+    }
+
+    async function handleValidateCompany() {
+        if (!partnerCode) return
+        setIsValidating(true)
+        try {
+            const { searchCompanyByCode } = await import('@/actions/shared-orders')
+            const result = await searchCompanyByCode(partnerCode)
+            if (result.found && result.companies && result.companies.length > 0) {
+                const comp = result.companies[0]
+                setValidatedCompany({
+                    id: comp.id,
+                    name: comp.name || '',
+                    code: comp.code || ''
+                })
+                toast.success('파트너사가 매칭되었습니다.')
+            } else {
+                toast.error('해당 코드를 가진 업체를 찾을 수 없습니다.')
+            }
+        } catch (error) {
+            toast.error('검증 중 오류가 발생했습니다.')
+        } finally {
+            setIsValidating(false)
+        }
+    }
+
+    async function handleShareSite() {
+        if (!sharingSite || !validatedCompany) return
+        setIsSharing(true)
+        try {
+            const { shareSiteDirectly } = await import('@/actions/shared-orders')
+            const result = await shareSiteDirectly(sharingSite.id, validatedCompany.id, shareNotes)
+            if (result.success) {
+                toast.success('성공적으로 오더가 직접 공유되었습니다.')
+                setSharingSite(null)
+                setPartnerCode('')
+                setValidatedCompany(null)
+                setShareNotes('')
+                triggerRefresh()
+            } else {
+                toast.error(result.error || '오더 공유 실패')
+            }
+        } catch (error) {
+            toast.error('오더 공유 처리 중 오류가 발생했습니다.')
+        } finally {
+            setIsSharing(false)
+        }
+    }
+
+    function handleCloseShareDialog() {
+        setSharingSite(null)
+        setPartnerCode('')
+        setValidatedCompany(null)
+        setShareNotes('')
+    }
 
     const [mapError, setMapError] = useState<string | null>(null)
 
@@ -149,26 +264,53 @@ export function AdminSiteMap() {
             const endOfDay = new Date(targetDate)
             endOfDay.setHours(23, 59, 59, 999)
 
-            const { data, error } = await supabase
+            // Fetch sites
+            const { data: sitesData, error } = await supabase
                 .from('sites')
                 .select(`
                     id, name, address, created_at, cleaning_date, start_time,
-                    worker:users!worker_id (name)
+                    worker_id, is_shared_out, status, customer_name, customer_phone,
+                    residential_type, area_size, structure_type, special_notes,
+                    balance_amount, additional_amount, additional_description, collection_type,
+                    worker:users!worker_id (id, name)
                 `)
                 .eq('company_id', companyId)
                 .not('is_deleted', 'is', true)
                 .or(`cleaning_date.gte.${startOfDay.toISOString()},and(cleaning_date.is.null,created_at.gte.${startOfDay.toISOString()})`)
 
-            if (data && data.length > 0) {
+            if (sitesData && sitesData.length > 0) {
                 // 정확히 해당 날짜에 속하는것만 필터링 (cleaning_date 우선)
-                const filtered = data.filter(s => {
+                const filtered = sitesData.filter(s => {
                     const d = new Date(s.cleaning_date || s.created_at)
                     return d >= startOfDay && d <= endOfDay
+                })
+
+                // Fetch shared orders info to decorate sites
+                const { data: sharedOrders } = await supabase
+                    .from('shared_orders')
+                    .select('id, status, parsed_details, accepted_by, transferred_site_id')
+                    .eq('company_id', companyId)
+                    .neq('status', 'deleted')
+
+                const { data: receivedOrders } = await supabase
+                    .from('shared_orders')
+                    .select('id, status, company_id, transferred_site_id')
+                    .eq('accepted_by', companyId)
+                    .neq('status', 'deleted')
+
+                const decorated = filtered.map((site: any) => {
+                    const sharedInfo = sharedOrders?.find((so: any) => so.parsed_details?.original_site_id === site.id)
+                    const receivedInfo = receivedOrders?.find((ro: any) => ro.transferred_site_id === site.id)
+                    return {
+                        ...site,
+                        shared_info: sharedInfo || null,
+                        received_info: receivedInfo || null
+                    }
                 })
                 
                 // 주소를 좌표로 변환 (비동기 배열 처리)
                 if (geocoder && map) {
-                    convertAddressesToCoords(filtered)
+                    convertAddressesToCoords(decorated)
                 }
             } else {
                 setSites([])
@@ -178,7 +320,7 @@ export function AdminSiteMap() {
         }
 
         fetchSites()
-    }, [targetDate, geocoder, map, companyId])
+    }, [targetDate, geocoder, map, companyId, refreshTrigger])
 
     // 3. 주소를 카카오맵 좌표로 변환 및 지도 이동
     const convertAddressesToCoords = async (rawSites: any[]) => {
@@ -259,7 +401,12 @@ export function AdminSiteMap() {
                     lng: Number(result.x),
                     workerName: wName,
                     startTime: site.start_time,
-                    isFallback: isFallback
+                    isFallback: isFallback,
+                    worker_id: site.worker_id,
+                    is_shared_out: site.is_shared_out,
+                    shared_info: site.shared_info,
+                    received_info: site.received_info,
+                    rawSite: site
                 })
             } else {
                 // Keep the site in the list even if geocoding fails, so it doesn't disappear
@@ -268,7 +415,12 @@ export function AdminSiteMap() {
                     name: site.name,
                     address: site.address,
                     workerName: wName,
-                    startTime: site.start_time
+                    startTime: site.start_time,
+                    worker_id: site.worker_id,
+                    is_shared_out: site.is_shared_out,
+                    shared_info: site.shared_info,
+                    received_info: site.received_info,
+                    rawSite: site
                 })
             }
             // Small delay to prevent hitting the concurrent request limit
@@ -727,6 +879,56 @@ export function AdminSiteMap() {
                                                     </span>
                                                 </div>
                                             )}
+
+                                            {/* Action buttons (팀장 변경 & 오더 공유) */}
+                                            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                                {/* 팀장 변경 버튼 */}
+                                                {!site.is_shared_out ? (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="h-7 text-[11px] font-semibold px-2 flex items-center gap-1 text-slate-700 hover:text-blue-600 hover:bg-blue-50 border-slate-200">
+                                                                <Users className="w-3 h-3 text-slate-500" />
+                                                                팀장 변경
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-48 max-h-60 overflow-y-auto z-[200]">
+                                                            <DropdownMenuLabel className="text-[11px]">팀장 선택</DropdownMenuLabel>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => handleAssignLeader(site.id, null)} className="cursor-pointer text-[11px] font-medium text-slate-500">
+                                                                (미배정)
+                                                            </DropdownMenuItem>
+                                                            {workers.map(w => (
+                                                                <DropdownMenuItem key={w.id} onClick={() => handleAssignLeader(site.id, w.id)} className="cursor-pointer text-[11px] font-medium">
+                                                                    {w.name}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                ) : (
+                                                    <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-bold">
+                                                        공유됨 (읽기전용)
+                                                    </span>
+                                                )}
+
+                                                {/* 오더 공유 버튼 */}
+                                                {(!site.is_shared_out && 
+                                                 (!site.shared_info || site.shared_info.status === 'cancelled' || site.shared_info.status === 'reclaimed') && 
+                                                 (!site.received_info || site.received_info.status === 'cancelled' || site.received_info.status === 'reclaimed')) ? (
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        onClick={() => setSharingSite(site)} 
+                                                        className="h-7 text-[11px] font-semibold px-2 flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                                                    >
+                                                        <Share2 className="w-3 h-3 text-blue-500" />
+                                                        오더 공유
+                                                    </Button>
+                                                ) : site.shared_info && site.shared_info.status !== 'cancelled' && site.shared_info.status !== 'reclaimed' ? (
+                                                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                                                        공유 오더
+                                                    </span>
+                                                ) : null}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -777,6 +979,93 @@ export function AdminSiteMap() {
                     </div>
                 </div>
             </CardContent>
+
+            {/* 오더 공유 다이얼로그 */}
+            <Dialog open={!!sharingSite} onOpenChange={(open) => { if (!open) handleCloseShareDialog(); }}>
+                <DialogContent className="sm:max-w-md z-[200]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Share2 className="w-5 h-5 text-blue-600" />
+                            파트너사 직접 오더 공유
+                        </DialogTitle>
+                        <DialogDescription>
+                            업체명#코드명(4자리 숫자) 형식으로 파트너사를 검색하여 오더를 직접 이관(공유)할 수 있습니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-3">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="예: 클린체크#1234"
+                                value={partnerCode}
+                                onChange={(e) => {
+                                    setPartnerCode(e.target.value)
+                                    setValidatedCompany(null)
+                                }}
+                                disabled={isValidating || isSharing}
+                            />
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={handleValidateCompany}
+                                disabled={!partnerCode.includes('#') || isValidating || isSharing}
+                            >
+                                {isValidating ? '검증 중...' : '검증'}
+                            </Button>
+                        </div>
+
+                        {validatedCompany && (
+                            <div className="space-y-3">
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold">✅ 매칭 파트너사 확인</p>
+                                        <p className="text-xs text-blue-700 mt-0.5">
+                                            업체명: <span className="font-bold">{validatedCompany.name}</span> (#{validatedCompany.code})
+                                        </p>
+                                    </div>
+                                    <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                        매칭됨
+                                    </span>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="share-notes" className="text-xs font-semibold text-slate-600">공유 요청사항 (선택)</Label>
+                                    <Textarea
+                                        id="share-notes"
+                                        placeholder="파트너사에게 전달할 요청사항이나 특이사항을 적어주세요."
+                                        value={shareNotes}
+                                        onChange={(e) => setShareNotes(e.target.value)}
+                                        rows={3}
+                                        className="text-xs text-slate-800"
+                                        disabled={isSharing}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 text-xs space-y-1.5 leading-relaxed">
+                            <p className="font-semibold text-slate-800">📌 공유 시 통제 규칙 및 동의</p>
+                            <p>• 이관 완료 시 파트너사 소속으로 새로운 현장이 생성됩니다.</p>
+                            <p>• 발신사(나)의 목록에는 원래 카드가 <span className="font-bold text-orange-600">읽기 전용</span>으로 보존됩니다.</p>
+                            <p>• 읽기 전용 전환 후에는 <span className="font-semibold">팀원 배정, 삭제, 수정, 채팅 참여</span>가 모두 엄격히 차단됩니다.</p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleCloseShareDialog}
+                            disabled={isSharing}
+                        >
+                            취소
+                        </Button>
+                        <Button
+                            onClick={handleShareSite}
+                            disabled={!validatedCompany || isSharing}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            {isSharing ? '공유 중...' : '공유 실행'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Card>
     )
 }
