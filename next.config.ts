@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zfaagizkdixopldhqixv.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmYWFnaXprZGl4b3BsZGhxaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDA1MTQsImV4cCI6MjA4NTg3NjUxNH0.SnQXSR0AO44NeWO0xv1WdOZ8dfJrn6pKRiJWOHPrOWI',
-    NEXT_PUBLIC_KAKAO_MAP_KEY: process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || 'b35cc64bd8157efcda468c80b5956eff',
-    NEXT_PUBLIC_KAKAO_REST_KEY: process.env.NEXT_PUBLIC_KAKAO_REST_KEY || 'a53f6232d8f1359a7ae209f983bf87f5',
+    NEXT_PUBLIC_KAKAO_MAP_KEY: process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || '11f1ba1cffe83e7a9fee55aceb7122e1',
+    NEXT_PUBLIC_KAKAO_REST_KEY: process.env.NEXT_PUBLIC_KAKAO_REST_KEY || '5e3ef64e4e463851eaa2cde107acb55c',
   },
   images: {
     remotePatterns: [
