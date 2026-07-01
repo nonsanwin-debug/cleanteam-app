@@ -125,7 +125,7 @@ export default async function AdminDashboard() {
                         })()}
                     </CardContent>
                 </Card>
-                <Card className="hidden md:block col-span-1 md:col-span-1 lg:col-span-3">
+                <Card className="col-span-1 md:col-span-1 lg:col-span-3">
                     <CardHeader>
                         <CardTitle>알림</CardTitle>
                     </CardHeader>

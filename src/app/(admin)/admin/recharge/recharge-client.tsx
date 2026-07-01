@@ -312,7 +312,8 @@ export function RechargeClient({ currentCash, currentPoints, requests }: Props) 
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            {/* Desktop View: Table */}
+                            <table className="w-full text-sm hidden md:table">
                                 <thead>
                                     <tr className="border-b border-slate-100 bg-slate-50/50">
                                         <th className="font-medium text-slate-500 text-left p-4 pl-6">일시</th>
@@ -336,6 +337,33 @@ export function RechargeClient({ currentCash, currentPoints, requests }: Props) 
                                     ))}
                                 </tbody>
                             </table>
+
+                            {/* Mobile View: Cards */}
+                            <div className="block md:hidden divide-y divide-slate-100">
+                                {requests.map(req => (
+                                    <div key={req.id} className="p-4 flex flex-col gap-2 bg-white text-xs">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[11px] text-slate-400 font-mono">
+                                                {new Date(req.created_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
+                                            </span>
+                                            {translateStatus(req.status)}
+                                        </div>
+                                        <div className="flex items-center justify-between pt-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="bg-slate-100 text-slate-600 text-[9px] px-1.5 py-0.5 rounded font-medium">수단</span>
+                                                <span className="font-semibold text-slate-700">
+                                                    {METHODS.find(m => m.id === req.method)?.label || req.method}
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-extrabold text-sm text-slate-800">
+                                                    {req.amount.toLocaleString()} C
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </CardContent>

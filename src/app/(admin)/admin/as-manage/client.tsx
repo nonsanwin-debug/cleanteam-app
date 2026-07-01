@@ -96,7 +96,8 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                     </div>
                 </div>
 
-                <div className="rounded-md border">
+                {/* Desktop View: Table */}
+                <div className="hidden md:block rounded-md border">
                     <div className="relative w-full overflow-auto">
                         <table className="w-full caption-bottom text-sm">
                             <thead className="[&_tr]:border-b">
@@ -114,7 +115,7 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                             <tbody className="[&_tr:last-child]:border-0">
                                 {filteredRequests.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
                                             등록된 AS 내역이 없습니다.
                                         </td>
                                     </tr>
@@ -173,6 +174,85 @@ export function ASManageClient({ requests, sites, workers }: ASManageClientProps
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                {/* Mobile View: Card List */}
+                <div className="block md:hidden space-y-3">
+                    {filteredRequests.length === 0 ? (
+                        <div className="text-center py-10 text-muted-foreground bg-slate-50 rounded-xl border border-dashed text-sm">
+                            등록된 AS 내역이 없습니다.
+                        </div>
+                    ) : (
+                        filteredRequests.map((req) => (
+                            <div key={req.id} className="bg-white border rounded-xl p-4 shadow-sm space-y-3 text-xs">
+                                {/* Header: Occurred Date & Status Badge */}
+                                <div className="flex items-center justify-between border-b pb-2">
+                                    <span className="text-xs text-muted-foreground font-medium">
+                                        {req.occurred_at} 발생
+                                    </span>
+                                    <Badge variant={
+                                        req.status === 'resolved' ? 'outline' :
+                                            req.status === 'monitoring' ? 'secondary' : 'destructive'
+                                    } className={cn(
+                                        req.status === 'resolved' && "border-green-500 text-green-600 bg-green-50",
+                                        req.status === 'pending' && "bg-red-100 text-red-700 hover:bg-red-200"
+                                    )}>
+                                        {req.status === 'resolved' ? '처리 완료' :
+                                            req.status === 'monitoring' ? '모니터링' : '접수/대기'}
+                                    </Badge>
+                                </div>
+                                
+                                {/* Body: Site & Worker */}
+                                <div className="space-y-2 text-sm">
+                                    <div className="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                                        <span>{req.site?.name || req.site_name}</span>
+                                        {!req.site_id && <Badge variant="outline" className="text-[9px] px-1.5 py-0">수동입력</Badge>}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                        <span className="bg-slate-100 text-slate-600 text-[9px] px-1.5 py-0.5 rounded font-medium">담당 팀장</span>
+                                        <span className="font-semibold text-slate-700" style={{ color: req.worker?.display_color || undefined }}>
+                                            {req.worker?.name || '-'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-150 text-xs mt-2 text-slate-700 whitespace-pre-wrap leading-relaxed shadow-inner">
+                                        <p className="font-bold text-slate-400 mb-1 text-[10px]">📋 AS 요청 내용</p>
+                                        {req.description}
+                                    </div>
+                                    {req.processing_details && (
+                                        <div className="bg-green-50/50 p-3 rounded-lg border border-green-100/50 text-xs mt-2 text-green-800 whitespace-pre-wrap leading-relaxed">
+                                            <p className="font-bold text-green-600/80 mb-1 text-[10px]">🛠️ 처리 결과</p>
+                                            {req.processing_details}
+                                            {req.resolved_at && <div className="text-[10px] text-green-600 mt-1">({req.resolved_at} 완료)</div>}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Footer: Penalty Amount & Action buttons */}
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 block font-medium">차감 금액</span>
+                                        {req.penalty_amount && req.penalty_amount > 0 ? (
+                                            <span className="text-red-500 font-extrabold text-sm">
+                                                -{(req.penalty_amount).toLocaleString()}원
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-400 text-xs font-semibold">-</span>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-1.5">
+                                        <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs gap-1 font-bold shadow-sm" onClick={() => handleEditClick(req)}>
+                                            <Pencil className="h-3 w-3" />
+                                            수정
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs text-red-600 border-red-100 bg-red-50/50 hover:bg-red-50 gap-1 font-bold shadow-sm" onClick={() => handleDeleteClick(req.id)}>
+                                            <Trash2 className="h-3 w-3" />
+                                            삭제
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </CardContent>
 

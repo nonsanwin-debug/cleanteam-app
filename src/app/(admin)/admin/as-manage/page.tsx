@@ -27,7 +27,8 @@ export default async function ASManagePage() {
                     </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            {/* Desktop View: Table */}
+                            <table className="w-full text-sm hidden md:table">
                                 <thead>
                                     <tr className="border-b">
                                         <th className="text-left font-medium p-2 text-muted-foreground">팀장명</th>
@@ -58,6 +59,34 @@ export default async function ASManagePage() {
                                     )}
                                 </tbody>
                             </table>
+
+                            {/* Mobile View: Cards */}
+                            <div className="block md:hidden space-y-3">
+                                {stats.length === 0 ? (
+                                    <div className="text-center py-6 text-muted-foreground italic text-xs">
+                                        데이터가 없습니다.
+                                    </div>
+                                ) : (
+                                    stats.map((stat) => (
+                                        <div key={stat.id} className="p-3 border rounded-lg bg-slate-50/50 flex items-center justify-between text-xs shadow-sm">
+                                            <div className="space-y-1">
+                                                <span className="font-semibold text-slate-800 text-sm block">{stat.name}</span>
+                                                <div className="text-slate-500 flex gap-2">
+                                                    <span>완료: <strong className="text-slate-700">{stat.completedCount}건</strong></span>
+                                                    <span>•</span>
+                                                    <span>AS: <strong className="text-red-600">{stat.asCount}건</strong></span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] text-slate-400 block mb-0.5 font-medium">발생률</span>
+                                                <Badge variant={Number(stat.rate) > 10 ? 'destructive' : 'secondary'} className="text-[11px] font-bold">
+                                                    {stat.rate}%
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
