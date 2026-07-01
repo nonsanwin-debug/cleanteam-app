@@ -383,6 +383,22 @@ export function AdminSiteMap() {
                     }
                 }
             }
+
+            // 2-1. 동/면/읍 단위로도 실패할 경우, 포털 검색 Fallback 시도
+            if (!result) {
+                try {
+                    const { getFallbackAddress } = await import('@/actions/map')
+                    const fallbackAddr = await getFallbackAddress(site.address)
+                    if (fallbackAddr) {
+                        result = await searchAddress(fallbackAddr)
+                        if (result) {
+                            isFallback = true
+                        }
+                    }
+                } catch (fallbackErr) {
+                    console.error('Web search fallback failed for:', site.address, fallbackErr)
+                }
+            }
             
             // Extract worker name
             let wName = ''
@@ -569,7 +585,28 @@ export function AdminSiteMap() {
                     if (placeStatus === window.kakao.maps.services.Status.OK) {
                         placeSearchResult(Number(placeResult[0].y), Number(placeResult[0].x))
                     } else {
-                        alert('주소를 찾을 수 없습니다. 정확한 도로명/지번 또는 장소명을 입력해주세요.')
+                        // 3차: 웹 검색 Fallback 시도
+                        const tryWebFallback = async () => {
+                            try {
+                                const { getFallbackAddress } = await import('@/actions/map')
+                                const fallbackAddr = await getFallbackAddress(searchQuery)
+                                if (fallbackAddr) {
+                                    geocoder.addressSearch(fallbackAddr, (fbResult: any, fbStatus: any) => {
+                                        if (fbStatus === window.kakao.maps.services.Status.OK) {
+                                            placeSearchResult(Number(fbResult[0].y), Number(fbResult[0].x))
+                                            toast.info(`검색어에 매칭되는 대체 주소(${fallbackAddr})를 찾았습니다.`)
+                                            return
+                                        }
+                                        alert('주소를 찾을 수 없습니다. 정확한 도로명/지번 또는 장소명을 입력해주세요.')
+                                    })
+                                } else {
+                                    alert('주소를 찾을 수 없습니다. 정확한 도로명/지번 또는 장소명을 입력해주세요.')
+                                }
+                            } catch (e) {
+                                alert('주소를 찾을 수 없습니다. 정확한 도로명/지번 또는 장소명을 입력해주세요.')
+                            }
+                        }
+                        tryWebFallback()
                     }
                 })
             }

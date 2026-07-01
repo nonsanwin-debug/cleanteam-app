@@ -58,3 +58,38 @@ export async function getKakaoDrivingRoute(origin: LatLng, destination: LatLng) 
         return null
     }
 }
+
+export async function getFallbackAddress(query: string) {
+    if (!query) return null
+    try {
+        const url = `https://search.naver.com/search.naver?query=${encodeURIComponent(query + ' 주소')}`
+        const res = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        })
+        if (!res.ok) return null
+        const html = await res.text()
+
+        const addressRegex = /(?:(?:서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)[가-힣]*[시도]\s+)?(?:[가-힣]+[구군시]\s+)?(?:[가-힣]+[동면읍리]\s+)?(?:[가-힣A-Za-z\d]+[로길]\s+\d+(?:-\d+)?)/g
+        const matches = html.match(addressRegex) || []
+
+        const citiesAndProvinces = ['서울', '인천', '대전', '대구', '광주', '울산', '부산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
+        const filtered = matches.filter(addr => {
+            if (!addr.includes(' ')) return false
+            const hasCity = citiesAndProvinces.some(c => addr.startsWith(c))
+            const hasDistrict = /[구군시]\s+/.test(addr)
+            const hasDong = /[동면읍리]\s+/.test(addr)
+            return hasCity || hasDistrict || hasDong
+        })
+
+        if (filtered.length > 0) {
+            const unique = Array.from(new Set(filtered))
+            return unique[0]
+        }
+        return null
+    } catch (e) {
+        console.error('getFallbackAddress error:', e)
+        return null
+    }
+}
