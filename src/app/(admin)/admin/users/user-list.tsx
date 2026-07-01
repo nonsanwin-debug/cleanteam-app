@@ -262,46 +262,7 @@ export function UserList({ users, commissionLogs = [] }: { users: UserWithClaims
                                         )}
                                     </div>
 
-                                    {/* Commission & Adjustment History */}
-                                    {(() => {
-                                        const workerLogs = commissionLogs.filter(log => log.user_id === user.id)
-                                        if (workerLogs.length === 0) return null
-                                        return (
-                                            <div className="pt-2">
-                                                <button
-                                                    onClick={() => setHistoryOpen(historyOpen === user.id ? null : user.id)}
-                                                    className="flex items-center justify-between w-full text-xs px-2.5 py-1.5 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Receipt className="w-3.5 h-3.5 text-blue-600" />
-                                                        <span className="text-blue-700 font-medium">
-                                                            정산 기록 ({workerLogs.length}건)
-                                                        </span>
-                                                    </div>
-                                                    {historyOpen === user.id ? (
-                                                        <ChevronUp className="w-3.5 h-3.5 text-blue-500" />
-                                                    ) : (
-                                                        <ChevronDown className="w-3.5 h-3.5 text-blue-500" />
-                                                    )}
-                                                </button>
-                                                {historyOpen === user.id && (
-                                                    <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
-                                                        {workerLogs.map(log => (
-                                                            <div key={log.id} className="flex items-center justify-between px-2.5 py-1 text-[11px] bg-slate-50 border rounded">
-                                                                <span className="text-slate-600 truncate mr-2 text-[10px]">{log.description}</span>
-                                                                <div className="flex items-center gap-2 shrink-0">
-                                                                    <span className={`font-semibold text-[10px] ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
-                                                                        {log.type === 'manual_deduct' ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
-                                                                    </span>
-                                                                    <span className="text-slate-400 text-[9px]">{new Date(log.created_at).toLocaleDateString()}</span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )
-                                    })()}
+
 
                                     <div className="border-t pt-3">
                                         <h4 className="text-sm font-semibold flex items-center justify-between mb-2">
