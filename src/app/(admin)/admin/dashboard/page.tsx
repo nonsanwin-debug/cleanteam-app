@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AdminSiteMap } from '@/components/admin/admin-site-map'
 import { ActiveSiteItem } from './active-site-item'
 import { DashboardHeader } from "@/components/admin/dashboard-header"
+import { getPlatformSettings } from "@/actions/platform-settings"
 
 function calculateDuration(start?: string, end?: string) {
     if (!start) return "알 수 없음"
@@ -34,16 +35,17 @@ function formatTime(isoString?: string) {
 }
 
 export default async function AdminDashboard() {
-    const [stats, activeSites, recentActivities] = await Promise.all([
+    const [stats, activeSites, recentActivities, settings] = await Promise.all([
         getDashboardStats(),
         getTodayActivitySites(),
-        getRecentActivities()
+        getRecentActivities(),
+        getPlatformSettings()
     ])
 
     return (
         <div className="space-y-4 md:space-y-6">
             {/* ... (KPI Cards remain same) ... */}
-            <DashboardHeader />
+            <DashboardHeader hideGuideButton={settings.hide_guide_button} />
 
             {/* KPI Cards */}
             {/* KPI Cards */}

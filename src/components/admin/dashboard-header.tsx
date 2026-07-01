@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Sparkles, HelpCircle, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export function DashboardHeader() {
+export function DashboardHeader({ hideGuideButton = false }: { hideGuideButton?: boolean }) {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
     const [isIOS, setIsIOS] = useState(false)
     const [isStandalone, setIsStandalone] = useState(false)
@@ -78,14 +78,16 @@ export function DashboardHeader() {
                         바탕화면에 앱 설치
                     </Button>
                 )}
-                <Button
-                    onClick={handleTriggerTour}
-                    variant="outline"
-                    className="h-9 px-3.5 rounded-lg border-blue-200 bg-blue-50/30 hover:bg-blue-50 text-blue-700 font-bold text-xs gap-1.5 transition-all duration-200 shadow-sm"
-                >
-                    <HelpCircle className="w-4 h-4 text-blue-600 shrink-0" />
-                    서비스 가이드 다시보기
-                </Button>
+                {!hideGuideButton && (
+                    <Button
+                        onClick={handleTriggerTour}
+                        variant="outline"
+                        className="h-9 px-3.5 rounded-lg border-blue-200 bg-blue-50/30 hover:bg-blue-50 text-blue-700 font-bold text-xs gap-1.5 transition-all duration-200 shadow-sm"
+                    >
+                        <HelpCircle className="w-4 h-4 text-blue-600 shrink-0" />
+                        서비스 가이드 다시보기
+                    </Button>
+                )}
             </div>
         </div>
     )

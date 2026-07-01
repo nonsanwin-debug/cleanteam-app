@@ -17,6 +17,7 @@ export default function MasterLaunchControlPage() {
         hide_wallet_features: false,
         hide_admin_photo_zone_setup: false,
         hide_cleaning_fee_examples: false,
+        hide_guide_button: false,
     })
 
     const supabase = createClient()
@@ -31,6 +32,7 @@ export default function MasterLaunchControlPage() {
                     hide_wallet_features: data.hide_wallet_features ?? false,
                     hide_admin_photo_zone_setup: data.hide_admin_photo_zone_setup ?? false,
                     hide_cleaning_fee_examples: data.hide_cleaning_fee_examples ?? false,
+                    hide_guide_button: data.hide_guide_button ?? false,
                 })
             } catch (err) {
                 toast.error('설정을 불러오는 중 오류가 발생했습니다.')
@@ -163,6 +165,23 @@ export default function MasterLaunchControlPage() {
                                 onCheckedChange={(c) => setSettings(prev => ({ ...prev, hide_cleaning_fee_examples: c }))}
                             />
                         </div>
+
+                        {/* 서비스 가이드 버튼 숨기기 */}
+                        <div className="flex items-start justify-between p-5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                            <div className="flex-1 pr-4">
+                                <Label className="text-base font-bold text-slate-800 cursor-pointer" htmlFor="hide-guide-btn">
+                                    서비스 가이드 버튼 숨기기
+                                </Label>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    활성화 시 대시보드 화면 우측 상단의 "서비스 가이드 다시보기" 버튼이 숨겨집니다.
+                                </p>
+                            </div>
+                            <Switch
+                                id="hide-guide-btn"
+                                checked={settings.hide_guide_button}
+                                onCheckedChange={(c) => setSettings(prev => ({ ...prev, hide_guide_button: c }))}
+                            />
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -178,6 +197,7 @@ export default function MasterLaunchControlPage() {
                         <p>• <strong>관리포인트 & 캐쉬:</strong> {settings.hide_wallet_features ? '🚫 숨김 적용 중 (잔액 부족 시에도 정산 지급 가능)' : '✅ 정상 노출 중'}</p>
                         <p>• <strong>사진 구역 설정:</strong> {settings.hide_admin_photo_zone_setup ? '🚫 숨김 적용 중' : '✅ 정상 노출 중'}</p>
                         <p>• <strong>추가금액 사유 문구:</strong> {settings.hide_cleaning_fee_examples ? '🧹 청소 예시 감춤 (범용 예시 표시)' : '✅ 청소 예시 노출 중'}</p>
+                        <p>• <strong>서비스 가이드 버튼:</strong> {settings.hide_guide_button ? '🚫 숨김 적용 중' : '✅ 정상 노출 중'}</p>
                     </CardContent>
                 </Card>
             </div>

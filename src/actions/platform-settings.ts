@@ -12,6 +12,7 @@ export interface PlatformSettings {
     hide_admin_photo_zone_setup: boolean
     hide_cleaning_fee_examples: boolean
     disable_deleted_site_reporting: boolean
+    hide_guide_button: boolean
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {
@@ -21,6 +22,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
     hide_admin_photo_zone_setup: false,
     hide_cleaning_fee_examples: false,
     disable_deleted_site_reporting: true, // Default to true (not reported)
+    hide_guide_button: true, // Default to true (hidden)
 }
 
 /**
@@ -46,6 +48,8 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
         const hide_cleaning_fee_examples = aliasNames.includes('__hide_cleaning_fee_examples:true')
         // Reporting is disabled by default unless explicitly set to false
         const disable_deleted_site_reporting = !aliasNames.includes('__disable_deleted_site_reporting:false')
+        // Hide guide button: default to true unless explicitly set to false
+        const hide_guide_button = !aliasNames.includes('__hide_guide_button:false')
 
         return {
             global_free_old_building: data.global_free_old_building ?? false,
@@ -54,6 +58,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
             hide_admin_photo_zone_setup,
             hide_cleaning_fee_examples,
             disable_deleted_site_reporting,
+            hide_guide_button,
         }
     } catch {
         return DEFAULT_SETTINGS
@@ -105,11 +110,16 @@ export async function updatePlatformSettings(
         const disableReporting = settings.disable_deleted_site_reporting !== undefined
             ? settings.disable_deleted_site_reporting
             : !(existing?.feed_alias_names || []).includes('__disable_deleted_site_reporting:false')
+        const hideGuide = settings.hide_guide_button !== undefined
+            ? settings.hide_guide_button
+            : !(existing?.feed_alias_names || []).includes('__hide_guide_button:false')
 
         if (hideWallet) currentAliasNames.push('__hide_wallet_features:true')
         if (hidePhoto) currentAliasNames.push('__hide_admin_photo_zone_setup:true')
         if (hideExamples) currentAliasNames.push('__hide_cleaning_fee_examples:true')
         if (!disableReporting) currentAliasNames.push('__disable_deleted_site_reporting:false')
+        if (hideGuide) currentAliasNames.push('__hide_guide_button:true') // Though not technically needed since default is true, let's be clean
+        if (!hideGuide) currentAliasNames.push('__hide_guide_button:false')
 
         if (existing) {
             const { error } = await adminClient

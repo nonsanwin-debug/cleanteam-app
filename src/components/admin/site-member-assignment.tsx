@@ -115,8 +115,8 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
         }
     }
 
-    // 팀원 필터 (leader가 아닌 모든 워커)
-    const members = workers.filter(w => w.worker_type !== 'leader')
+    // 모든 워커 (팀장 및 팀원 전체) 배정 가능
+    const members = workers
 
     // 워커 ID → 워커 정보 맵
     const workerMap = new Map(workers.map(w => [w.id, w]))
@@ -131,12 +131,42 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
 
     function handleAssign(siteId: string, userId: string) {
         startTransition(async () => {
-            const result = await addSiteMember(siteId, userId)
-            if (result.success) {
-                toast.success('팀원이 배정되었습니다')
-                router.refresh()
+            const worker = workerMap.get(userId)
+            const site = sites.find(s => s.id === siteId)
+            if (!site) return
+
+            if (site.worker_id === userId) {
+                toast.error('이미 해당 현장의 팀장으로 배정되어 있습니다.')
+                setSelectedMember(null)
+                return
+            }
+
+            const assigned = siteMembersMap.get(siteId) || []
+            if (assigned.some(sm => sm.user_id === userId)) {
+                toast.error('이미 해당 현장에 배정되어 있습니다.')
+                setSelectedMember(null)
+                return
+            }
+
+            if (worker?.worker_type === 'leader' && !site.worker_id) {
+                // 미배정일때 배정된 팀장 -> 실제적 팀장(worker_id)으로 배정
+                const { assignSiteLeader } = await import('@/actions/sites')
+                const result = await assignSiteLeader(siteId, userId)
+                if (result.success) {
+                    toast.success('팀장이 현장 책임자로 배정되었습니다')
+                    router.refresh()
+                } else {
+                    toast.error(result.error || '팀장 배정 실패')
+                }
             } else {
-                toast.error(result.error || '배정 실패')
+                // 팀장이 이미 배정되어 있거나, 일반 팀원인 경우 -> 팀원 자격으로 배정
+                const result = await addSiteMember(siteId, userId)
+                if (result.success) {
+                    toast.success(worker?.worker_type === 'leader' ? '팀장이 팀원 자격으로 배정되었습니다' : '팀원이 배정되었습니다')
+                    router.refresh()
+                } else {
+                    toast.error(result.error || '배정 실패')
+                }
             }
             setSelectedMember(null)
         })
@@ -218,7 +248,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                 <div id="section-member-assignment" className="bg-white rounded-lg border p-4">
                     <div className="flex items-center gap-2 mb-3">
                         <Users className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm font-semibold text-slate-700">팀원 배정 (드래그로 배정가능)</span>
+                        <span className="text-sm font-semibold text-slate-700">팀장 및 팀원 배정 (드래그로 배정가능)</span>
                         {selectedMember && (
                             <span className="text-xs text-blue-600 ml-2 animate-pulse">
                                 → 배정할 현장을 선택하세요
@@ -265,7 +295,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                     }}
                                 >
                                     <GripHorizontal className="h-3 w-3 opacity-40" />
-                                    {member.name}
+                                    {member.name} {member.worker_type === 'leader' ? '(팀장)' : ''}
                                 </div>
                             )
                         })}
@@ -499,7 +529,7 @@ export function SiteMemberAssignment({ sites, workers, siteMembers, siteActions 
                                                     <span key={sm.user_id} className="inline-flex items-center">
                                                         <span className="text-slate-300 mx-1">/</span>
                                                         <span className="text-xs font-medium" style={{ color: memberInfo?.display_color || '#64748b' }}>
-                                                            (팀원){memberInfo?.name || '팀원'}
+                                                            ({memberInfo?.worker_type === 'leader' ? '팀원-팀장' : '팀원'}){memberInfo?.name || '팀원'}
                                                         </span>
                                                     </span>
                                                 )
