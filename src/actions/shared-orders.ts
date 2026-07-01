@@ -37,48 +37,87 @@ export async function searchCompanyByCode(input: string) {
     if (!companyId) return { found: false, error: '인증 실패', companies: [] }
 
     const adminSupabase = createAdminClient()
+    const trimmedInput = input.trim()
 
-    // 입력 파싱: 이름#코드 또는 코드만
-    let searchCode = input.trim()
-    let searchName = ''
-    const hashIndex = input.lastIndexOf('#')
+    // 1. 이름#코드 형식
+    const hashIndex = trimmedInput.lastIndexOf('#')
     if (hashIndex !== -1) {
-        searchName = input.substring(0, hashIndex).trim()
-        searchCode = input.substring(hashIndex + 1).trim()
+        const searchName = trimmedInput.substring(0, hashIndex).trim()
+        let searchCode = trimmedInput.substring(hashIndex + 1).trim().replace(/[^0-9]/g, '')
+        
+        if (searchCode.length !== 4) {
+            return { found: false, error: '4자리 코드를 입력하세요. (예: 이름#0000)', companies: [] }
+        }
+
+        const { data, error } = await adminSupabase
+            .from('companies')
+            .select('id, name, sharing_enabled, code')
+            .eq('code', searchCode)
+
+        if (error) {
+            return { found: false, error: error.message, companies: [] }
+        }
+
+        const normalizedInput = searchName.replace(/\s/g, '').toLowerCase()
+        let filtered = data ? data.filter(c => c.name?.replace(/\s/g, '').toLowerCase() === normalizedInput) : []
+        
+        // 자사 업체 제외
+        filtered = filtered.filter(c => c.id !== companyId)
+        
+        if (filtered.length === 0) {
+            return { found: false, error: `해당하는 업체를 찾을 수 없습니다.`, companies: [] }
+        }
+        return { found: true, companies: filtered }
     }
 
-    // 숫자만 추출
-    searchCode = searchCode.replace(/[^0-9]/g, '')
-    if (searchCode.length !== 4) return { found: false, error: '4자리 코드를 입력하세요. (예: 클린체크#0000)', companies: [] }
+    // 2. #가 없는 경우
+    // 2-1. 숫자만 4자리인 경우 (코드 검색)
+    const isNumeric = /^\d+$/.test(trimmedInput)
+    if (isNumeric) {
+        if (trimmedInput.length !== 4) {
+            return { found: false, error: '코드는 4자리 숫자여야 합니다.', companies: [] }
+        }
+
+        const { data, error } = await adminSupabase
+            .from('companies')
+            .select('id, name, sharing_enabled, code')
+            .eq('code', trimmedInput)
+
+        if (error) {
+            return { found: false, error: error.message, companies: [] }
+        }
+
+        let filtered = data || []
+        // 자사 업체 제외
+        filtered = filtered.filter(c => c.id !== companyId)
+
+        if (filtered.length === 0) {
+            return { found: false, error: '해당 코드를 가진 업체를 찾을 수 없습니다.', companies: [] }
+        }
+        return { found: true, companies: filtered }
+    }
+
+    // 2-2. 한글/영문 등 텍스트인 경우 (이름 검색)
+    if (trimmedInput.length < 2) {
+        return { found: false, error: '검색어는 최소 2글자 이상 입력해주세요.', companies: [] }
+    }
 
     const { data, error } = await adminSupabase
         .from('companies')
         .select('id, name, sharing_enabled, code')
-        .eq('code', searchCode)
+        .ilike('name', `%${trimmedInput}%`)
+        .limit(30)
 
     if (error) {
-        console.error('searchCompanyByCode error:', error)
         return { found: false, error: error.message, companies: [] }
     }
 
-    if (!data || data.length === 0) {
-        return { found: false, error: '존재하지 않는 업체입니다.', companies: [] }
-    }
-
-    // 이름이 입력된 경우 이름도 필터링 (공백 제거 후 비교)
-    let filtered = data
-    if (searchName) {
-        const normalizedInput = searchName.replace(/\s/g, '').toLowerCase()
-        filtered = data.filter(c => c.name?.replace(/\s/g, '').toLowerCase() === normalizedInput)
-        if (filtered.length === 0) {
-            return { found: false, error: `코드 ${searchCode}에 해당하는 "${searchName}" 업체가 없습니다.`, companies: [] }
-        }
-    }
-
+    let filtered = data || []
     // 자사 업체 제외
     filtered = filtered.filter(c => c.id !== companyId)
+
     if (filtered.length === 0) {
-        return { found: false, error: '자사 업체는 등록할 수 없습니다.', companies: [] }
+        return { found: false, error: `"${trimmedInput}" 업체를 찾을 수 없습니다.`, companies: [] }
     }
 
     return { found: true, companies: filtered }

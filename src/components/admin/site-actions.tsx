@@ -56,6 +56,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     const [partnerCode, setPartnerCode] = useState('')
     const [isValidating, setIsValidating] = useState(false)
     const [validatedCompany, setValidatedCompany] = useState<{ id: string; name: string; code: string } | null>(null)
+    const [matchingCompanies, setMatchingCompanies] = useState<any[]>([])
     const [shareNotes, setShareNotes] = useState('')
     const [isSharing, setIsSharing] = useState(false)
     const [isReclaiming, setIsReclaiming] = useState(false)
@@ -63,19 +64,25 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
     async function handleValidateCompany() {
         if (!partnerCode) return
         setIsValidating(true)
+        setValidatedCompany(null)
+        setMatchingCompanies([])
         try {
             const result = await searchCompanyByCode(partnerCode)
             if (result.found && result.companies && result.companies.length > 0) {
-                const comp = result.companies[0]
-                setValidatedCompany({
-                    id: comp.id,
-                    name: comp.name || '',
-                    code: comp.code || ''
-                })
-                toast.success('파트너사가 매칭되었습니다.')
+                setMatchingCompanies(result.companies)
+                if (result.companies.length === 1) {
+                    const comp = result.companies[0]
+                    setValidatedCompany({
+                        id: comp.id,
+                        name: comp.name || '',
+                        code: comp.code || ''
+                    })
+                    toast.success('파트너사가 매칭되었습니다.')
+                } else {
+                    toast.success(`${result.companies.length}개의 파트너사가 검색되었습니다. 아래에서 선택해주세요.`)
+                }
             } else {
                 toast.error(result.error || '업체를 찾을 수 없습니다.')
-                setValidatedCompany(null)
             }
         } catch (error) {
             toast.error('검증 중 오류가 발생했습니다.')
@@ -112,6 +119,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
         setShowShareDialog(false)
         setPartnerCode('')
         setValidatedCompany(null)
+        setMatchingCompanies([])
         setShareNotes('')
     }
 
@@ -318,17 +326,18 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                             파트너사 직접 오더 공유
                         </DialogTitle>
                         <DialogDescription>
-                            업체명#코드명(4자리 숫자) 형식으로 파트너사를 검색하여 오더를 직접 이관(공유)할 수 있습니다.
+                            업체명, 4자리 코드, 또는 업체명#코드명 형식으로 파트너사를 검색하여 오더를 직접 이관(공유)할 수 있습니다.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-3">
                         <div className="flex gap-2">
                             <Input
-                                placeholder="예: 클린체크#1234"
+                                placeholder="예: 바른케어, 1234, 또는 클린체크#1234"
                                 value={partnerCode}
                                 onChange={(e) => {
                                     setPartnerCode(e.target.value)
                                     setValidatedCompany(null)
+                                    setMatchingCompanies([])
                                 }}
                                 disabled={isValidating || isSharing}
                             />
@@ -336,11 +345,40 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                                 type="button" 
                                 variant="outline" 
                                 onClick={handleValidateCompany}
-                                disabled={!partnerCode.includes('#') || isValidating || isSharing}
+                                disabled={!partnerCode.trim() || isValidating || isSharing}
                             >
-                                {isValidating ? '검증 중...' : '검증'}
+                                {isValidating ? '검색 중...' : '검색'}
                             </Button>
                         </div>
+
+                        {matchingCompanies.length > 1 && (
+                            <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-white max-h-40 overflow-y-auto">
+                                <p className="text-xs font-bold text-slate-600 mb-1">검색된 파트너사 선택 ({matchingCompanies.length}개)</p>
+                                <div className="space-y-1.5">
+                                    {matchingCompanies.map((comp) => (
+                                        <button
+                                            key={comp.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setValidatedCompany({
+                                                    id: comp.id,
+                                                    name: comp.name || '',
+                                                    code: comp.code || ''
+                                                })
+                                            }}
+                                            className={`w-full text-left text-xs px-2.5 py-2 rounded border flex items-center justify-between transition-colors ${
+                                                validatedCompany?.id === comp.id
+                                                    ? 'border-blue-500 bg-blue-50/50 text-blue-700 font-bold'
+                                                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                                            }`}
+                                        >
+                                            <span>{comp.name}</span>
+                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">#{comp.code}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {validatedCompany && (
                             <div className="space-y-3">
@@ -352,7 +390,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                                         </p>
                                     </div>
                                     <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                                        매칭됨
+                                        선택됨
                                     </span>
                                 </div>
                                 <div className="space-y-1.5">
@@ -363,7 +401,7 @@ export function SiteActions({ site, workers }: SiteActionsProps) {
                                         value={shareNotes}
                                         onChange={(e) => setShareNotes(e.target.value)}
                                         rows={3}
-                                        className="text-xs"
+                                        className="text-xs text-slate-800"
                                         disabled={isSharing}
                                     />
                                 </div>
