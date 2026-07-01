@@ -258,13 +258,59 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                         <p className="text-sm text-slate-500">{worker.phone}</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-1">
-                                    <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
-                                        {worker.worker_type === 'leader' ? '팀장' : '팀원'}
-                                    </Badge>
-                                    {worker.status === 'pending' && (
-                                        <Badge variant="destructive" className="text-[10px] py-0">승인대기</Badge>
-                                    )}
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                    <div className="flex items-center gap-1.5">
+                                        <Badge variant={worker.worker_type === 'leader' ? 'default' : 'secondary'}>
+                                            {worker.worker_type === 'leader' ? '팀장' : '팀원'}
+                                        </Badge>
+                                        {worker.status === 'pending' && (
+                                            <Badge variant="destructive" className="text-[10px] py-0">승인대기</Badge>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        {worker.status === 'pending' ? (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-7 px-2 text-xs border-green-300 text-green-600 hover:bg-green-50"
+                                                onClick={() => handleApprove(worker.id)}
+                                                disabled={!!processingId}
+                                            >
+                                                {processingId === worker.id ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    '가입 승인'
+                                                )}
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-7 px-2 text-xs border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                onClick={() => handleRoleChange(worker.id, worker.worker_type)}
+                                                disabled={!!processingId}
+                                            >
+                                                {processingId === worker.id ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    worker.worker_type === 'leader' ? '강등' : '승격'
+                                                )}
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            className="h-7 w-7 text-red-500 border-red-200 hover:bg-red-50"
+                                            onClick={() => handleDelete(worker.id, worker.name)}
+                                            disabled={!!deleteLoading}
+                                        >
+                                            {deleteLoading === worker.id ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            )}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -460,112 +506,6 @@ export function WorkerManagementList({ workers, commissionLogs = [] }: { workers
                                     </div>
                                 )}
                             </div>
-
-
-
-                            {/* Commission & Adjustment History */}
-                            {(() => {
-                                const workerLogs = commissionLogs.filter(log => log.user_id === worker.id)
-                                if (workerLogs.length === 0) return null
-                                return (
-                                    <div className="mb-4">
-                                        <button
-                                            onClick={() => setHistoryOpen(historyOpen === worker.id ? null : worker.id)}
-                                            className="flex items-center justify-between w-full text-sm px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Receipt className="w-4 h-4 text-blue-600" />
-                                                <span className="text-blue-700 font-medium">
-                                                    정산 기록 ({workerLogs.length}건)
-                                                </span>
-                                            </div>
-                                            {historyOpen === worker.id ? (
-                                                <ChevronUp className="w-4 h-4 text-blue-500" />
-                                            ) : (
-                                                <ChevronDown className="w-4 h-4 text-blue-500" />
-                                            )}
-                                        </button>
-                                        {historyOpen === worker.id && (
-                                            <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
-                                                {workerLogs.map(log => (
-                                                    <div key={log.id} className="flex items-center justify-between px-3 py-1.5 text-xs bg-slate-50 border rounded">
-                                                        <span className="text-slate-600 truncate mr-2">{log.description}</span>
-                                                        <div className="flex items-center gap-3 shrink-0">
-                                                            <span className={`font-semibold ${log.type === 'manual_deduct' ? 'text-red-600' : 'text-green-600'}`}>
-                                                                {log.type === 'manual_deduct' ? '-' : '+'}{Math.abs(log.amount).toLocaleString()}원
-                                                            </span>
-                                                            <span className="text-slate-400">{new Date(log.created_at).toLocaleDateString()}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })()}
-
-                            {worker.status === 'pending' ? (
-                                <Button
-                                    size="sm"
-                                    variant="default"
-                                    className="w-full bg-green-600 hover:bg-green-700"
-                                    onClick={() => handleApprove(worker.id)}
-                                    disabled={!!processingId}
-                                >
-                                    {processingId === worker.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <>
-                                            <UserCheck className="w-4 h-4 mr-1" />
-                                            가입 승인
-                                        </>
-                                    )}
-                                </Button>
-                            ) : (
-                                <Button
-                                    size="sm"
-                                    variant={worker.worker_type === 'leader' ? 'outline' : 'default'}
-                                    className="w-full"
-                                    onClick={() => handleRoleChange(worker.id, worker.worker_type)}
-                                    disabled={!!processingId}
-                                >
-                                    {processingId === worker.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <>
-                                            {worker.worker_type === 'leader' ? (
-                                                <>
-                                                    <ArrowDown className="w-4 h-4 mr-1" />
-                                                    팀원으로 강등
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ArrowUp className="w-4 h-4 mr-1" />
-                                                    팀장으로 승격
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-                                </Button>
-                            )}
-
-                            {/* 삭제 버튼 */}
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full mt-2 text-red-500 border-red-200 hover:bg-red-50"
-                                onClick={() => handleDelete(worker.id, worker.name)}
-                                disabled={!!deleteLoading}
-                            >
-                                {deleteLoading === worker.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        <Trash2 className="w-4 h-4 mr-1" />
-                                        삭제
-                                    </>
-                                )}
-                            </Button>
                         </CardContent>
                     </Card>
                 ))}

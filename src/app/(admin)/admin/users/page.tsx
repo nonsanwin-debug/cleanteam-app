@@ -49,7 +49,7 @@ export default async function UsersPage() {
                     <WorkerManagementList workers={workers} commissionLogs={commissionLogs} />
                 </TabsContent>
                 <TabsContent value="claims" className="mt-6">
-                    <UserList users={users} />
+                    <UserList users={users} commissionLogs={commissionLogs} />
                 </TabsContent>
                 <TabsContent value="withdrawals" className="mt-6">
                     <WithdrawalList requests={withdrawals} />
