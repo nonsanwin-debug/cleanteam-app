@@ -81,7 +81,7 @@ export function AdminInquiriesClient({ initialInquiries }: { initialInquiries: a
                         1:1 문의 / 요청
                     </h1>
                     <p className="text-slate-500 mt-1">
-                        마스터(관리자)에게 배너 광고 등록, 포인트 충전, 기타 문의 사항을 직접 요청할 수 있습니다.
+                        문의 내용을 요청하시면 담당자가 빠르게 연락 드릴 수 있도록 노력하겠습니다.
                     </p>
                 </div>
                 
