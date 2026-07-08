@@ -53,13 +53,87 @@ const SYSTEM_PROMPT = `당신은 청소 업체의 오더 텍스트를 분석하�
 - 연락처가 2개 이상이면 / 로 구분
 - "분양평수"는 area_size로, "방3화2베3"은 structure_type으로 추출`
 
+function cleanJsonResponse(text: string): string {
+    let cleaned = text.trim()
+    // Remove markdown code blocks if present
+    if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/, '')
+        cleaned = cleaned.replace(/\n?```$/, '')
+    }
+    return cleaned.trim()
+}
+
+async function parseWithNvidia(orderText: string, apiKey: string): Promise<ParsedOrder | null> {
+    try {
+        console.log('Attempting order parsing with NVIDIA Llama 3.1 70B...')
+        const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'meta/llama-3.1-70b-instruct',
+                messages: [
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: `--- 오더 텍스트 ---\n${orderText}` }
+                ],
+                temperature: 0.1,
+                max_tokens: 1024,
+                response_format: { type: "json_object" }
+            }),
+            next: { revalidate: 0 }
+        })
+
+        if (!response.ok) {
+            const errData = await response.text()
+            console.error('NVIDIA API returned error status:', response.status, errData)
+            return null
+        }
+
+        const result = await response.json()
+        const rawText = result.choices?.[0]?.message?.content
+        if (!rawText) {
+            console.warn('NVIDIA API returned empty content.')
+            return null
+        }
+
+        const cleaned = cleanJsonResponse(rawText)
+        const parsed: ParsedOrder = JSON.parse(cleaned)
+
+        if (!parsed.name && !parsed.address) {
+            console.warn('NVIDIA parsed result is missing key fields (name/address).')
+            return null
+        }
+
+        console.log('Successfully parsed order with NVIDIA NIM!')
+        return parsed
+    } catch (error) {
+        console.error('Error during NVIDIA NIM parsing:', error)
+        return null
+    }
+}
+
 export async function parseOrderWithAI(orderText: string): Promise<{
     success: boolean
     data?: ParsedOrder
     error?: string
 }> {
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
+    // 1. Try NVIDIA NIM first if key is configured
+    const nvidiaKey = process.env.NVIDIA_API_KEY
+    if (nvidiaKey) {
+        const nvidiaResult = await parseWithNvidia(orderText, nvidiaKey)
+        if (nvidiaResult) {
+            return { success: true, data: nvidiaResult }
+        }
+        console.warn('NVIDIA NIM parsing failed or returned null, falling back to Google Gemini...')
+    } else {
+        console.log('NVIDIA_API_KEY not configured, using Google Gemini directly.')
+    }
+
+    // 2. Fallback to Google Gemini
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) {
         return { success: false, error: 'Gemini API Key가 설정되지 않았습니다.' }
     }
 
@@ -78,12 +152,14 @@ export async function parseOrderWithAI(orderText: string): Promise<{
 
     for (const model of models) {
         try {
+            console.log(`Attempting fallback order parsing with Gemini (${model})...`)
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body
+                    body,
+                    next: { revalidate: 0 }
                 }
             )
 
@@ -104,12 +180,15 @@ export async function parseOrderWithAI(orderText: string): Promise<{
 
             if (!text) continue
 
-            const parsed: ParsedOrder = JSON.parse(text)
+            const cleaned = cleanJsonResponse(text)
+            const parsed: ParsedOrder = JSON.parse(cleaned)
 
             if (!parsed.name && !parsed.address) {
-                return { success: false, error: '현장명 또는 주소를 추출할 수 없습니다.' }
+                console.warn('Gemini parsed result is missing key fields (name/address).')
+                continue
             }
 
+            console.log(`Successfully parsed order with Gemini (${model})!`)
             return { success: true, data: parsed }
         } catch (error: any) {
             console.error(`AI parsing error (${model}):`, error)
