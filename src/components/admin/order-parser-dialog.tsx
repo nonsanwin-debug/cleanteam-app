@@ -54,13 +54,19 @@ export function OrderParserDialog({ workers }: OrderParserDialogProps) {
         setError('')
         setParsed(null)
 
-        const result = await parseOrderWithAI(orderText)
-        if (result.success && result.data) {
-            setParsed(result.data)
-        } else {
-            setError(result.error || '파싱에 실패했습니다.')
+        try {
+            const result = await parseOrderWithAI(orderText)
+            if (result.success && result.data) {
+                setParsed(result.data)
+            } else {
+                setError(result.error || '파싱에 실패했습니다.')
+            }
+        } catch (err: any) {
+            console.error('Error during client-side parse handle:', err)
+            setError(err?.message || 'AI 분석 서버와 통신 중 오류가 발생했습니다.')
+        } finally {
+            setParsing(false)
         }
-        setParsing(false)
     }
 
     const handleRegister = async () => {
