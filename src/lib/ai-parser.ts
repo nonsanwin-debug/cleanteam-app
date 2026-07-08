@@ -117,6 +117,7 @@ async function parseWithNvidia(orderText: string, apiKey: string): Promise<Parse
 export async function parseOrderWithAI(orderText: string): Promise<{
     success: boolean
     data?: ParsedOrder
+    provider?: 'nvidia' | 'gemini'
     error?: string
 }> {
     // 1. Try NVIDIA NIM first if key is configured
@@ -124,7 +125,7 @@ export async function parseOrderWithAI(orderText: string): Promise<{
     if (nvidiaKey) {
         const nvidiaResult = await parseWithNvidia(orderText, nvidiaKey)
         if (nvidiaResult) {
-            return { success: true, data: nvidiaResult }
+            return { success: true, data: nvidiaResult, provider: 'nvidia' }
         }
         console.warn('NVIDIA NIM parsing failed or returned null, falling back to Google Gemini...')
     } else {
@@ -189,7 +190,7 @@ export async function parseOrderWithAI(orderText: string): Promise<{
             }
 
             console.log(`Successfully parsed order with Gemini (${model})!`)
-            return { success: true, data: parsed }
+            return { success: true, data: parsed, provider: 'gemini' }
         } catch (error: any) {
             console.error(`AI parsing error (${model}):`, error)
             continue

@@ -38,6 +38,7 @@ export function SharedOrderParserDialog({ orderId, open, onOpenChange }: SharedO
     const [parsing, setParsing] = useState(false)
     const [registering, setRegistering] = useState(false)
     const [parsed, setParsed] = useState<ParsedData | null>(null)
+    const [provider, setProvider] = useState<'nvidia' | 'gemini' | null>(null)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
 
@@ -46,11 +47,13 @@ export function SharedOrderParserDialog({ orderId, open, onOpenChange }: SharedO
         setParsing(true)
         setError('')
         setParsed(null)
+        setProvider(null)
 
         try {
             const result = await parseOrderWithAI(orderText)
             if (result.success && result.data) {
                 setParsed(result.data)
+                setProvider(result.provider || null)
             } else {
                 setError(result.error || '파싱에 실패했습니다.')
             }
@@ -89,6 +92,7 @@ export function SharedOrderParserDialog({ orderId, open, onOpenChange }: SharedO
     const resetState = () => {
         setOrderText('')
         setParsed(null)
+        setProvider(null)
         setError('')
         setSuccess(false)
     }
@@ -160,8 +164,19 @@ export function SharedOrderParserDialog({ orderId, open, onOpenChange }: SharedO
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-sm text-violet-700">
-                            ✨ AI가 추출한 정보입니다. 수정 후 등록 시 수신 업체로 이관됩니다.
+                        <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-sm text-violet-700 flex justify-between items-center">
+                            <span>✨ AI가 추출한 정보입니다. 수정 후 등록 시 수신 업체로 이관됩니다.</span>
+                            {provider === 'nvidia' ? (
+                                <span className="text-[10px] bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                    NVIDIA Llama 3.1 70B
+                                </span>
+                            ) : (
+                                <span className="text-[10px] bg-blue-100 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                                    Gemini Fallback
+                                </span>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
